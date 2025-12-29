@@ -885,7 +885,7 @@ def generate_pattern_json(fb_path: str, fb_name: str, version: str, author: str,
     """Generate device_pattern JSON according to schema v1.0.2."""
     
     return {
-        "schema_version": "1.0.2",
+        "schema_version": "1.0.3",
         "metadata": {
             "fb_name": fb_name,
             "version": version,

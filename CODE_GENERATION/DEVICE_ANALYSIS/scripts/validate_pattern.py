@@ -97,7 +97,7 @@ def validate_basic(pattern, schema):
     
     # Check portability_gate
     gate = metadata.get('portability_gate', {})
-    if 'status' in gate and gate['status'] not in ['PASS', 'FAIL']:
+    if 'status' in gate and gate['status'] not in ['PASS', 'PASS_WITH_WARNINGS', 'FAIL', 'SKIP']:
         errors.append(f"Invalid portability_gate.status: {gate['status']}")
     
     # Check anti_patterns format
@@ -112,7 +112,7 @@ def validate_basic(pattern, schema):
         
         if 'severity' not in ap:
             errors.append(f"anti_patterns[{i}]: missing 'severity'")
-        elif ap['severity'] not in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']:
+        elif ap['severity'] not in ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'WARNING', 'INFO']:
             errors.append(f"anti_patterns[{i}]: invalid severity '{ap['severity']}'")
     
     # Check constraints derivation

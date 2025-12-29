@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Device Pattern Schema v1.0.2",
-  "description": "Schema for PLC device pattern extraction - Portability-focused",
+  "title": "Device Pattern Schema v1.0.3",
+  "description": "Schema for PLC device pattern extraction - Portability-focused with external dependency detection",
   "type": "object",
   "required": [
     "schema_version",
@@ -16,7 +16,7 @@
   "properties": {
     "schema_version": {
       "type": "string",
-      "const": "1.0.2",
+      "const": "1.0.3",
       "description": "Schema version for migration control"
     },
     "metadata": {
@@ -83,9 +83,11 @@
               "type": "string",
               "enum": [
                 "PASS",
-                "FAIL"
+                "PASS_WITH_WARNINGS",
+                "FAIL",
+                "SKIP"
               ],
-              "description": "FAIL if any CRITICAL portability violation"
+              "description": "PASS=clean, PASS_WITH_WARNINGS=external deps, FAIL=critical, SKIP=exempt block"
             },
             "violations": {
               "type": "array",
@@ -454,7 +456,9 @@
             "hardcoded_db",
             "manual_edge_detection",
             "magic_number",
-            "reimplemented_native"
+            "reimplemented_native",
+            "external_dependency",
+            "portability_skipped"
           ]
         },
         "severity": {
@@ -463,9 +467,11 @@
             "CRITICAL",
             "HIGH",
             "MEDIUM",
-            "LOW"
+            "LOW",
+            "WARNING",
+            "INFO"
           ],
-          "description": "CRITICAL = portability_gate FAIL"
+          "description": "CRITICAL=FAIL, WARNING=external deps, INFO=skipped checks"
         },
         "file": {
           "type": "string"
