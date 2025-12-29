@@ -43,6 +43,12 @@ Guida di riferimento e assistenza per la programmazione **SCL (Structured Contro
 - **Database Funzioni**: Riferimento per oltre 200 funzioni native Siemens.
 - **Anti-Patterns**: Catalogo di errori comuni da evitare durante lo sviluppo.
 
+### 🤖 [CODE GENERATION](./CODE%20GENERATION)
+Framework per l'**analisi automatica** e la **generazione di codice** PLC.
+- **Device Analysis**: Estrae pattern funzionali e taxonomies dai file SCL.
+- **Portability Gate**: Verifica la compatibilità cross-progetto dei blocchi (FB) e rileva dipendenze esterne.
+- **Framework Patterns**: Implementa l'architettura a 5 livelli (L1-L5) per il coordinamento di macchine e aree.
+
 ---
 
 ## 📊 Reports

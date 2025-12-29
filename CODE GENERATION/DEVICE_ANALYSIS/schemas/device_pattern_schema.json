@@ -1,0 +1,496 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Device Pattern Schema v1.0.2",
+  "description": "Schema for PLC device pattern extraction - Portability-focused",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "metadata",
+    "contract",
+    "logic",
+    "patterns",
+    "dependencies",
+    "constraints",
+    "configuration"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.2",
+      "description": "Schema version for migration control"
+    },
+    "metadata": {
+      "type": "object",
+      "required": [
+        "fb_name",
+        "version",
+        "device_family",
+        "device_type"
+      ],
+      "properties": {
+        "fb_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string"
+        },
+        "device_family": {
+          "type": "string",
+          "enum": [
+            "motion",
+            "pneumatic",
+            "hydraulic",
+            "sensor",
+            "actuator",
+            "generic"
+          ],
+          "description": "High-level device category"
+        },
+        "device_type": {
+          "type": "string",
+          "description": "Specific device implementation type"
+        },
+        "author": {
+          "type": "string"
+        },
+        "tia_version": {
+          "type": "string"
+        },
+        "analyzed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source_files": {
+          "type": "object",
+          "properties": {
+            "fb_scl": {
+              "type": "string"
+            },
+            "udt_path": {
+              "type": "string"
+            }
+          }
+        },
+        "portability_gate": {
+          "type": "object",
+          "required": [
+            "status",
+            "violations"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "PASS",
+                "FAIL"
+              ],
+              "description": "FAIL if any CRITICAL portability violation"
+            },
+            "violations": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "List of violation IDs causing FAIL"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "description": "LOGICAL interface only - NO physical I/O",
+      "properties": {
+        "input": {
+          "type": "object",
+          "properties": {
+            "command_udt": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/udt"
+              }
+            },
+            "config_udt": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/udt"
+              }
+            },
+            "logical_inputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/logical_param"
+              },
+              "description": "Bool/Int/Real inputs from other FBs, NOT hardware"
+            }
+          }
+        },
+        "output": {
+          "type": "object",
+          "properties": {
+            "status_udt": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/udt"
+              }
+            },
+            "logical_outputs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/logical_param"
+              },
+              "description": "Bool/Int/Real outputs to other FBs, NOT hardware"
+            }
+          }
+        },
+        "inout": {
+          "type": "object",
+          "properties": {
+            "interfaces": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/interface"
+              }
+            }
+          }
+        }
+      }
+    },
+    "logic": {
+      "type": "object",
+      "properties": {
+        "state_machine": {
+          "$ref": "#/definitions/state_machine"
+        },
+        "key_algorithms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/algorithm"
+          }
+        }
+      }
+    },
+    "patterns": {
+      "type": "object",
+      "properties": {
+        "command_status": {
+          "$ref": "#/definitions/pattern"
+        },
+        "alarm_handling": {
+          "$ref": "#/definitions/pattern"
+        },
+        "native_functions": {
+          "type": "object",
+          "properties": {
+            "timers": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "edge_detection": {
+              "type": "string",
+              "enum": [
+                "R_TRIG",
+                "F_TRIG",
+                "manual",
+                "none"
+              ]
+            },
+            "io_functions": {
+              "type": "array"
+            },
+            "motion_control": {
+              "type": "array"
+            },
+            "math": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    "anti_patterns": {
+      "type": "array",
+      "description": "SINGLE SOURCE OF TRUTH for all violations",
+      "items": {
+        "$ref": "#/definitions/anti_pattern"
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "properties": {
+        "fb_called": {
+          "type": "array"
+        },
+        "custom_udts": {
+          "type": "array"
+        },
+        "external_devices": {
+          "type": "array"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "description": "DERIVED from anti_patterns, not independent source",
+      "properties": {
+        "portability_compliant": {
+          "type": "boolean",
+          "description": "TRUE if portability_gate.status == PASS"
+        },
+        "multi_instance_safe": {
+          "type": "boolean",
+          "description": "TRUE if no hardcoded_db or absolute_io"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "example_config": {
+          "type": "object"
+        },
+        "validation_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "udt": {
+      "type": "object",
+      "required": [
+        "name",
+        "fields"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "source_file": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "type"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "mandatory": {
+                "type": "boolean"
+              },
+              "default": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean",
+                  "null"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "logical_param": {
+      "type": "object",
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Bool",
+            "Int",
+            "DInt",
+            "Real",
+            "LReal",
+            "String",
+            "Time"
+          ],
+          "description": "Primitive logical types only; Struct/UDT must be modeled via UDT or interface."
+        },
+        "description": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "description": "e.g. 'from Safety PLC', 'from HMI'"
+        }
+      }
+    },
+    "interface": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "udt": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "retain": {
+          "type": "boolean"
+        },
+        "ownership": {
+          "type": "string",
+          "enum": [
+            "internal",
+            "external",
+            "shared"
+          ],
+          "description": "Ownership of the symbol/interface"
+        },
+        "storage_hint": {
+          "type": "string",
+          "description": "Where the symbol is stored or mapped (informational only)"
+        }
+      }
+    },
+    "state_machine": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "states": {
+          "type": "array"
+        },
+        "mutual_exclusion": {
+          "type": "string"
+        }
+      }
+    },
+    "algorithm": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "formula": {
+          "type": "string"
+        },
+        "code_snippet": {
+          "type": "string"
+        }
+      }
+    },
+    "pattern": {
+      "type": "object",
+      "properties": {
+        "pattern": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ]
+        },
+        "evidence": {
+          "type": "string"
+        }
+      }
+    },
+    "anti_pattern": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "severity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^AP[0-9]{3}$",
+          "description": "Unique ID: AP001, AP002, etc."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "io_physical",
+            "io_at_mapping",
+            "hardcoded_db",
+            "manual_edge_detection",
+            "magic_number",
+            "reimplemented_native"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "CRITICAL",
+            "HIGH",
+            "MEDIUM",
+            "LOW"
+          ],
+          "description": "CRITICAL = portability_gate FAIL"
+        },
+        "file": {
+          "type": "string"
+        },
+        "line": {
+          "type": "integer"
+        },
+        "column": {
+          "type": "integer"
+        },
+        "code": {
+          "type": "string",
+          "description": "Offending code snippet"
+        },
+        "rule": {
+          "type": "string",
+          "description": "Rule violated"
+        },
+        "impact": {
+          "type": "string"
+        },
+        "suggested_fix": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

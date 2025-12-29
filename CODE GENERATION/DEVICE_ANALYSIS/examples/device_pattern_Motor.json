@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0.2",
+  "metadata": {
+    "fb_name": "Motor",
+    "version": "0.1",
+    "author": "Unknown",
+    "device_family": "actuator",
+    "device_type": "motor_contactor",
+    "analyzed_at": "2025-12-27T21:20:40.518201",
+    "source_files": {
+      "fb_scl": "scl_files/Motor.scl",
+      "udt_path": ""
+    },
+    "portability_gate": {
+      "status": "PASS",
+      "violations": [],
+      "notes": ""
+    }
+  },
+  "contract": {
+    "input": {
+      "command_udt": [],
+      "config_udt": [],
+      "logical_inputs": []
+    },
+    "output": {
+      "status_udt": [],
+      "logical_outputs": []
+    },
+    "inout": {
+      "interfaces": []
+    }
+  },
+  "logic": {
+    "state_machine": {
+      "type": "implicit",
+      "states": [
+        "Info",
+        "Alarm reset",
+        "Alarm Circuit Breaker",
+        "Alarm timeout contactor feedback",
+        "Status alarm presence",
+        "Status run permitted",
+        "Contactor Control",
+        "Out",
+        "Coordination out"
+      ],
+      "mutual_exclusion": ""
+    },
+    "key_algorithms": []
+  },
+  "patterns": {
+    "command_status": {
+      "pattern": "SafeStop->RunPermitted->Run",
+      "confidence": "MEDIUM",
+      "evidence": "RunPermitted := (NOT (AlarmPresence) AND NOT (MotorCtrl.SafeStop));"
+    },
+    "alarm_handling": {
+      "pattern": "unknown",
+      "confidence": "LOW"
+    },
+    "native_functions": {
+      "timers": [
+        "DelayContactorFeedbackON"
+      ],
+      "edge_detection": "none",
+      "motion_control": [],
+      "math": []
+    }
+  },
+  "anti_patterns": [],
+  "dependencies": {
+    "fb_called": [
+      "DelayContactorFeedbackON"
+    ],
+    "custom_udts": [],
+    "external_devices": []
+  },
+  "constraints": {
+    "portability_compliant": true,
+    "multi_instance_safe": true,
+    "notes": ""
+  },
+  "configuration": {
+    "example_config": {},
+    "validation_rules": []
+  }
+}
