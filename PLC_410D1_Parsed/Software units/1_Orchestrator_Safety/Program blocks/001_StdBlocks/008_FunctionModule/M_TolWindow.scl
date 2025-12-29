@@ -20,6 +20,15 @@ VERSION : 0.1
 
 BEGIN
    REGION "Delta with module"
+      "M_PosAMinusPosB"(
+         en := TRUE,
+         PosA := ActPos,
+         PosB := Target,
+         MODULE := MODULE,
+         Ret_Val => Pos
+      );
+
+      Pos := "M_PosAMinusPosB"(PosA := ActPos, PosB := Target, MODULE := MODULE);
    END_REGION
 
    REGION "Delta Absolute"

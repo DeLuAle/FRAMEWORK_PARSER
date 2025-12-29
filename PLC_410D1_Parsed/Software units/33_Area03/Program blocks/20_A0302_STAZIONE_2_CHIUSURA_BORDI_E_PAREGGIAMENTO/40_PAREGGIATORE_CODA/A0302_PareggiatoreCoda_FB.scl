@@ -375,6 +375,8 @@ BEGIN
          PT := T#200MS
       );
 
+      #TON_Anticipi.Work.BattutaVrt.Q;
+      #TON_Anticipi.Work.PareggLong.Q;
    END_REGION
 
    REGION "Anticipi Movimento RIPOSO"
@@ -388,6 +390,8 @@ BEGIN
          PT := T#200MS
       );
 
+      #TON_Anticipi.Rest.BattutaVrt.Q;
+      #TON_Anticipi.Rest.PareggLong.Q;
    END_REGION
 
    REGION "DataIn - FTC Input"
@@ -401,6 +405,8 @@ BEGIN
          PT := IEC_SP.FTC_Input.TOF_PT
       );
 
+      #IEC_FTC_Input.TON_Delay.Q;
+      #IEC_FTC_Input.TOF_Delay.Q;
       IEC_FTC_Input.FTC_On := #IEC_FTC_Input.TOF_Delay.Q;
    END_REGION
 
@@ -415,6 +421,8 @@ BEGIN
          PT := IEC_SP.FTC_Output.TOF_PT
       );
 
+      #IEC_FTC_Output.TON_Delay.Q;
+      #IEC_FTC_Output.TOF_Delay.Q;
       IEC_FTC_Output.FTC_On := #IEC_FTC_Output.TOF_Delay.Q;
    END_REGION
 
@@ -429,6 +437,8 @@ BEGIN
          PT := IEC_SP.FTC_PresentMat.TOF_PT
       );
 
+      #IEC_FTC_PresentMat.TON_Delay.Q;
+      #IEC_FTC_PresentMat.TOF_Delay.Q;
       IEC_FTC_PresentMat.FTC_On := #IEC_FTC_PresentMat.TOF_Delay.Q;
    END_REGION
 
@@ -452,7 +462,68 @@ BEGIN
    END_REGION
 
    REGION "[Battuta Vrt + Paregg. Long] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_PCoda_CanMoveFreely := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_PCoda_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_PCoda_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_PCoda_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0301.B);
       Sts.OP_PCoda_CanMoveFreely := (((((Sts.OP_PCoda_CanMoveFreely AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND NOT (CIn.Rulliera.Centro.Sens.FTC_Centrale)) AND NOT (IEC_FTC_Input.FTC_On)) AND NOT (IEC_FTC_Output.FTC_On)) AND NOT (IEC_FTC_PresentMat.FTC_On));
    END_REGION
 
@@ -539,11 +610,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_Bloccaggio.OP_REST_MissingCnd.Q;
       IF (Sts.Op_MoveToPos_Cnd OR Bloccaggio.COut.Rest OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST_Bloccaggio := FALSE;
       ELSIF #TON_Bloccaggio.OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST_Bloccaggio := TRUE;
       END_IF;
+      #TON_Bloccaggio.OP_WORK_MissingCnd.Q;
       IF ((NOT (Sts.Op_MoveToPos_Cnd) AND Bloccaggio.COut.Work) OR Bloccaggio.COut.Work OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK_Bloccaggio := FALSE;
       ELSIF #TON_Bloccaggio.OP_WORK_MissingCnd.Q THEN
@@ -568,6 +641,10 @@ BEGIN
          PT := IEC_SP.Check_2119B1.TON_PT
       );
 
+      IF Par.Bloccaggio_Sens.2191B1.Enable THEN
+         #Bloccaggio_AnalSens.Q;
+      END_IF;
+      #IEC_DelayCheck_2119B1.Q;
       IF ((((Par.Bloccaggio_Sens.2191B1.Enable AND COut.Bloccaggio.Work) AND IEC_DelayCheck_2119B1.Q) AND NOT (Bloccaggio_AnalSens.Q)) AND (Bloccaggio_AnalSens.Value < Par.Bloccaggio_Sens.SogliaWork)) THEN
          Alarm.Bloccaggio_AnalSens_Issue := TRUE;
       END_IF;
@@ -620,6 +697,7 @@ BEGIN
       IF ((CIn.Spalle.Coda.ActualPos - Ax.COut.ActualPosition) AND (ActualDifference >= Config.MinDistanzaConSpalla)) THEN
          Warning.SW_Limit_AntiCollision := TRUE;
       END_IF;
+      #TON_DistanzaOK.Q;
       IF Config.Ax.Ax.limitPlus THEN
          Warning.SW_Limit_AntiCollision := FALSE;
       END_IF;
@@ -634,6 +712,7 @@ BEGIN
          Alarm := Alarm.Enc
       );
 
+      #Enc.Q;
    END_REGION
 
    REGION "[Ax] HMI preset position"
@@ -663,12 +742,22 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "[Ax] Controllo finestra di posizione - In POSITION"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax.COut.ActualPosition,
+         Target := CarroCoda.Pos,
+         PosWin := Par.Ax.PosTolerance,
+         Ret_Val => COut.Ax_InWPos
+      );
+
       IF ((NOT (AreaInterface.Aut) AND NOT (CIn.SemiAut_Pb)) AND AreaInterface.Man) THEN
          CarroCoda.Pos := Ax.Ctrl.Pos;
       END_IF;
+      COut.Ax_InWPos := "TolWindow"(ActPos := Ax.COut.ActualPosition, Target := CarroCoda.Pos, PosWin := Par.Ax.PosTolerance);
    END_REGION
 
    REGION "[Ax] -  Cin Manager (Esecuzione sequenza comandi)"
@@ -766,11 +855,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_BattutaVrt.OP_REST_MissingCnd.Q;
       IF (Sts.BattutaVrt.OP_Rest_Cnd OR Ctrl.BattutaVrt.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST_BattutaVrt := FALSE;
       ELSIF #TON_BattutaVrt.OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST_BattutaVrt := TRUE;
       END_IF;
+      #TON_BattutaVrt.OP_WORK_MissingCnd.Q;
       IF (Sts.BattutaVrt.Op_Work_Cnd OR Ctrl.BattutaVrt.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK_BattutaVrt := FALSE;
       ELSIF #TON_BattutaVrt.OP_WORK_MissingCnd.Q THEN
@@ -798,11 +889,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_PareggLong.OP_REST_MissingCnd.Q;
       IF (Sts.PareggLong.OP_Rest_Cnd OR Ctrl.PareggLong.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST_PareggLong := FALSE;
       ELSIF #TON_PareggLong.OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST_PareggLong := TRUE;
       END_IF;
+      #TON_PareggLong.OP_WORK_MissingCnd.Q;
       IF (Sts.PareggLong.Op_Work_Cnd OR Ctrl.PareggLong.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK_PareggLong := FALSE;
       ELSIF #TON_PareggLong.OP_WORK_MissingCnd.Q THEN
@@ -822,6 +915,7 @@ BEGIN
          COut => COut.Bloccaggio
       );
 
+      #Bloccaggio.Q;
    END_REGION
 
    REGION "[Battuta Vrt ] - Valve Manager"
@@ -836,6 +930,7 @@ BEGIN
          COut => COut.BattutaVerticale
       );
 
+      #BattutaVerticale.Q;
    END_REGION
 
    REGION "[Battuta Vrt ] - Anticipo COut"
@@ -858,6 +953,7 @@ BEGIN
          COut => COut.PareggiatoreLong
       );
 
+      #PareggiatoreLong.Q;
    END_REGION
 
    REGION "[Paregg. Coda] - Anticipo COut"
@@ -881,6 +977,7 @@ BEGIN
          Warning := Warning.PosPareggiatoreLong
       );
 
+      #PosPareggLong.Q;
    END_REGION
 
    REGION "Allarme problemi sul sensore analogico"
@@ -915,6 +1012,46 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Bloccaggio.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := BattutaVerticale.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PareggiatoreLong.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((((((NOT (Warning.MissingCnd.OP_REST_Bloccaggio) AND NOT (Warning.MissingCnd.OP_WORK_Bloccaggio)) AND NOT (Warning.MissingCnd.OP_REST_BattutaVrt)) AND NOT (Warning.MissingCnd.OP_WORK_BattutaVrt)) AND NOT (Warning.MissingCnd.OP_REST_PareggLong)) AND NOT (Warning.MissingCnd.OP_WORK_PareggLong))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Ax.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Bloccaggio.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := BattutaVerticale.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PareggiatoreLong.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((((((NOT (Warning.MissingCnd.OP_REST_Bloccaggio) AND NOT (Warning.MissingCnd.OP_WORK_Bloccaggio)) AND NOT (Warning.MissingCnd.OP_REST_BattutaVrt)) AND NOT (Warning.MissingCnd.OP_WORK_BattutaVrt)) AND NOT (Warning.MissingCnd.OP_REST_PareggLong)) AND NOT (Warning.MissingCnd.OP_WORK_PareggLong))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Ax.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

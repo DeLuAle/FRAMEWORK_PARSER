@@ -198,6 +198,8 @@ BEGIN
          PT := Config.MaterialAbsenceDly
       );
 
+      #tonMaterialPresence.Q;
+      #tonMaterialAbsence.Q;
       IF tonMaterialAbsence.Q THEN
          PersistentValues.Data.MaterialPresence := FALSE;
       ELSIF tonMaterialPresence.Q THEN
@@ -584,6 +586,7 @@ BEGIN
          Diag := Diag.Gripper_Encoder
       );
 
+      #MwFacCalc_GripperEnc.Q;
    END_REGION
 
    REGION "Control"
@@ -602,6 +605,7 @@ BEGIN
          Trigger_ID := PersistentValues.Data.GripperMeasID
       );
 
+      #Gripper_MeasInp.Q;
    END_REGION
 
    REGION "Control"
@@ -620,6 +624,7 @@ BEGIN
          Trigger_ID := PersistentValues.Data.WheelMeasID
       );
 
+      #Wheel_MeasInp.Q;
    END_REGION
 
    REGION "Alarm: Invalid state of inline/outline limit switches"
@@ -654,9 +659,11 @@ BEGIN
          PT := Config.PushAx_BwdTimeout
       );
 
+      #tonPushAxFwd.Q;
       IF #tonPushAxFwd.Q THEN
          Alarm.PushAx_TimeoutFwd := TRUE;
       END_IF;
+      #tonPushAxBwd.Q;
       IF #tonPushAxBwd.Q THEN
          Alarm.PushAx_TimeoutBwd := TRUE;
       END_IF;
@@ -726,6 +733,7 @@ BEGIN
          COut => COut.PushAx
       );
 
+      #PushAx.Q;
    END_REGION
 
    REGION "Force Gripper Open"
@@ -772,6 +780,7 @@ BEGIN
          DataOut => DataOut.Gripper
       );
 
+      #Gripper.Q;
    END_REGION
 
    REGION "Data Out"
@@ -788,6 +797,16 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := Warning.MaterialNoPrresence,
+         MachineInterface_1 := PushAx.MachineInterface,
+         MachineInterface_2 := Gripper.MachineInterface,
+         AdditionalAlarms := Sts.AlarmPresence,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := Warning.MaterialNoPrresence, MachineInterface_1 := PushAx.MachineInterface, MachineInterface_2 := Gripper.MachineInterface, AdditionalAlarms := Sts.AlarmPresence);
    END_REGION
 
 

@@ -270,9 +270,11 @@ BEGIN
          PT := PersistentValues.Par.CutHeadReload.Duration
       );
 
+      #TON_CutHead_Pause.Q;
       IF #TON_CutHead_Pause.Q THEN
          Ctrl.Reload.CutHead := TRUE;
       END_IF;
+      #TON_CutHead_Duration.Q;
       IF #TON_CutHead_Duration.Q THEN
          Ctrl.Reload.CutHead := FALSE;
       END_IF;
@@ -307,6 +309,7 @@ BEGIN
          DataOut => DataOut.CutHead
       );
 
+      #CutHead.Q;
    END_REGION
 
    REGION "Warning Cut is not at rest"
@@ -471,9 +474,11 @@ BEGIN
          PT := PersistentValues.Par.DrawHeadReload.Duration
       );
 
+      #TON_DrawHead_Pause.Q;
       IF #TON_DrawHead_Pause.Q THEN
          Ctrl.Reload.DrawHead := TRUE;
       END_IF;
+      #TON_DrawHead_Duration.Q;
       IF #TON_DrawHead_Duration.Q THEN
          Ctrl.Reload.DrawHead := FALSE;
       END_IF;
@@ -508,6 +513,7 @@ BEGIN
          DataOut => DataOut.DrawHead
       );
 
+      #DrawHead.Q;
    END_REGION
 
    REGION "Warning Cut is not at rest"
@@ -672,9 +678,11 @@ BEGIN
          PT := PersistentValues.Par.MarkHeadReload.Duration
       );
 
+      #TON_MarkHead_Pause.Q;
       IF #TON_MarkHead_Pause.Q THEN
          Ctrl.Reload.MarkHead := TRUE;
       END_IF;
+      #TON_MarkHead_Duration.Q;
       IF #TON_MarkHead_Duration.Q THEN
          Ctrl.Reload.MarkHead := FALSE;
       END_IF;
@@ -709,6 +717,7 @@ BEGIN
          DataOut => DataOut.MarkHead
       );
 
+      #MarkHead.Q;
    END_REGION
 
    REGION "Warning Cut is not at rest"
@@ -874,6 +883,7 @@ BEGIN
       );
 
       Ctrl.Reload.Locking := ((NOT (((NOT (CIn.CutHead_Manager.Control_ON) AND NOT (CIn.DrawHead_Manager.Control_ON)) AND NOT (CIn.MarkHead_Manager.Control_ON))) AND Sts.MinPressureOk) AND NOT (Sts.WorkPressureOk));
+      #TON_LockingTimeOut.Q;
       IF #TON_LockingTimeOut.Q THEN
          Alarm.Locking_NotAWork := TRUE;
       END_IF;
@@ -922,6 +932,7 @@ BEGIN
          DataOut => DataOut.Locking
       );
 
+      #Locking.Q;
    END_REGION
 
    REGION "Warning locking is not at work"
@@ -940,6 +951,36 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := CutHead.MachineInterface,
+         MachineInterface_2 := DrawHead.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := Warning.CutHead_NotAtRest,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := MarkHead.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := Warning.CutHead_NotAtRest,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((((NOT (Warning.CutHead_NotAtRest) AND NOT (Warning.DrawHead_NotAtRest)) AND NOT (Warning.MarkHead_NotAtRest)) AND NOT (Warning.Locking_NotAWork)) AND NOT (Warning.MaterialNotStandstill))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Locking.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := CutHead.MachineInterface, MachineInterface_2 := DrawHead.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := Warning.CutHead_NotAtRest);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := MarkHead.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := Warning.CutHead_NotAtRest);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((((NOT (Warning.CutHead_NotAtRest) AND NOT (Warning.DrawHead_NotAtRest)) AND NOT (Warning.MarkHead_NotAtRest)) AND NOT (Warning.Locking_NotAWork)) AND NOT (Warning.MaterialNotStandstill))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Locking.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

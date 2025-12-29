@@ -33,6 +33,7 @@ BEGIN
          Par := RollformerLubr_PERS.Pump
       );
 
+      #Pump.Q;
    END_REGION
 
    REGION "Data Out"
@@ -63,6 +64,7 @@ BEGIN
          Pers := RollformerLubr_PERS.Valves1.Control
       );
 
+      #Valves1.Q;
    END_REGION
 
    REGION "Data Out"
@@ -97,6 +99,7 @@ BEGIN
          Pers := RollformerLubr_PERS.Valves2.Control
       );
 
+      #Valves2.Q;
    END_REGION
 
    REGION "Data Out"
@@ -131,6 +134,7 @@ BEGIN
          Pers := RollformerLubr_PERS.Valves3.Control
       );
 
+      #Valves3.Q;
    END_REGION
 
    REGION "Data Out"
@@ -143,6 +147,26 @@ BEGIN
    END_REGION
 
    REGION "Machine interface (machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := Valves1.MachineInterface,
+         MachineInterface_2 := Valves2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Valves3.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := Valves1.MachineInterface, MachineInterface_2 := Valves2.MachineInterface, AdditionalAlarms := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := MachineInterface, MachineInterface_2 := Valves3.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

@@ -267,8 +267,49 @@ BEGIN
    END_REGION
 
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_CanMoveFreely := ???;
-      Sts.OP_CanMoveFreely := (??? OR ???);
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Absence"(Item := BTrk.A0301.B) OR CIn.P4.Fermi.Work),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Absence"(Item := BTrk.A0301.B) OR ((Sts.OP_CanMoveFreely AND CIn.P4.Fermi.Work) AND CIn.Trasporto.Standstill)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := ("BTrk_Absence"(Item := BTrk.A0301.B) OR ("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P5.SpintoreLong.Ax_Sts.PosAttesa_Reached));
    END_REGION
 
    REGION "Comando Operazione Lavoro / Riposo (AUT)"
@@ -489,11 +530,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.OP_REST_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.Op_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -533,6 +576,7 @@ BEGIN
          COut => COut.Vrt_1
       );
 
+      #Vrt_1.Q;
    END_REGION
 
    REGION "Verticale_2 - Valve Manager"
@@ -547,6 +591,7 @@ BEGIN
          COut => COut.Vrt_2
       );
 
+      #Vrt_2.Q;
    END_REGION
 
    REGION "Orizzontale_1 -Scalatura sensore"
@@ -562,6 +607,7 @@ BEGIN
          Warning := Warning.Orz_1_AnalSens
       );
 
+      #Orz_1_AnalSens.Q;
    END_REGION
 
    REGION "Orizzontale_1 - Allarme problemi sul sensore analogico"
@@ -616,6 +662,7 @@ BEGIN
          COut => COut.Orz_1
       );
 
+      #Orz_1.Q;
    END_REGION
 
    REGION "Orizzontale_2 -Scalatura sensore"
@@ -631,6 +678,7 @@ BEGIN
          Warning := Warning.Orz_2_AnalSens
       );
 
+      #Orz_2_AnalSens.Q;
    END_REGION
 
    REGION "Orizzontale_2 - Allarme problemi sul sensore analogico"
@@ -692,6 +740,7 @@ BEGIN
          COut => COut.Orz_2
       );
 
+      #Orz_2.Q;
    END_REGION
 
    REGION "S[1...6] Sollevatori - CIn External alarm"
@@ -732,6 +781,7 @@ BEGIN
          Warning := Warning.Sollevatori[1]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[2] Valve Manager"
@@ -745,6 +795,7 @@ BEGIN
          Warning := Warning.Sollevatori[2]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[3] Valve Manager"
@@ -758,6 +809,7 @@ BEGIN
          Warning := Warning.Sollevatori[3]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[4] Valve Manager"
@@ -771,6 +823,7 @@ BEGIN
          Warning := Warning.Sollevatori[4]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[5] Valve Manager"
@@ -784,6 +837,7 @@ BEGIN
          Warning := Warning.Sollevatori[5]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[6] Valve Manager"
@@ -797,6 +851,7 @@ BEGIN
          Warning := Warning.Sollevatori[6]
       );
 
+      #Sollevatori.Q;
    END_REGION
 
    REGION "S[1..6]  COut Sollevatori"
@@ -882,6 +937,104 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Vrt_1.MachineInterface,
+         MachineInterface_2 := Orz_1.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Vrt_2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Vrt_2.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Orz_2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[1].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[4].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[5].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatori[6].MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Vrt_1.MachineInterface, MachineInterface_2 := Orz_1.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Vrt_2.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      IF "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Vrt_2.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Orz_2.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      IF "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      IF "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[5].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatori[6].MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

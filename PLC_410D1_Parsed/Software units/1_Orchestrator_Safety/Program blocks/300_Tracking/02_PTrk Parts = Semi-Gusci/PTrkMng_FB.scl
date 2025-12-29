@@ -20,8 +20,16 @@ VERSION : 0.1
 
 BEGIN
    REGION "HMI - Gestione ricondizionamento"
-      PTrk_HMI.Button_Part_Recondition_Good.Show := FALSE;
-      PTrk_HMI.Button_Part_Recondition_Good.AllowControl := FALSE;
+      "PTrk_Presence"(
+         en := (Area.Man AND A0202_MotionStandstill),
+         Item := PTrk.A0202.P
+      );
+
+      IF (Area.Man AND A0202_MotionStandstill) THEN
+         "PTrk_Presence"(Item := PTrk.A0202.P);
+      END_IF;
+      PTrk_HMI.Button_Part_Recondition_Good.Show := ("PTrk_Presence"(Item := PTrk.A0202.P) AND (PTrk.A0202.P.Quality = #TO_CHECK_LEN));
+      PTrk_HMI.Button_Part_Recondition_Good.AllowControl := ("PTrk_Presence"(Item := PTrk.A0202.P) AND (PTrk.A0202.P.Quality = #TO_CHECK_LEN));
       IF ((PTrk_HMI.Button_Part_Recondition_Good.Show AND PTrk_HMI.Button_Part_Recondition_Good.AllowControl) AND PTrk_HMI.Button_Part_Recondition_Good.Pressed) THEN
          PTrk_HMI.Button_Part_Recondition_Good.Pressed := FALSE;
       END_IF;

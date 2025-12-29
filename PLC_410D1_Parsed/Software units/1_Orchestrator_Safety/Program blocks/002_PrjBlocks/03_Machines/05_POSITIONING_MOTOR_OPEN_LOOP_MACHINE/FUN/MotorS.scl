@@ -65,6 +65,7 @@ BEGIN
          PT := FeedbackTimeout
       );
 
+      #DelayContactorFeedbackON.Q;
       IF #DelayContactorFeedbackON.Q THEN
          Alarm.Feedback := TRUE;
       END_IF;
@@ -90,6 +91,7 @@ BEGIN
       IF BkwContactor THEN
          FwdDeny := TRUE;
       END_IF;
+      #DelayReversal.Q;
       IF #DelayReversal.Q THEN
          BkwDeny := FALSE;
       END_IF;

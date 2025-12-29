@@ -22,6 +22,18 @@ VERSION : 0.1
 
 BEGIN
    REGION "DataIn  - Asse Y"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0303_Sostegno_Testa.Ax.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
       A0303_Sostegno_Testa.Ax.DataIn.LS_Minus := NOT (A0303_Posizione_Y_Ax_Testa_Ls_Minimo);
       A0303_Sostegno_Testa.Ax.DataIn.LS_Plus := NOT (A0303_Posizione_Y_Ax_Testa_Ls_Massimo);
       A0303_Sostegno_Testa.Ax.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_Antiribaltamento_Testa;
@@ -90,6 +102,7 @@ BEGIN
          Par_Mach := A0303_Sostegno_PERS.Par_Mach
       );
 
+      #A0303_Sostegno_Testa.Q;
    END_REGION
 
    REGION "DataOut - Valve 1"

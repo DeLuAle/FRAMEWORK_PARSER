@@ -143,6 +143,7 @@ BEGIN
          PT := Config.LowTankLevelDly
       );
 
+      #TON_LowTankLevel.Q;
       IF NOT (PersistentValues.Par.PumpOnOff) THEN
          Alr.LowTankLevel := FALSE;
       ELSIF #TON_LowTankLevel.Q THEN
@@ -177,6 +178,7 @@ BEGIN
          PT := PersistentValues.Par.PumpDelayOff
       );
 
+      #TON_DelayPumpStop.Q;
       IF #TON_DelayPumpStop.Q THEN
          Sts.PumpRunReq := FALSE;
       ELSIF CIn.MaterialMoving THEN
@@ -217,6 +219,7 @@ BEGIN
          Contactor => DataOut.KmPump
       );
 
+      #M_Pump.Q;
    END_REGION
 
    REGION "Blower run request"
@@ -225,6 +228,7 @@ BEGIN
          PT := PersistentValues.Par.BlowerDelayOff
       );
 
+      #TON_DelayBlowerStop.Q;
       IF #TON_DelayBlowerStop.Q THEN
          Sts.BlowerRunReq := FALSE;
       ELSIF CIn.MaterialMoving THEN
@@ -275,6 +279,9 @@ BEGIN
          Contactor => DataOut.KmCloth
       );
 
+      IF Config.ClothExist THEN
+         #M_Cloth.Q;
+      END_IF;
       IF NOT (Config.ClothExist) THEN
          Alr.Cloth.ThermalProtection := FALSE;
       END_IF;
@@ -289,6 +296,7 @@ BEGIN
          PT := T#5M
       );
 
+      #TON_OilTankLevelIsFull.Q;
       IF (TON_OilTankLevelIsFull.Q AND Config.OilSeparatorExist) THEN
          Alr.HighLevelOilTank := TRUE;
       END_IF;
@@ -329,6 +337,9 @@ BEGIN
          Contactor => DataOut.KmOilSeparator
       );
 
+      IF Config.OilSeparatorExist THEN
+         #M_OilSeparator.Q;
+      END_IF;
       IF NOT (Config.OilSeparatorExist) THEN
          Alr.OilSeparator.Feedback := FALSE;
       END_IF;
@@ -378,6 +389,7 @@ BEGIN
          PT := T#1S
       );
 
+      #TON_DelayNoPendingCmd.Q;
    END_REGION
 
    REGION "Data Out - Lamps"

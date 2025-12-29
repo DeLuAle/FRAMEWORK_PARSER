@@ -285,7 +285,9 @@ BEGIN
          PT := T#10M
       );
 
+      #TON_CheckHighTemperatureCC1.Q;
       Warning.CC1_MaxTemperature := #TON_CheckHighTemperatureCC1.Q;
+      #TON_CheckHighTemperatureJB001.Q;
       Warning.JB001_MaxTemperature := #TON_CheckHighTemperatureJB001.Q;
    END_REGION
 
@@ -309,11 +311,13 @@ BEGIN
          PT := T#2M
       );
 
+      #TOF_TurnOffConditionerCC1.Q;
       IF (#TOF_TurnOffConditionerCC1.Q OR Warning.CC1_ThermalTrip_Cooling1) THEN
          CC1_ON_Condizionatori := FALSE;
       ELSIF (CC1_Controllo_Temperatura_Quadro AND NOT (Warning.CC1_ThermalTrip_Cooling1)) THEN
          CC1_ON_Condizionatori := TRUE;
       END_IF;
+      #TOF_TurnOffConditionerJB001.Q;
       IF (#TOF_TurnOffConditionerJB001.Q OR Warning.JB001_ThermalTrip_Cooling) THEN
          JB001_ON_Condizionatore := FALSE;
       ELSIF (JB001_Controllo_Temperatura_Quadro AND NOT (Warning.JB001_ThermalTrip_Cooling)) THEN
@@ -380,12 +384,15 @@ BEGIN
       IF NOT (Area01_Aspo_Pressione_Aria_OK) THEN
          Alarm.Area01_Aspo_LowAirPressure := TRUE;
       END_IF;
+      #TON_Area02_03_Accoppiamento_Pressione_Aria_OK.Q;
       IF (#TON_Area02_03_Accoppiamento_Pressione_Aria_OK.Q AND NOT (Area02_03_Accoppiamento_Pressione_Aria_OK)) THEN
          Alarm.Area02_03_Accopiamento_LowAirPressure := TRUE;
       END_IF;
+      #TON_Area03_Pareggiamneto_Pressione_Aria_OK.Q;
       IF (#TON_Area03_Pareggiamneto_Pressione_Aria_OK.Q AND NOT (Area03_Pareggiamneto_Pressione_Aria_OK)) THEN
          Alarm.Area03_Pareggiamneto_LowAirPressure := TRUE;
       END_IF;
+      #TON_Area04_Navetta_Pressione_Aria_OK.Q;
       IF (#TON_Area04_Navetta_Pressione_Aria_OK.Q AND NOT (Area04_Navetta_Pressione_Aria_OK)) THEN
          Alarm.Area04_Navetta_LowAirPressure := TRUE;
       END_IF;
@@ -407,6 +414,7 @@ BEGIN
          Running => Areas_ITF.AG.Infeed_Running
       );
 
+      #INFEED_640A1.Q;
    END_REGION
 
    REGION "CU 580A1"
@@ -422,6 +430,7 @@ BEGIN
          Diag := Diag.CU_580A1
       );
 
+      #CU_580A1.Q;
       IF ((CU_580A1.WarningPresence AND (Diag.CU_580A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_580A1.WarningPresence AND (Diag.CU_580A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_580A1.CUWarning := FALSE;
       END_IF;
@@ -442,6 +451,7 @@ BEGIN
          Diag := Diag.CU_585A1
       );
 
+      #CU_585A1.Q;
       IF ((CU_585A1.WarningPresence AND (Diag.CU_585A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_585A1.WarningPresence AND (Diag.CU_585A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_585A1.CUWarning := FALSE;
       END_IF;
@@ -462,6 +472,7 @@ BEGIN
          Diag := Diag.CU_590A1
       );
 
+      #CU_590A1.Q;
       IF ((CU_590A1.WarningPresence AND (Diag.CU_590A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_590A1.WarningPresence AND (Diag.CU_590A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_590A1.CUWarning := FALSE;
       END_IF;
@@ -482,6 +493,7 @@ BEGIN
          Diag := Diag.CU_595A1
       );
 
+      #CU_595A1.Q;
       IF ((CU_595A1.WarningPresence AND (Diag.CU_595A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_595A1.WarningPresence AND (Diag.CU_595A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_595A1.CUWarning := FALSE;
       END_IF;
@@ -502,6 +514,7 @@ BEGIN
          Diag := Diag.CU_600A1
       );
 
+      #CU_600A1.Q;
       IF ((CU_600A1.WarningPresence AND (Diag.CU_600A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_600A1.WarningPresence AND (Diag.CU_600A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_600A1.CUWarning := FALSE;
       END_IF;
@@ -522,6 +535,7 @@ BEGIN
          Diag := Diag.CU_605A1
       );
 
+      #CU_605A1.Q;
       IF ((CU_605A1.WarningPresence AND (Diag.CU_605A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_605A1.WarningPresence AND (Diag.CU_605A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_605A1.CUWarning := FALSE;
       END_IF;
@@ -542,6 +556,7 @@ BEGIN
          Diag := Diag.CU_610A1
       );
 
+      #CU_610A1.Q;
       IF ((CU_610A1.WarningPresence AND (Diag.CU_610A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_610A1.WarningPresence AND (Diag.CU_610A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_610A1.CUWarning := FALSE;
       END_IF;
@@ -562,6 +577,7 @@ BEGIN
          Diag := Diag.CU_615A1
       );
 
+      #CU_615A1.Q;
       IF ((CU_615A1.WarningPresence AND (Diag.CU_615A1.Drive_Message = #MSG_A1073_POWER_ON_REQ_BACKUP_COPY)) OR (CU_615A1.WarningPresence AND (Diag.CU_585A1.Drive_Message = #MSG_A13030_TRIAL_LICENSE_ACTIVATE))) THEN
          Warning.CU_615A1.CUWarning := FALSE;
       END_IF;
@@ -574,6 +590,9 @@ BEGIN
          Alarm := Alarm.PNDiag_ET200S_460A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_ET200S_460A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_ET200S_460A1.Module_Error := FALSE;
       END_IF;
@@ -589,6 +608,9 @@ BEGIN
          Alarm := Alarm.PNDiag_ET200S_490A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_ET200S_490A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_ET200S_490A1.Error := FALSE;
       END_IF;
@@ -604,6 +626,9 @@ BEGIN
          Alarm := Alarm.PNDiag_ET200S_510A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_ET200S_510A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_ET200S_510A1.Error := FALSE;
       END_IF;
@@ -619,6 +644,9 @@ BEGIN
          Alarm := Alarm.PNDiag_ET200S_530A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_ET200S_530A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_ET200S_530A1.Error := FALSE;
       END_IF;
@@ -634,6 +662,9 @@ BEGIN
          Alarm := Alarm.PNDiag_ET200S_550A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_ET200S_550A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_ET200S_550A1.Error := FALSE;
       END_IF;
@@ -649,6 +680,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_580A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_580A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_580A1.Error := FALSE;
       END_IF;
@@ -664,6 +698,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_585A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_585A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_585A1.Error := FALSE;
       END_IF;
@@ -679,6 +716,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_590A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_590A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_590A1.Error := FALSE;
       END_IF;
@@ -694,6 +734,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_595A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_595A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_595A1.Error := FALSE;
       END_IF;
@@ -709,6 +752,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_600A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_600A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_600A1.Error := FALSE;
       END_IF;
@@ -724,6 +770,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_605A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_605A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_605A1.Error := FALSE;
       END_IF;
@@ -739,6 +788,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_610A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_610A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_610A1.Error := FALSE;
       END_IF;
@@ -754,6 +806,9 @@ BEGIN
          Alarm := Alarm.PNDiag_CU_615A1
       );
 
+      IF NOT (Sys.SimulationDevice) THEN
+         #PnDiag_CU_615A1.Q;
+      END_IF;
       IF Sys.SimulationDevice THEN
          Alarm.PNDiag_CU_615A1.Error := FALSE;
       END_IF;
@@ -769,6 +824,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_694P1
       );
 
+      #PnDiag_ENC_694P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 894P1"
@@ -778,6 +834,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_894P1
       );
 
+      #PnDiag_ENC_894P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 984P1"
@@ -787,6 +844,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_984P1
       );
 
+      #PnDiag_ENC_984P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 994P1"
@@ -796,6 +854,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_994P1
       );
 
+      #PnDiag_ENC_994P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1004P1"
@@ -805,6 +864,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1004P1
       );
 
+      #PnDiag_ENC_1004P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1008P1"
@@ -814,6 +874,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1008P1
       );
 
+      #PnDiag_ENC_1008P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1034P1"
@@ -823,6 +884,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1034P1
       );
 
+      #PnDiag_ENC_1034P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1044P1"
@@ -832,6 +894,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1044P1
       );
 
+      #PnDiag_ENC_1044P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1074P1"
@@ -841,6 +904,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1074P1
       );
 
+      #PnDiag_ENC_1074P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1088P1"
@@ -850,6 +914,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1088P1
       );
 
+      #PnDiag_ENC_1088P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1093P1"
@@ -859,6 +924,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1093P1
       );
 
+      #PnDiag_ENC_1093P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1124P1"
@@ -868,6 +934,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1124P1
       );
 
+      #PnDiag_ENC_1124P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1138P1"
@@ -877,6 +944,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1138P1
       );
 
+      #PnDiag_ENC_1138P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1143P1"
@@ -886,6 +954,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1143P1
       );
 
+      #PnDiag_ENC_1143P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1844P1"
@@ -895,6 +964,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1844P1
       );
 
+      #PnDiag_ENC_1844P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1853P1"
@@ -904,6 +974,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1853P1
       );
 
+      #PnDiag_ENC_1853P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1858P1"
@@ -913,6 +984,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1858P1
       );
 
+      #PnDiag_ENC_1858P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1863P1"
@@ -922,6 +994,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1863P1
       );
 
+      #PnDiag_ENC_1863P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1868P1"
@@ -931,6 +1004,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1868P1
       );
 
+      #PnDiag_ENC_1868P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1903P1"
@@ -940,6 +1014,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1903P1
       );
 
+      #PnDiag_ENC_1903P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1908P1"
@@ -949,6 +1024,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1908P1
       );
 
+      #PnDiag_ENC_1908P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1913P1"
@@ -958,6 +1034,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1913P1
       );
 
+      #PnDiag_ENC_1913P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 1918P1"
@@ -967,6 +1044,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_1918P1
       );
 
+      #PnDiag_ENC_1918P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2264P1"
@@ -976,6 +1054,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2264P1
       );
 
+      #PnDiag_ENC_2264P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2284P1"
@@ -985,6 +1064,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2284P1
       );
 
+      #PnDiag_ENC_2284P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2374P1"
@@ -994,6 +1074,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2374P1
       );
 
+      #PnDiag_ENC_2374P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2394P1"
@@ -1003,6 +1084,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2394P1
       );
 
+      #PnDiag_ENC_2394P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2404P1"
@@ -1012,6 +1094,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2404P1
       );
 
+      #PnDiag_ENC_2404P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2434P1"
@@ -1021,6 +1104,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2434P1
       );
 
+      #PnDiag_ENC_2434P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2464P1"
@@ -1030,6 +1114,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2464P1
       );
 
+      #PnDiag_ENC_2464P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic ENC 2534P1"
@@ -1039,6 +1124,7 @@ BEGIN
          Alarm := Alarm.PnDiag_ENC_2534P1
       );
 
+      #PnDiag_ENC_2534P1.Q;
    END_REGION
 
    REGION "Profinet Diagnostic PAC 100A1"
@@ -1048,6 +1134,7 @@ BEGIN
          Alarm := Alarm.PnDiag_PAC_100A1
       );
 
+      #PnDiag_PAC_100A1.Q;
    END_REGION
 
    REGION "CU 590A1"

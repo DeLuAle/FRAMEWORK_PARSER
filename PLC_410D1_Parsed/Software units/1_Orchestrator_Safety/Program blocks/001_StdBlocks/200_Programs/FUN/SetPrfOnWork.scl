@@ -33,9 +33,20 @@ BEGIN
          PRG_Data := PRG_Data
       );
 
+      #GetPrf.Q;
    END_REGION
 
    REGION "ButtonColor"
+      "HmiButtonColor"(
+         en := TRUE,
+         Permit := (NOT (GetPrf.Busy) AND Enable),
+         InProgress := GetPrf.Busy,
+         Done := GetPrf.Done,
+         Error := GetPrf.Error,
+         Ret_Val => HMI.Activate.ButtonColor
+      );
+
+      HMI.Activate.ButtonColor := "HmiButtonColor"(Permit := (NOT (GetPrf.Busy) AND Enable), InProgress := GetPrf.Busy, Done := GetPrf.Done, Error := GetPrf.Error);
    END_REGION
 
    REGION "Reset Done"
@@ -44,6 +55,7 @@ BEGIN
          PT := T#1S
       );
 
+      #tonDone.Q;
       IF #tonDone.Q THEN
          HMI.Activate.ButtonExecute := FALSE;
       END_IF;

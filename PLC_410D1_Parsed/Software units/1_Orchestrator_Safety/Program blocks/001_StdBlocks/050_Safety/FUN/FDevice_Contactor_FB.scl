@@ -44,6 +44,7 @@ BEGIN
       );
 
       S_ON := (((NOT (Door_SafeStop) OR Two_Hand_CMD) AND Estop) AND CtrlSafe);
+      #T_StopDelay.Q;
    END_REGION
 
    REGION "Ctrl xDox - Contactors"
@@ -59,6 +60,7 @@ BEGIN
          ERROR => ERROR
       );
 
+      #DEV.Q;
    END_REGION
 
    REGION "Enable Power"

@@ -218,17 +218,120 @@ BEGIN
          PT := T#5S
       );
 
+      #TON_ForceConfermaPaccoScraicato.Q;
       Ctrl.ConfermaPaccoScaricato := ((((BTrk.A0304.AbilitazioneCancellazioneDatiPacco AND DataIn.PbScaricaPacco) OR #TON_ForceConfermaPaccoScraicato.Q) AND NOT (DataIn.LsMatPres1UnLoad)) AND NOT (DataIn.LsMatPres2UnLoad));
       IF Ctrl.ConfermaPaccoScaricato THEN
          BTrk.A0304.Layers := BTrk.EmptyLayers;
       END_IF;
+      #TON_TimeoutRimozionePaccoMES.Q;
       IF #TON_TimeoutRimozionePaccoMES.Q THEN
          Alarm.TimeoutRimozionePaccoMES := TRUE;
       END_IF;
+      #TON_WngTimeoutRimozionePaccoMES.Q;
       Warning.TimeoutRimozionePaccoMES := #TON_WngTimeoutRimozionePaccoMES.Q;
    END_REGION
 
    REGION "Ax Navetta in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Navetta.Coda.Ax.ActualPosition,
+         Target := Par_Navetta.PosDeposito,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Coda_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosDeposito, PosWin := Par_Navetta.ToleranceWindow),
+         ActPos := CIn.Navetta.Testa.Ax.ActualPosition,
+         Target := Par_Navetta.PosDeposito,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Testa_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := NOT (CycleWithShortPiece),
+         ActPos := CIn.Navetta.Coda.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrePrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Coda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrePrelievo, PosWin := Par_Navetta.ToleranceWindow),
+         ActPos := CIn.Navetta.Testa.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrePrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Testa_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Navetta.Coda.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Coda_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrelievo, PosWin := Par_Navetta.ToleranceWindow),
+         ActPos := CIn.Navetta.Testa.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Testa_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Navetta.Coda.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrePrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Coda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrePrelievo, PosWin := Par_Navetta.ToleranceWindow),
+         ActPos := CIn.Navetta.Testa.Ax.ActualPosition,
+         Target := Par_Navetta.PosPrePrelievo,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Testa_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := CycleWithShortPiece,
+         ActPos := CIn.Navetta.Coda.Ax.ActualPosition,
+         Target := 1500.0,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Coda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := 1500.0, PosWin := Par_Navetta.ToleranceWindow),
+         ActPos := CIn.Navetta.Testa.Ax.ActualPosition,
+         Target := 1500.0,
+         PosWin := Par_Navetta.ToleranceWindow,
+         Ret_Val => Testa_InPosPrePrelievo
+      );
+
+      Coda_InPosDeposito := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosDeposito, PosWin := Par_Navetta.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosDeposito, PosWin := Par_Navetta.ToleranceWindow) THEN
+         Testa_InPosDeposito := "TolWindow"(ActPos := CIn.Navetta.Testa.Ax.ActualPosition, Target := Par_Navetta.PosDeposito, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
+      IF NOT (CycleWithShortPiece) THEN
+         Coda_InPosPrePrelievo := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrePrelievo, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
+      IF "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrePrelievo, PosWin := Par_Navetta.ToleranceWindow) THEN
+         Testa_InPosPrePrelievo := "TolWindow"(ActPos := CIn.Navetta.Testa.Ax.ActualPosition, Target := Par_Navetta.PosPrePrelievo, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
+      Coda_InPosPrelievo := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrelievo, PosWin := Par_Navetta.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := Par_Navetta.PosPrelievo, PosWin := Par_Navetta.ToleranceWindow) THEN
+         Testa_InPosPrelievo := "TolWindow"(ActPos := CIn.Navetta.Testa.Ax.ActualPosition, Target := Par_Navetta.PosPrelievo, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
+      IF CycleWithShortPiece THEN
+         Coda_InPosPrePrelievo := "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := 1500.0, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
+      IF "TolWindow"(ActPos := CIn.Navetta.Coda.Ax.ActualPosition, Target := 1500.0, PosWin := Par_Navetta.ToleranceWindow) THEN
+         Testa_InPosPrePrelievo := "TolWindow"(ActPos := CIn.Navetta.Testa.Ax.ActualPosition, Target := 1500.0, PosWin := Par_Navetta.ToleranceWindow);
+      END_IF;
       Sts.InPosDeposito := (Coda_InPosDeposito AND Testa_InPosDeposito);
       Sts.InPosPrePrelievo := (Coda_InPosPrePrelievo AND Testa_InPosPrePrelievo);
       Sts.InPosPrelievo := (Coda_InPosPrelievo AND Testa_InPosPrelievo);
@@ -304,6 +407,7 @@ BEGIN
          PT := T#5S
       );
 
+      #TON_MatPres.Q;
       IF #TON_MatPres.Q THEN
          Alarm.ShuttleNotEmpty := TRUE;
       END_IF;
@@ -324,6 +428,7 @@ BEGIN
          PT := T#1s
       );
 
+      #TON_Stop.Q;
       Ctrl.Stop := #TON_Stop.Q;
       IF (#TON_Stop.Q AND CIn.ProdManager.STOP_FineTurno) THEN
          Alarm.STOP_FineTurno := TRUE;

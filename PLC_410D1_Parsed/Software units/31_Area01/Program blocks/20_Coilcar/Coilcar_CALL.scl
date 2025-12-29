@@ -8,9 +8,45 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_Bwd_Minus := LB111.PB.Coilcar_Bwd,
+         LB_PB_Fwd_Plus := LB111.PB.Coilcar_Fwd,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Move.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_Bwd_Minus := LB111.PB.Coilcar_Bwd, LB_PB_Fwd_Plus := LB111.PB.Coilcar_Fwd, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - PB Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := (LB111.PB.Coilcar_Down AND Coilcar_Lift2_Ls_Down),
+         LB_PB_Work := LB111.PB.Coilcar_Up,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Lift1.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := LB111.PB.Coilcar_Down,
+         LB_PB_Work := (LB111.PB.Coilcar_Up AND Coilcar_Lift1_Ls_Up),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Lift2.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := (LB111.PB.Coilcar_Down AND Coilcar_Lift2_Ls_Down), LB_PB_Work := LB111.PB.Coilcar_Up, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+      "ValveMachine_PB_Connector"(LB_PB_Rest := LB111.PB.Coilcar_Down, LB_PB_Work := (LB111.PB.Coilcar_Up AND Coilcar_Lift1_Ls_Up), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - Sensors"
@@ -71,6 +107,7 @@ BEGIN
          PersistentValues := Coilcar_PERS.PersistentValues
       );
 
+      #Coilcar.Q;
    END_REGION
 
    REGION "Data Out"

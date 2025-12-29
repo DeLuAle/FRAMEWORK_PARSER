@@ -57,6 +57,7 @@ BEGIN
          PT := t#3s
       );
 
+      #TON_Result.Q;
       IF #TON_Result.Q THEN
          PPrf_Data_Presence := FALSE;
       END_IF;
@@ -120,6 +121,7 @@ BEGIN
          PT := t#2s
       );
 
+      #PPrf_Get.Q;
       IF PPrf_Get.Execute THEN
          Busy := TRUE;
       END_IF;
@@ -129,6 +131,7 @@ BEGIN
       IF (PPrf_Get.Execute AND PPrf_Get.Done) THEN
          PPrf_Data_Presence := TRUE;
       END_IF;
+      #TON_Timeout.Q;
       IF (#TON_Timeout.Q OR (PPrf_Get.Execute AND PPrf_Get.Error)) THEN
          PPrf_Get.Execute := FALSE;
       END_IF;
@@ -297,6 +300,17 @@ BEGIN
    END_REGION
 
    REGION "Terza operazione = Inserimento ordine su lista ordini da fare (TODO)"
+      "PROD_item_Push_to_Bottom"(
+         en := PPrf_Data_Presence,
+         Item := Order,
+         Reserve := #PROD_ENDING_ITEMS,
+         Buffer := Production.O_TODO,
+         Ret_Val => RETVAL
+      );
+
+      IF PPrf_Data_Presence THEN
+         RETVAL := "PROD_item_Push_to_Bottom"(Item := Order, Reserve := #PROD_ENDING_ITEMS, Buffer := Production.O_TODO);
+      END_IF;
       IF (PPrf_Data_Presence AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
          PPrf_Data_Presence := FALSE;
       END_IF;

@@ -12,9 +12,45 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := NOT ((((NOT (LB112.PB.Straightner_Bwd) AND NOT (LB113.PB.Straightener_Bwd)) AND NOT (LB114_FeedA01.PB.Straightner_Bwd)) AND NOT (LB131.PB.Straightner_Bwd))),
+         LB_PB_Fwd_Plus := NOT ((((NOT (LB112.PB.Straightner_Fwd) AND NOT (LB113.PB.Straightener_Fwd)) AND NOT (LB114_FeedA01.PB.Straightner_Fwd)) AND NOT (LB131.PB.Straightner_Fwd))),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Straightener.DataIn.Feed.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := NOT ((((NOT (LB112.PB.Straightner_Bwd) AND NOT (LB113.PB.Straightener_Bwd)) AND NOT (LB114_FeedA01.PB.Straightner_Bwd)) AND NOT (LB131.PB.Straightner_Bwd))), LB_PB_Fwd_Plus := NOT ((((NOT (LB112.PB.Straightner_Fwd) AND NOT (LB113.PB.Straightener_Fwd)) AND NOT (LB114_FeedA01.PB.Straightner_Fwd)) AND NOT (LB131.PB.Straightner_Fwd))), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - PB Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := NOT ((NOT (LB112_Straightener_Sel_Open) AND NOT (LB131_Straightener_Lift_Pb_Open))),
+         LB_PB_Work := NOT ((NOT (LB112_Straightener_Sel_Close) AND NOT (LB131_Straightener_Lift_Pb_Close))),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Straightener.DataIn.Lift_Entry.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := FALSE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Straightener.DataIn.Lift_Exit.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := NOT ((NOT (LB112_Straightener_Sel_Open) AND NOT (LB131_Straightener_Lift_Pb_Open))), LB_PB_Work := NOT ((NOT (LB112_Straightener_Sel_Close) AND NOT (LB131_Straightener_Lift_Pb_Close))), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := FALSE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "Data In - Sensori"
@@ -76,6 +112,7 @@ BEGIN
          PersistentValues := Straightener_PERS.PersistentValues
       );
 
+      #Straightener.Q;
    END_REGION
 
    REGION "Delete Warning missing forward"

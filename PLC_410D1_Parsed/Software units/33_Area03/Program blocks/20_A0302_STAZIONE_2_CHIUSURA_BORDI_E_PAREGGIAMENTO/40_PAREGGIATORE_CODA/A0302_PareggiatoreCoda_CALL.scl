@@ -94,11 +94,35 @@ BEGIN
    END_REGION
 
    REGION "DataIn - Axis"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0302_PareggiatoreCoda.Ax.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax);
       A0302_PareggiatoreCoda.Ax.DataIn.LS_Minus := NOT (A0302_Ax_Pareggiatore_Coda_Ls_Minimo);
       A0302_PareggiatoreCoda.Ax.DataIn.LS_Plus := NOT (A0302_Ax_Pareggiatore_Coda_Ls_Massimo);
    END_REGION
 
    REGION "DataIn - Bloccaggio"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_PareggiatoreCoda.Bloccaggio.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_PareggiatoreCoda.Bloccaggio.DataIn.Rest_Ls[1] := A0302_Pareggiatore_Coda_Bloccaggio_LatoMotore_Ls_Rest;
       A0302_PareggiatoreCoda.Bloccaggio.DataIn.Rest_Ls[2] := A0302_Pareggiatore_Coda_Bloccaggio_LatoOperatore_Ls_Rest;
       A0302_PareggiatoreCoda.Bloccaggio.DataIn.Work_Ls[1] := A0302_Pareggiatore_Coda_Bloccaggio_LatoMotore_Ls_Work;
@@ -106,11 +130,35 @@ BEGIN
    END_REGION
 
    REGION "DataIn - Battuta Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_PareggiatoreCoda.BattutaVerticale.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_PareggiatoreCoda.BattutaVerticale.DataIn.Rest_Ls[1] := A0302_Pareggiatore_Coda_Centraggio_Ls_Alto;
       A0302_PareggiatoreCoda.BattutaVerticale.DataIn.Work_Ls[1] := A0302_Pareggiatore_Coda_Centraggio_Ls_Basso;
    END_REGION
 
    REGION "DataIn - Pareggiatore Longitudinale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_PareggiatoreCoda.PareggiatoreLong.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_PareggiatoreCoda.PareggiatoreLong.DataIn.Rest_Ls[1] := A0302_Pareggiatore_Coda_Longitudinale_Ls_Aperto;
       A0302_PareggiatoreCoda.PareggiatoreLong.DataIn.Work_Ls[1] := A0302_Pareggiatore_Coda_Longitudinale_Ls_Chiuso;
    END_REGION
@@ -145,6 +193,7 @@ BEGIN
          IEC_SP := A0302_PareggiatoreCoda_PERS.IEC_SP
       );
 
+      #A0302_PareggiatoreCoda.Q;
    END_REGION
 
    REGION "Data Out - Bloccaggi"

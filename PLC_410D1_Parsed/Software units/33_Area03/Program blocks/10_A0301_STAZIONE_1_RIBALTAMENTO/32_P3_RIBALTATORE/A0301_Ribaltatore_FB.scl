@@ -173,6 +173,7 @@ BEGIN
 
       Anticipi.SollevaRib.Not_Ls_Work := NOT ((((((NOT (Solleva_Rib[1].DataIn.Work_Ls[1]) AND NOT (Solleva_Rib[2].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[3].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[4].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[5].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[6].DataIn.Work_Ls[1])));
       Anticipi.SollevaRib.COut_Work := (((((Solleva_Rib[1].COut.Work AND Solleva_Rib[2].COut.Work) AND Solleva_Rib[3].COut.Work) AND Solleva_Rib[4].COut.Work) AND Solleva_Rib[5].COut.Work) AND Solleva_Rib[6].COut.Work);
+      #TON_Anticipi.Work.SollevaRib.Q;
    END_REGION
 
    REGION "Anticipi Movimento RIPOSO"
@@ -183,14 +184,65 @@ BEGIN
 
       Anticipi.SollevaRib.Not_Ls_Rest := (((((NOT (Solleva_Rib[1].DataIn.Work_Ls[1]) AND NOT (Solleva_Rib[2].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[3].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[4].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[5].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[6].DataIn.Work_Ls[1]));
       Anticipi.SollevaRib.COut_Rest := (((((Solleva_Rib[1].DataOut.RestSolenoid AND Solleva_Rib[2].DataOut.RestSolenoid) AND Solleva_Rib[3].DataOut.RestSolenoid) AND Solleva_Rib[4].DataOut.RestSolenoid) AND Solleva_Rib[5].DataOut.RestSolenoid) AND Solleva_Rib[6].DataOut.RestSolenoid);
+      #TON_Anticipi.Rest.SollevaRib.Q;
       IF #TON_Anticipi.Rest.SollevaRib.Q THEN
          CheckAnticipo := TRUE;
       END_IF;
    END_REGION
 
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_CanMoveFreely := ???;
-      Sts.OP_CanMoveFreely := (??? OR (Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) OR ((Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) AND CIn.Trasporto.Standstill));
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Sts.OP_CanMoveFreely := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF "PTrk_Absence"(Item := PTrk.A0301.P) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Sts.OP_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := ("BTrk_Absence"(Item := BTrk.A0301.B) OR (Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) OR ((Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) AND CIn.Trasporto.Standstill));
    END_REGION
 
    REGION "Comando Operazione Lavoro  (AUT) - RIBALTATORE + SOLLEVA"
@@ -372,6 +424,7 @@ BEGIN
          COut => COut.Ribaltatore
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "Ribaltatore = Setpoint Pos."
@@ -381,16 +434,52 @@ BEGIN
    END_REGION
 
    REGION "Ribaltatore = Status / Control - Pos.0"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_0,
+         PosWin := 0.25,
+         Ret_Val => COut.Ribaltatore_Sts.Pos0_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos0_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_0, PosWin := 0.25);
       COut.Ribaltatore_AtRest := (COut.Ribaltatore_Sts.Pos0_Reached AND CIn.P3.Fermi.Rest);
    END_REGION
 
    REGION "Ribaltatore = Status / Control - Pos.1"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_1,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos1_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos1_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_1, PosWin := 0.5);
    END_REGION
 
    REGION "Ribaltatore = Status / Control - Pos.2"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_2,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos2_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos2_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_2, PosWin := 0.5);
    END_REGION
 
    REGION "Ribaltatore = Status / Control - Pos.3"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_3,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos3_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos3_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_3, PosWin := 0.5);
    END_REGION
 
    REGION "P[1...6] CIn External alarm"
@@ -435,6 +524,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[1]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "Solleva_Rib [2] Valve Manager"
@@ -448,6 +538,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[2]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "Solleva_Rib [3] Valve Manager"
@@ -461,6 +552,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[3]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "Solleva_Rib [4] Valve Manager"
@@ -474,6 +566,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[4]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "Solleva_Rib [5] Valve Manager"
@@ -487,6 +580,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[5]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "Solleva_Rib [6] Valve Manager"
@@ -500,6 +594,7 @@ BEGIN
          Warning := Warning.Solleva_Rib[6]
       );
 
+      #Solleva_Rib.Q;
    END_REGION
 
    REGION "P[Solleva_Rib] COut"
@@ -561,6 +656,66 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Solleva_Rib[1].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[4].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[5].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[6].MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Solleva_Rib[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[5].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[6].MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

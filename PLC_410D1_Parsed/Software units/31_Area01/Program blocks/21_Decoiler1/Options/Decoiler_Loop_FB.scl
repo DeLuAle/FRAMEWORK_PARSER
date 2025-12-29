@@ -78,6 +78,8 @@ BEGIN
          PT := PersistentValues.Par.DelayRestartAfterMaxLoop
       );
 
+      #TON_DelayLoopMax.Q;
+      #TON_DelayNotLoopMax.Q;
       IF (#TON_DelayNotLoopMax.Q OR NOT (Enable)) THEN
          MaxLow := FALSE;
       ELSIF #TON_DelayLoopMax.Q THEN
@@ -99,6 +101,7 @@ BEGIN
          PT := PersistentValues.Par.SensoAdjVel_DelayPlusPlus
       );
 
+      #TON_LoopSAdjOffDelay.Q;
    END_REGION
 
    REGION "Override control"

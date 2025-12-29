@@ -331,6 +331,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_S2_Entry
       );
 
+      #MatPresence_S2_Entry.Q;
       PE.NE_MatPresence2_Entry := NegEdge(Pers.Data.MaterialPresence_S2_Entry);
    END_REGION
 
@@ -343,6 +344,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_S3
       );
 
+      #MatPresence_S3.Q;
       PE.PE_MatPresence3 := PosEdge(Pers.Data.MaterialPresence_S3);
    END_REGION
 
@@ -355,6 +357,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_S4
       );
 
+      #MatPresence_S4.Q;
    END_REGION
 
    REGION "Material presence 5 Stop"
@@ -366,6 +369,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_S5_Stop
       );
 
+      #MatPresence_S5_Stop.Q;
       PE.PE_MatPresence5_Stop := PosEdge(Pers.Data.MaterialPresence_S5_Stop);
       PE.NE_SlowDownDone := NegEdge(Ctrl.Rolls.Aut_SlowDown);
    END_REGION
@@ -379,6 +383,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_ExitLeft1
       );
 
+      #MatPresence_ExitLeft1.Q;
    END_REGION
 
    REGION "Material presence ExitLeft2"
@@ -390,6 +395,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_ExitLeft2
       );
 
+      #MatPresence_ExitLeft2.Q;
    END_REGION
 
    REGION "Material presence ExitLeft3"
@@ -401,6 +407,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_ExitLeft3
       );
 
+      #MatPresence_ExitLeft3.Q;
    END_REGION
 
    REGION "Material presence ExitLeft4"
@@ -412,6 +419,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_ExitLeft4
       );
 
+      #MatPresence_ExitLeft4.Q;
    END_REGION
 
    REGION "Rollway movement"
@@ -655,31 +663,66 @@ BEGIN
          PT := T#500MS
       );
 
+      #tonTrkMismatcP0.Q;
       IF #tonTrkMismatcP0.Q THEN
          Alarm.TrkWrongMismatch_P0 := TRUE;
       END_IF;
    END_REGION
 
    REGION "Next Targert path left/right"
-      Sts.NextTargetPathRight := FALSE;
-      Sts.NextTargetPathLeft := (FALSE OR FALSE OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Sts.NextTargetPathRight := (((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND NOT (Pers.Par.UnloadAllLeft)) AND (PTrk.A0202.P.Quality = #GOOD)) AND (PTrk.A0202.P.Beam_Code > 0));
+      Sts.NextTargetPathLeft := ((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND (PTrk.A0202.P.Quality <> #GOOD)) OR (("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND (PTrk.A0202.P.Beam_Code = 0)) OR (("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND Pers.Par.UnloadAllLeft));
    END_REGION
 
    REGION "Actual Targert path left/right"
       // Sys.Bypass Delu il semiguscio può essere anche NG !!!
 
-      Sts.ActTargetPathRight := ((FALSE OR FALSE OR FALSE) AND (PTrk.A0202.P.Beam_Code > 0));
-      Sts.ActTargetPathLeft := (FALSE OR FALSE OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Sts.ActTargetPathRight := ((((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND NOT (Pers.Par.UnloadAllLeft)) AND (PTrk.A0202.P.Quality = #GOOD)) OR ((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND NOT (Pers.Par.UnloadAllLeft)) AND (PTrk.A0202.P.Quality = #GOOD_R)) OR ((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND NOT (Pers.Par.UnloadAllLeft)) AND (PTrk.A0202.P.Quality = #RECOND_GOOD))) AND (PTrk.A0202.P.Beam_Code > 0));
+      Sts.ActTargetPathLeft := (((("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND (PTrk.A0202.P.Quality <> #GOOD)) AND (PTrk.A0202.P.Quality <> #GOOD_R)) OR (("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND (PTrk.A0202.P.Beam_Code = 0)) OR (("PTrk_Presence"(Item := PTrk.A0202.P) AND TRUE) AND Pers.Par.UnloadAllLeft));
    END_REGION
 
    REGION "Move piece to left"
-      Ctrl.Cycle.ReqMovePieceToLeft := (??? OR ???);
-      Ctrl.Cycle.ExeMovePieceToLeft := (((((??? OR ???) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((??? OR ???) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Cycle.ReqMovePieceToLeft := (("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathLeft) OR "PTrk_Presence"(Item := PTrk.A0202.P));
+      Ctrl.Cycle.ExeMovePieceToLeft := (((((("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathLeft) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathLeft) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
    END_REGION
 
    REGION "Move piece to Right"
-      Ctrl.Cycle.ReqMovePieceToRight := (??? OR ???);
-      Ctrl.Cycle.ExeMovePieceToRight := (((((??? OR ???) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((??? OR ???) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Cycle.ReqMovePieceToRight := (("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathRight) OR "PTrk_Presence"(Item := PTrk.A0202.P));
+      Ctrl.Cycle.ExeMovePieceToRight := (((((("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathRight) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((("PTrk_Presence"(Item := PTrk.A0202.P) AND Sts.ActTargetPathRight) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
    END_REGION
 
    REGION "Prepare next move to left / right"
@@ -690,11 +733,27 @@ BEGIN
    END_REGION
 
    REGION "Command auto left"
-      Ctrl.Pusher.Aut_Left := (((((((Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR ??? OR (Ctrl.Cycle.ExeNextMovePieceToRight AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
+      "PTrk_Presence"(
+         en := (Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.AllDown),
+         Item := PTrk.A0202.P
+      );
+
+      IF (Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.AllDown) THEN
+         "PTrk_Presence"(Item := PTrk.A0202.P);
+      END_IF;
+      Ctrl.Pusher.Aut_Left := (((((((Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR ("PTrk_Presence"(Item := PTrk.A0202.P) AND NOT (Sts.Pusher.InLeftPos)) OR (Ctrl.Cycle.ExeNextMovePieceToRight AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
    END_REGION
 
    REGION "Command auto Right"
-      Ctrl.Pusher.Aut_Right := (((((((Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR ??? OR (Ctrl.Cycle.ExeNextMovePieceToLeft AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
+      "PTrk_Presence"(
+         en := (Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.AllDown),
+         Item := PTrk.A0202.P
+      );
+
+      IF (Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.AllDown) THEN
+         "PTrk_Presence"(Item := PTrk.A0202.P);
+      END_IF;
+      Ctrl.Pusher.Aut_Right := (((((((Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR ("PTrk_Presence"(Item := PTrk.A0202.P) AND NOT (Sts.Pusher.InRightPos)) OR (Ctrl.Cycle.ExeNextMovePieceToLeft AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
    END_REGION
 
    REGION "Command auto up"
@@ -751,7 +810,28 @@ BEGIN
    END_REGION
 
    REGION "Rolls aut Fwd"
-      Ctrl.Rolls.Aut_Fwd := ((((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR ??? OR ??? OR ??? OR ???) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR ??? OR ??? OR ??? OR ???) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND COut.Manager.RollformerFeedOk) OR (((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR ??? OR ??? OR ??? OR ???) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR ??? OR ??? OR ??? OR ???) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)));
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Rolls.Aut_Fwd := ((((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND COut.Manager.RollformerFeedOk) OR (((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P) OR "PTrk_Presence"(Item := PTrk.A0202.P)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)));
    END_REGION
 
    REGION "Stop Slow down"
@@ -760,6 +840,7 @@ BEGIN
          PT := Rollway_Control.RitStop_Rull
       );
 
+      #tonSlowDownRolls.Q;
    END_REGION
 
    REGION "Stop Slow down Mem"
@@ -810,6 +891,7 @@ BEGIN
          Rul_len_mm := Pers.Par.Rollway_Lenght
       );
 
+      #Rollway_Control.Q;
    END_REGION
 
    REGION "Rolls Target velocity / Acc / Dec / Jerk"
@@ -849,14 +931,37 @@ BEGIN
    END_REGION
 
    REGION "Rolls Request Stop rollformer"
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0202.P),
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0202.P),
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
       #tonStopRollformer(
-         IN := (((((??? OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR (((??? OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND NOT (AreaInterface.Man)) OR ((((??? OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR (((??? OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND Sts.Semiautomatic)),
+         IN := ((((("PTrk_Presence"(Item := PTrk.A0202.P) OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR ((("PTrk_Presence"(Item := PTrk.A0202.P) OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND NOT (AreaInterface.Man)) OR (((("PTrk_Presence"(Item := PTrk.A0202.P) OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR ((("PTrk_Presence"(Item := PTrk.A0202.P) OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND Sts.Semiautomatic)),
          PT := Pers.Par.Rollway_DelayStopRollformer
       );
 
+      "PTrk_Absence"(Item := PTrk.A0202.P);
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      #tonStopRollformer.Q;
       IF #tonStopRollformer.Q THEN
          COut.Manager.RollformerFeedOk := FALSE;
-      ELSIF (((??? OR ???) AND NOT (Pers.Data.MaterialPresence_S4)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)) THEN
+      ELSIF ((((("PTrk_Absence"(Item := PTrk.A0202.P) AND NOT (Pers.Data.MaterialPresence_S2_Entry)) AND NOT (Pers.Data.MaterialPresence_S3)) OR ("PTrk_Absence"(Item := PTrk.A0202.P) AND AreaInterface.Man)) AND NOT (Pers.Data.MaterialPresence_S4)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)) THEN
          COut.Manager.RollformerFeedOk := TRUE;
       END_IF;
    END_REGION
@@ -867,6 +972,7 @@ BEGIN
          PT := Pers.Par.Rollway_DelaySlowDownRollformer
       );
 
+      #tonSlowDownRollformer.Q;
       COut.Manager.RollformerReqSlowDown := #tonSlowDownRollformer.Q;
    END_REGION
 
@@ -917,6 +1023,7 @@ BEGIN
          Alarm := Alarm.Roll1
       );
 
+      #Roll1.Q;
    END_REGION
 
    REGION "Cin (Manager stop)"
@@ -959,6 +1066,7 @@ BEGIN
          Alarm := Alarm.Roll2
       );
 
+      #Roll2.Q;
    END_REGION
 
    REGION "Cin (Manager stop)"
@@ -1001,6 +1109,7 @@ BEGIN
          Alarm := Alarm.Roll3
       );
 
+      #Roll3.Q;
    END_REGION
 
    REGION "Comando combinato"
@@ -1322,6 +1431,46 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Roll1.MachineInterface,
+         MachineInterface_2 := Roll2.MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Roll3.MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PusherVert_MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PusherHoriz_MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Roll1.MachineInterface, MachineInterface_2 := Roll2.MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Roll3.MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PusherVert_MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PusherHoriz_MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
    END_REGION
 
    REGION "Ack stop in phase and stop programmed"

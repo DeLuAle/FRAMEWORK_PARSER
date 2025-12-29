@@ -308,6 +308,7 @@ BEGIN
          DriveCtrlSafe => COut.PathTestBordatrice_DriveCtrlSafe
       );
 
+      #PathTest_Bordatrice.Q;
    END_REGION
 
    REGION "Cumulative Door Unhautorized open Area 03"
@@ -359,32 +360,102 @@ BEGIN
    END_REGION
 
    REGION "Lamp Safety reset MB3"
+      "Lamp"(
+         en := TRUE,
+         Signal := (NOT ((F_DB.A03_Estop AND F_DB.A03_EstopDelay)) OR (((NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence_A03)) AND NOT (Sts.S120SftyFaultPresence_A03)) AND NOT (Sts.DoorUnauthorizedOpen_A03))) OR NOT (((NOT (Sts.FdbackErrorPresence_A04) AND NOT (Sts.S120SftyFaultPresence_A04)) AND NOT (Sts.DoorUnauthorizedOpen_A04)))) AND NOT (SteadyOn)) AND Sys.Clock_250MS) OR (((NOT ((NOT (Sts.DoorOpened_A03) AND NOT (Sts.DoorOpened_A04))) AND NOT (SteadyOn)) AND NOT (BlinkFast)) AND Sys.Clock_500MS)),
+         Ret_Val => A03_Lp_SafetyReset
+      );
+
       SteadyOn := NOT ((F_DB.A03_Estop AND F_DB.A03_EstopDelay));
       BlinkFast := (NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence_A03)) AND NOT (Sts.S120SftyFaultPresence_A03)) AND NOT (Sts.DoorUnauthorizedOpen_A03))) OR NOT (((NOT (Sts.FdbackErrorPresence_A04) AND NOT (Sts.S120SftyFaultPresence_A04)) AND NOT (Sts.DoorUnauthorizedOpen_A04))));
       BlinkLow := NOT ((NOT (Sts.DoorOpened_A03) AND NOT (Sts.DoorOpened_A04)));
+      A03_Lp_SafetyReset := "Lamp"(Signal := (NOT ((F_DB.A03_Estop AND F_DB.A03_EstopDelay)) OR (((NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence_A03)) AND NOT (Sts.S120SftyFaultPresence_A03)) AND NOT (Sts.DoorUnauthorizedOpen_A03))) OR NOT (((NOT (Sts.FdbackErrorPresence_A04) AND NOT (Sts.S120SftyFaultPresence_A04)) AND NOT (Sts.DoorUnauthorizedOpen_A04)))) AND NOT (SteadyOn)) AND Sys.Clock_250MS) OR (((NOT ((NOT (Sts.DoorOpened_A03) AND NOT (Sts.DoorOpened_A04))) AND NOT (SteadyOn)) AND NOT (BlinkFast)) AND Sys.Clock_500MS)));
    END_REGION
 
    REGION "Lamp D19"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D19,
+         TwoHandEnable := FALSE,
+         LampEntry => D19_Lp_EntryReq_LB321,
+         LampRst => D19_Lp_SafetyReset_LB321
+      );
+
+      "DoorSignals"(Door := F_DB.D19, TwoHandEnable := FALSE);
    END_REGION
 
    REGION "Lamp D20"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D20,
+         TwoHandEnable := FALSE,
+         LampEntry => D20_Lp_EntryReq_LB302,
+         LampRst => D20_Lp_SafetyReset_LB302
+      );
+
+      "DoorSignals"(Door := F_DB.D20, TwoHandEnable := FALSE);
    END_REGION
 
    REGION "Lamp D21"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D21,
+         TwoHandEnable := FALSE,
+         LampEntry => D21_Lp_EntryReq_LB322,
+         LampRst => D21_Lp_SafetyReset_LB322
+      );
+
+      "DoorSignals"(Door := F_DB.D21, TwoHandEnable := FALSE);
    END_REGION
 
    REGION "Lamp D22"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D22,
+         TwoHandEnable := FALSE,
+         LampEntry => D22_Lp_EntryReq_LB305,
+         LampRst => D22_Lp_SafetyReset_LB305
+      );
+
+      "DoorSignals"(Door := F_DB.D22, TwoHandEnable := FALSE);
       D22_Lp_SafetyReset_LB306 := D22_Lp_SafetyReset_LB305;
    END_REGION
 
    REGION "Lamp D24"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D24,
+         TwoHandEnable := FALSE,
+         LampEntry => D24_Lp_EntryReq_LB307,
+         LampRst => D24_Lp_SafetyReset_LB307
+      );
+
+      "DoorSignals"(Door := F_DB.D24, TwoHandEnable := FALSE);
       D24_Lp_SafetyReset_LB308 := D24_Lp_SafetyReset_LB307;
    END_REGION
 
    REGION "Lamp D25"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D25,
+         TwoHandEnable := FALSE,
+         LampEntry => D25_Lp_EntryReq_LB325,
+         LampRst => D25_Lp_SafetyReset_LB325
+      );
+
+      "DoorSignals"(Door := F_DB.D25, TwoHandEnable := FALSE);
    END_REGION
 
    REGION "Lamp D27"
+      "DoorSignals"(
+         en := TRUE,
+         Door := F_DB.D27,
+         TwoHandEnable := FALSE,
+         LampEntry => D27_Lp_EntryReq_LB327,
+         LampRst => D27_Lp_SafetyReset_LB327
+      );
+
+      "DoorSignals"(Door := F_DB.D27, TwoHandEnable := FALSE);
    END_REGION
 
    REGION "Warning presence Area 03"

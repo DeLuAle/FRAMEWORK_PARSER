@@ -61,6 +61,7 @@ BEGIN
          PT := T#10s
       );
 
+      #TimerRestManualReq.Q;
    END_REGION
 
    REGION "CIn - All"
@@ -81,6 +82,20 @@ BEGIN
          Warning := Warning
       );
 
+      "ValveMachine_NotExist"(
+         en := NOT (Config.Exist),
+         Execute := NOT (Config.Exist),
+         ValveMachine := Lift,
+         V_Alarm => Alarm,
+         V_Warning => Warning
+      );
+
+      IF Config.Exist THEN
+         #Lift.Q;
+      END_IF;
+      IF NOT (Config.Exist) THEN
+         "ValveMachine_NotExist"(Execute := NOT (Config.Exist), ValveMachine := Lift);
+      END_IF;
    END_REGION
 
    REGION "Collect machine to zone interface"
@@ -93,6 +108,16 @@ BEGIN
    END_REGION
 
    REGION "Lamp on manual selector"
+      "PB_Lamp"(
+         en := TRUE,
+         OpSelect := NOT ((NOT (Lift.COut.Rest_CheckNext) AND NOT (Lift.COut.Work_CheckNext))),
+         OpRequest := NOT ((NOT (Lift.COut.Rest_CheckNext) AND NOT (Lift.COut.Work_CheckNext))),
+         OpRunning := NOT (Lift.V.ValveSts.StandStill),
+         OpDone := ((Lift.COut.Rest_CheckNext AND Lift.V.ValveSts.IsAtRest) OR (Lift.COut.Work_CheckNext AND Lift.V.ValveSts.IsAtWork)),
+         Ret_Val => DataOut.Lamp
+      );
+
+      DataOut.Lamp := "PB_Lamp"(OpSelect := NOT ((NOT (Lift.COut.Rest_CheckNext) AND NOT (Lift.COut.Work_CheckNext))), OpRequest := NOT ((NOT (Lift.COut.Rest_CheckNext) AND NOT (Lift.COut.Work_CheckNext))), OpRunning := NOT (Lift.V.ValveSts.StandStill), OpDone := ((Lift.COut.Rest_CheckNext AND Lift.V.ValveSts.IsAtRest) OR (Lift.COut.Work_CheckNext AND Lift.V.ValveSts.IsAtWork)));
    END_REGION
 
 

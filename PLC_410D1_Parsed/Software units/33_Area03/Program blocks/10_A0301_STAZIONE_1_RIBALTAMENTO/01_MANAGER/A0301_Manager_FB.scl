@@ -434,7 +434,28 @@ BEGIN
    END_REGION
 
    REGION "== Cerco order ID nelle macchine precedenti e leggo i dati dal MES=="
+      "Find_O_ID"(
+         en := Sts.Attrezzamento.FindNewID,
+         NumStazione := #STATION_A0301_P,
+         O_ID => Sts.A0301_Station1.Trk.Actual_O_ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := ("Find_O_ID"(NumStazione := #STATION_A0301_P) OR (Trk_GetData.Sts >= 0)),
+         O_ID := Sts.A0301_Station1.Trk.Actual_O_ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => Trk_GetData.Sts,
+         Item => Trk_GetData.Item,
+         indx => Trk_GetData.indx
+      );
+
       Sts.Attrezzamento.FindNewID := Sts.A0301_Station1.ZoneEmpty;
+      IF Sts.Attrezzamento.FindNewID THEN
+         "Find_O_ID"(NumStazione := #STATION_A0301_P);
+      END_IF;
+      IF ("Find_O_ID"(NumStazione := #STATION_A0301_P) OR (Trk_GetData.Sts >= 0)) THEN
+         Trk_GetData.Sts := "Prod_item_GetData_By_O_ID"(O_ID := Sts.A0301_Station1.Trk.Actual_O_ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
+      END_IF;
       IF (((Trk_GetData.Sts >= 0) AND (Trk_GetData.Item.Beam_Code = 1)) OR ((Trk_GetData.Sts >= 0) AND A03_DEBUG.A0301_Manager.BeamCode)) THEN
          BTrk_Item.O_ID := Trk_GetData.Item.O_ID;
       END_IF;
@@ -510,6 +531,48 @@ BEGIN
    END_REGION
 
    REGION "[P1] = Enable/Disable Sensors Pin & Controllo e Stato dei sensori =="
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PTrk.A0301.P.PLen_Meas,
+         SensorsToUse => SensorToUse.P1_In
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PLen_Pos1,
+         SensorsToUse => SensorToUse.P1_Out
+      );
+
+      "A0301_StopperSelSensorON"(
+         en := "A0301_StopperSelSensorON"(PLen := PLen_Pos1),
+         PLen := PLen_Pos1,
+         SensorsToUse => SensorToUse.P1_Out
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P1_In,
+         S_Ing := DataIn.P1.Sens_Ing,
+         Ret_Val => Sens.P1_IngOn
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P1_Out,
+         S_Ing := DataIn.P1.Sens_Out,
+         Ret_Val => Sens.P1_OutOn
+      );
+
       #TON.P1.Sens_Ing.DelayOn(
          IN := Sens.P1_IngOn,
          PT := A0301_PERS.SensTime.P1.Sens_Ing.DelayOn
@@ -520,12 +583,40 @@ BEGIN
          PT := A0301_PERS.SensTime.P1.Sens_Out.DelayOff
       );
 
-      PLen_Pos1 := PTrk.A0301.P.PLen_Meas;
+      "A0301_StopperSelSensorON"(PLen := PTrk.A0301.P.PLen_Meas);
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         PLen_Pos1 := PTrk.A0301.P.PLen_Meas;
+      END_IF;
+      "A0301_StopperSelSensorON"(PLen := PLen_Pos1);
+      Sens.P1_IngOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P1_In, S_Ing := DataIn.P1.Sens_Ing);
+      Sens.P1_OutOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P1_Out, S_Ing := DataIn.P1.Sens_Out);
+      #TON.P1.Sens_Ing.DelayOn.Q;
       Sts.P1.Fermi.Sens_Ing := (#TON.P1.Sens_Ing.DelayOn.Q AND TON.P1.Sens_Ing.DelayOn.Q);
+      #TON.P1.Sens_Out.DelayOff.Q;
       Sts.P1.Fermi.Sens_Out := (#TON.P1.Sens_Out.DelayOff.Q AND TON.P1.Sens_Out.DelayOff.Q);
    END_REGION
 
    REGION "[P2] = Enable/Disable Sensors Pin & Controllo e Stato dei sensori =="
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PTrk.A0301.P.PLen_Meas,
+         SensorsToUse => SensorToUse.P2_In
+      );
+
+      "A0301_StopperSelSensorON"(
+         en := "A0301_StopperSelSensorON"(PLen := PTrk.A0301.P.PLen_Meas),
+         PLen := PTrk.A0301.P.PLen_Meas,
+         SensorsToUse => SensorToUse.P2_Out
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P2_In,
+         S_Ing := DataIn.P2.Sens_Ing,
+         Ret_Val => Sens.P2_IngOn
+      );
+
       #TON.P2.Sens_Ing.DelayOn(
          IN := Sens.P2_IngOn,
          PT := A0301_PERS.SensTime.P2.Sens_Ing.DelayOn
@@ -536,10 +627,50 @@ BEGIN
          PT := A0301_PERS.SensTime.P2.Sens_Out.DelayOff
       );
 
+      "A0301_StopperSelSensorON"(PLen := PTrk.A0301.P.PLen_Meas);
+      Sens.P2_IngOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P2_In, S_Ing := DataIn.P2.Sens_Ing);
+      #TON.P2.Sens_Ing.DelayOn.Q;
+      #TON.P2.Sens_Out.DelayOff.Q;
       Sts.P2.Fermi.Sens_Ing := (#TON.P2.Sens_Out.DelayOff.Q AND TON.P2.Sens_Out.DelayOff.Q);
    END_REGION
 
    REGION "[P3] = Enable/Disable Sensors Pin & Controllo e Stato dei sensori =="
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PTrk.A0301.P.PLen_Meas,
+         SensorsToUse => SensorToUse.P3_In
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P3_In,
+         S_Ing := DataIn.P3.Sens_Ing,
+         Ret_Val => Sens.P3_IngOn
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PLen_Pos3,
+         SensorsToUse => SensorToUse.P3_Out
+      );
+
+      "A0301_SelSensorON"(
+         en := "A0301_StopperSelSensorON"(PLen := PLen_Pos3),
+         SensorsToUse := SensorToUse.P3_Out,
+         S_Ing := DataIn.P3.Sens_Out,
+         Ret_Val => Sens.P3_OutOn
+      );
+
       #TON.P3.Sens_Ing.DelayOn(
          IN := Sens.P3_IngOn,
          PT := A0301_PERS.SensTime.P3.Sens_Ing.DelayOn
@@ -550,12 +681,49 @@ BEGIN
          PT := A0301_PERS.SensTime.P3.Sens_Out.DelayOff
       );
 
-      PLen_Pos3 := BTrk.A0301.B.BLen_Meas;
+      "A0301_StopperSelSensorON"(PLen := PTrk.A0301.P.PLen_Meas);
+      Sens.P3_IngOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P3_In, S_Ing := DataIn.P3.Sens_Ing);
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         PLen_Pos3 := BTrk.A0301.B.BLen_Meas;
+      END_IF;
+      "A0301_StopperSelSensorON"(PLen := PLen_Pos3);
+      IF "A0301_StopperSelSensorON"(PLen := PLen_Pos3) THEN
+         Sens.P3_OutOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P3_Out, S_Ing := DataIn.P3.Sens_Out);
+      END_IF;
+      #TON.P3.Sens_Ing.DelayOn.Q;
       Sts.P3.Fermi.Sens_Ing := (#TON.P3.Sens_Ing.DelayOn.Q AND TON.P3.Sens_Ing.DelayOn.Q);
+      #TON.P3.Sens_Out.DelayOff.Q;
       Sts.P3.Fermi.Sens_Out := (#TON.P3.Sens_Out.DelayOff.Q AND TON.P3.Sens_Out.DelayOff.Q);
    END_REGION
 
    REGION "[P4] = Enable/Disable Sensors Pin & Controllo e Stato dei sensori =="
+      "A0301_StopperSelSensorON"(
+         en := TRUE,
+         PLen := PTrk.A0301.Part_Len,
+         SensorsToUse => SensorToUse.P4_In
+      );
+
+      "A0301_StopperSelSensorON"(
+         en := "A0301_StopperSelSensorON"(PLen := PTrk.A0301.Part_Len),
+         PLen := PTrk.A0301.Part_Len,
+         SensorsToUse => SensorToUse.P4_Out
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P4_In,
+         S_Ing := DataIn.P4.Sens_Ing,
+         Ret_Val => Sens.P4_IngOn
+      );
+
+      "A0301_SelSensorON"(
+         en := TRUE,
+         SensorsToUse := SensorToUse.P4_Out,
+         S_Ing := DataIn.P4.Sens_Out,
+         Ret_Val => Sens.P4_OutOn
+      );
+
       #TON.P4.Sens_Ing.DelayOn(
          IN := Sens.P4_IngOn,
          PT := A0301_PERS.SensTime.P4.Sens_Ing.DelayOn
@@ -566,12 +734,141 @@ BEGIN
          PT := A0301_PERS.SensTime.P4.Sens_Out.DelayOff
       );
 
+      "A0301_StopperSelSensorON"(PLen := PTrk.A0301.Part_Len);
+      Sens.P4_IngOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P4_In, S_Ing := DataIn.P4.Sens_Ing);
+      Sens.P4_OutOn := "A0301_SelSensorON"(SensorsToUse := SensorToUse.P4_Out, S_Ing := DataIn.P4.Sens_Out);
+      #TON.P4.Sens_Ing.DelayOn.Q;
       Sts.P4.Fermi.Sens_Ing := (#TON.P4.Sens_Ing.DelayOn.Q AND TON.P4.Sens_Ing.DelayOn.Q);
+      #TON.P4.Sens_Out.DelayOff.Q;
       Sts.P4.Fermi.Sens_Out := (#TON.P4.Sens_Out.DelayOff.Q AND TON.P4.Sens_Out.DelayOff.Q);
    END_REGION
 
    REGION "[Ax] Trasporto - Controllo condizioni di START - Fwd"
-      Ctrl.TRK.PTrk.Start_Frw := (??? OR ((??? OR ??? OR ???) AND CIn.P4.Fermi.Work) OR FALSE OR ??? OR ??? OR A03_DEBUG.A0301_Manager.TrasportoStart OR ??? OR ??? OR ((((??? OR ???) AND CIn.P2.Fermi.Rest) AND CIn.Ribaltatore.Solleva_Rib.Rest) AND CIn.P3.Fermi.Work) OR ??? OR (((??? OR ??? OR ???) AND CIn.P2.Fermi.Work) AND CIn.P2.Sollevatore.Rest) OR (((??? OR ??? OR ???) AND CIn.Ribaltatore.Solleva_Rib.Rest) AND CIn.P4.Fermi.Work) OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0202.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := ("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      IF "PTrk_Presence"(Item := PTrk.A0202.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF ("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B)) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.PTrk.Start_Frw := (("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Work) OR (("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR ("BTrk_Presence"(Item := BTrk.A0301.B) AND NOT (Sts.P4.Fermi.Sens_Ing))) AND CIn.P4.Fermi.Work) OR ((((((((("BTrk_Presence"(Item := BTrk.A0301.B) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND NOT (CIn.P5.SensUscitaBanco)) OR ((("BTrk_Presence"(Item := BTrk.A0301.B) AND CIn.P4.Fermi.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) OR ((("BTrk_Presence"(Item := BTrk.A0301.B) AND NOT (Sts.P4.Fermi.Sens_Out)) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) OR A03_DEBUG.A0301_Manager.TrasportoStart OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) AND CIn.P3.Fermi.Work) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) AND Ctrl.TRK.PTrk.Pos1_TO_Pos2) AND CIn.P2.Fermi.Work) OR ((((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND CIn.P2.Fermi.Rest) AND CIn.Ribaltatore.Solleva_Rib.Rest) AND CIn.P3.Fermi.Work) OR ("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) OR (((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND CIn.P2.Fermi.Work) AND CIn.P2.Sollevatore.Rest) OR ((((((("BTrk_Presence"(Item := BTrk.A0301.B) AND CIn.P2.Fermi.Rest) AND CIn.P2.Sollevatore.Rest) AND NOT (Sts.P3.Fermi.Sens_Ing)) AND CIn.P3.Fermi.Work) OR ((((("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P2.Fermi.Rest) AND CIn.P2.Sollevatore.Rest) AND CIn.P3.Fermi.Rest) AND CIn.P4.Fermi.Work) AND NOT (Sts.P4.Fermi.Sens_Ing)) OR ("BTrk_Presence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Rest)) AND CIn.Ribaltatore.Solleva_Rib.Rest) AND CIn.P4.Fermi.Work) OR ((("BTrk_Presence"(Item := BTrk.A0301.B) AND NOT (Sts.P3.Fermi.Sens_Ing)) AND CIn.P3.Fermi.Work) AND CIn.Ribaltatore.Solleva_Rib.Rest));
    END_REGION
 
    REGION "[Ax] Trasporto - COut Manager"
@@ -589,36 +886,246 @@ BEGIN
    END_REGION
 
    REGION "Richiesta Pezzo Area 02"
-      COut.P1.ReqPTrk_A02 := ???;
+      "PTrk_Absence"(
+         en := NOT ((NOT (Sts.SemiAut.ON) AND NOT (AreaInterface.Cycle))),
+         Item := PTrk.A0301.P
+      );
+
+      IF NOT ((NOT (Sts.SemiAut.ON) AND NOT (AreaInterface.Cycle))) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      COut.P1.ReqPTrk_A02 := (("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Work) AND NOT (Sts.P1.Fermi.Sens_Ing));
    END_REGION
 
    REGION "[P1] Condizioni di allarme Pareggiatore del pezzo"
-      Alarm.WrongShiftDone := ???;
+      "PTrk_Presence"(
+         en := Sys.Bit0,
+         Item := PTrk.A0301.P
+      );
+
+      IF Sys.Bit0 THEN
+         "PTrk_Presence"(Item := PTrk.A0301.P);
+      END_IF;
+      Alarm.WrongShiftDone := (("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) AND NOT (PTrk.A0301.P.ShiftDone));
       IF ((PosEdge(HMI.B_ResetShiftDone) AND AreaInterface.Man) AND PTrk.A0301.P.ShiftDone) THEN
          PTrk.A0301.P.ShiftDone := FALSE;
       END_IF;
    END_REGION
 
    REGION "[P1] Richiesta movimento Part agli stopper P2"
-      Ctrl.TRK.PTrk.Pos1_TO_Pos2 := ???;
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := ("PTrk_Presence"(Item := PTrk.A0301.P) OR "PTrk_Presence"(Item := PTrk.A0301.P)),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := Ctrl.TRK.PTrk.Pos1_TO_Pos2,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      Ctrl.TRK.PTrk.Pos1_TO_Pos2 := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF "PTrk_Absence"(Item := PTrk.A0301.P) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.PTrk.Pos1_TO_Pos2 := (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P2.Fermi.Work) AND CIn.P2.Sollevatore.Rest);
    END_REGION
 
    REGION "[P1] Richiesta movimento Part agli stopper P3"
-      P1.Cndz1_P1toP3 := ???;
-      P1.Cndz2_P1toP3 := ???;
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := P1.Cndz1_P1toP3,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := P1.Cndz1_P1toP3,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := P1.Cndz1_P1toP3,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := P1.Cndz1_P1toP3,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := Sys.ByPass,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      P1.Cndz1_P1toP3 := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF P1.Cndz1_P1toP3 THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      P1.Cndz1_P1toP3 := "BTrk_Absence"(Item := BTrk.A0301.B);
+      P1.Cndz1_P1toP3 := (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.Ribaltatore.Solleva_Rib.Rest) AND CIn.P3.Fermi.Work);
+      IF Sys.ByPass THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      P1.Cndz2_P1toP3 := ((("BTrk_Presence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Work) AND CIn.P2.Fermi.Rest) AND CIn.P2.Sollevatore.Rest);
       Ctrl.TRK.PTrk.Pos1_TO_Pos3 := (P1.Cndz1_P1toP3 OR P1.Cndz2_P1toP3);
    END_REGION
 
    REGION "P[Pareggiatore] Pareggiamento su A03 Pos.1 eseguito"
-      Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos3 := ???;
-      IF ??? THEN
+      "PTrk_Presence"(
+         en := Sys.Bit0,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := Sys.Bit0,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      IF Sys.Bit0 THEN
+         "PTrk_Presence"(Item := PTrk.A0301.P);
+      END_IF;
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos3 := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF ("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.P1.Sfalsatore.Work) THEN
          PTrk.A0301.P.ShiftDone := TRUE;
       END_IF;
-      Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos2 := ???;
+      Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos2 := "PTrk_Absence"(Item := PTrk.A0301.P);
    END_REGION
 
    REGION "[P1] Movimento PTRK da Pos1 Entry  == a==> P1 Exit P2 / P1 exit P3"
-      PTrk.A0301.P := PTrk.A0301.P;
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := (("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos2) AND CIn.P1.Fermi.Rest),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := (("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) AND CIn.P1.Fermi.Rest),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF (("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos2) AND CIn.P1.Fermi.Rest) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      IF "PTrk_Absence"(Item := PTrk.A0301.P) THEN
+         PTrk.A0301.P := PTrk.A0301.P;
+      END_IF;
       IF PTrk.A0301.P THEN
          Ctrl.P1.PartMove_P1toP2_Init := TRUE;
       END_IF;
@@ -631,10 +1138,26 @@ BEGIN
       // Salvo la quota nastro appena dopo la perdita del sensore presenza prodotto da Pos.1 e
 // azzero il PTrk su "Pos1ExitToP3" perchè passato avanti
 
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
       #TON.P1_Exit_P3(
+         IN := ((("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) AND NOT (Sts.P1.Fermi.Sens_Ing)) AND NOT (Sts.P1.Fermi.Sens_Out)),
          PT := T#800MS
       );
 
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      #TON.P1_Exit_P3.Q;
       IF #TON.P1_Exit_P3.Q THEN
          PTrk.A0301.P := PTrk.A0301.P;
       END_IF;
@@ -657,6 +1180,7 @@ BEGIN
          V_Counter_Save := Data.LastCounter_PartMove_P1toP3
       );
 
+      #Ctrl_Part_Move_P1toP3.Q;
       IF ((((Sts.P3.Fermi.Some_Sens_Ing AND NOT (Sts.P3.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P1toP3.S2_Reached)) AND Ctrl_Part_Move_P1toP3.Err_S2_ON) OR (((Sts.P3.Fermi.Some_Sens_Ing AND NOT (Sts.P3.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P1toP3.S2_Reached)) AND Ctrl_Part_Move_P1toP3.Err_S2_OFF)) THEN
          Alarm.P1toP3_NotReached := TRUE;
       END_IF;
@@ -666,7 +1190,18 @@ BEGIN
    END_REGION
 
    REGION "[P1] Movimento PTRK da Pos1 to Pos.3 ==a==> Pos3_Entry + gest. allarme"
-      Sts.P3.Fermi.Some_Sens_Ing := (??? OR ??? OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := PTrk.A0301.P,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      Sts.P3.Fermi.Some_Sens_Ing := (((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P3.Sens_Ing[1]) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P3.Sens_Ing[2]) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P3.Sens_Ing[3]));
       IF (((Sts.P3.Fermi.Some_Sens_Ing AND Sts.P3.Fermi.Sens_Ing) AND Ctrl_Part_Move_P1toP3.S2_Reached) OR ((Sts.P3.Fermi.Some_Sens_Ing AND Sts.P3.Fermi.Sens_Ing) AND Sys.Bit1)) THEN
          PTrk.A0301.P := PTrk.A0301.P;
       END_IF;
@@ -679,10 +1214,26 @@ BEGIN
       // Salvo la quota nastro appena dopo la perdita del sensore presenza prodotto da Pos.1 e
 // azzero il PTrk su "Pos1ExitToP2" perchè passato avanti
 
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
       #TON.P1_Exit_P2(
+         IN := ((("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.P1.Fermi.Rest) AND NOT (Sts.P1.Fermi.Sens_Ing)) AND NOT (Sts.P1.Fermi.Sens_Out)),
          PT := T#800MS
       );
 
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      #TON.P1_Exit_P2.Q;
       IF #TON.P1_Exit_P2.Q THEN
          PTrk.A0301.P := PTrk.A0301.P;
       END_IF;
@@ -705,6 +1256,7 @@ BEGIN
          V_Counter_Save := Data.LastCounter_PartMove_P1toP2
       );
 
+      #Ctrl_Part_Move_P1toP2.Q;
       IF (((((Sts.P2.Fermi.Some_Sens_Ing AND Sts.P2.Fermi.Some_Sens_Ing) AND NOT (Sts.P2.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P1toP2.S2_Reached)) AND Ctrl_Part_Move_P1toP2.Err_S2_ON) OR ((((Sts.P2.Fermi.Some_Sens_Ing AND Sts.P2.Fermi.Some_Sens_Ing) AND NOT (Sts.P2.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P1toP2.S2_Reached)) AND Ctrl_Part_Move_P1toP2.Err_S2_OFF)) THEN
          Alarm.P1toP2_NotReached := TRUE;
       END_IF;
@@ -714,7 +1266,18 @@ BEGIN
    END_REGION
 
    REGION "[P1] Movimento PTRK da Pos1 to Pos.2 ==a==> Pos2_Entry + gest. allarme"
-      Sts.P2.Fermi.Some_Sens_Ing := (??? OR ??? OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := PTrk.A0301.P,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      Sts.P2.Fermi.Some_Sens_Ing := (((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P2.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P2.Sens_Ing[1]) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P2.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P2.Sens_Ing[2]) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P2.Fermi.Work) AND CIn.Trasporto.Fwd_Running) AND DataIn.P2.Sens_Ing[3]));
       IF (((Sts.P2.Fermi.Some_Sens_Ing AND Sts.P2.Fermi.Sens_Ing) AND Ctrl_Part_Move_P1toP2.S2_Reached) OR ((Sts.P2.Fermi.Some_Sens_Ing AND Sts.P2.Fermi.Sens_Ing) AND Sys.Bit1)) THEN
          PTrk.A0301.P := PTrk.A0301.P;
       END_IF;
@@ -724,13 +1287,56 @@ BEGIN
    END_REGION
 
    REGION "[P1] Fermi - Movimento operazione a lavoro / a riposo"
-      Ctrl.P1.Fermi.Rest := (((??? OR ???) AND (BTrk.A0301.B.B_ID <> 0)) OR ((??? OR ???) AND (BTrk.A0301.B.B_ID <> 0)) OR ((??? OR ???) AND (BTrk.A0301.B.B_ID <> 0)) OR ((((??? OR ???) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) OR ((??? OR ???) AND CIn.P2.Fermi.Work));
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      Ctrl.P1.Fermi.Rest := (((("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND (BTrk.A0301.B.B_ID <> 0)) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND (BTrk.A0301.B.B_ID <> 0)) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND (BTrk.A0301.B.B_ID <> 0)) OR ((((("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) AND (BTrk.A0301.B.B_ID = 0)) OR ((("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos2) OR "PTrk_Presence"(Item := PTrk.A0301.P)) AND CIn.P2.Fermi.Work));
       Ctrl.P1.Fermi.Work := NOT (Ctrl.P1.Fermi.Rest);
    END_REGION
 
    REGION "[P1] Pareggiatore - Movimento operazione a lavoro / a riposo"
-      Ctrl.P1.Pareggiatore.Work := ???;
-      Ctrl.P1.Pareggiatore.Rest := ((((Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos3 AND CIn.P1.Sfalsatore.Work) AND NOT (CIn.P1.Sfalsatore.Rest)) AND PTrk.A0301.P.ShiftDone) OR ??? OR Sys.Bit1);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      Ctrl.P1.Pareggiatore.Work := (((((("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (PTrk.A0301.P.ShiftDone)) AND CIn.P1.Fermi.Work) AND Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos3) AND NOT (Ctrl.P1.Pareggiatore.Rest)) AND Sts.P1.Fermi.Sens_Ing) AND Sys.Bit0);
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Ctrl.P1.Pareggiatore.Rest := ((((Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos3 AND CIn.P1.Sfalsatore.Work) AND NOT (CIn.P1.Sfalsatore.Rest)) AND PTrk.A0301.P.ShiftDone) OR (("PTrk_Absence"(Item := PTrk.A0301.P) AND NOT (CIn.P1.Sfalsatore.Rest)) AND Ctrl.TRK.PTrk.Paregg_Pos1_to_Pos2) OR Sys.Bit1);
    END_REGION
 
    REGION "[P1] Fermi / [P1] Pareggiatore - COut Manager"
@@ -749,14 +1355,89 @@ BEGIN
    END_REGION
 
    REGION "[P2] Movimento PTRK da Pos2 Entry  ==a==>  Pos2 Solleva"
-      Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva := ???;
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(
+         en := PTrk.A0301.P,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva := ("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P2.Fermi.Work);
       IF (Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND CIn.P2.Sollevatore.Work) THEN
          PTrk.A0301.P := PTrk.A0301.P;
       END_IF;
    END_REGION
 
    REGION "[P2] Fermi - Movimento operazione a lavoro / a riposo"
-      Ctrl.P2.Fermi.Rest := (??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      Ctrl.P2.Fermi.Rest := (("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P2.Sollevatore.Work) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR ("PTrk_Presence"(Item := PTrk.A0301.P) AND Ctrl.TRK.PTrk.Pos1_TO_Pos3) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "PTrk_Presence"(Item := PTrk.A0301.P));
       Ctrl.P2.Fermi.Work := NOT (Ctrl.P2.Fermi.Rest);
    END_REGION
 
@@ -770,8 +1451,20 @@ BEGIN
    END_REGION
 
    REGION "[P2] Sollevatore - Movimento operazione a lavoro / a riposo"
-      Ctrl.P2.Sollevatore.EnableMove := ((Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Sts.P2.Fermi.Sens_Ing) OR (Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Ctrl.P2.Sollevatore.Work) OR ??? OR ???);
-      Ctrl.P2.Sollevatore.Work := ((Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Sts.P2.Fermi.Sens_Ing) OR (Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Ctrl.P2.Sollevatore.Work) OR ??? OR ???);
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      Ctrl.P2.Sollevatore.EnableMove := ((Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Sts.P2.Fermi.Sens_Ing) OR (Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Ctrl.P2.Sollevatore.Work) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "BTrk_Presence"(Item := BTrk.A0301.B));
+      Ctrl.P2.Sollevatore.Work := ((Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Sts.P2.Fermi.Sens_Ing) OR (Ctrl.TRK.PTrk.Pos2Entry_TO_Pos2Solleva AND Ctrl.P2.Sollevatore.Work) OR "PTrk_Presence"(Item := PTrk.A0301.P) OR "BTrk_Presence"(Item := BTrk.A0301.B));
       Ctrl.P2.Sollevatore.Rest := (NOT (Ctrl.P2.Sollevatore.Work) AND NOT (Ctrl.P2.Sollevatore.EnableMove));
    END_REGION
 
@@ -785,7 +1478,38 @@ BEGIN
    END_REGION
 
    REGION "[P3] Fermi - Movimento operazione a lavoro / a riposo"
-      Ctrl.P3.Fermi.Rest := (((??? OR ??? OR ??? OR ??? OR ??? OR ???) AND CIn.P4.Fermi.Work) AND NOT (Ctrl.Ribaltatore.Solleva.Work));
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      Ctrl.P3.Fermi.Rest := ((("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B)) AND CIn.P4.Fermi.Work) AND NOT (Ctrl.Ribaltatore.Solleva.Work));
       Ctrl.P3.Fermi.Work := NOT (Ctrl.P3.Fermi.Rest);
    END_REGION
 
@@ -799,33 +1523,217 @@ BEGIN
    END_REGION
 
    REGION "P [Solleva] Movimento solleva ribaltatore"
-      Ctrl.Ribaltatore.Solleva.EnableMove := ???;
-      Ctrl.Ribaltatore.Solleva.EnableMove := (??? OR ???);
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.Ribaltatore.Solleva.EnableMove,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.Ribaltatore.Solleva.EnableMove,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(
+         en := Ctrl.Ribaltatore.Solleva.EnableMove,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Ctrl.Ribaltatore.Solleva.EnableMove := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF Ctrl.Ribaltatore.Solleva.EnableMove THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.Ribaltatore.Solleva.EnableMove := "BTrk_Absence"(Item := BTrk.A0301.B);
+      IF Ctrl.Ribaltatore.Solleva.EnableMove THEN
+         "PTrk_Presence"(Item := PTrk.A0301.P);
+      END_IF;
+      Ctrl.Ribaltatore.Solleva.EnableMove := (((("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached) AND Sts.P3.Fermi.Sens_Ing) OR (("PTrk_Presence"(Item := PTrk.A0301.P) AND CIn.P3.Fermi.Work) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached)));
    END_REGION
 
    REGION "[Ax] Movimento BTRK da Pos3 Ribalta ==a==>  Pos0 Ribalta"
-      Ctrl.TRK.Ribaltatore.MoveToPos0 := ???;
-      Ctrl.Ribaltatore.Solleva.Rest := FALSE;
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := Ctrl.TRK.Ribaltatore.MoveToPos0,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Ctrl.TRK.Ribaltatore.MoveToPos0 := "PTrk_Absence"(Item := PTrk.A0301.P);
+      Ctrl.Ribaltatore.Solleva.Rest := ("PTrk_Absence"(Item := PTrk.A0301.P) AND (CIn.Ribaltatore.Ax.ActualPosition < 80.0));
    END_REGION
 
    REGION "[Ax] Movimento PTRK da Pos3 Entry  ==a==>  Pos1 Ribalta"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
       Ctrl.Ribaltatore.Solleva.Work := Ctrl.Ribaltatore.Solleva.EnableMove;
-      Ctrl.TRK.Ribaltatore.MoveToPos1 := ((((Ctrl.Ribaltatore.Solleva.EnableMove AND CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached) OR ((Ctrl.Ribaltatore.Solleva.EnableMove AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached)) AND CIn.Ribaltatore.Solleva_Rib.Work) OR ((Ctrl.Ribaltatore.Solleva.EnableMove AND Ctrl.TRK.Ribaltatore.MoveToPos1) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos1_Reached))) AND CIn.P3.Fermi.Work) OR ???);
-      PTrk.A0301.P := PTrk.A0301.P;
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      Ctrl.TRK.Ribaltatore.MoveToPos1 := ((((Ctrl.Ribaltatore.Solleva.EnableMove AND CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached) OR ((Ctrl.Ribaltatore.Solleva.EnableMove AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos0_Reached)) AND CIn.Ribaltatore.Solleva_Rib.Work) OR ((Ctrl.Ribaltatore.Solleva.EnableMove AND Ctrl.TRK.Ribaltatore.MoveToPos1) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos1_Reached))) AND CIn.P3.Fermi.Work) OR (("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos1_Reached)) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos2)));
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      IF (("PTrk_Absence"(Item := PTrk.A0301.P) AND CIn.Ribaltatore.Solleva_Rib.Work) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos1_Reached) THEN
+         PTrk.A0301.P := PTrk.A0301.P;
+      END_IF;
    END_REGION
 
    REGION "[Ax] Movimento PTRK da Pos1 Ribalta  + Tempo Assestamento ==a==>  Pos2 Ribalta"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
       #TON.Delay_Pos1Ribalta(
+         IN := ((("PTrk_Absence"(Item := PTrk.A0301.P) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos1)) AND CIn.Ribaltatore.Solleva_Rib.Work) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos1_Reached),
          PT := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.Pos_1_Delay
       );
 
-      Ctrl.TRK.Ribaltatore.MoveToPos2 := ((((#TON.Delay_Pos1Ribalta.Q AND TON.Delay_Pos1Ribalta.Q) OR ???) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached)) OR (Ctrl.TRK.Ribaltatore.MoveToPos2 AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached)));
-      PTrk.A0301.P := PTrk.A0301.P;
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := (NOT (Ctrl.TRK.Ribaltatore.MoveToPos2) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := PTrk.A0301.P,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      #TON.Delay_Pos1Ribalta.Q;
+      Ctrl.TRK.Ribaltatore.MoveToPos2 := ((((#TON.Delay_Pos1Ribalta.Q AND TON.Delay_Pos1Ribalta.Q) OR (("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos1)) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos3))) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached)) OR (Ctrl.TRK.Ribaltatore.MoveToPos2 AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached)));
+      IF "PTrk_Absence"(Item := PTrk.A0301.P) THEN
+         PTrk.A0301.P := PTrk.A0301.P;
+      END_IF;
    END_REGION
 
    REGION "[Ax] Movimento PTRK da Pos2 Ribalta  ==a==>  Pos3 Ribalta"
-      Ctrl.TRK.Ribaltatore.MoveToPos3 := (??? OR ??? OR ???);
-      PTrk.A0301.P := PTrk.A0301.P;
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := (NOT (Ctrl.TRK.Ribaltatore.MoveToPos3) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos3_Reached),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := PTrk.A0301.P,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF "PTrk_Presence"(Item := PTrk.A0301.P) THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      Ctrl.TRK.Ribaltatore.MoveToPos3 := ((((("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos1)) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos2)) AND CIn.Ribaltatore.Solleva_Rib.Work) AND CIn.Ribaltatore.Sts_Ribaltatore.Pos2_Reached) OR ((((("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos1)) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos2)) AND CIn.Ribaltatore.Solleva_Rib.Work) AND Ctrl.TRK.Ribaltatore.MoveToPos3) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos3_Reached)) OR (("PTrk_Presence"(Item := PTrk.A0301.P) AND NOT (CIn.Ribaltatore.Sts_Ribaltatore.Pos3_Reached)) AND NOT (Ctrl.TRK.Ribaltatore.MoveToPos2)));
+      IF "PTrk_Absence"(Item := PTrk.A0301.P) THEN
+         PTrk.A0301.P := PTrk.A0301.P;
+      END_IF;
    END_REGION
 
    REGION "[Ax] Ribaltatore - COut Manager"
@@ -861,16 +1769,37 @@ BEGIN
    END_REGION
 
    REGION "[P2 + P3] UNIONE dei PTrk e SCRITTURA del BTrk - Move su P2 Lifter Up"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(
+         en := "PTrk_Presence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
       #A0301_PTrk_To_BTrk_Create(
          en := TRUE,
+         Execute := "PTrk_Presence"(Item := PTrk.A0301.P),
          AreaInterface := AreaInterface,
          PTrk_P2 := PTrk.A0301.P,
          PTrk_P3 := PTrk.A0301.P,
          Status := Alarm.PTrk_TO_BTrk.Status
       );
 
+      "BTrk_Presence"(
+         en := A0301_PTrk_To_BTrk_Create.BTrk,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      #A0301_PTrk_To_BTrk_Create.Q;
       IF ((A0301_PTrk_To_BTrk_Create.Execute AND (A0301_PTrk_To_BTrk_Create.Alarm = 0)) AND (Alarm.PTrk_TO_BTrk.Status = 0)) THEN
          BTrk.A0301.B := A0301_PTrk_To_BTrk_Create.BTrk;
+      END_IF;
+      IF A0301_PTrk_To_BTrk_Create.BTrk THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
       END_IF;
    END_REGION
 
@@ -882,12 +1811,70 @@ BEGIN
    END_REGION
 
    REGION "[P4] Movimento BTRK da Pos2 Up  ==a==>  Pos2 Down"
-      Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down := ???;
-      Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down := ((((??? OR ???) AND Ctrl.TRK.Ribaltatore.MoveToPos0) AND (CIn.Ribaltatore.Ax.ActualPosition < 40.0)) AND CIn.Ribaltatore.Solleva_Rib.Rest);
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down := "PTrk_Absence"(Item := PTrk.A0301.P);
+      IF Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down := "BTrk_Absence"(Item := BTrk.A0301.B);
+      IF Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down := (((((("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Work) AND NOT (Sts.P3.Fermi.Sens_Ing)) OR ((("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P4.Fermi.Work) AND NOT (Sts.P4.Fermi.Sens_Ing)) AND CIn.P3.Fermi.Rest)) AND Ctrl.TRK.Ribaltatore.MoveToPos0) AND (CIn.Ribaltatore.Ax.ActualPosition < 40.0)) AND CIn.Ribaltatore.Solleva_Rib.Rest);
       IF Ctrl.TRK.BTrk.Pos2Up_TO_Pos2Down THEN
          BTrk.A0301.B := BTrk.A0301.B;
       END_IF;
-      IF ??? THEN
+      IF ("BTrk_Presence"(Item := BTrk.A0301.B) AND NOT (CIn.Trasporto.Standstill)) THEN
          Ctrl.P2.PartMove_P2toP4_Init := TRUE;
       END_IF;
    END_REGION
@@ -907,6 +1894,7 @@ BEGIN
          V_Counter_Save := A0301_PERS.Data_Mng.LastCounter_PartMove_P2toP4
       );
 
+      #Ctrl_Part_Move_P2toP4.Q;
       IF ((((Sts.P4.Fermi.Some_Sens_Ing AND NOT (Sts.P4.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P2toP4.S2_Reached)) AND Ctrl_Part_Move_P2toP4.Err_S2_ON) OR (((Sts.P4.Fermi.Some_Sens_Ing AND NOT (Sts.P4.Fermi.Sens_Ing)) AND NOT (Ctrl_Part_Move_P2toP4.S2_Reached)) AND Ctrl_Part_Move_P2toP4.Err_S2_OFF)) THEN
          Alarm.P2toP4_NotReached := TRUE;
       END_IF;
@@ -916,30 +1904,234 @@ BEGIN
    END_REGION
 
    REGION "[P4] Movimento BTRK da P2 LifterDown ==> a ==> P2 to P3"
-      Ctrl.TRK.BTrk.WritePos2Up_TO_Pos2Down := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Rest) OR ("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Work)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      IF (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Rest) OR ("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P3.Fermi.Work)) THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.WritePos2Up_TO_Pos2Down := (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.Trasporto.Fwd_Running) AND CIn.P2.Sollevatore.Rest);
       IF Ctrl.TRK.BTrk.WritePos2Up_TO_Pos2Down THEN
          BTrk.A0301.B := BTrk.A0301.B;
       END_IF;
    END_REGION
 
    REGION "[P4] Movimento BTRK da P2 To Pos3==> a ==> P3 Entry"
-      BTrk.A0301.B := BTrk.A0301.B;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF (("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.Trasporto.Fwd_Running) AND Sts.P3.Fermi.Sens_Ing) THEN
+         BTrk.A0301.B := BTrk.A0301.B;
+      END_IF;
    END_REGION
 
    REGION "[P4] Movimento BTRK da P3 Entry == a ==> P3 Exit == a ==> P3 to P4"
-      BTrk.A0301.B := BTrk.A0301.B;
+      "BTrk_Presence"(
+         en := (CIn.P3.Fermi.Rest AND Sts.P3.Fermi.Sens_Out),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := (((Sys.ByPass AND CIn.P3.Fermi.Rest) AND NOT (Sts.P3.Fermi.Sens_Ing)) AND NOT (Sts.P3.Fermi.Sens_Out)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := ((CIn.P3.Fermi.Rest AND NOT (Sts.P3.Fermi.Sens_Ing)) AND NOT (Sts.P3.Fermi.Sens_Out)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      IF (CIn.P3.Fermi.Rest AND Sts.P3.Fermi.Sens_Out) THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF "BTrk_Absence"(Item := BTrk.A0301.B) THEN
+         BTrk.A0301.B := BTrk.A0301.B;
+      END_IF;
    END_REGION
 
    REGION "[P4] Movimento BTRK da P3 a P4 == a ==> P4 Entry"
-      Sts.P4.Fermi.Some_Sens_Ing := (??? OR ??? OR ???);
-      BTrk.A0301.B := BTrk.A0301.B;
+      "BTrk_Presence"(
+         en := (CIn.P4.Fermi.Work AND CIn.Trasporto.Fwd_Running),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := (((CIn.P4.Fermi.Work AND CIn.Trasporto.Fwd_Running) AND Sts.P4.Fermi.Sens_Ing) AND Sys.ByPass),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      IF (CIn.P4.Fermi.Work AND CIn.Trasporto.Fwd_Running) THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Sts.P4.Fermi.Some_Sens_Ing := (("BTrk_Absence"(Item := BTrk.A0301.B) AND DataIn.P4.Sens_Ing[1]) OR ("BTrk_Absence"(Item := BTrk.A0301.B) AND DataIn.P4.Sens_Ing[2]) OR ("BTrk_Absence"(Item := BTrk.A0301.B) AND DataIn.P4.Sens_Ing[3]));
+      IF "BTrk_Absence"(Item := BTrk.A0301.B) THEN
+         BTrk.A0301.B := BTrk.A0301.B;
+      END_IF;
       IF BTrk.A0301.B THEN
          Ctrl.P2.PartMove_P2toP4_Init := FALSE;
       END_IF;
    END_REGION
 
    REGION "[P5] Movimento BTRK da Pos4_Entry  ==a==>  Pos4_Exit"
-      Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit := "BTrk_Absence"(Item := BTrk.A0301.B);
+      IF "BTrk_Absence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
       Ctrl.TRK.BTrk.Pos4_Entry_Cndz_To_Exit := ((((((Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit AND CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) AND CIn.P5.Sollevatori.Rest) AND Sts.P4.Fermi.Sens_Ing) AND NOT (CIn.P5.SensUscitaBanco));
       Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit := ((((((((Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit AND CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) AND CIn.P5.Sollevatori.Rest) AND Sts.P4.Fermi.Sens_Ing) AND NOT (CIn.P5.SensUscitaBanco)) AND Sts.P4.Fermi.Sens_Out) AND CIn.P4.Fermi.Rest);
       IF Ctrl.TRK.BTrk.Pos4_Entry_TO_Pos4_Exit THEN
@@ -948,12 +2140,32 @@ BEGIN
    END_REGION
 
    REGION "[P5] Movimento BTRK da Pos.4 Exit  ==a==>  Pos4_to_Pos5"
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
       #TON.BTrk_MoveP4Exit(
          IN := ((Ctrl.TRK.BTrk.Pos4_Exit_TO_Pos4_to_Pos5 AND NOT (Sts.P4.Fermi.Sens_Ing)) AND NOT (Sts.P4.Fermi.Sens_Out)),
          PT := Par.TRK.BTrk_MoveP4Exit
       );
 
-      Ctrl.TRK.BTrk.Pos4_Exit_TO_Pos4_to_Pos5 := ???;
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos4_Exit_TO_Pos4_to_Pos5 := ((("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) AND CIn.P5.Sollevatori.Rest);
+      #TON.BTrk_MoveP4Exit.Q;
       Ctrl.TRK.BTrk.Pos4_Exit_TO_Pos4_to_Pos5 := #TON.BTrk_MoveP4Exit.Q;
       IF Ctrl.TRK.BTrk.Pos4_Exit_TO_Pos4_to_Pos5 THEN
          BTrk.A0301.B := BTrk.A0301.B;
@@ -961,8 +2173,55 @@ BEGIN
    END_REGION
 
    REGION "[P4] Fermi - Movimento operazione a lavoro / a riposo"
-      Ctrl.P4.Fermi.Work := ???;
-      Ctrl.P4.Fermi.Rest := ((??? OR ???) AND NOT (Ctrl.P4.Fermi.Work));
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Absence"(Item := BTrk.A0301.B) OR ("BTrk_Presence"(Item := BTrk.A0301.B) AND NOT (Ctrl.TRK.BTrk.Pos4_Entry_Cndz_To_Exit)) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      Ctrl.P4.Fermi.Work := "BTrk_Absence"(Item := BTrk.A0301.B);
+      Ctrl.P4.Fermi.Rest := ((("BTrk_Presence"(Item := BTrk.A0301.B) AND Ctrl.TRK.BTrk.Pos4_Entry_Cndz_To_Exit) OR "BTrk_Presence"(Item := BTrk.A0301.B)) AND NOT (Ctrl.P4.Fermi.Work));
    END_REGION
 
    REGION "[P4] Fermi - COut Manager"
@@ -975,10 +2234,31 @@ BEGIN
    END_REGION
 
    REGION "[P5] Movimento BTRK da Pos4_to_Pos5 ==a==> Pos5_SpinLat1-2_Solleva"
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
       #TON.BTrk_MoveToP5(
+         IN := (((((("BTrk_Absence"(Item := BTrk.A0301.B) AND CIn.P5.Spintore_Lat.Spin_Lat1.Rest) AND CIn.P5.Spintore_Lat.Spin_Lat2.Rest) AND CIn.P5.Sollevatori.Rest) AND NOT (Sts.P4.Fermi.Sens_Out)) AND CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached) AND CIn.Trasporto.Fwd_Running),
          PT := Par.TRK.BTrk_MoveToP5
       );
 
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      #TON.BTrk_MoveToP5.Q;
       Ctrl.TRK.BTrk.Pos4_to_Pos5_TO_Pos5_Lat_Spin_Orz.Solleva := #TON.BTrk_MoveToP5.Q;
       IF Ctrl.TRK.BTrk.Pos4_to_Pos5_TO_Pos5_Lat_Spin_Orz.Solleva THEN
          BTrk.A0301.B := BTrk.A0301.B;
@@ -986,8 +2266,35 @@ BEGIN
    END_REGION
 
    REGION "[P5] Spintore Laterale  - Movimento operazione a lavoro / a riposo"
-      Ctrl.P5.Spintore_Lat_1.Work := ((??? OR ??? OR ??? OR ??? OR ???) AND NOT (A0301_Spintore_Lat.Finestre.RestCnd_Vrt_1));
-      Ctrl.P5.Spintore_Lat_2.Work := (((??? OR ??? OR ??? OR ??? OR ???) AND NOT (A0301_Spintore_Lat.Finestre.RestCnd_Vrt_2)) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.P5.Spintore_Lat_1.Work := (("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND NOT (A0301_Spintore_Lat.Finestre.RestCnd_Vrt_1));
+      Ctrl.P5.Spintore_Lat_2.Work := ((("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND NOT (A0301_Spintore_Lat.Finestre.RestCnd_Vrt_2)) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2);
       Ctrl.P5.Spintore_Lat_1.Rest := NOT (Ctrl.P5.Spintore_Lat_1.Work);
       Ctrl.P5.Spintore_Lat_2.Rest := NOT (Ctrl.P5.Spintore_Lat_2.Work);
    END_REGION
@@ -1005,7 +2312,44 @@ BEGIN
    END_REGION
 
    REGION "[P5] Sollevatori - Movimento operazione a lavoro / a riposo"
-      Ctrl.P5.Sollevatori.Work := (??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.P5.Sollevatori.Work := ("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B));
       Ctrl.P5.Sollevatori.Rest := (NOT (Ctrl.P5.Sollevatori.Work) OR CIn.SpintoreLong.Ax_Sts.PosFineSpinta_Reached);
    END_REGION
 
@@ -1019,14 +2363,56 @@ BEGIN
    END_REGION
 
    REGION "[P5]  Movimento Part da Pos.5 to Pos.5 (Spintore Longitudinale)"
-      Ctrl.TRK.BTrk.Pos5_SpinLat_TO_Pos5_SpinLong := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pos5_SpinLat_TO_Pos5_SpinLong := "BTrk_Absence"(Item := BTrk.A0301.B);
       IF ((((Ctrl.TRK.BTrk.Pos5_SpinLat_TO_Pos5_SpinLong AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND CIn.P5.Spintore_Lat.Spin_Lat2.Work) OR (Ctrl.TRK.BTrk.Pos5_SpinLat_TO_Pos5_SpinLong AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) AND CIn.P5.Spintore_Lat.Spin_Lat1.Work) THEN
          BTrk.A0301.B := BTrk.A0301.B;
       END_IF;
    END_REGION
 
    REGION "[Ax] Spintore =  Movimento BTrk da Long Pos.Attesa  == a ==> Long WorkPos"
-      BTrk.A0301.B := BTrk.A0301.B;
+      "BTrk_Presence"(
+         en := (CIn.P5.Sollevatori.Work AND CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0301.B
+      );
+
+      IF (CIn.P5.Sollevatori.Work AND CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached) THEN
+         "BTrk_Presence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0301.B);
+      END_IF;
+      IF "BTrk_Absence"(Item := BTrk.A0301.B) THEN
+         BTrk.A0301.B := BTrk.A0301.B;
+      END_IF;
    END_REGION
 
    REGION "Stop Cycle"
@@ -1035,6 +2421,7 @@ BEGIN
          PT := T#1s
       );
 
+      #TON_Stop.Q;
       Ctrl.Stop := #TON_Stop.Q;
    END_REGION
 

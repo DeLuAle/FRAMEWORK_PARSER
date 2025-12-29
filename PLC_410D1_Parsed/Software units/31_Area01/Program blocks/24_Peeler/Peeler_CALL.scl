@@ -8,6 +8,30 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         LB_PB_Rest := NOT ((NOT (LB112.PB.PeelerLift_Down) AND NOT (LB131.PB.PeelerLift_Down))),
+         LB_PB_Work := NOT ((NOT (LB112.PB.PeelerLift_Up) AND NOT (LB131.PB.PeelerLift_Up))),
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Peeler.Lift,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Peeler.DataIn.Lift.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         LB_PB_Rest := NOT ((NOT (LB112.PB.PeelerExtension_Bwd) AND NOT (LB131.PB.PeelerExtension_Bwd))),
+         LB_PB_Work := NOT ((NOT (LB112.PB.PeelerExtension_Fwd) AND NOT (LB131.PB.PeelerExtension_Fwd))),
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Peeler.Extension,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Peeler.DataIn.Extension.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, LB_PB_Rest := NOT ((NOT (LB112.PB.PeelerLift_Down) AND NOT (LB131.PB.PeelerLift_Down))), LB_PB_Work := NOT ((NOT (LB112.PB.PeelerLift_Up) AND NOT (LB131.PB.PeelerLift_Up))), HMI_PB := A01_HMI.MB1.Button.CoilHandling.Peeler.Lift, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, LB_PB_Rest := NOT ((NOT (LB112.PB.PeelerExtension_Bwd) AND NOT (LB131.PB.PeelerExtension_Bwd))), LB_PB_Work := NOT ((NOT (LB112.PB.PeelerExtension_Fwd) AND NOT (LB131.PB.PeelerExtension_Fwd))), HMI_PB := A01_HMI.MB1.Button.CoilHandling.Peeler.Extension, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "DataIn - Sensors"
@@ -45,6 +69,7 @@ BEGIN
          Config := A01_Config.Peeler
       );
 
+      #Peeler.Q;
    END_REGION
 
    REGION "Data Out"

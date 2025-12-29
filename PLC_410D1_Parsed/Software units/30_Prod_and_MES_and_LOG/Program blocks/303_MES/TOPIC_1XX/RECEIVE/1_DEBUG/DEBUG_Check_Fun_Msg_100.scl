@@ -15,11 +15,32 @@ BEGIN
    END_REGION
 
    REGION "Network 2"
+      "Prod_item_Check_DataValid"(
+         en := DEBUG_MES_Receive_Msg_Topic1XX.FUN.CHECK_ITEM_VALID.EXE,
+         Item := DEBUG_MES_Receive_Msg_Topic1XX.FUN.Prod_Item,
+         Ret_Val => DEBUG_MES_Receive_Msg_Topic1XX.FUN.RETVAL
+      );
+
+      IF DEBUG_MES_Receive_Msg_Topic1XX.FUN.CHECK_ITEM_VALID.EXE THEN
+         DEBUG_MES_Receive_Msg_Topic1XX.FUN.RETVAL := "Prod_item_Check_DataValid"(Item := DEBUG_MES_Receive_Msg_Topic1XX.FUN.Prod_Item);
+      END_IF;
    END_REGION
 
    REGION "Network 3"
+      "Prod_item_GetData"(
+         en := DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.EXE,
+         O_ID := -1,
+         MES_IDP := DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.MES_IDP,
+         Ret_Val => DEBUG_MES_Receive_Msg_Topic1XX.FUN.RETVAL,
+         Item => DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.item_Prod,
+         indx => DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.Index
+      );
+
       IF DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.EXE THEN
          DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.EXE := FALSE;
+      END_IF;
+      IF DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.EXE THEN
+         DEBUG_MES_Receive_Msg_Topic1XX.FUN.RETVAL := "Prod_item_GetData"(O_ID := -1, MES_IDP := DEBUG_MES_Receive_Msg_Topic1XX.FUN.GET_BY_IDP_MES.MES_IDP);
       END_IF;
    END_REGION
 

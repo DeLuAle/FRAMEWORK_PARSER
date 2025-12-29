@@ -89,9 +89,17 @@ BEGIN
          PersistentValues := Loop1_PERS.PersistentValues
       );
 
+      #Loop1.Q;
    END_REGION
 
    REGION "Data Out"
+      "Lamp"(
+         en := TRUE,
+         Signal := Loop1.DataOut.LampSystemOn,
+         Ret_Val => MB1_Lp_Loop1
+      );
+
+      MB1_Lp_Loop1 := "Lamp"(Signal := Loop1.DataOut.LampSystemOn);
       Areas_ITF.A01.Loop1_Lamp := MB1_Lp_Loop1;
    END_REGION
 

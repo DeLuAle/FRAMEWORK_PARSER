@@ -67,6 +67,7 @@ BEGIN
          PT := t#3s
       );
 
+      #TimeBetweenRetry.Q;
       IF (NOT (HMI.TestRequired) OR PathTest.TestRunning OR #TimeBetweenRetry.Q) THEN
          HMI.TestStarted := FALSE;
       ELSIF (Auto_Start OR Man_Start) THEN
@@ -86,6 +87,7 @@ BEGIN
          PT := t#40s
       );
 
+      #Timeout.Q;
       IF AreaInterface.RstAlarms THEN
          Alarm.TestTimeout := FALSE;
       ELSIF #Timeout.Q THEN

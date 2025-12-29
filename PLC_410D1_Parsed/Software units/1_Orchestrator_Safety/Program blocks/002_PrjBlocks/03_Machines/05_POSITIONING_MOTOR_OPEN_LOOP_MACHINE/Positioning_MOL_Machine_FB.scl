@@ -173,11 +173,21 @@ BEGIN
    END_REGION
 
    REGION "Preset"
+      "Um2-1"(
+         en := PE.B_Preset_UM2,
+         y := HMI.PresetPosition,
+         coeff := Config.Ax_UM2,
+         Ret_Val => Ax.AxisCtrl.HomePosition
+      );
+
       Sts.Preset_Cnd := (AreaInterface.Man AND Ax.AxisSts.HomingPermitted);
       IF PE.B_Preset THEN
          Ax.AxisCtrl.HomePosition := HMI.PresetPosition;
       END_IF;
-      Ctrl.Preset := (((((HMI.PresetPosition OR ??? OR Ctrl.Preset) AND HMI.B_Preset) AND NOT (HMI.B_Preset_UM2)) OR (((HMI.PresetPosition OR ??? OR Ctrl.Preset) AND HMI.B_Preset_UM2) AND NOT (HMI.B_Preset))) AND Sts.Preset_Cnd);
+      IF PE.B_Preset_UM2 THEN
+         Ax.AxisCtrl.HomePosition := "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2);
+      END_IF;
+      Ctrl.Preset := (((((HMI.PresetPosition OR "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2) OR Ctrl.Preset) AND HMI.B_Preset) AND NOT (HMI.B_Preset_UM2)) OR (((HMI.PresetPosition OR "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2) OR Ctrl.Preset) AND HMI.B_Preset_UM2) AND NOT (HMI.B_Preset))) AND Sts.Preset_Cnd);
    END_REGION
 
    REGION "Man"
@@ -353,6 +363,7 @@ BEGIN
          AxisHomed := Pers_Data.AxisHomed
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "On/Off Axis -Reset Wanrning"
@@ -381,9 +392,17 @@ BEGIN
          Alarm => Alarm.Motor
       );
 
+      #Motor.Q;
    END_REGION
 
    REGION "Coordination Out"
+      "Um1-2"(
+         en := LREAL_TO_REAL(Sts.ActualPosition),
+         x := REAL_value,
+         coeff := Config.Ax_UM2,
+         Ret_Val => COut.ActualPosition_UM2
+      );
+
       COut.CtrlSafe := (NOT (TON_NoPendingCmd.IN) OR (CIn.Manager.Control_ON AND NOT (Ctrl.StopDueDoorOpeningRequest)));
       COut.Homed := Ax.AxisSts.Homed;
       COut.Standstill := (Ax.AxisSts.StandStill AND NOT (Motor.MotorSts.Running));
@@ -394,6 +413,9 @@ BEGIN
       COut.PlusRunning := (NOT (Ax.AxisSts.StandStill) AND DataOut.M_Contactor_Plus);
       COut.ActualPosition := Sts.ActualPosition;
       REAL_value := LREAL_TO_REAL(Sts.ActualPosition);
+      IF LREAL_TO_REAL(Sts.ActualPosition) THEN
+         COut.ActualPosition_UM2 := "Um1-2"(x := REAL_value, coeff := Config.Ax_UM2);
+      END_IF;
    END_REGION
 
    REGION "Warning Missing condittions"
@@ -407,11 +429,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_MinusCnd.Q;
       IF (COut.MinusCheckNext AND Sts.Minus_Cnd) THEN
          Warning.Minus_CndMissing := FALSE;
       ELSIF #TON_MinusCnd.Q THEN
          Warning.Minus_CndMissing := TRUE;
       END_IF;
+      #TON_PlusCnd.Q;
       IF (COut.PlusCheckNext AND Sts.Plus_Cnd) THEN
          Warning.Plus_CndMissing := FALSE;
       ELSIF #TON_PlusCnd.Q THEN
@@ -429,6 +453,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warning presence"

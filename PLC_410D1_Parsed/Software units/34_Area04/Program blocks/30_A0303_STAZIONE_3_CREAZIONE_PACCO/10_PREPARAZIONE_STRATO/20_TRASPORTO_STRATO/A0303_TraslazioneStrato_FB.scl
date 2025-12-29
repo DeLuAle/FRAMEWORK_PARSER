@@ -409,6 +409,42 @@ BEGIN
    END_REGION
 
    REGION "Ax Trasporto in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrelievo
+      );
+
+      AxTesta_InPosDeposito := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      AxCoda_InPosDeposito := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      AxTesta_InPosPrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
+      AxCoda_InPosPrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
    END_REGION
 
    REGION "Sincronizzazione tra asse testa e asse coda"
@@ -608,21 +644,25 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q;
       IF (Sts.OP_Vai_A_Prelievo_Cnd OR Ctrl.OP_Vai_A_Prelievo OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_VAI_A_PRELIEVO := FALSE;
       ELSIF #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_VAI_A_PRELIEVO := TRUE;
       END_IF;
+      #TON_OP_PRELIEVO_MissingCnd.Q;
       IF (Sts.OP_Prelievo_Cnd OR Ctrl.OP_Prelievo OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_PRELIEVO := FALSE;
       ELSIF #TON_OP_PRELIEVO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_PRELIEVO := TRUE;
       END_IF;
+      #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q;
       IF (Sts.OP_Vai_A_Deposito_Cnd OR Ctrl.OP_Vai_A_Deposito OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_VAI_A_DEPOSITO := FALSE;
       ELSIF #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_VAI_A_DEPOSITO := TRUE;
       END_IF;
+      #TON_OP_DEPOSITO_MissingCnd.Q;
       IF (Sts.OP_Deposito_Cnd OR Ctrl.OP_Deposito OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_DEPOSITO := FALSE;
       ELSIF #TON_OP_DEPOSITO_MissingCnd.Q THEN
@@ -642,6 +682,7 @@ BEGIN
          PT := T#2S
       );
 
+      #TON_CheckAxMove.Q;
       IF #TON_CheckAxMove.Q THEN
          Alarm.CheckBothAxMove := TRUE;
       END_IF;
@@ -671,6 +712,7 @@ BEGIN
          Warning := Warning.Sens_Testa
       );
 
+      #StratoDepositato_Testa.Q;
    END_REGION
 
    REGION "Analogic Position Coda"
@@ -685,6 +727,7 @@ BEGIN
          Warning := Warning.Sens_Testa
       );
 
+      #StratoDepositato_Coda.Q;
    END_REGION
 
    REGION "Controllo Altezza Layer depositati ok"
@@ -799,6 +842,7 @@ BEGIN
          COut => COut.Testa.Ax
       );
 
+      #Ax_Testa.Q;
    END_REGION
 
    REGION "Manip Sostegno - CIn External alarm"
@@ -822,6 +866,7 @@ BEGIN
          COut => COut.Testa.Manip_Sostegno
       );
 
+      #Manip_Sostegno_Testa.Q;
    END_REGION
 
    REGION "Manip Pareggiatore - CIn External alarm"
@@ -845,6 +890,7 @@ BEGIN
          COut => COut.Testa.Manip_Pareggiatore
       );
 
+      #Manip_Pareggiatore_Testa.Q;
    END_REGION
 
    REGION "Sostegno Verticale - CIn External alarm"
@@ -868,6 +914,7 @@ BEGIN
          COut => COut.Testa.SostegnoVrt
       );
 
+      #SostegnoVrt_Testa.Q;
    END_REGION
 
    REGION "[Ax]  CIn External alarm"
@@ -898,6 +945,7 @@ BEGIN
          COut => COut.Coda.Ax
       );
 
+      #Ax_Coda.Q;
    END_REGION
 
    REGION "Sostegno - CIn External alarm"
@@ -921,6 +969,7 @@ BEGIN
          COut => COut.Coda.Manip_Sostegno
       );
 
+      #Manip_Sostegno_Coda.Q;
    END_REGION
 
    REGION "Pareggiatore - CIn External alarm"
@@ -944,6 +993,7 @@ BEGIN
          COut => COut.Coda.Manip_Pareggiatore
       );
 
+      #Manip_Pareggiatore_Coda.Q;
    END_REGION
 
    REGION "Sostegno Verticale - CIn External alarm"
@@ -967,6 +1017,7 @@ BEGIN
          COut => COut.Coda.SostegnoVrt
       );
 
+      #SostegnoVrt_Coda.Q;
    END_REGION
 
    REGION "Sostegno - COut"
@@ -988,6 +1039,56 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax_Testa.MachineInterface,
+         MachineInterface_2 := Ax_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Manip_Sostegno_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Manip_Sostegno_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Manip_Pareggiatore_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := NOT ((NOT (Alarm.CheckBothAxMove) AND NOT (Alarm.StratoDepositatoNoOk))),
+         AdditionalWarnings := NOT (((((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_DEPOSITO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO)) AND NOT (Warning.MissingCnd.SollevatoreInWorkspace))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Manip_Pareggiatore_Coda.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax_Testa.MachineInterface, MachineInterface_2 := Ax_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Manip_Sostegno_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Manip_Sostegno_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Manip_Pareggiatore_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := NOT ((NOT (Alarm.CheckBothAxMove) AND NOT (Alarm.StratoDepositatoNoOk))), AdditionalWarnings := NOT (((((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_DEPOSITO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO)) AND NOT (Warning.MissingCnd.SollevatoreInWorkspace))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Manip_Pareggiatore_Coda.MachineInterface);
    END_REGION
 
 

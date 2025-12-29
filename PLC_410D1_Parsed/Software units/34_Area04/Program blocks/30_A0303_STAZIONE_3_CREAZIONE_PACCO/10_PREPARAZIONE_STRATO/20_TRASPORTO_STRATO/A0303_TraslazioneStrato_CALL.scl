@@ -8,21 +8,69 @@ VERSION : 0.1
 
 BEGIN
    REGION "DataIn  - Asse Orizzontale"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Ax = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Ax = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0303_TraslazioneStrato.Ax_Testa.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Ax = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Ax = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
       A0303_TraslazioneStrato.Ax_Testa.DataIn.LS_Minus := NOT (A0303_Traslazione_Strato_Ax_Orizzontale_Testa_Ls_Minimo);
       A0303_TraslazioneStrato.Ax_Testa.DataIn.LS_Plus := NOT (A0303_Traslazione_Strato_Ax_Orizzontale_Testa_Ls_Massimo);
    END_REGION
 
    REGION "DataIn  - Manip Sostegno L"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.Manip_Sostegno_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.Manip_Sostegno_Testa.DataIn.Rest_Ls[1] := A0303_Manipolatore_Strato_Testa_Sostegno_''L''_Ls_Rest;
       A0303_TraslazioneStrato.Manip_Sostegno_Testa.DataIn.Work_Ls[1] := A0303_Manipolatore_Strato_Testa_Sostegno_''L''_Ls_Work;
    END_REGION
 
    REGION "DataIn  - Manip Pareggiatore"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.Manip_Pareggiatore_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.Manip_Pareggiatore_Testa.DataIn.Rest_Ls[1] := A0303_Manipolatore_Strato_Testa_Pareggiatore_Ls_Rest;
       A0303_TraslazioneStrato.Manip_Pareggiatore_Testa.DataIn.Work_Ls[1] := A0303_Manipolatore_Strato_Testa_Pareggiatore_Ls_Work;
    END_REGION
 
    REGION "DataIn  - Sostegno Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0) OR (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.SostegnoVrt_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0) OR (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.SostegnoVrt_Testa.DataIn.Rest_Ls[1] := A0303_SostegnoStrato_Testa_Verticale_Ls_Basso;
       A0303_TraslazioneStrato.SostegnoVrt_Testa.DataIn.Work_Ls[1] := A0303_SostegnoStrato_Testa_Verticale_Ls_Alto;
    END_REGION
@@ -32,21 +80,69 @@ BEGIN
    END_REGION
 
    REGION "DataIn  - Asse Orizzontale"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Ax = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Ax = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0303_TraslazioneStrato.Ax_Coda.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Ax = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Ax = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
       A0303_TraslazioneStrato.Ax_Coda.DataIn.LS_Minus := NOT (A0303_Traslazione_Strato_Ax_Orizzontale_Coda_Ls_Minimo);
       A0303_TraslazioneStrato.Ax_Coda.DataIn.LS_Plus := NOT (A0303_Traslazione_Strato_Ax_Orizzontale_Coda_Ls_Massimo);
    END_REGION
 
    REGION "DataIn  - Manip Sostegno L"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.Manip_Sostegno_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.Manip_Sostegno_Coda.DataIn.Rest_Ls[1] := A0303_Manipolatore_Strato_Coda_Sostegno_''L''_Ls_Rest;
       A0303_TraslazioneStrato.Manip_Sostegno_Coda.DataIn.Work_Ls[1] := A0303_Manipolatore_Strato_Coda_Sostegno_''L''_Ls_Work;
    END_REGION
 
    REGION "DataIn  - Manip Pareggiatore"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.Manip_Pareggiatore_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0) OR (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.Manip_Pareggiatore_Coda.DataIn.Rest_Ls[1] := A0303_Manipolatore_Strato_Coda_Pareggiatore_Ls_Rest;
       A0303_TraslazioneStrato.Manip_Pareggiatore_Coda.DataIn.Work_Ls[1] := A0303_Manipolatore_Strato_Coda_Pareggiatore_Ls_Work;
    END_REGION
 
    REGION "DataIn  - Sostegno Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0) OR (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_TraslazioneStrato.SostegnoVrt_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0) OR (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_TraslazioneStrato.SostegnoVrt_Coda.DataIn.Rest_Ls[1] := A0303_SostegnoStrato_Coda_Verticale_Ls_Basso;
       A0303_TraslazioneStrato.SostegnoVrt_Coda.DataIn.Work_Ls[1] := A0303_SostegnoStrato_Coda_Verticale_Ls_Alto;
    END_REGION
@@ -110,6 +206,7 @@ BEGIN
          Data_Coda := A0303_TraslazioneStrato_PERS.Data_Coda
       );
 
+      #A0303_TraslazioneStrato.Q;
    END_REGION
 
    REGION "DataOut - Manip Sostegno L"

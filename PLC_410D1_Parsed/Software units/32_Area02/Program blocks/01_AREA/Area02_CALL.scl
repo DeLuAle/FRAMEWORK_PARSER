@@ -157,6 +157,7 @@ BEGIN
          HMI_StatusDinamicText => A02_HMI.Area02.Status.Status
       );
 
+      #Area02.Q;
    END_REGION
 
    REGION "Alarms collect Area 02 (001...850)"
@@ -693,6 +694,7 @@ BEGIN
          MessageCount => A02_HMI.Area02.Status.AlarmsNumber
       );
 
+      #Area02_Msg_Alarms.Q;
    END_REGION
 
    REGION "Warnings collect Area 02 (001..784)"
@@ -1056,6 +1058,7 @@ BEGIN
          MessageCount => A02_HMI.Area02.Status.WarningsNumber
       );
 
+      #Area02_Msg_Warnings.Q;
    END_REGION
 
    REGION "MB lamp indicators"
@@ -1120,6 +1123,11 @@ BEGIN
    END_REGION
 
    REGION "Area ITF Orchestrator"
+      "Area02_ITF"(
+         en := TRUE
+      );
+
+      "Area02_ITF"();
    END_REGION
 
 

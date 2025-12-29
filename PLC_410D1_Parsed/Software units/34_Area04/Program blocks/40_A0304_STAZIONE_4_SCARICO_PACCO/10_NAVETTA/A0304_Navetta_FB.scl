@@ -336,6 +336,90 @@ BEGIN
    END_REGION
 
    REGION "Ax Navetta in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow),
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow),
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := NOT (CIn.CycleModeShortPiece),
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosPrePrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow),
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosPrePrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := CIn.CycleModeShortPiece,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := 320.0,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow),
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := 320.0,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrePrelievo
+      );
+
+      AxTesta_InPosDeposito := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      IF "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow) THEN
+         AxCoda_InPosDeposito := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      AxTesta_InPosPrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
+      IF "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow) THEN
+         AxCoda_InPosPrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      IF NOT (CIn.CycleModeShortPiece) THEN
+         AxCoda_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      IF "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow) THEN
+         AxTesta_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      IF CIn.CycleModeShortPiece THEN
+         AxCoda_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      IF "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow) THEN
+         AxTesta_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
       Sts.InPosPrelievo := (AxCoda_InPosPrelievo AND AxTesta_InPosPrelievo);
       Sts.InPosPrePrelievo := (AxCoda_InPosPrePrelievo AND AxTesta_InPosPrePrelievo);
       Sts.InPosDeposito := (AxCoda_InPosDeposito AND AxTesta_InPosDeposito);
@@ -595,21 +679,25 @@ BEGIN
          PT := Config.Navetta.DelayMissingCondition
       );
 
+      #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q;
       IF (Sts.OP_Vai_A_Prelievo_Cnd OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_VAI_A_PRELIEVO := FALSE;
       ELSIF #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_VAI_A_PRELIEVO := TRUE;
       END_IF;
+      #TON_OP_PRELIEVO_MissingCnd.Q;
       IF (Sts.OP_Prelievo_Cnd OR Ctrl.OP_Prelievo OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_PRELIEVO := FALSE;
       ELSIF #TON_OP_PRELIEVO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_PRELIEVO := TRUE;
       END_IF;
+      #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q;
       IF (Sts.OP_Vai_A_Deposito_Cnd OR Ctrl.OP_Vai_A_Deposito OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_VAI_A_DEPOSITO := FALSE;
       ELSIF #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q THEN
          Warning.MissingCnd.OP_VAI_A_DEPOSITO := TRUE;
       END_IF;
+      #TON_OP_DEPOSITO_MissingCnd.Q;
       IF (Sts.OP_Deposito_Cnd OR Ctrl.OP_Deposito OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_DEPOSITO := FALSE;
       ELSIF #TON_OP_DEPOSITO_MissingCnd.Q THEN
@@ -632,6 +720,7 @@ BEGIN
          PT := T#2S
       );
 
+      #TON_CheckShuttleMove.Q;
       IF #TON_CheckShuttleMove.Q THEN
          Alarm.CheckBothShutMove := TRUE;
       END_IF;
@@ -679,6 +768,7 @@ BEGIN
          Alarm := Alarm.Testa.Enc
       );
 
+      #Enc_Testa.Q;
    END_REGION
 
    REGION "[Ax] - Axis 1 Manger"
@@ -696,6 +786,7 @@ BEGIN
          COut => COut.Testa.Ax
       );
 
+      #Ax_Testa.Q;
    END_REGION
 
    REGION "Paletti Interni - CIn External alarm"
@@ -724,6 +815,7 @@ BEGIN
          COut => COut.Testa.PalettiInterni
       );
 
+      #PalettiInterni_Testa.Q;
    END_REGION
 
    REGION "Paletti Esterni - CIn External alarm"
@@ -752,6 +844,7 @@ BEGIN
          COut => COut.Testa.PalettiEsterni
       );
 
+      #PalettiEsterni_Testa.Q;
    END_REGION
 
    REGION "Axis - CIn External alarm"
@@ -778,6 +871,7 @@ BEGIN
          Alarm := Alarm.Coda.Enc
       );
 
+      #Enc_Coda.Q;
    END_REGION
 
    REGION "[Ax] - Axis 2 Manger"
@@ -795,6 +889,7 @@ BEGIN
          COut => COut.Coda.Ax
       );
 
+      #Ax_Coda.Q;
    END_REGION
 
    REGION "Paletti Interni - CIn External alarm"
@@ -823,6 +918,7 @@ BEGIN
          COut => COut.Coda.PalettiInterni
       );
 
+      #PalettiInterni_Coda.Q;
    END_REGION
 
    REGION "Paletti Esterni - CIn External alarm"
@@ -851,6 +947,7 @@ BEGIN
          COut => COut.Coda.PalettiEsterni
       );
 
+      #PalettiEsterni_Coda.Q;
    END_REGION
 
    REGION "Request Reload Air"
@@ -867,6 +964,7 @@ BEGIN
          Sts.ReloadAirRequest := TRUE;
       END_IF;
       Ctrl.ReloadAir := (((NOT (DSI_Valve.SafeStop) AND NOT (DSI_Valve.DevicesInSafeState)) AND Sts.ReloadAirRequest) AND CIn.AirOk);
+      #TON_ReloadAir.Q;
       IF #TON_ReloadAir.Q THEN
          Sts.ReloadAirRequest := FALSE;
       END_IF;
@@ -913,6 +1011,56 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax_Testa.MachineInterface,
+         MachineInterface_2 := Ax_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiEsterni_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiEsterni_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiInterni_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := NOT (NOT (Alarm.CheckBothShutMove)),
+         AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiInterni_Coda.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax_Testa.MachineInterface, MachineInterface_2 := Ax_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiEsterni_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiEsterni_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiInterni_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := NOT (NOT (Alarm.CheckBothShutMove)), AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))), MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiInterni_Coda.MachineInterface);
    END_REGION
 
 

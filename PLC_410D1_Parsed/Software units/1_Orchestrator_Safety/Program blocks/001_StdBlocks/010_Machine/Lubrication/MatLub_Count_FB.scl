@@ -106,6 +106,7 @@ BEGIN
          PT := Config.LowTankLevelDly
       );
 
+      #TON_LowTankLevel.Q;
       IF NOT (PersistentValues.Par.Enable) THEN
          Alr.LowTankLevel := FALSE;
       ELSIF (#TON_LowTankLevel.Q AND TON_LowTankLevel.Q) THEN
@@ -132,6 +133,7 @@ BEGIN
          PT := PersistentValues.Par.OnDuration
       );
 
+      #TON_DelayPumpStop.Q;
    END_REGION
 
    REGION "Pump run request"
@@ -188,6 +190,7 @@ BEGIN
          Contactor => DataOut.M_Pump_Contactor
       );
 
+      #M_Pump.Q;
    END_REGION
 
    REGION "Machine is standtill"

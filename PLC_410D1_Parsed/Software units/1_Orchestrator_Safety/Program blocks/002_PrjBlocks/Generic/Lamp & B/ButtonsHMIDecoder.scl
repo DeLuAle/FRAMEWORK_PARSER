@@ -44,6 +44,7 @@ BEGIN
 
       CodeEqual := (CodeReq = SavedCode);
       SavedCode := CodeReq;
+      #tonStable.Q;
    END_REGION
 
    REGION "Network 2"
@@ -52,6 +53,16 @@ BEGIN
    END_REGION
 
    REGION "Lamp"
+      "PB_Lamp"(
+         en := TRUE,
+         OpSelect := (OpEnabled OR OpDone),
+         OpRequest := (OpEnabled OR OpDone),
+         OpRunning := (OpRunning OR OpDone),
+         OpDone := OpDone,
+         Ret_Val => Lamp
+      );
+
+      Lamp := "PB_Lamp"(OpSelect := (OpEnabled OR OpDone), OpRequest := (OpEnabled OR OpDone), OpRunning := (OpRunning OR OpDone), OpDone := OpDone);
    END_REGION
 
 

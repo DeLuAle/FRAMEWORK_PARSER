@@ -66,6 +66,7 @@ BEGIN
          HMI_StatusDinamicText => A03_HMI.Area03.Status.Status
       );
 
+      #Area03.Q;
    END_REGION
 
    REGION "Alarms collect Area 03 (001...730)"
@@ -930,6 +931,7 @@ BEGIN
          MessageCount => A03_HMI.Area03.Status.AlarmsNumber
       );
 
+      #Area03_Msg_Alarms.Q;
    END_REGION
 
    REGION "Warnings collect Area 03 (001..830)"
@@ -1892,6 +1894,7 @@ BEGIN
          MessageCount => A03_HMI.Area03.Status.WarningsNumber
       );
 
+      #Area03_Msg_Warnings.Q;
    END_REGION
 
    REGION "MB lamp indicators"
@@ -1976,6 +1979,11 @@ BEGIN
    END_REGION
 
    REGION "AREA ITF"
+      "Area03_ITF"(
+         en := TRUE
+      );
+
+      "Area03_ITF"();
    END_REGION
 
    REGION "Entry enable Z21 (RIBALTAMENTO)"

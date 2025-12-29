@@ -475,7 +475,15 @@ BEGIN
    END_REGION
 
    REGION "Warning Macchina in attesa scarico navetta"
-      Warning.IsWaiting_ShuttleUnload := ???;
+      "BTrk_Presence"(
+         en := (((((BTrk.A0303.Preparation.Beam_Qty = BTrk.A0303.Preparation.BeamsPerLayer_Target) OR BTrk.A0303.Preparation.Completato) AND TRUE) AND (BTrk.A0303.Stacker.Layers_Qty = BTrk.A0303.Stacker.Layers_Target)) OR ((((BTrk.A0303.Preparation.Beam_Qty = BTrk.A0303.Preparation.BeamsPerLayer_Target) OR BTrk.A0303.Preparation.Completato) AND TRUE) AND BTrk.A0303.Stacker.Completato)),
+         Item := BTrk.A0304.Layers[1].Layer[1]
+      );
+
+      IF (((((BTrk.A0303.Preparation.Beam_Qty = BTrk.A0303.Preparation.BeamsPerLayer_Target) OR BTrk.A0303.Preparation.Completato) AND TRUE) AND (BTrk.A0303.Stacker.Layers_Qty = BTrk.A0303.Stacker.Layers_Target)) OR ((((BTrk.A0303.Preparation.Beam_Qty = BTrk.A0303.Preparation.BeamsPerLayer_Target) OR BTrk.A0303.Preparation.Completato) AND TRUE) AND BTrk.A0303.Stacker.Completato)) THEN
+         "BTrk_Presence"(Item := BTrk.A0304.Layers[1].Layer[1]);
+      END_IF;
+      Warning.IsWaiting_ShuttleUnload := "BTrk_Presence"(Item := BTrk.A0304.Layers[1].Layer[1]);
    END_REGION
 
    REGION "Warning Macchina in attesa nessun pezzo in arrivo"
@@ -484,10 +492,20 @@ BEGIN
          PT := t#5s
       );
 
-      Warning.IsWaiting_NoPiecesBefore := FALSE;
-      Warning.IsWaiting_NoPiecesBefore_A01NotInCycle := FALSE;
-      Warning.IsWaiting_NoPiecesBefore_A02NotInCycle := FALSE;
-      Warning.IsWaiting_NoPiecesBefore_A03NotInCycle := FALSE;
+      "Find_O_ID"(
+         en := TON_NoPiecesBefore.Q,
+         NumStazione := #STATION_A0303_PREPARATION,
+         O_ID => O_ID_Temp
+      );
+
+      #TON_NoPiecesBefore.Q;
+      IF TON_NoPiecesBefore.Q THEN
+         "Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION);
+      END_IF;
+      Warning.IsWaiting_NoPiecesBefore := ("Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION) AND (O_ID_Temp <= 0));
+      Warning.IsWaiting_NoPiecesBefore_A01NotInCycle := (((("Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION) AND (O_ID_Temp > 0)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A02NotInCycle)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A03NotInCycle)) AND NOT (Areas_ITF.A03.AreaInterface.Cycle));
+      Warning.IsWaiting_NoPiecesBefore_A02NotInCycle := ((((("Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION) AND (O_ID_Temp > 0)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A01NotInCycle)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A03NotInCycle)) AND Areas_ITF.A01.AreaInterface.Cycle) AND NOT (Areas_ITF.A02.AreaInterface.Cycle));
+      Warning.IsWaiting_NoPiecesBefore_A03NotInCycle := (((((("Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION) AND (O_ID_Temp > 0)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A01NotInCycle)) AND NOT (Warning.IsWaiting_NoPiecesBefore_A02NotInCycle)) AND Areas_ITF.A01.AreaInterface.Cycle) AND Areas_ITF.A02.AreaInterface.Cycle) AND NOT (Areas_ITF.A03.AreaInterface.Cycle));
    END_REGION
 
    REGION "Zona  Vuota"
@@ -524,7 +542,28 @@ BEGIN
    END_REGION
 
    REGION "Cerco order ID nelle macchine precedenti"
+      "Find_O_ID"(
+         en := Attrezzamento.FindNewID,
+         NumStazione := #STATION_A0303_PREPARATION,
+         O_ID => Attrezzamento.ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := "Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION),
+         O_ID := Attrezzamento.ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => BTrk_GetData.Sts,
+         Item => BTrk_GetData.Item,
+         indx => BTrk_GetData.indx
+      );
+
       Attrezzamento.FindNewID := ((((Sts.BTrk.ZonePreparationEmpty AND Sts.BTrk.ZoneStackerEmpty) AND BTrk.A0303.Transfert.Empty) AND BTrk.A0304.Empty) OR (((Sts.BTrk.ZonePreparationEmpty AND Sts.BTrk.ZoneStackerEmpty) AND BTrk.A0303.Transfert.Empty) AND NOT (Sys.ByPass)));
+      IF Attrezzamento.FindNewID THEN
+         "Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION);
+      END_IF;
+      IF "Find_O_ID"(NumStazione := #STATION_A0303_PREPARATION) THEN
+         BTrk_GetData.Sts := "Prod_item_GetData_By_O_ID"(O_ID := Attrezzamento.ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
+      END_IF;
       IF ((Attrezzamento.FindNewID AND (Attrezzamento.ID = 0)) AND NOT (PieceToCheck_Presence)) THEN
          BTrk.A0303.Preparation.O_ID := 0;
       END_IF;
@@ -684,6 +723,24 @@ BEGIN
    END_REGION
 
    REGION "Ax Spalla in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Spalle.Testa.Ax.ActualPosition,
+         Target := Attrezzamento.TargetSpalle,
+         PosWin := Par_Spalla_Testa.ToleranceWindow,
+         Ret_Val => Sts.SpallaTesta.InCyclePos
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Spalle.Coda.Ax.ActualPosition,
+         Target := Attrezzamento.TargetSpalle,
+         PosWin := Par_Spalla_Testa.ToleranceWindow,
+         Ret_Val => Sts.SpallaCoda.InCyclePos
+      );
+
+      Sts.SpallaTesta.InCyclePos := "TolWindow"(ActPos := CIn.Spalle.Testa.Ax.ActualPosition, Target := Attrezzamento.TargetSpalle, PosWin := Par_Spalla_Testa.ToleranceWindow);
+      Sts.SpallaCoda.InCyclePos := "TolWindow"(ActPos := CIn.Spalle.Coda.Ax.ActualPosition, Target := Attrezzamento.TargetSpalle, PosWin := Par_Spalla_Testa.ToleranceWindow);
    END_REGION
 
    REGION "Comando Posizionamento Spalle"
@@ -731,11 +788,25 @@ BEGIN
    END_REGION
 
    REGION "OP WORK SPINTORE"
-      Ctrl.Spintore.Work := (??? OR ???);
+      "BTrk_Presence"(
+         en := (NOT (BTrk.A0303.Preparation.Completato) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)),
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      IF (NOT (BTrk.A0303.Preparation.Completato) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)) THEN
+         "BTrk_Presence"(Item := BTrk.A0303.Preparation.B);
+      END_IF;
+      Ctrl.Spintore.Work := (((("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND CIn.TraslazioneStrato.Manip_Pareggiatore.Rest) AND CIn.TraslazioneStrato.Manip_Sostegno.Rest) OR (("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND Sts.TraslazioneStrato.OutOfWorkspace));
    END_REGION
 
    REGION "OP REST SPINTORE"
-      Ctrl.Spintore.Rest := (??? OR ???);
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
+      Ctrl.Spintore.Rest := (("BTrk_Absence"(Item := BTrk.A0303.Preparation.B) AND NOT (CIn.Spintore.Orz.Rest)) OR ("BTrk_Absence"(Item := BTrk.A0303.Preparation.B) AND NOT (CIn.Spintore.Vrt.Rest)));
    END_REGION
 
    REGION "Spintore - COut Manager"
@@ -748,17 +819,35 @@ BEGIN
    END_REGION
 
    REGION "Allarme Passaggio pezzo non rilevato da fotocellula"
+      "BTrk_Presence"(
+         en := COut.Spintore.Control_ON,
+         Item := BTrk.A0303.Preparation.B
+      );
+
       #TON_PassaggioPezzoAlarm(
+         IN := ((("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND CIn.Spintore.Vrt.Work) AND CIn.Spintore.Orz.Work) AND CIn.TraslazioneStrato.SostegnoVrt.Work),
          PT := T#2S
       );
 
+      IF COut.Spintore.Control_ON THEN
+         "BTrk_Presence"(Item := BTrk.A0303.Preparation.B);
+      END_IF;
+      #TON_PassaggioPezzoAlarm.Q;
       IF #TON_PassaggioPezzoAlarm.Q THEN
          Alarm.TrkPassaggioPezzo := TRUE;
       END_IF;
    END_REGION
 
    REGION "Preparation Ready to Recive"
-      COut.Manipolatore.ReadyToRecive := ???;
+      "BTrk_Absence"(
+         en := ((((CIn.Spintore.Vrt.Rest AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND CIn.TraslazioneStrato.Manip_Pareggiatore.Rest) AND CIn.TraslazioneStrato.Manip_Sostegno.Rest) OR ((CIn.Spintore.Vrt.Rest AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND Sts.TraslazioneStrato.OutOfWorkspace)),
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      IF ((((CIn.Spintore.Vrt.Rest AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND CIn.TraslazioneStrato.Manip_Pareggiatore.Rest) AND CIn.TraslazioneStrato.Manip_Sostegno.Rest) OR ((CIn.Spintore.Vrt.Rest AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND Sts.TraslazioneStrato.OutOfWorkspace)) THEN
+         "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
+      END_IF;
+      COut.Manipolatore.ReadyToRecive := "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
    END_REGION
 
    REGION "Preparation - completato"
@@ -766,23 +855,93 @@ BEGIN
    END_REGION
 
    REGION "Ax Trasporto in posizione"
-      Sts.TraslazioneStrato.InPosDeposito := ???;
-      Sts.TraslazioneStrato.InPosPrelievo := ???;
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition,
+         Target := Par_Trasporto.PosDeposito,
+         PosWin := Par_Trasporto.ToleranceWindow,
+         Ret_Val => TrasportoCodaInPosDeposito
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosDeposito, PosWin := Par_Trasporto.ToleranceWindow),
+         ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition,
+         Target := Par_Trasporto.PosDeposito,
+         PosWin := Par_Trasporto.ToleranceWindow,
+         Ret_Val => TrasportoTestaInPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition,
+         Target := Par_Trasporto.PosPrelievo,
+         PosWin := Par_Trasporto.ToleranceWindow,
+         Ret_Val => TrasportoCodaInPosPrelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosPrelievo, PosWin := Par_Trasporto.ToleranceWindow),
+         ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition,
+         Target := Par_Trasporto.PosPrelievo,
+         PosWin := Par_Trasporto.ToleranceWindow,
+         Ret_Val => TrasportoTestaInPosPrelievo
+      );
+
+      TrasportoCodaInPosDeposito := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosDeposito, PosWin := Par_Trasporto.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosDeposito, PosWin := Par_Trasporto.ToleranceWindow) THEN
+         TrasportoTestaInPosDeposito := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition, Target := Par_Trasporto.PosDeposito, PosWin := Par_Trasporto.ToleranceWindow);
+      END_IF;
+      Sts.TraslazioneStrato.InPosDeposito := (("TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition, Target := Par_Trasporto.PosDeposito, PosWin := Par_Trasporto.ToleranceWindow) AND TrasportoCodaInPosDeposito) AND TrasportoTestaInPosDeposito);
+      TrasportoCodaInPosPrelievo := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosPrelievo, PosWin := Par_Trasporto.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Coda.ActualPosition, Target := Par_Trasporto.PosPrelievo, PosWin := Par_Trasporto.ToleranceWindow) THEN
+         TrasportoTestaInPosPrelievo := "TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition, Target := Par_Trasporto.PosPrelievo, PosWin := Par_Trasporto.ToleranceWindow);
+      END_IF;
+      Sts.TraslazioneStrato.InPosPrelievo := (("TolWindow"(ActPos := CIn.TraslazioneStrato.Ax_Testa.ActualPosition, Target := Par_Trasporto.PosPrelievo, PosWin := Par_Trasporto.ToleranceWindow) AND TrasportoCodaInPosPrelievo) AND TrasportoTestaInPosPrelievo);
       Sts.TraslazioneStrato.OutOfWorkspace := ((CIn.TraslazioneStrato.Ax_Coda.ActualPosition >= #TrasportoOutOfWorkspace) AND (CIn.TraslazioneStrato.Ax_Testa.ActualPosition >= #TrasportoOutOfWorkspace));
    END_REGION
 
    REGION "Fasi trasporto"
-      Ctrl.Cycle.Trasferimento.VaiAPrelievo := ((((??? OR ??? OR ??? OR ???) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito));
-      IF ((((??? OR ??? OR ??? OR ???) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) THEN
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Absence"(
+         en := Sts.Preparazione.Completato,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      Ctrl.Cycle.Trasferimento.VaiAPrelievo := ((((("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (Sts.TraslazioneStrato.InPosPrelievo)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.SostegnoVrt.Work)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.Manip_Pareggiatore.Rest)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.Manip_Sostegno.Rest))) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito));
+      IF ((((("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (Sts.TraslazioneStrato.InPosPrelievo)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.SostegnoVrt.Work)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.Manip_Pareggiatore.Rest)) OR ("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (CIn.TraslazioneStrato.Manip_Sostegno.Rest))) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) THEN
          A04_HMI.Synoptic.Trasporto.Fase := 1;
       END_IF;
-      Ctrl.Cycle.Trasferimento.Prelievo := (((((??? OR ??? OR ???) AND NOT (Ctrl.Cycle.Trasferimento.VaiAPrelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) AND (BTrk.A0303.Stacker.Layers_Qty < BTrk.A0303.Stacker.Layers_Target));
-      Ctrl.Cycle.Trasferimento.VaiADeposito := FALSE;
-      Ctrl.Cycle.Trasferimento.Deposito := ???;
+      Ctrl.Cycle.Trasferimento.Prelievo := ((((((("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND Sts.TraslazioneStrato.InPosPrelievo) AND NOT (CIn.TraslazioneStrato.Manip_Pareggiatore.Work)) OR (("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND Sts.TraslazioneStrato.InPosPrelievo) AND NOT (CIn.TraslazioneStrato.Manip_Sostegno.Work)) OR (("BTrk_Absence"(Item := BTrk.A0303.Transfert.Layer[1]) AND Sts.TraslazioneStrato.InPosPrelievo) AND NOT (CIn.TraslazioneStrato.SostegnoVrt.Rest))) AND NOT (Ctrl.Cycle.Trasferimento.VaiAPrelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) AND (BTrk.A0303.Stacker.Layers_Qty < BTrk.A0303.Stacker.Layers_Target));
+      "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      Ctrl.Cycle.Trasferimento.VaiADeposito := ((((("BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (Sts.TraslazioneStrato.InPosDeposito)) AND NOT (Ctrl.Cycle.Trasferimento.VaiAPrelievo)) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) AND (BTrk.A0303.Stacker.Layers_Qty < BTrk.A0303.Stacker.Layers_Target));
+      Ctrl.Cycle.Trasferimento.Deposito := ((((("BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]) AND Sts.TraslazioneStrato.InPosDeposito) AND Sts.Sollevatore.ReadyToRecive) AND NOT (Ctrl.Cycle.Trasferimento.VaiAPrelievo)) AND NOT (Ctrl.Cycle.Trasferimento.Prelievo)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito));
    END_REGION
 
    REGION "Trasporto Ready To Drop"
-      Sts.TraslazioneStrato.DropRequest := ???;
+      "BTrk_Presence"(
+         en := (TrasportoCodaInPosDeposito AND TrasportoTestaInPosDeposito),
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      IF (TrasportoCodaInPosDeposito AND TrasportoTestaInPosDeposito) THEN
+         "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      END_IF;
+      Sts.TraslazioneStrato.DropRequest := "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
    END_REGION
 
    REGION "Trasporto - COut Manager"
@@ -803,12 +962,27 @@ BEGIN
    END_REGION
 
    REGION "Warning Mancanza Condizioni Trasporto"
-      Warning.MissingCnd.SollevatoreNotReadyToRecive := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      Warning.MissingCnd.SollevatoreNotReadyToRecive := ((("BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Sts.Sollevatore.ReadyToRecive));
    END_REGION
 
    REGION "Calcolo Target di posizionamento"
       // Finche non c'è la richiesta di scaricare il pezzo il sollevatore si porta un po piu basso ad una quota di pre prelievo, quando poi c'è la richiesta di scaricare il pezzo si alza di un offset
 
+      "Sollevatore_NextPos"(
+         en := TRUE,
+         Beams_W_A := BTrk.A0303.Stacker.Beams_W_A,
+         Layers_Qty := BTrk.A0303.Stacker.Layers_Qty,
+         OffsetPrelievo := Par_Sollevatore.OffsetPrelievo,
+         Position => TargetPrePositionSollevatore
+      );
+
+      "Sollevatore_NextPos"(Beams_W_A := BTrk.A0303.Stacker.Beams_W_A, Layers_Qty := BTrk.A0303.Stacker.Layers_Qty, OffsetPrelievo := Par_Sollevatore.OffsetPrelievo);
       TargetPositionSollevatore_Temp := (BTrk.A0303.Stacker.Layers_Qty * BTrk.A0303.Stacker.Beams_W_A);
       IF (BTrk.A0303.Stacker.Layers_Qty * BTrk.A0303.Stacker.Beams_W_A) THEN
          TargetPositionSollevatore := (TargetPositionSollevatore_Temp + 18.0);
@@ -816,7 +990,89 @@ BEGIN
    END_REGION
 
    REGION "Ax  position window"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition,
+         Target := TargetPositionSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreCodaInPrelievoPos
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow),
+         ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition,
+         Target := TargetPositionSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreTestaInPrelievoPos
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition,
+         Target := TargetPrePositionSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreCodaInPrePrelievoPos
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPrePositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow),
+         ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition,
+         Target := TargetPrePositionSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreTestaInPrePrelievoPos
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition,
+         Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreCodaInPosDeposito
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito, PosWin := Par_Sollevatore.ToleranceWindow),
+         ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition,
+         Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreTestaInPosDeposito
+      );
+
+      "TolWindow"(
+         en := (A0303_Sollevamento_PERS.Par_Mach.PosDeposito - 10.0),
+         ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition,
+         Target := TargetPreDepositoSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreCodaInPosPreDeposito
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPreDepositoSollevatore, PosWin := Par_Sollevatore.ToleranceWindow),
+         ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition,
+         Target := TargetPreDepositoSollevatore,
+         PosWin := Par_Sollevatore.ToleranceWindow,
+         Ret_Val => SollevatoreTestaInPosPreDeposito
+      );
+
+      SollevatoreCodaInPrelievoPos := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow) THEN
+         SollevatoreTestaInPrelievoPos := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition, Target := TargetPositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      END_IF;
+      SollevatoreCodaInPrePrelievoPos := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPrePositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPrePositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow) THEN
+         SollevatoreTestaInPrePrelievoPos := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition, Target := TargetPrePositionSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      END_IF;
+      SollevatoreCodaInPosDeposito := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito, PosWin := Par_Sollevatore.ToleranceWindow);
+      IF "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito, PosWin := Par_Sollevatore.ToleranceWindow) THEN
+         SollevatoreTestaInPosDeposito := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition, Target := A0303_Sollevamento_PERS.Par_Mach.PosDeposito, PosWin := Par_Sollevatore.ToleranceWindow);
+      END_IF;
       TargetPreDepositoSollevatore := (A0303_Sollevamento_PERS.Par_Mach.PosDeposito - 10.0);
+      IF (A0303_Sollevamento_PERS.Par_Mach.PosDeposito - 10.0) THEN
+         SollevatoreCodaInPosPreDeposito := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPreDepositoSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      END_IF;
+      IF "TolWindow"(ActPos := CIn.Sollevamento.Ax_Coda.ActualPosition, Target := TargetPreDepositoSollevatore, PosWin := Par_Sollevatore.ToleranceWindow) THEN
+         SollevatoreTestaInPosPreDeposito := "TolWindow"(ActPos := CIn.Sollevamento.Ax_Testa.ActualPosition, Target := TargetPreDepositoSollevatore, PosWin := Par_Sollevatore.ToleranceWindow);
+      END_IF;
       Sts.Sollevatore.InPrelievoPos := (SollevatoreCodaInPrelievoPos AND SollevatoreTestaInPrelievoPos);
       Sts.Sollevatore.InPrePrelievoPos := (SollevatoreCodaInPrePrelievoPos AND SollevatoreTestaInPrePrelievoPos);
       Sts.Sollevatore.InPosDeposito := (SollevatoreCodaInPosDeposito AND SollevatoreTestaInPosDeposito);
@@ -853,13 +1109,46 @@ BEGIN
    END_REGION
 
    REGION "Warning Mancanza Condizioni Trasporto"
-      Warning.MissingCnd.SollevatoreNotReadyToRecive := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      Warning.MissingCnd.SollevatoreNotReadyToRecive := ((("BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]) AND NOT (Ctrl.Cycle.Trasferimento.Deposito)) AND NOT (Ctrl.Cycle.Trasferimento.VaiADeposito)) AND NOT (Sts.Sollevatore.ReadyToRecive));
    END_REGION
 
    REGION "Ax Sostegno in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sostegno.Testa.Ax.ActualPosition,
+         Target := Attrezzamento.TargetSostegno,
+         PosWin := Par_SostegnoAntirib.ToleranceWindow,
+         Ret_Val => Sts.SostegnoTesta.Ax.InCyclePos
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sostegno.Testa.Ax.ActualPosition,
+         Target := Par_SostegnoAntirib.RestPosition,
+         PosWin := Par_SostegnoAntirib.ToleranceWindow,
+         Ret_Val => Sts.SostegnoTesta.Ax.InRestPos
+      );
+
+      Sts.SostegnoTesta.Ax.InCyclePos := "TolWindow"(ActPos := CIn.Sostegno.Testa.Ax.ActualPosition, Target := Attrezzamento.TargetSostegno, PosWin := Par_SostegnoAntirib.ToleranceWindow);
+      Sts.SostegnoTesta.Ax.InRestPos := "TolWindow"(ActPos := CIn.Sostegno.Testa.Ax.ActualPosition, Target := Par_SostegnoAntirib.RestPosition, PosWin := Par_SostegnoAntirib.ToleranceWindow);
    END_REGION
 
    REGION "Posizione PALETTI Antiribaltamento"
+      "Pos_Antirib"(
+         en := TRUE,
+         PosSpalla := CIn.Spalle.Testa.Ax.ActualPosition,
+         PosPaletto => Ctrl.Cycle.SostegnoAntirib_Testa.PalettoPos,
+         Pos1Collisione => COut.Sostegno.Testa.Paletti.Pos1Collision,
+         Pos2Collisione => COut.Sostegno.Testa.Paletti.Pos2Collision
+      );
+
+      "Pos_Antirib"(PosSpalla := CIn.Spalle.Testa.Ax.ActualPosition);
       Sts.SostegnoTesta.Paletto.InCyclePos := (Ctrl.Cycle.SostegnoAntirib_Testa.PalettoPos = CIn.Sostegno.Testa.Paletto.Pos);
    END_REGION
 
@@ -882,9 +1171,36 @@ BEGIN
    END_REGION
 
    REGION "Ax Sostegno in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sostegno.Coda.Ax.ActualPosition,
+         Target := Attrezzamento.TargetSostegno,
+         PosWin := Par_SostegnoAntirib.ToleranceWindow,
+         Ret_Val => Sts.SostegnoCoda.Ax.InCyclePos
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := CIn.Sostegno.Coda.Ax.ActualPosition,
+         Target := Par_SostegnoAntirib.RestPosition,
+         PosWin := Par_SostegnoAntirib.ToleranceWindow,
+         Ret_Val => Sts.SostegnoCoda.Ax.InRestPos
+      );
+
+      Sts.SostegnoCoda.Ax.InCyclePos := "TolWindow"(ActPos := CIn.Sostegno.Coda.Ax.ActualPosition, Target := Attrezzamento.TargetSostegno, PosWin := Par_SostegnoAntirib.ToleranceWindow);
+      Sts.SostegnoCoda.Ax.InRestPos := "TolWindow"(ActPos := CIn.Sostegno.Coda.Ax.ActualPosition, Target := Par_SostegnoAntirib.RestPosition, PosWin := Par_SostegnoAntirib.ToleranceWindow);
    END_REGION
 
    REGION "Posizione PALETTI Antiribaltamento"
+      "Pos_Antirib"(
+         en := TRUE,
+         PosSpalla := CIn.Spalle.Coda.Ax.ActualPosition,
+         PosPaletto => Ctrl.Cycle.SostegnoAntirib_Coda.PalettoPos,
+         Pos1Collisione => COut.Sostegno.Coda.Paletti.Pos1Collision,
+         Pos2Collisione => COut.Sostegno.Coda.Paletti.Pos2Collision
+      );
+
+      "Pos_Antirib"(PosSpalla := CIn.Spalle.Coda.Ax.ActualPosition);
       Sts.SostegnoCoda.Paletto.InCyclePos := (Ctrl.Cycle.SostegnoAntirib_Coda.PalettoPos = CIn.Sostegno.Coda.Paletto.Pos);
    END_REGION
 
@@ -907,19 +1223,35 @@ BEGIN
    END_REGION
 
    REGION "Richiesta Movimento da B a Layer 1"
-      IF FALSE THEN
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Presence"(
+         en := ((((((CIn.Spintore.Vrt.Work AND CIn.Spintore.Orz.Work) AND CIn.TraslazioneStrato.SostegnoVrt.Work) AND PE_Engaged_Coda) AND NE_Engaged_Coda) AND PE_Engaged_Testa) AND NE_Engaged_Testa),
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0303.Preparation.B);
+      IF (("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)) AND PE.LsPosition1_Coda) THEN
          PE_Engaged_Coda := TRUE;
       END_IF;
-      IF FALSE THEN
+      IF (("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)) AND PE.LsPosition1_Testa) THEN
          PE_Engaged_Testa := TRUE;
       END_IF;
-      IF FALSE THEN
+      IF (("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)) AND NE.LsPosition1_Coda) THEN
          NE_Engaged_Coda := TRUE;
       END_IF;
-      IF FALSE THEN
+      IF (("BTrk_Presence"(Item := BTrk.A0303.Preparation.B) AND (BTrk.A0303.Preparation.Beam_Qty < BTrk.A0303.Preparation.BeamsPerLayer_Target)) AND NE.LsPosition1_Testa) THEN
          NE_Engaged_Testa := TRUE;
       END_IF;
-      Ctrl.BTrk.B3ToLayer1 := ???;
+      Ctrl.BTrk.B3ToLayer1 := "BTrk_Presence"(Item := BTrk.A0303.Preparation.B);
    END_REGION
 
    REGION "Movimento BTRK da B0 == a ==> Layer 1 + shift a destra dei layer"
@@ -1024,7 +1356,15 @@ BEGIN
    END_REGION
 
    REGION "Request Tracking from  Transfer to Stacker"
-      Ctrl.BTrk.TransferToStacker := ???;
+      "BTrk_Presence"(
+         en := NOT (BTrk.A0303.Transfert.Empty),
+         Item := BTrk.A0303.Transfert.Layer[1]
+      );
+
+      IF NOT (BTrk.A0303.Transfert.Empty) THEN
+         "BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]);
+      END_IF;
+      Ctrl.BTrk.TransferToStacker := ((((("BTrk_Presence"(Item := BTrk.A0303.Transfert.Layer[1]) AND TrasportoTestaInPosDeposito) AND TrasportoCodaInPosDeposito) AND CIn.TraslazioneStrato.Manip_Pareggiatore.Rest) AND CIn.TraslazioneStrato.Manip_Sostegno.Rest) AND Sts.Sollevatore.ReadyToRecive);
    END_REGION
 
    REGION "Pacco Stacker completato / vuoto / conteggio pezzi"
@@ -1095,7 +1435,13 @@ BEGIN
    END_REGION
 
    REGION "<<< OP CAN MOVE FREELY >>>"
-      COut.Spintore.CanMoveFreely := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
+      COut.Spintore.CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
       COut.Trasporto.CanMoveFreely := (BTrk.A0303.Transfert.Empty OR NOT (Sys.ByPass));
       COut.Sollevatore.CanMoveFreely := (BTrk.A0303.Stacker.Empty OR NOT (Sys.ByPass));
       COut.Sostegno.Testa.CanMoveFreely := (BTrk.A0303.Stacker.Empty OR NOT (Sys.ByPass));
@@ -1113,6 +1459,7 @@ BEGIN
          PT := T#1M
       );
 
+      #TON_Stop.Q;
       Ctrl.Stop := #TON_Stop.Q;
       IF ((#TON_Stop.Q AND CIn.ProdManager.STOP_FineTurno) AND AreaInterface.Cycle) THEN
          Alarm.STOP_FineTurno := TRUE;
@@ -1125,6 +1472,7 @@ BEGIN
       IF (Warning.IsWaiting_NoPiecesBefore AND CIn.ProdManager.STOP_End_Of_Production) THEN
          Alarm.STOP_End_Of_Proroduction := TRUE;
       END_IF;
+      #TON_StopPerInattivita.Q;
       IF #TON_StopPerInattivita.Q THEN
          Alarm.STOP_Inattività := TRUE;
       END_IF;

@@ -161,6 +161,7 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_POS_MissingCnd.Q;
       IF (Sts.OP_Pos_Cnd OR AreaInterface.RstAlarms) THEN
          Warning.OP_POS_MissingCnd := FALSE;
       ELSIF #TON_OP_POS_MissingCnd.Q THEN
@@ -186,6 +187,7 @@ BEGIN
       Ax.CIn.PositionLimits.EnableMin := TRUE;
       Ax.CIn.PositionLimits.EnableMax := TRUE;
       ActualDifference := (Ax.Ax.AxisSts.ActualPosition - CIn.Pareggiatore.ActualPosition);
+      #TON_DistanzaOK.Q;
       IF #TON_DistanzaOK.Q THEN
          Ax.CIn.PositionLimits.PosMin := Par.Ax.Minus_Limit;
       END_IF;
@@ -206,6 +208,7 @@ BEGIN
          Alarm := Alarm.Enc
       );
 
+      #Enc.Q;
    END_REGION
 
    REGION "[Ax] HMI preset position"
@@ -229,9 +232,20 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "Collect machine to zone interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := NOT ((((NOT (Alarm.Enc.CommFault) AND NOT (Alarm.Enc.SensorFault)) AND NOT (Alarm.Enc.NoRef)) AND NOT (Alarm.Enc.Resolution))),
+         AdditionalWarnings := NOT ((NOT (Warning.OP_POS_MissingCnd) AND NOT (Warning.SW_Limit_AntiCollision))),
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Ax.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := NOT ((((NOT (Alarm.Enc.CommFault) AND NOT (Alarm.Enc.SensorFault)) AND NOT (Alarm.Enc.NoRef)) AND NOT (Alarm.Enc.Resolution))), AdditionalWarnings := NOT ((NOT (Warning.OP_POS_MissingCnd) AND NOT (Warning.SW_Limit_AntiCollision))), MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Ax.MachineInterface);
    END_REGION
 
 

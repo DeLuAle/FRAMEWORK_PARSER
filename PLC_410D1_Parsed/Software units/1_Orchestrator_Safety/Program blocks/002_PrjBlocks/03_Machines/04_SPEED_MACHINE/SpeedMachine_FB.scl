@@ -110,6 +110,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_Brake_TimeOut.Q;
       IF #TON_Brake_TimeOut.Q THEN
          Alarm.BrakeTimeOut := TRUE;
       END_IF;
@@ -122,6 +123,7 @@ BEGIN
          INPUTS := S120_STW_TEL1
       );
 
+      #GETIO_STW_TEL1.Q;
       IF (GETIO_STW_TEL1.STATUS <> 0) THEN
          Alarm.S120_ComErr := TRUE;
       END_IF;
@@ -160,6 +162,7 @@ BEGIN
 
       Ctrl.Bwd_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.Bwd_Pb) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Bwd_Man)) AND DataIn.PB.Bwd_Minus) AND NOT (DataIn.PB.Fwd_Plus));
       Ctrl.Fwd_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.Fwd_Pb) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Fwd_Man)) AND DataIn.PB.Fwd_Plus) AND NOT (DataIn.PB.Bwd_Minus));
+      #TON_Feed_DelayManChangeSpeed.Q;
       Ctrl.Man_HighSpeed := (#TON_Feed_DelayManChangeSpeed.Q AND (Par.Man.DelayChangeVel > T#0s));
    END_REGION
 
@@ -169,6 +172,15 @@ BEGIN
    END_REGION
 
    REGION "Reduction ratio calculation (mm/giro)"
+      "Calc_RedutionRatio"(
+         en := TRUE,
+         LoadRevolution := Config.Ax.LoadRevolution,
+         MotorRevolution := Config.Ax.MotorRevolution,
+         LeadScrewPitchValue := Config.Ax.LeadScrewPitchVal,
+         ReductionRatio => Sts.ReductionRatio
+      );
+
+      "Calc_RedutionRatio"(LoadRevolution := Config.Ax.LoadRevolution, MotorRevolution := Config.Ax.MotorRevolution, LeadScrewPitchValue := Config.Ax.LeadScrewPitchVal);
    END_REGION
 
    REGION "Axis max velocity"
@@ -302,9 +314,11 @@ BEGIN
       IF (Warning.MissingCnd_Fwd AND Sts.Fwd_Cnd) THEN
          Warning.MissingCnd_Fwd := FALSE;
       END_IF;
+      #TON_MissingCndBwd.Q;
       IF #TON_MissingCndBwd.Q THEN
          Warning.MissingCnd_Bkw := TRUE;
       END_IF;
+      #TON_MissingCndFwd.Q;
       IF #TON_MissingCndFwd.Q THEN
          Warning.MissingCnd_Fwd := TRUE;
       END_IF;
@@ -333,6 +347,7 @@ BEGIN
          Diag := Diag.Drive
       );
 
+      #S120.Q;
    END_REGION
 
    REGION "Mask warning 1699 = Test stop STO required"
@@ -348,6 +363,7 @@ BEGIN
          OUTPUTS := S120_ZSW_TEL1
       );
 
+      #SETIO_ZSW_TEL1.Q;
       IF (GETIO_STW_TEL1.STATUS <> 0) THEN
          Alarm.S120_ComErr := TRUE;
       END_IF;
@@ -373,6 +389,7 @@ BEGIN
 
       Req := NOT (((NOT (S120.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext)));
       Ctrl.Fan := ((NOT (((NOT (S120.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext))) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      #TON_Fan_DelayOff.Q;
       IF #TON_Fan_DelayOff.Q THEN
          Ctrl.Fan := FALSE;
       END_IF;
@@ -391,6 +408,9 @@ BEGIN
       Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
       Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
       Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF Config.Fan.Presence THEN
+         #Fan_M.Q;
+      END_IF;
       IF NOT (Config.Fan.Presence) THEN
          DataOut.Fan_M_Contactor := FALSE;
       END_IF;
@@ -421,6 +441,7 @@ BEGIN
          PT := T#500MS
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warnings presence"

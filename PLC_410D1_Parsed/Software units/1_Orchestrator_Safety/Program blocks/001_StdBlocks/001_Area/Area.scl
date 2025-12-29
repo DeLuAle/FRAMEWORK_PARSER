@@ -142,6 +142,7 @@ BEGIN
          PT := Config.TimeOutResetAlarms
       );
 
+      #tonTimeOutResetAlr.Q;
    END_REGION
 
    REGION "Pb Ack/Rst delayed"
@@ -150,6 +151,7 @@ BEGIN
          PT := T#2S
       );
 
+      #tonDelayRstAck.Q;
       PbAckRstDelayed := #tonDelayRstAck.Q;
    END_REGION
 
@@ -195,6 +197,7 @@ BEGIN
          CycleStopInPhase := TRUE;
       END_IF;
       AreaInterface.StopInPhase := CycleStopInPhase;
+      #tonTimeOutStopPhase.Q;
    END_REGION
 
    REGION "Request of a programmed stop (e.g. at the end of part)"
@@ -210,6 +213,7 @@ BEGIN
          CycleStopProgrammed := TRUE;
       END_IF;
       AreaInterface.StopProgrammed := CycleStopProgrammed;
+      #tonTimeOutStopProgr.Q;
    END_REGION
 
    REGION "Cumulative Stop Cycle"
@@ -242,6 +246,7 @@ BEGIN
 
       CycleCheckStartCnd := ((((AutMode AND NOT (CycleStarted)) AND NOT (CycleOn)) AND DataIn.PbStart) AND NOT (CycleStop));
       AreaInterface.CheckAutReady := ((((AutMode AND NOT (CycleStarted)) AND NOT (CycleOn)) AND DataIn.PbStart) AND NOT (CycleStop));
+      #tonDelayPbStart.Q;
    END_REGION
 
    REGION "Horn cycle starting / restarting"

@@ -122,6 +122,7 @@ BEGIN
          PT := Config.LowTankLevelDly
       );
 
+      #TON_LowTankLevel.Q;
       IF NOT (PersistentValues.Par.SystemOffOn) THEN
          Alarm.LowTankLevel := FALSE;
       ELSIF #TON_LowTankLevel.Q THEN
@@ -180,6 +181,8 @@ BEGIN
          PT := Config.PumpWorkDuration
       );
 
+      #TON_PumpPause.Q;
+      #TON_PumpWork.Q;
       IF (NOT (Sts.PumpPauseDone) OR Config.ExternalPump) THEN
          Sts.PumpWorkDone := FALSE;
       ELSIF TON_PumpWork.Q THEN

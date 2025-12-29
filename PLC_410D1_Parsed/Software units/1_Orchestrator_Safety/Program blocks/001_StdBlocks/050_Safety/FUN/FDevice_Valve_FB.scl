@@ -56,6 +56,7 @@ BEGIN
       );
 
       S_ON := (((NOT (Door_SafeStop) OR Two_Hand_CMD) AND Estop) AND CtrlSafe);
+      #T_StopDelay.Q;
    END_REGION
 
    REGION "Ctrl EV  Safety"
@@ -71,6 +72,7 @@ BEGIN
          ERROR => FDO_FBK_ERROR
       );
 
+      #EV_FDBACK.Q;
    END_REGION
 
    REGION "Ev Safety Warning"
@@ -79,6 +81,7 @@ BEGIN
          PT := T#5S
       );
 
+      #T_EvSafetyFbk.Q;
       IF T_EvSafetyFbk.Q THEN
          EV_SAFETY_FBK_WARNING := TRUE;
       ELSIF Reset THEN
@@ -92,6 +95,7 @@ BEGIN
          PT := EvDegasTime
       );
 
+      #T_EvDegas.Q;
       EV_DEGAS := #T_EvDegas.Q;
    END_REGION
 
@@ -101,6 +105,7 @@ BEGIN
          PT := T#5S
       );
 
+      #T_EvDegasFbk.Q;
       IF (T_EvDegasFbk.Q AND EvDegasExist) THEN
          EV_DEGAS_FBK_WARNING := TRUE;
       ELSIF Reset THEN
@@ -122,6 +127,7 @@ BEGIN
          PT := SafeStateTime
       );
 
+      #T_SafeState.Q;
       DSI.DevicesInSafeState := (T_SafeState.Q OR (V_FEEDBACK_CHA AND NOT (V_FEEDBACK_CHB)));
    END_REGION
 

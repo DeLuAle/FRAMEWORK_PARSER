@@ -252,6 +252,7 @@ BEGIN
          DriveCtrlSafe => COut.PathTestRollformer_DriveCtrlSafe
       );
 
+      #PathTest_Rollformer.Q;
    END_REGION
 
    REGION "<<<<  S 1 2  0  SOS    >>>>>"
@@ -283,30 +284,100 @@ BEGIN
    END_REGION
 
    REGION "Lamp Safety reset MB2"
+      "Lamp"(
+         en := TRUE,
+         Signal := (NOT ((F_DB.A02_Estop AND F_DB.A02_EstopDelay)) OR ((NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence)) AND NOT (Sts.S120SftyFaultPresence)) AND NOT (Sts.DoorUnauthorizedOpen))) AND NOT (SteadyOn)) AND Sys.Clock_250MS) OR (((((Sts.DoorOpened AND NOT (Sts.DoorOpenRequest)) AND NOT (Sts.DoorNotLocked)) AND NOT (SteadyOn)) AND NOT (BlinkFast)) AND Sys.Clock_500MS)),
+         Ret_Val => A02_Lp_SafetyReset
+      );
+
       SteadyOn := NOT ((F_DB.A02_Estop AND F_DB.A02_EstopDelay));
       BlinkFast := NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence)) AND NOT (Sts.S120SftyFaultPresence)) AND NOT (Sts.DoorUnauthorizedOpen)));
       BlinkLow := ((Sts.DoorOpened AND NOT (Sts.DoorOpenRequest)) AND NOT (Sts.DoorNotLocked));
+      A02_Lp_SafetyReset := "Lamp"(Signal := (NOT ((F_DB.A02_Estop AND F_DB.A02_EstopDelay)) OR ((NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence)) AND NOT (Sts.S120SftyFaultPresence)) AND NOT (Sts.DoorUnauthorizedOpen))) AND NOT (SteadyOn)) AND Sys.Clock_250MS) OR (((((Sts.DoorOpened AND NOT (Sts.DoorOpenRequest)) AND NOT (Sts.DoorNotLocked)) AND NOT (SteadyOn)) AND NOT (BlinkFast)) AND Sys.Clock_500MS)));
    END_REGION
 
    REGION "Lamp D10"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable),
+         Door := F_DB.D10,
+         LampEntry => D10_Lp_EntryReq_LB201,
+         LampRst => D10_Lp_SafetyReset_LB201
+      );
+
+      "DoorSignals"(TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable), Door := F_DB.D10);
    END_REGION
 
    REGION "Lamp D11"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable),
+         Door := F_DB.D11,
+         LampEntry => D11_Lp_EntryReq_LB221,
+         LampRst => D11_Lp_SafetyReset_LB221
+      );
+
+      "DoorSignals"(TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable), Door := F_DB.D11);
    END_REGION
 
    REGION "Lamp D12"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable),
+         Door := F_DB.D12,
+         LampEntry => D12_Lp_EntryReq_LB202,
+         LampRst => D12_Lp_SafetyReset_LB202
+      );
+
+      "DoorSignals"(TwoHandEnable := (Main_Safety_RTG1_DB.F_Bimanuals.LB114_FeedA02.Enable OR Main_Safety_RTG1_DB.F_Bimanuals.LB211.Enable), Door := F_DB.D12);
    END_REGION
 
    REGION "Lamp D14"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable,
+         Door := F_DB.D14,
+         LampEntry => D14_Lp_EntryReq_LB203,
+         LampRst => D14_Lp_SafetyReset_LB203
+      );
+
+      "DoorSignals"(TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable, Door := F_DB.D14);
    END_REGION
 
    REGION "Lamp D15"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable,
+         Door := F_DB.D15,
+         LampEntry => D15_Lp_EntryReq_LB222,
+         LampRst => D15_Lp_SafetyReset_LB222
+      );
+
+      "DoorSignals"(TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable, Door := F_DB.D15);
    END_REGION
 
    REGION "Lamp D16"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable,
+         Door := F_DB.D16,
+         LampEntry => D16_Lp_EntryReq_LB301,
+         LampRst => D16_Lp_SafetyReset_LB301
+      );
+
+      "DoorSignals"(TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable, Door := F_DB.D16);
    END_REGION
 
    REGION "Lamp D18"
+      "DoorSignals"(
+         en := TRUE,
+         TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable,
+         Door := F_DB.D18,
+         LampEntry => D18_Pb_EntryReq_LB301_LB302,
+         LampRst => D18_Lp_SafetyReset_LB301_LB302
+      );
+
+      "DoorSignals"(TwoHandEnable := Main_Safety_RTG1_DB.F_Bimanuals.LB212_FeedA03.Enable, Door := F_DB.D18);
    END_REGION
 
    REGION "Warning presence"

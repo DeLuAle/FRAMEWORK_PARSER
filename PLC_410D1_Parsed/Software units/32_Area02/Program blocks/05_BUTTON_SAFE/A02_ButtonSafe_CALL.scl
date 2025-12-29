@@ -14,6 +14,7 @@ BEGIN
          Reset_OthersPBs_Activation_OUT => Areas_ITF.A02.PB.LB114_Interlock_PB_FeedA01
       );
 
+      #LB114_FeedA02.Q;
    END_REGION
 
    REGION "LB211"
@@ -22,6 +23,7 @@ BEGIN
          Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212_FeedA02.Reset_OthersPBs_Activation_OUT)))
       );
 
+      #LB211.Q;
    END_REGION
 
    REGION "LB212"
@@ -30,6 +32,7 @@ BEGIN
          Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB211.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212_FeedA02.Reset_OthersPBs_Activation_OUT)))
       );
 
+      #LB212.Q;
    END_REGION
 
    REGION "LB212 Feed material of area 02"
@@ -38,6 +41,7 @@ BEGIN
          Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB211.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212.Reset_OthersPBs_Activation_OUT)))
       );
 
+      #LB212_FeedA02.Q;
    END_REGION
 
 

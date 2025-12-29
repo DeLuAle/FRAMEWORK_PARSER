@@ -161,11 +161,15 @@ BEGIN
          PT := T#9MS
       );
 
+      #TON_InlinePos_DelayON.Q;
+      #TON_InlinePos_DelayOFF.Q;
       IF #TON_InlinePos_DelayOFF.Q THEN
          Sts.Move.IsInline := FALSE;
       ELSIF #TON_InlinePos_DelayON.Q THEN
          Sts.Move.IsInline := TRUE;
       END_IF;
+      #TON_OutlinePos_DelayON.Q;
+      #TON_OutlinePos_DelayOFF.Q;
       IF #TON_OutlinePos_DelayOFF.Q THEN
          Sts.Move.IsOutline := FALSE;
       ELSIF #TON_OutlinePos_DelayON.Q THEN
@@ -233,6 +237,7 @@ BEGIN
          COut => COut.Move
       );
 
+      #Move.Q;
    END_REGION
 
    REGION "CIn (external enables)"
@@ -269,6 +274,7 @@ BEGIN
          DataOut => DataOut.Lift1
       );
 
+      #Lift1.Q;
    END_REGION
 
    REGION "CIn (external enables)"
@@ -305,6 +311,7 @@ BEGIN
          DataOut => DataOut.Lift2
       );
 
+      #Lift2.Q;
    END_REGION
 
    REGION "Coordination Out"
@@ -313,6 +320,26 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Move.MachineInterface,
+         MachineInterface_2 := Lift1.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((NOT (Warning.NotOutline) AND NOT (Warning.Supports_FixPolesNotPlugged)) AND NOT (Warning.Supports_MobilePolesNotPlugged))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Lift2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Move.MachineInterface, MachineInterface_2 := Lift1.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((NOT (Warning.NotOutline) AND NOT (Warning.Supports_FixPolesNotPlugged)) AND NOT (Warning.Supports_MobilePolesNotPlugged))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Lift2.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

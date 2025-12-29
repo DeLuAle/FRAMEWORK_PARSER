@@ -23,9 +23,11 @@ BEGIN
          PT := T#10s
       );
 
+      #Ton_Stop.Q;
       IF #Ton_Stop.Q THEN
          Ctrl := FALSE;
       END_IF;
+      #Ton_Start.Q;
       IF (#Ton_Start.Q AND NOT (A0302_Bordatrice.COut.Ax.Standstill)) THEN
          Ctrl := TRUE;
       END_IF;

@@ -328,14 +328,74 @@ BEGIN
    END_REGION
 
    REGION "[Ax] - Controllo posizione dei Manipolatori In PRELIEVO su PAREGGIATORI"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.COut.ActualPosition,
+         Target := Par.Ax_Pos.Prelievo,
+         PosWin := Par.Ax_Pos.Tollerance.Prelievo,
+         Ret_Val => COut.CheckAxTesta.InPos_Prelievo
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.Prelievo, PosWin := Par.Ax_Pos.Tollerance.Prelievo),
+         ActPos := Ax_Coda.COut.ActualPosition,
+         Target := Par.Ax_Pos.Prelievo,
+         PosWin := Par.Ax_Pos.Tollerance.Prelievo,
+         Ret_Val => COut.CheckAxCoda.InPos_Prelievo
+      );
+
+      COut.CheckAxTesta.InPos_Prelievo := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.Prelievo, PosWin := Par.Ax_Pos.Tollerance.Prelievo);
+      IF "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.Prelievo, PosWin := Par.Ax_Pos.Tollerance.Prelievo) THEN
+         COut.CheckAxCoda.InPos_Prelievo := "TolWindow"(ActPos := Ax_Coda.COut.ActualPosition, Target := Par.Ax_Pos.Prelievo, PosWin := Par.Ax_Pos.Tollerance.Prelievo);
+      END_IF;
       COut.InPos_Prelievo := (COut.CheckAxTesta.InPos_Prelievo AND COut.CheckAxCoda.InPos_Prelievo);
    END_REGION
 
    REGION "[Ax] - Controllo posizione dei Manipolatori In PRELIEVO su BANCO SCARTO"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.COut.ActualPosition,
+         Target := Par.Ax_Pos.BancoCtrl,
+         PosWin := Par.Ax_Pos.Tollerance.BancoCtrl,
+         Ret_Val => COut.CheckAxTesta.InPos_BancoScarto
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoCtrl, PosWin := Par.Ax_Pos.Tollerance.BancoCtrl),
+         ActPos := Ax_Coda.COut.ActualPosition,
+         Target := Par.Ax_Pos.BancoCtrl,
+         PosWin := Par.Ax_Pos.Tollerance.BancoCtrl,
+         Ret_Val => COut.CheckAxCoda.InPos_BancoScarto
+      );
+
+      COut.CheckAxTesta.InPos_BancoScarto := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoCtrl, PosWin := Par.Ax_Pos.Tollerance.BancoCtrl);
+      IF "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoCtrl, PosWin := Par.Ax_Pos.Tollerance.BancoCtrl) THEN
+         COut.CheckAxCoda.InPos_BancoScarto := "TolWindow"(ActPos := Ax_Coda.COut.ActualPosition, Target := Par.Ax_Pos.BancoCtrl, PosWin := Par.Ax_Pos.Tollerance.BancoCtrl);
+      END_IF;
       COut.InPos_BancoScarto := (COut.CheckAxTesta.InPos_BancoScarto AND COut.CheckAxCoda.InPos_BancoScarto);
    END_REGION
 
    REGION "[Ax] - Controllo posizione dei Manipolatori In PRELIEVO su BANCO A0303"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.COut.ActualPosition,
+         Target := Par.Ax_Pos.BancoA0303,
+         PosWin := Par.Ax_Pos.Tollerance.BancoA0303,
+         Ret_Val => COut.CheckAxTesta.InPos_BancoA0303
+      );
+
+      "TolWindow"(
+         en := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoA0303, PosWin := Par.Ax_Pos.Tollerance.BancoA0303),
+         ActPos := Ax_Coda.COut.ActualPosition,
+         Target := Par.Ax_Pos.BancoA0303,
+         PosWin := Par.Ax_Pos.Tollerance.BancoA0303,
+         Ret_Val => COut.CheckAxCoda.InPos_BancoA0303
+      );
+
+      COut.CheckAxTesta.InPos_BancoA0303 := "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoA0303, PosWin := Par.Ax_Pos.Tollerance.BancoA0303);
+      IF "TolWindow"(ActPos := Ax_Testa.COut.ActualPosition, Target := Par.Ax_Pos.BancoA0303, PosWin := Par.Ax_Pos.Tollerance.BancoA0303) THEN
+         COut.CheckAxCoda.InPos_BancoA0303 := "TolWindow"(ActPos := Ax_Coda.COut.ActualPosition, Target := Par.Ax_Pos.BancoA0303, PosWin := Par.Ax_Pos.Tollerance.BancoA0303);
+      END_IF;
       COut.InPos_BancoA0303 := (COut.CheckAxTesta.InPos_BancoA0303 AND COut.CheckAxCoda.InPos_BancoA0303);
    END_REGION
 
@@ -357,7 +417,53 @@ BEGIN
    END_REGION
 
    REGION "[Sollevamento + Magneti] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_Manip_CanMoveFreely := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_Manip_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_Manip_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_Manip_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0301.B);
       Sts.OP_Manip_CanMoveFreely := (Sts.OP_Manip_CanMoveFreely AND NOT (CIn.Rulliera.Centro.Sens.FTC_Centrale));
    END_REGION
 
@@ -451,6 +557,7 @@ BEGIN
          COut => COut.Testa.Ax
       );
 
+      #Ax_Testa.Q;
    END_REGION
 
    REGION "[Sollevatore] - Valve Manager"
@@ -465,6 +572,7 @@ BEGIN
          COut => COut.Testa.Sollevatore
       );
 
+      #Sollevatore_Testa.Q;
    END_REGION
 
    REGION "[Magnete] - Valve Manager"
@@ -479,6 +587,7 @@ BEGIN
          COut => COut.Testa.Magnete
       );
 
+      #Magnete_Testa.Q;
    END_REGION
 
    REGION "[Ax] HMI preset position"
@@ -502,6 +611,7 @@ BEGIN
          COut => COut.Coda.Ax
       );
 
+      #Ax_Coda.Q;
    END_REGION
 
    REGION "[Sollevatore] - Valve Manager"
@@ -516,6 +626,7 @@ BEGIN
          COut => COut.Coda.Sollevatore
       );
 
+      #Sollevatore_Coda.Q;
    END_REGION
 
    REGION "[Magnete] - Valve Manager"
@@ -530,6 +641,7 @@ BEGIN
          COut => COut.Coda.Magnete
       );
 
+      #Magnete_Coda.Q;
    END_REGION
 
    REGION "Sincronizzazione tra asse testa e asse coda"
@@ -549,6 +661,7 @@ BEGIN
          PT := T#2S
       );
 
+      #TON_CheckAxMove.Q;
       IF #TON_CheckAxMove.Q THEN
          Alarm.CheckBothAxMove := TRUE;
       END_IF;
@@ -596,11 +709,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_Sollevamento.OP_REST_MissingCnd.Q;
       IF (Sts.Sollevamento.OP_Rest_Cnd OR Ctrl.Sollevamento.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST_Sollevamento := FALSE;
       ELSIF #TON_Sollevamento.OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST_Sollevamento := TRUE;
       END_IF;
+      #TON_Sollevamento.OP_WORK_MissingCnd.Q;
       IF (Sts.Sollevamento.Op_Work_Cnd OR Ctrl.Sollevamento.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK_Sollevamento := FALSE;
       ELSIF #TON_Sollevamento.OP_WORK_MissingCnd.Q THEN
@@ -619,11 +734,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_Magneti.OP_REST_MissingCnd.Q;
       IF (Sts.Magneti.OP_Rest_Cnd OR Ctrl.Magneti.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST_Magneti := FALSE;
       ELSIF #TON_Magneti.OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST_Magneti := TRUE;
       END_IF;
+      #TON_Magneti.OP_WORK_MissingCnd.Q;
       IF (Sts.Magneti.Op_Work_Cnd OR Ctrl.Magneti.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK_Magneti := FALSE;
       ELSIF #TON_Magneti.OP_WORK_MissingCnd.Q THEN
@@ -789,6 +906,56 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax_Testa.MachineInterface,
+         MachineInterface_2 := Ax_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatore_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevatore_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Magnete_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((((NOT (Warning.MissingCnd.OP_REST_Sollevamento) AND NOT (Warning.MissingCnd.OP_WORK_Sollevamento)) AND NOT (Warning.MissingCnd.OP_REST_Magneti)) AND NOT (Warning.MissingCnd.OP_WORK_Magneti))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Magnete_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax_Testa.MachineInterface, MachineInterface_2 := Ax_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatore_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevatore_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Magnete_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((((NOT (Warning.MissingCnd.OP_REST_Sollevamento) AND NOT (Warning.MissingCnd.OP_WORK_Sollevamento)) AND NOT (Warning.MissingCnd.OP_REST_Magneti)) AND NOT (Warning.MissingCnd.OP_WORK_Magneti))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Magnete_Coda.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

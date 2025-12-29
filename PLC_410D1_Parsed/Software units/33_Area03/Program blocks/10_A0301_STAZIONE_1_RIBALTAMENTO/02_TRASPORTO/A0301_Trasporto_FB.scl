@@ -226,11 +226,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Bwd_Cnd OR Ctrl.OP_Fwd_Run OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.OP_REST_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.OP_Fwd_Cnd OR Ctrl.OP_Bwd_Run OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -264,6 +266,7 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "[Ax] -  COut"
@@ -275,6 +278,16 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Ax.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Ax.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

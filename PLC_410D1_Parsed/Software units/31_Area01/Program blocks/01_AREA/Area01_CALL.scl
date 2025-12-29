@@ -62,6 +62,7 @@ BEGIN
          HMI_StatusDinamicText => A01_HMI.Area01.Status.Status
       );
 
+      #Area01.Q;
    END_REGION
 
    REGION "Alarms collect Area 01 Coil Handling (001...352)"
@@ -432,6 +433,7 @@ BEGIN
          MessageCount => A01_HMI.Area01.Status.AlarmsNumber
       );
 
+      #Area01_Msg_Alarms.Q;
    END_REGION
 
    REGION "Warnings collect Area 01 Coil handling (001..288)"
@@ -843,6 +845,7 @@ BEGIN
          MessageCount => A01_HMI.Area01.Status.WarningsNumber
       );
 
+      #Area01_Msg_Warnings.Q;
    END_REGION
 
    REGION "MB lamp indicators"
@@ -852,6 +855,27 @@ BEGIN
    END_REGION
 
    REGION "Tower lamp"
+      "Lamp"(
+         en := TRUE,
+         Signal := (Area01.DataOut.lampCycle OR (CoilHandling.Warning.EmptyingIsON AND Sys.Clock_1S)),
+         Ret_Val => A01_TowerLampWhite_SL101
+      );
+
+      "Lamp"(
+         en := TRUE,
+         Signal := ((Area01.DataOut.LampAlarmPresence AND NOT (CoilHandling.Warning.EmptyingIsON)) OR (CoilHandling.Warning.EmptyingIsON AND NOT (Sys.Clock_1S))),
+         Ret_Val => A01_TowerLampYellow_SL101
+      );
+
+      "Lamp"(
+         en := TRUE,
+         Signal := (Area01.DataOut.horn OR (NOT ((NOT (F_DB.FNS_Zone05) AND NOT (F_DB.FNS_Zone10))) AND Area01.CycleOn)),
+         Ret_Val => A01_TowerHorn_SL101
+      );
+
+      A01_TowerLampWhite_SL101 := "Lamp"(Signal := (Area01.DataOut.lampCycle OR (CoilHandling.Warning.EmptyingIsON AND Sys.Clock_1S)));
+      A01_TowerLampYellow_SL101 := "Lamp"(Signal := ((Area01.DataOut.LampAlarmPresence AND NOT (CoilHandling.Warning.EmptyingIsON)) OR (CoilHandling.Warning.EmptyingIsON AND NOT (Sys.Clock_1S))));
+      A01_TowerHorn_SL101 := "Lamp"(Signal := (Area01.DataOut.horn OR (NOT ((NOT (F_DB.FNS_Zone05) AND NOT (F_DB.FNS_Zone10))) AND Area01.CycleOn)));
    END_REGION
 
    REGION "Super User"
@@ -900,6 +924,11 @@ BEGIN
    END_REGION
 
    REGION "Areas ITF"
+      "Area01_ITF"(
+         en := TRUE
+      );
+
+      "Area01_ITF"();
    END_REGION
 
 

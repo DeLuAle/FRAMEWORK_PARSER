@@ -109,6 +109,7 @@ BEGIN
          COut => COut.Feed
       );
 
+      #Feed.Q;
    END_REGION
 
    REGION "CIn (Extrnal enables)"
@@ -132,6 +133,20 @@ BEGIN
          Warning := Warning.Lift_Entry
       );
 
+      "ValveMachine_NotExist"(
+         en := NOT (Config.Lift_Entry_Exist),
+         Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))),
+         ValveMachine := Lift_Entry,
+         V_Alarm => Alarm.Lift_Entry,
+         V_Warning => Warning.Lift_Entry
+      );
+
+      IF Config.Lift_Entry_Exist THEN
+         #Lift_Entry.Q;
+      END_IF;
+      IF NOT (Config.Lift_Entry_Exist) THEN
+         "ValveMachine_NotExist"(Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))), ValveMachine := Lift_Entry);
+      END_IF;
       COut.Lift_Entry := Lift_Entry.COut;
    END_REGION
 
@@ -156,10 +171,44 @@ BEGIN
          Warning := Warning.Lift_Exit
       );
 
+      "ValveMachine_NotExist"(
+         en := NOT (Config.Lift_Exit_Exist),
+         Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))),
+         ValveMachine := Lift_Exit,
+         V_Alarm => Alarm.Lift_Exit,
+         V_Warning => Warning.Lift_Exit
+      );
+
+      IF Config.Lift_Exit_Exist THEN
+         #Lift_Exit.Q;
+      END_IF;
+      IF NOT (Config.Lift_Exit_Exist) THEN
+         "ValveMachine_NotExist"(Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))), ValveMachine := Lift_Exit);
+      END_IF;
       COut.Lift_Exit := Lift_Exit.COut;
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Lift_Entry.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Lift_Exit.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Lift_Entry.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Lift_Exit.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
 

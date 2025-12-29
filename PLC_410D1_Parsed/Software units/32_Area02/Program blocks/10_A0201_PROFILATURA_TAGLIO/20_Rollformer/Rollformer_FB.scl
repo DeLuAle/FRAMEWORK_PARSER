@@ -201,6 +201,7 @@ BEGIN
       );
 
       Req := ((Rollformer.Feed.CIn.Manager.Control_ON AND Rollformer.Feed.CIn.Manager.MoveToPos) OR PersistentValues.Machine.Par.ExtraLow_Enable);
+      #TON_SOS.Q;
       IF (NOT (AreaInterface.Man) OR #TON_SOS.Q) THEN
          COut.EnableSOS := FALSE;
       ELSIF ((Rollformer.Feed.CIn.Manager.Control_ON AND Rollformer.Feed.CIn.Manager.MoveToPos) OR PersistentValues.Machine.Par.ExtraLow_Enable) THEN
@@ -216,6 +217,14 @@ BEGIN
    END_REGION
 
    REGION "Manual Target material pos"
+      "PosMatToPosAxis_Wheel"(
+         en := TRUE,
+         PosMaterial := HMI.ManTargetMaterialPosition,
+         Data := PostPunchingMatCounter_PERS.PersistentValues.Data,
+         Ret_Val => Feed.HMI.TargetPosition
+      );
+
+      Feed.HMI.TargetPosition := "PosMatToPosAxis_Wheel"(PosMaterial := HMI.ManTargetMaterialPosition, Data := PostPunchingMatCounter_PERS.PersistentValues.Data);
    END_REGION
 
    REGION "CIn (External enables)"
@@ -291,6 +300,7 @@ BEGIN
          COut => COut.Feed
       );
 
+      #Feed.Q;
    END_REGION
 
    REGION "Cumulative additional warnings"
@@ -302,6 +312,16 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := AdditionalAlarms,
+         AdditionalWarnings := AdditionalWarnings,
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Feed.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := AdditionalAlarms, AdditionalWarnings := AdditionalWarnings, MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Feed.MachineInterface);
    END_REGION
 
 

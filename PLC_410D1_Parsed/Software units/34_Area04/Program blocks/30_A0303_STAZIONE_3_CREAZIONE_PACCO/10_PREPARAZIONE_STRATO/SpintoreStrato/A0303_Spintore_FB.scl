@@ -226,11 +226,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.OP_REST_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.OP_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -258,6 +260,7 @@ BEGIN
          Warning := Warning.Testa.Vrt
       );
 
+      #Vrt_Testa.Q;
    END_REGION
 
    REGION "Orizzontale - CIn External alarm"
@@ -280,6 +283,7 @@ BEGIN
          Warning := Warning.Testa.Orz
       );
 
+      #Orz_Testa.Q;
    END_REGION
 
    REGION "Verticale - CIn External alarm"
@@ -302,6 +306,7 @@ BEGIN
          Warning := Warning.Coda.Vrt
       );
 
+      #Vrt_Coda.Q;
    END_REGION
 
    REGION "Orizzontale - CIn External alarm"
@@ -324,6 +329,7 @@ BEGIN
          Warning := Warning.Coda.Orz
       );
 
+      #Orz_Coda.Q;
    END_REGION
 
    REGION "Verticale - COut"
@@ -339,6 +345,36 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Vrt_Testa.MachineInterface,
+         MachineInterface_2 := Orz_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Vrt_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Orz_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Vrt_Testa.MachineInterface, MachineInterface_2 := Orz_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Vrt_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Orz_Coda.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

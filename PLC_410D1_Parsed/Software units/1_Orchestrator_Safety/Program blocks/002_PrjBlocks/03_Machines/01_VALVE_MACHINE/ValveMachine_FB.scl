@@ -128,7 +128,9 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_Rest_MissingExtEnable.Q;
       Warning.Rest_MissingExtEnable := #TON_Rest_MissingExtEnable.Q;
+      #TON_Work_MissingExtEnable.Q;
       Warning.Work_MissingExtEnable := #TON_Work_MissingExtEnable.Q;
    END_REGION
 
@@ -142,6 +144,7 @@ BEGIN
          Alarm := Alarm
       );
 
+      #V.Q;
    END_REGION
 
    REGION "Warning missing REST Ls"
@@ -252,6 +255,7 @@ BEGIN
          PT := Config.DelayPressureRunningTimeout
       );
 
+      #TON_PressureRunning_Timeout.Q;
       Warning.PressureRunning_Timeout := #TON_PressureRunning_Timeout.Q;
    END_REGION
 
@@ -280,6 +284,7 @@ BEGIN
          PT := T#500ms
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warnings presence"

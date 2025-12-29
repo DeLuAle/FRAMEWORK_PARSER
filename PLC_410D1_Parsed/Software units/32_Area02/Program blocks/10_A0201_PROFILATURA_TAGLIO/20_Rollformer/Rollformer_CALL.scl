@@ -12,6 +12,18 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Bwd) AND NOT (LB211.PB.Rollformer_Bwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Bwd))),
+         LB_PB_Fwd_Plus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Fwd) AND NOT (LB211.PB.Rollformer_Fwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Fwd))),
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.Rollformer.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax,
+         PB => Rollformer.DataIn.Feed.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Bwd) AND NOT (LB211.PB.Rollformer_Bwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Bwd))), LB_PB_Fwd_Plus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Fwd) AND NOT (LB211.PB.Rollformer_Fwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Fwd))), Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.Rollformer.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "DataIn - Sensor"
@@ -68,6 +80,7 @@ BEGIN
          PersistentValues := Rollformer_PERS.PersistentValues
       );
 
+      #Rollformer.Q;
    END_REGION
 
    REGION "Data Out"

@@ -13,9 +13,18 @@ BEGIN
          PbLampTest := HMI.AreaGen.Pb_LampTest
       );
 
+      #System_IDB.Q;
    END_REGION
 
    REGION "TokenChain Main"
+      "TokenChain_FC"(
+         en := TRUE,
+         Enable := TRUE,
+         Timeout := T#500MS,
+         TokenChainData := TokenChain.Data
+      );
+
+      "TokenChain_FC"(Enable := TRUE, Timeout := T#500MS, TokenChainData := TokenChain.Data);
    END_REGION
 
 

@@ -93,6 +93,7 @@ BEGIN
          PT := T#10S
       );
 
+      #TON_Inactivity.Q;
    END_REGION
 
    REGION "Man"
@@ -125,6 +126,7 @@ BEGIN
          Alarm := Alarm.Pump
       );
 
+      #Pump_M.Q;
    END_REGION
 
    REGION "Pressure Valve"
@@ -133,6 +135,7 @@ BEGIN
          PT := T#500ms
       );
 
+      #TON_Pressure.Q;
       COut.PressureRunning := #TON_Pressure.Q;
       DataOut.Pressure_V := #TON_Pressure.Q;
    END_REGION

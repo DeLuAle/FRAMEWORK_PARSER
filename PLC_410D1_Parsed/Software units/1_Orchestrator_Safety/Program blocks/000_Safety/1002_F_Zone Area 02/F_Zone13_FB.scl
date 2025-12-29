@@ -45,6 +45,7 @@ BEGIN
          Unlock => D14_Comando_Elettroserratura
       );
 
+      #D14.Q;
    END_REGION
 
    REGION "D15"
@@ -59,6 +60,7 @@ BEGIN
          Unlock => D15_Comando_Elettroserratura
       );
 
+      #D15.Q;
    END_REGION
 
    REGION "D30 FAK UPDATER"
@@ -70,6 +72,7 @@ BEGIN
          Sts := F_DB.D30
       );
 
+      #D30.Q;
    END_REGION
 
    REGION "Cumulative Zone Safety (collect)"
@@ -87,6 +90,7 @@ BEGIN
          ForceNormalStop => F_DB.FNS_Zone13
       );
 
+      #FNS.Q;
    END_REGION
 
    REGION "Cumulative Zone Safety"
@@ -119,6 +123,7 @@ BEGIN
          EV_DEGAS => HU_Area02_SafetyValve
       );
 
+      #F_SafetyValve_FinalCut.Q;
    END_REGION
 
    REGION "HU Final cut Motor contactor"
@@ -137,6 +142,7 @@ BEGIN
          OUT => FDo_C_HU_FinalCut
       );
 
+      #F_Contactor_HU_FinalCut_Motor.Q;
    END_REGION
 
    REGION "HU Final cutStandby valve"
@@ -160,6 +166,7 @@ BEGIN
          Tlg30_OUT => FAK_Pusher_CtrlOut
       );
 
+      #F_Sinamics_FAK_Pusher.Q;
    END_REGION
 
    REGION "S120 - Carriage"
@@ -176,6 +183,7 @@ BEGIN
          Tlg30_OUT => Carriage_CtrlOut
       );
 
+      #F_Sinamics_Carriage.Q;
    END_REGION
 
 

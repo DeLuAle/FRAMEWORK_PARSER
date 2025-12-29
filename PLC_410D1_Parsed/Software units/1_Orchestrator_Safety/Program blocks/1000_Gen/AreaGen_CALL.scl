@@ -14,30 +14,77 @@ VERSION : 0.1
 
 BEGIN
    REGION "System call"
+      "System_CALL"(
+         en := TRUE
+      );
+
+      "System_CALL"();
    END_REGION
 
    REGION "HW constant value"
+      "Update_HW_Const_Value"(
+         en := Sys.FirstPLCCycle
+      );
+
+      IF Sys.FirstPLCCycle THEN
+         "Update_HW_Const_Value"();
+      END_IF;
    END_REGION
 
    REGION "HMI"
+      "HMI_Call"(
+         en := TRUE
+      );
+
+      "HMI_Call"();
    END_REGION
 
    REGION "Generic"
+      "Generic_CALL"(
+         en := TRUE
+      );
+
+      "Generic_CALL"();
    END_REGION
 
    REGION "Safety interface"
+      "AreaGen_SafetyInterface_Call"(
+         en := TRUE
+      );
+
+      "AreaGen_SafetyInterface_Call"();
    END_REGION
 
    REGION "PAC 320"
+      "PAC3220"(
+         en := TRUE
+      );
+
+      "PAC3220"();
    END_REGION
 
    REGION "Call PPrg"
+      "PPrg_Call"(
+         en := TRUE
+      );
+
+      "PPrg_Call"();
    END_REGION
 
    REGION "Call PPRF"
+      "PPrf_CALL"(
+         en := TRUE
+      );
+
+      "PPrf_CALL"();
    END_REGION
 
    REGION "Call Consumi"
+      "Consumi"(
+         en := TRUE
+      );
+
+      "Consumi"();
    END_REGION
 
    REGION "Alarms collect"
@@ -362,6 +409,7 @@ BEGIN
          MessageCount => HMI.AreaGen.Status.AlarmsNumber
       );
 
+      #AreaGen_Msg_Alarms.Q;
    END_REGION
 
    REGION "Warnings collect"
@@ -626,18 +674,59 @@ BEGIN
          MessageCount => HMI.AreaGen.Status.WarningsNumber
       );
 
+      #AreaGen_Msg_Warnings.Q;
    END_REGION
 
    REGION "ITF Area 01"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface1,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface1,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area01
+      );
+
+      Areas_ITF.AG.Area01 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface1, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface1, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
    REGION "ITF Area 02"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface2,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface2,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area02
+      );
+
+      Areas_ITF.AG.Area02 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface2, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface2, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
    REGION "ITF Area 03"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface3,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface3,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area03
+      );
+
+      Areas_ITF.AG.Area03 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface3, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface3, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
    REGION "ITF Area 04"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface4,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface4,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area04
+      );
+
+      Areas_ITF.AG.Area04 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface4, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface4, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
 

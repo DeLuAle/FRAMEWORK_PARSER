@@ -6,8 +6,17 @@ VERSION : 0.1
 
 BEGIN
    REGION "Network 1"
+      "MES_Msg101_Push"(
+         en := DEBUG_MES_Send_Msg_1XX.MSG101.EXE,
+         Err := DEBUG_MES_Send_Msg_1XX.MSG101.Err,
+         Ret_Val => DEBUG_MES_Send_Msg_1XX.MSG101.RETVAL
+      );
+
       IF DEBUG_MES_Send_Msg_1XX.MSG101.EXE THEN
          DEBUG_MES_Send_Msg_1XX.MSG101.EXE := FALSE;
+      END_IF;
+      IF DEBUG_MES_Send_Msg_1XX.MSG101.EXE THEN
+         DEBUG_MES_Send_Msg_1XX.MSG101.RETVAL := "MES_Msg101_Push"(Err := DEBUG_MES_Send_Msg_1XX.MSG101.Err);
       END_IF;
    END_REGION
 

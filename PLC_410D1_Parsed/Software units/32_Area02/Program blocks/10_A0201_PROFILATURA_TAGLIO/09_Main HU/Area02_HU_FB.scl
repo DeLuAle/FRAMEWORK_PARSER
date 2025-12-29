@@ -53,6 +53,7 @@ BEGIN
          Par := Area02_HU_PERS.PersistentValues.Par_Pump
       );
 
+      #Pump.Q;
    END_REGION
 
    REGION "Data out"
@@ -93,6 +94,7 @@ BEGIN
          Par := Area02_HU_PERS.PersistentValues.Par_Tank
       );
 
+      #Tank.Q;
    END_REGION
 
    REGION "Data out"
@@ -101,6 +103,16 @@ BEGIN
    END_REGION
 
    REGION "Machine interface (machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := Pump.MachineInterface,
+         MachineInterface_2 := Tank.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := Pump.MachineInterface, MachineInterface_2 := Tank.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

@@ -59,6 +59,30 @@ BEGIN
    END_REGION
 
    REGION "<< Data In PB - Spintori Vertivale >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Vrt_1.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Vrt_2.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0301_Spintore_Lat.Vrt_1.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_1_Ls_Rest_1;
       A0301_Spintore_Lat.Vrt_1.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_1_Ls_Work_1;
       A0301_Spintore_Lat.Vrt_2.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_2_Ls_Rest_1;
@@ -66,6 +90,30 @@ BEGIN
    END_REGION
 
    REGION "<< Data In PB - Spintore Orizzontale >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Orz_1.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Orz_2.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0301_Spintore_Lat.Orz_1.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_1_Ls_Rest_2;
       A0301_Spintore_Lat.Orz_1.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_1_Ls_Work_2;
       A0301_Spintore_Lat.Orz_2.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_2_Ls_Rest_2;
@@ -73,6 +121,18 @@ BEGIN
    END_REGION
 
    REGION "<< Data In PB - Sollevatori >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Sollevatori[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "DataIn - Ls Sollevatori [1..6]"
@@ -105,6 +165,7 @@ BEGIN
          Spin_Lat_2 := A0301_Spintore_Lat_PERS.Spin_Lat_2
       );
 
+      #A0301_Spintore_Lat.Q;
    END_REGION
 
    REGION "<< TRASFERIMENTO stati DataOut  >>"

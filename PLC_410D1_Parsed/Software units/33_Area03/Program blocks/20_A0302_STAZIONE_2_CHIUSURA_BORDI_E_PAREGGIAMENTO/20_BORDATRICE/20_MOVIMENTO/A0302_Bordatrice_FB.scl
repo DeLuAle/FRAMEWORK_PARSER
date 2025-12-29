@@ -250,6 +250,25 @@ BEGIN
    END_REGION
 
    REGION "CONTROLLO MES lunghezza Beams"
+      "Find_O_ID"(
+         en := TRUE,
+         NumStazione := #STATION_A0302_ENTRY,
+         O_ID => BTrk_Item.O_ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY),
+         O_ID := BTrk_Item.O_ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => BTrk_GetData.Sts,
+         Item => BTrk_GetData.Item,
+         indx => BTrk_GetData.indx
+      );
+
+      "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY);
+      IF "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY) THEN
+         BTrk_GetData.Sts := "Prod_item_GetData_By_O_ID"(O_ID := BTrk_Item.O_ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
+      END_IF;
    END_REGION
 
    REGION "CONTROLLO TRK lunghezza Beams"
@@ -276,17 +295,35 @@ BEGIN
          PT := T#300MS
       );
 
+      #IEC_FTC_UscitaBordatrice.TON_Delay.Q;
+      #IEC_FTC_UscitaBordatrice.TOF_Delay.Q;
       IEC_FTC_UscitaBordatrice.FTC_On := #IEC_FTC_UscitaBordatrice.TOF_Delay.Q;
    END_REGION
 
    REGION "SALVATAGGIO delle quote INIZIO USCITA da Bordatrice e FINE USCITA PEZZO"
-      IF (((??? OR ??? OR ???) AND NOT (Sts.Pz_UscitaBord)) AND DataIn.Sens.FTC_Uscita) THEN
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF ((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND NOT (Sts.Pz_UscitaBord)) AND DataIn.Sens.FTC_Uscita) THEN
          Ctrl.Value.QuotaInizioUscita := Ax.COut.ActualPosition;
       END_IF;
       IF Ax.COut.ActualPosition THEN
          Sts.Pz_UscitaBord := TRUE;
       END_IF;
-      IF NOT ((??? OR ??? OR ???)) THEN
+      IF NOT (("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B))) THEN
          Sts.Pz_UscitaBord := FALSE;
       END_IF;
    END_REGION
@@ -341,6 +378,15 @@ BEGIN
    END_REGION
 
    REGION "CALCOLO Modulo - Target LongPos"
+      "M_PosAPlusCostB"(
+         en := TRUE,
+         PosA := Ax.COut.ActualPosition,
+         CostB := CostB,
+         MODULE := Module,
+         Ret_Val => Ctrl.Value.Ax_TargetLongPos
+      );
+
+      Ctrl.Value.Ax_TargetLongPos := "M_PosAPlusCostB"(PosA := Ax.COut.ActualPosition, CostB := CostB, MODULE := Module);
    END_REGION
 
    REGION "[Ax] Sts - Standby Bordatrice per mancanza prodotto da lavorare"
@@ -351,14 +397,63 @@ BEGIN
 
       NoTrk_Bordatrice := ((((((BTrk.A0301.B.B_ID = 0) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0)) AND (BTrk.A0302_ENTRY.B.B_ID = 0));
       Sts.StandbyBordatrice := (((NOT (CIn.P5.Sens.FTC_Ingombro_A0301) AND NOT (IEC_FTC_UscitaBordatrice.FTC_On)) AND NoTrk_Bordatrice) OR ((NOT (CIn.P5.Sens.FTC_Ingombro_A0301) AND NOT (IEC_FTC_UscitaBordatrice.FTC_On)) AND NOT (CIn.Attrezzaggio.CarriParegg.Ready)));
+      #IEC_StandbyBordatrice.Q;
    END_REGION
 
    REGION "[Ax] Sts - Stop Bordatrice"
-      Sts.StopBordatrice := ((((??? OR ??? OR ???) AND IEC_FTC_UscitaBordatrice.FTC_On) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_In);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      Sts.StopBordatrice := (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND IEC_FTC_UscitaBordatrice.FTC_On) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_In);
    END_REGION
 
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_CanMoveFreely := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      Sts.OP_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      Sts.OP_CanMoveFreely := (((((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND CIn.Rulliera.Centratori.Rest) AND CIn.Rulliera.Sollevatori.Rest) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_In)) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing));
    END_REGION
 
    REGION "Comando Operazione Lavoro  (AUT)"
@@ -470,7 +565,16 @@ BEGIN
    END_REGION
 
    REGION "[Ax] -  Cin Ext Enable"
+      "M_CmpGT"(
+         en := TRUE,
+         Xa := Ax.COut.ActualPosition,
+         Xb := Ax.CIn.Manager.Pos,
+         MODULE := Module,
+         Ret_Val => PositioningStop
+      );
+
       Ax.CIn.Minus_ExtEnable := TRUE;
+      PositioningStop := "M_CmpGT"(Xa := Ax.COut.ActualPosition, Xb := Ax.CIn.Manager.Pos, MODULE := Module);
       Ax.CIn.Plus_ExtEnable := (CIn.CarroPareggCoda.BattutaVerticale.Rest OR ((CIn.CarroPareggCoda.BattutaVerticale.Work AND NOT (PositioningStop)) AND Ctrl.PosTargetEnable) OR (CIn.CarroPareggCoda.BattutaVerticale.Work AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_In)) OR ((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND Sts.OP_CanMoveFreely));
    END_REGION
 
@@ -491,6 +595,7 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "Bordatrice = Status / Control - Pos.Target Carro Alto / Pos.Target Carro Basso"
@@ -512,10 +617,29 @@ BEGIN
    END_REGION
 
    REGION "Network 32"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax.COut.ActualPosition,
+         Target := Ax.CIn.Manager.Pos,
+         PosWin := A0302_Bordatrice_PERS.Par.Ax_Man.PosTolerance,
+         Ret_Val => COut.Sts.In_W_Pos
+      );
+
+      COut.Sts.In_W_Pos := "TolWindow"(ActPos := Ax.COut.ActualPosition, Target := Ax.CIn.Manager.Pos, PosWin := A0302_Bordatrice_PERS.Par.Ax_Man.PosTolerance);
       COut.Sts.PosTarget_Reached := ((COut.Ax.ActualPosition = Ax.CIn.Manager.Pos) AND COut.Sts.In_W_Pos);
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Ax.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Ax.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

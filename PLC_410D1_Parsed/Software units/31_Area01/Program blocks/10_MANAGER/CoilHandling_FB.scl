@@ -330,6 +330,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_Decoiler
       );
 
+      #MatPresence_Decoiler.Q;
    END_REGION
 
    REGION "Material presence straightener entry"
@@ -341,6 +342,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_StraightenerEntry
       );
 
+      #MatPresence_StraightEntry.Q;
    END_REGION
 
    REGION "Material presence straightener exit"
@@ -352,6 +354,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_StraightenerExit
       );
 
+      #MatPresence_StraightExit.Q;
    END_REGION
 
    REGION "Material presence JB pinch roll exit"
@@ -363,6 +366,7 @@ BEGIN
          OUT => Pers.Data.MaterialPresence_JBPinchExit
       );
 
+      #MatPresence_JBPinchExit.Q;
    END_REGION
 
    REGION "Material junction done"
@@ -472,6 +476,7 @@ BEGIN
       );
 
       HMI.B_ConfirmEmptyingShow := ((((((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND NOT (Pers.Data.MaterialPresence_StraightenerEntry)) OR ((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed)) AND NOT (Pers.Data.MaterialPresence_StraightenerExit)) AND Sts.EndOfCoil.Idle) OR (((((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND NOT (Pers.Data.MaterialPresence_StraightenerEntry)) OR ((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed)) AND NOT (Pers.Data.MaterialPresence_StraightenerExit)) AND Sts.EndOfCoil.EndOfSequence));
+      #TON_Emptying.Q;
       Cnd := ((((((((((HMI.B_ConfirmEmptyingShow AND NOT (ZSI.Door_NormalStop)) AND NOT (ZSI.Door_SafeStop)) AND NOT (ZSI.Door_Opened)) AND CIn.Straigtener.Lift_Entry.Rest) AND CIn.Straigtener.Lift_Exit.Rest) OR (((((HMI.B_ConfirmEmptyingShow AND NOT (ZSI.Door_NormalStop)) AND NOT (ZSI.Door_SafeStop)) AND NOT (ZSI.Door_Opened)) AND CIn.Straigtener.Lift_Entry.Rest) AND TRUE)) AND CIn.JB.CutHead.Rest) AND CIn.JB.ClampEntry.Rest) AND CIn.JB.ClampExit.Rest) AND CIn.JB.Pinchroll_Lift.Rest);
       IF NOT (Cnd) THEN
          COut.Gen.EmptyingConfirmed := FALSE;
@@ -513,6 +518,12 @@ BEGIN
    END_REGION
 
    REGION "Extra low speed selection"
+      "Lamp"(
+         en := TRUE,
+         Signal := (Sts.ExtraLowSpeedSelectionPB OR (Sts.ExtraLowSpeedSelection AND Sys.Clock_1S)),
+         Ret_Val => DataOut.Lamp_ExtraLowSpeed
+      );
+
       PE.PbExtraLowSpeed := PosEdge(DataIn.PbExtraLowSpeed);
       Set := (PE.PbExtraLowSpeed AND NOT (Sts.ExtraLowSpeedSelection));
       Rst := (PE.PbExtraLowSpeed AND Sts.ExtraLowSpeedSelection);
@@ -523,6 +534,7 @@ BEGIN
       END_IF;
       Sts.ExtraLowSpeedSelection := (Sts.ExtraLowSpeedSelectionPB OR NOT (CIn.JB.ClampEntry.Rest) OR NOT (CIn.JB.ClampEntry.Rest));
       Warning.ExtraLowSpeedIsON := Sts.ExtraLowSpeedSelection;
+      DataOut.Lamp_ExtraLowSpeed := "Lamp"(Signal := (Sts.ExtraLowSpeedSelectionPB OR (Sts.ExtraLowSpeedSelection AND Sys.Clock_1S)));
    END_REGION
 
    REGION "Loop synchro before coil end (using coil diameter)"
@@ -547,6 +559,7 @@ BEGIN
          LooseWrap_Time := T#10s
       );
 
+      #Coil_LooseWrap.Q;
       IF NOT (Pers.Data.MaterialFullLoaded) THEN
          Sts.LoopSynchro.Phase1_B := FALSE;
       ELSIF Coil_LooseWrap.LooseWrap THEN
@@ -560,6 +573,12 @@ BEGIN
    END_REGION
 
    REGION "Coil loaded mem"
+      "Lamp"(
+         en := TRUE,
+         Signal := NOT ((NOT (Pers.Data.CoilLoadedInDecoiler1) AND NOT (Pers.Data.CoilLoadedInDecoiler2))),
+         Ret_Val => DataOut.Lamp_CoilReady
+      );
+
       Set_1 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler2_InLine) AND NOT (Pers.Data.CoilLoadedInDecoiler1));
       Rst_1 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler2_InLine) AND Pers.Data.CoilLoadedInDecoiler1);
       Set_2 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler1_InLine) AND NOT (Pers.Data.CoilLoadedInDecoiler2));
@@ -577,17 +596,37 @@ BEGIN
       ELSIF ((Set_2 AND NOT (Warning.MES.STOP_Manca_Dati_AspoInCarico)) AND DataIn.Decoiler2_PosizioneRazza) THEN
          Pers.Data.CoilLoadedInDecoiler2 := TRUE;
       END_IF;
+      DataOut.Lamp_CoilReady := "Lamp"(Signal := NOT ((NOT (Pers.Data.CoilLoadedInDecoiler1) AND NOT (Pers.Data.CoilLoadedInDecoiler2))));
    END_REGION
 
    REGION "End of coil -  Pinch roll space required for stopping at actual velocity"
+      "Trapezoidal_RampSpace"(
+         en := TRUE,
+         VDelta := CIn.JB.Pinchroll_Feed.ActualVelocity,
+         AccDec := Pers.Par.CoilEnd.Dec,
+         Jerk := Pers.Par.CoilEnd.Jerk,
+         Ret_Val => Sts.EndOfCoil.PinchRoll_SpaceToStop
+      );
+
+      Sts.EndOfCoil.PinchRoll_SpaceToStop := "Trapezoidal_RampSpace"(VDelta := CIn.JB.Pinchroll_Feed.ActualVelocity, AccDec := Pers.Par.CoilEnd.Dec, Jerk := Pers.Par.CoilEnd.Jerk);
    END_REGION
 
    REGION "End of coil -  Save positon"
+      "PosAxisToPosMat_Wheel"(
+         en := NOT (DataIn.SensorMatPresence_StraightExit),
+         PosAxis := Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightExit,
+         Data := CIn.MaterialCounter.Data,
+         Ret_Val => Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightExit
+      );
+
       PE.Not_S_MatPresence_StraightEntry := NegEdge(DataIn.SensorMatPresence_StraightEntry);
       IF NegEdge(DataIn.SensorMatPresence_StraightEntry) THEN
          Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightEntry := CIn.MaterialCounter.Data.AxPosition;
       END_IF;
       PE.Not_S_MatPresence_StraightExit := NegEdge(DataIn.SensorMatPresence_StraightExit);
+      IF NOT (DataIn.SensorMatPresence_StraightExit) THEN
+         Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightExit := "PosAxisToPosMat_Wheel"(PosAxis := Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightExit, Data := CIn.MaterialCounter.Data);
+      END_IF;
    END_REGION
 
    REGION "End of coil -  Distance between sensor at entry & exit of straightenete (USE THIS FOR SETUP PARAMETERS)"
@@ -595,6 +634,15 @@ BEGIN
    END_REGION
 
    REGION "End of coil - Check straightener full empty"
+      "M_PosAMinusPosB"(
+         en := TRUE,
+         PosA := Ctrl.EndOfCoil.TargetPosMat_StraightEmpty,
+         PosB := CIn.MaterialCounter.Data.CounterValue,
+         MODULE := #MATERIAL_COUNTERS_MODULE,
+         Ret_Val => Sts.EndOfCoil.MissingTargetPosMat_StraightEmpty
+      );
+
+      Sts.EndOfCoil.MissingTargetPosMat_StraightEmpty := "M_PosAMinusPosB"(PosA := Ctrl.EndOfCoil.TargetPosMat_StraightEmpty, PosB := CIn.MaterialCounter.Data.CounterValue, MODULE := #MATERIAL_COUNTERS_MODULE);
       Pers.Par.CoilEnd.Tol_CheckSensorStraightExit := ABS(IN:=Pers.Par.CoilEnd.Tol_CheckSensorStraightExit);
       IF ABS(IN:=Pers.Par.CoilEnd.Tol_CheckSensorStraightExit) THEN
          DistanceLimit := (Pers.Par.CoilEnd.Tol_CheckSensorStraightExit * -1.0);
@@ -605,11 +653,29 @@ BEGIN
    END_REGION
 
    REGION "End of coil -  Positioning to cut-off execution target"
+      "M_PosAMinusPosB"(
+         en := TRUE,
+         PosA := Ctrl.EndOfCoil.TargetPosMat_TailCutExe,
+         PosB := CIn.MaterialCounter.Data.CounterValue,
+         MODULE := #MATERIAL_COUNTERS_MODULE,
+         Ret_Val => Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe
+      );
+
+      "TolWin_REAL"(
+         en := TRUE,
+         ActPos := Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe,
+         Target := 0.0,
+         PosWin := Pers.Par.CoilEnd.Tol_PosCutExecution,
+         Ret_Val => OK
+      );
+
+      Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe := "M_PosAMinusPosB"(PosA := Ctrl.EndOfCoil.TargetPosMat_TailCutExe, PosB := CIn.MaterialCounter.Data.CounterValue, MODULE := #MATERIAL_COUNTERS_MODULE);
       IF CIn.JB.Pinchroll_Feed.Standstill THEN
          Sts.EndOfCoil.StopPinchRoll_TargetPosMat_TailCutExe := FALSE;
       ELSIF (Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe < Sts.EndOfCoil.PinchRoll_SpaceToStop) THEN
          Sts.EndOfCoil.StopPinchRoll_TargetPosMat_TailCutExe := TRUE;
       END_IF;
+      OK := "TolWin_REAL"(ActPos := Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe, Target := 0.0, PosWin := Pers.Par.CoilEnd.Tol_PosCutExecution);
       Sts.EndOfCoil.Reached_TargetPosMat_TailCutExe := ((Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe < -1.0) OR OK);
    END_REGION
 
@@ -619,6 +685,7 @@ BEGIN
          PT := Pers.Par.CoilEnd.Delay_PinchrollFwd
       );
 
+      #TON_PinchrollFwd.Q;
    END_REGION
 
    REGION "End of coil -  Straightner Bwd"
@@ -627,6 +694,7 @@ BEGIN
          PT := Pers.Par.CoilEnd.Delay_StraightnerBwd
       );
 
+      #TON_StraightnerBwd.Q;
    END_REGION
 
    REGION "End of coil -  Straightner Fwd"
@@ -635,14 +703,33 @@ BEGIN
          PT := Pers.Par.CoilEnd.Delay_StraightnerBwd
       );
 
+      #TON_StraightnerFwd.Q;
    END_REGION
 
    REGION "End of coil -  Positioning to junction execution target"
+      "M_PosAMinusPosB"(
+         en := TRUE,
+         PosA := Ctrl.EndOfCoil.TargetPosMat_JunctionExe,
+         PosB := CIn.MaterialCounter.Data.CounterValue,
+         MODULE := #MATERIAL_COUNTERS_MODULE,
+         Ret_Val => Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe
+      );
+
+      "TolWin_REAL"(
+         en := TRUE,
+         ActPos := Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe,
+         Target := 0.0,
+         PosWin := Pers.Par.CoilEnd.Tol_PosJunctionExecution,
+         Ret_Val => OK
+      );
+
+      Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe := "M_PosAMinusPosB"(PosA := Ctrl.EndOfCoil.TargetPosMat_JunctionExe, PosB := CIn.MaterialCounter.Data.CounterValue, MODULE := #MATERIAL_COUNTERS_MODULE);
       IF CIn.JB.Pinchroll_Feed.Standstill THEN
          Sts.EndOfCoil.StopPinchRoll_TargetPosMat_JunctionExe := FALSE;
       ELSIF (Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe < Sts.EndOfCoil.PinchRoll_SpaceToStop) THEN
          Sts.EndOfCoil.StopPinchRoll_TargetPosMat_JunctionExe := TRUE;
       END_IF;
+      OK := "TolWin_REAL"(ActPos := Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe, Target := 0.0, PosWin := Pers.Par.CoilEnd.Tol_PosJunctionExecution);
       Sts.EndOfCoil.Reached_TargetPosMat_JunctionExe := ((Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe < 0.0) OR OK);
    END_REGION
 
@@ -657,6 +744,49 @@ BEGIN
    END_REGION
 
    REGION "End of coil - Target"
+      "PosAxisToPosMat_Wheel"(
+         en := (Sts.EndOfCoil.Status > 0),
+         PosAxis := Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightEntry,
+         Data := CIn.MaterialCounter.Data,
+         Ret_Val => Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty
+      );
+
+      "M_PosAPlusCostB"(
+         en := (Sts.EndOfCoil.Status > 0),
+         PosA := Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty,
+         CostB := Pers.Par.CoilEnd.Distance_StraightEntry_To_StraightExit,
+         MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE,
+         Ret_Val => Ctrl.EndOfCoil.TargetPosMat_StraightEmpty
+      );
+
+      "M_PosAPlusCostB"(
+         en := (Sts.EndOfCoil.Status > 0),
+         PosA := Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty,
+         CostB := Pers.Par.CoilEnd.Distance_StraightEntry_To_CutExecution,
+         MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE,
+         Ret_Val => Ctrl.EndOfCoil.TargetPosMat_TailCutExe
+      );
+
+      "M_PosAPlusCostB"(
+         en := (Sts.EndOfCoil.Status > 0),
+         PosA := Pers.Data.END_OF_COIL.SaveEncPosMat_CutDone,
+         CostB := Pers.Par.CoilEnd.Distance_CutHead_to_JB,
+         MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE,
+         Ret_Val => Ctrl.EndOfCoil.TargetPosMat_JunctionExe
+      );
+
+      IF (Sts.EndOfCoil.Status > 0) THEN
+         Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty := "PosAxisToPosMat_Wheel"(PosAxis := Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightEntry, Data := CIn.MaterialCounter.Data);
+      END_IF;
+      IF (Sts.EndOfCoil.Status > 0) THEN
+         Ctrl.EndOfCoil.TargetPosMat_StraightEmpty := "M_PosAPlusCostB"(PosA := Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty, CostB := Pers.Par.CoilEnd.Distance_StraightEntry_To_StraightExit, MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE);
+      END_IF;
+      IF (Sts.EndOfCoil.Status > 0) THEN
+         Ctrl.EndOfCoil.TargetPosMat_TailCutExe := "M_PosAPlusCostB"(PosA := Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty, CostB := Pers.Par.CoilEnd.Distance_StraightEntry_To_CutExecution, MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE);
+      END_IF;
+      IF (Sts.EndOfCoil.Status > 0) THEN
+         Ctrl.EndOfCoil.TargetPosMat_JunctionExe := "M_PosAPlusCostB"(PosA := Pers.Data.END_OF_COIL.SaveEncPosMat_CutDone, CostB := Pers.Par.CoilEnd.Distance_CutHead_to_JB, MODULE := CIn.MaterialCounter.Data.COUNTER_MODULE);
+      END_IF;
    END_REGION
 
    REGION "End of coil - Sequence"
@@ -1108,6 +1238,7 @@ BEGIN
          Warning := Warning.ThicnessCheck
       );
 
+      #ThicknessCheck.Q;
    END_REGION
 
    REGION "MES"
@@ -1122,6 +1253,7 @@ BEGIN
          LampProvino => DataOut.Lamp_Provino
       );
 
+      #CoilHandling_MES.Q;
       Sts.STOP_Feed_by_MES := (NOT (((((NOT (Alarm.MES.STOP_Provino) AND NOT (Alarm.MES.STOP_Taglio_Fine_Ordini)) AND NOT (Alarm.MES.STOP_FineTurno)) AND NOT (Alarm.MES.STOP_ControlloQualita)) AND NOT (Alarm.MES.STOP_Manca_Dati_AspoInLinea))) AND NOT (AreaInterface.Man));
       Sts.STOP_CoilChange_By_MES := NOT ((NOT (Alarm.MES.STOP_Manca_Dati_AspoInLinea) AND NOT (Warning.MES.STOP_Manca_Dati_AspoInCarico)));
    END_REGION
@@ -1134,6 +1266,7 @@ BEGIN
 
       PE.PbMaterialBkw := PosEdge(DataIn.PbMaterialBkw);
       PE.PbMaterialFwd := PosEdge(DataIn.PbMaterialFwd);
+      #TON_SemiautoOFF.Q;
       IF (NOT (AreaInterface.Man) OR NOT ((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit)) OR #TON_SemiautoOFF.Q) THEN
          Sts.Semiautomatic := FALSE;
       ELSIF (PE.PbMaterialFwd OR PE.PbMaterialBkw) THEN
@@ -1166,6 +1299,7 @@ BEGIN
       ELSIF ((((((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND Sts.DecoilerInLine.Feed.Bwd_Running) OR ((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND COut.DecoilerInLine.ModePneumaticBraking)) AND CIn.Straigtener.Feed.Standstill) AND Sts.DecoilerInLine.Feed.Standstill) OR (((((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND Sts.DecoilerInLine.Feed.Bwd_Running) OR ((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND COut.DecoilerInLine.ModePneumaticBraking)) AND CIn.Straigtener.Feed.Standstill) AND COut.DecoilerInLine.ModePneumaticBraking)) THEN
          Sts.MaterialMoveSemiAut.Bwd_Phase3 := TRUE;
       END_IF;
+      #TON_DecoilerNotMovingBkw.Q;
       IF #TON_DecoilerNotMovingBkw.Q THEN
          Sts.MaterialMoveSemiAut.Bwd_Phase3 := FALSE;
       END_IF;
@@ -1220,6 +1354,7 @@ BEGIN
          PT := Pers.Par.TimeStopInactivity
       );
 
+      #TON_StopInactivity.Q;
       Req := #TON_StopInactivity.Q;
       IF (Areas_ITF.A02.Rollformer.FWD_CheckNext OR NOT (AreaInterface.Cycle) OR (Areas_ITF.A02.AreaInterface.Cycle AND NOT (Areas_ITF.A02.StopInactivity))) THEN
          Sts.STOP_Inactivity := FALSE;

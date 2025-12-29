@@ -8,9 +8,33 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB Push Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.MwFacCalc.PushAx,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax,
+         PB => MwFakCalc.DataIn.PushAx.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.MwFacCalc.PushAx, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - PB Gripper"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.MwFacCalc.Gripper,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax,
+         PB => MwFakCalc.DataIn.Gripper.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.MwFacCalc.Gripper, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "DataIn - Sensor"
@@ -85,6 +109,7 @@ BEGIN
          TO_Wheel_MeasInput := Wheel_MeasInput
       );
 
+      #MwFakCalc.Q;
    END_REGION
 
    REGION "Data Out"

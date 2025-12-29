@@ -65,6 +65,18 @@ BEGIN
    END_REGION
 
    REGION "DataIn - Fermi"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0301.P2.Fermi,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Fermi_P2.Fermi[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0301.P2.Fermi, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "DataIn - Fermi [1..6]"
@@ -75,6 +87,18 @@ BEGIN
    END_REGION
 
    REGION "DataIn - Sollevatori"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0301.P2.Sollevatori,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Fermi_P2.Sollevatori[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0301.P2.Sollevatori, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "DataIn - Sollevatori [1..6]"
@@ -93,6 +117,7 @@ BEGIN
          Config := PrjConfig_A03.A0301.Fermi_P2
       );
 
+      #A0301_Fermi_P2.Q;
    END_REGION
 
    REGION "<< TRASFERIMENTO stati DataOut  >>"

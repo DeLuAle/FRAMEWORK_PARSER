@@ -459,6 +459,11 @@ BEGIN
    END_REGION
 
    REGION "Axis controls"
+      "FS_ABORT"(
+         en := ((Ctrl.StopSafe OR Ctrl.StopDueDoorOpeningRequest OR AreaInterface.ManOneShot) AND Ax.Sts.FsRunning),
+         Ax := Ax
+      );
+
       Ax.AxisCtrl.SafeStop := DSI.SafeStop;
       Ax.AxisCtrl.Rst := Ctrl.RstAlarms;
       Ax.AxisCtrl.RstHW := false;
@@ -474,6 +479,9 @@ BEGIN
       Ax.AxisCtrl.MoveMinus := ((((Ctrl.Man_JogPosBkw OR Ctrl.Man_Zero_Bkw) AND Sts.Bkw_Condition) AND Ax.AxisSts.MoveMinusPermitted) AND (TO_Carriage.ActualPosition >= TO_Carriage.PositionLimits_SW.MaxPosition));
       Ax.AxisCtrl.MovePlus := ((((Ctrl.Man_JogPosFwd OR Ctrl.Man_Zero_Fwd) AND Sts.Fwd_Condition) AND Ax.AxisSts.MovePlusPermitted) AND (TO_Carriage.ActualPosition <= TO_Carriage.PositionLimits_SW.MinPosition));
       Ax.AxisCtrl.MoveAbsolute := (((((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_JogPosBkw) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_JogPosFwd) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_Pos) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_Zero) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Aut_PosAbs)) AND Sts.Positioning_Condition) AND Ax.AxisSts.MoveAbsPermitted);
+      IF ((Ctrl.StopSafe OR Ctrl.StopDueDoorOpeningRequest OR AreaInterface.ManOneShot) AND Ax.Sts.FsRunning) THEN
+         "FS_ABORT"(Ax := Ax);
+      END_IF;
    END_REGION
 
    REGION "Axis manager"
@@ -489,6 +497,7 @@ BEGIN
          Diag => Diag.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "Motion request in negative direction"
@@ -527,6 +536,7 @@ BEGIN
 
       Req := NOT ((((NOT (Ax.Infeed_REQ_ON) AND NOT (Sts.MotionRequestInNegativeDirection)) AND NOT (Sts.MotionRequestInPositiveDirection)) AND NOT (Ax.Sts.AxisEnabled)));
       Ctrl.Fan := ((NOT ((((NOT (Ax.Infeed_REQ_ON) AND NOT (Sts.MotionRequestInNegativeDirection)) AND NOT (Sts.MotionRequestInPositiveDirection)) AND NOT (Ax.Sts.AxisEnabled))) OR Ctrl.Fan) AND M_MotorFan.MotorSts.RunPermitted);
+      #tonDelayFanOff.Q;
       IF #tonDelayFanOff.Q THEN
          Ctrl.Fan := FALSE;
       END_IF;
@@ -548,6 +558,7 @@ BEGIN
          Contactor => DataOut.Fan
       );
 
+      #M_MotorFan.Q;
    END_REGION
 
    REGION "<<<< FINAL >>>>"
@@ -564,6 +575,7 @@ BEGIN
          PT := T#1s
       );
 
+      #tonDelayNoPendingCommands.Q;
    END_REGION
 
    REGION "Warnings presence"
@@ -579,6 +591,13 @@ BEGIN
    END_REGION
 
    REGION "Data OUT"
+      "Lamp"(
+         en := TRUE,
+         Signal := (((Warning.ZeroChkRequest AND Sys.Clock_500MS) OR NOT (Warning.ZeroChkRequest)) AND AreaInterface.Man),
+         Ret_Val => DataOut.LP_ZeroOK
+      );
+
+      DataOut.LP_ZeroOK := "Lamp"(Signal := (((Warning.ZeroChkRequest AND Sys.Clock_500MS) OR NOT (Warning.ZeroChkRequest)) AND AreaInterface.Man));
    END_REGION
 
    REGION "Collect machine to area interface"

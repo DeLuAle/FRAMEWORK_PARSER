@@ -48,6 +48,7 @@ BEGIN
       );
 
       S_ON := (((NOT (Door_SafeStop) OR Two_Hand_CMD) AND Estop) AND CtrlSafe);
+      #T_StopDelay.Q;
    END_REGION
 
    REGION "STO Command"
@@ -57,6 +58,7 @@ BEGIN
       );
 
       STO := (T_StopDelay.Q OR EnableSOS);
+      #T_StoDelay.Q;
    END_REGION
 
    REGION "SLS Command"
@@ -65,6 +67,7 @@ BEGIN
          PT := StoppingTime
       );
 
+      #T_SlsDelay.Q;
    END_REGION
 
    REGION "Safety Drive Control"
@@ -78,6 +81,7 @@ BEGIN
          SinaSTlg30Control => Tlg30_OUT
       );
 
+      #DriveT30_Ctrl.Q;
    END_REGION
 
    REGION "Safety Drive Status"
@@ -87,6 +91,7 @@ BEGIN
          safetyFaultActive => SftyFault
       );
 
+      #DriveT30_Sts.Q;
    END_REGION
 
    REGION "Enable Axis Power"

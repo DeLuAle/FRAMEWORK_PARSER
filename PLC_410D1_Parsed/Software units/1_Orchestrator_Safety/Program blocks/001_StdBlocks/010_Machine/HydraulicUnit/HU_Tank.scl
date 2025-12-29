@@ -167,6 +167,7 @@ BEGIN
          PT := T#10S
       );
 
+      #tonLowLevel_Warning.Q;
       Warning.LowTankLevel := #tonLowLevel_Warning.Q;
    END_REGION
 
@@ -176,6 +177,7 @@ BEGIN
          PT := T#10S
       );
 
+      #tonLowLevel_Alarm.Q;
       IF #tonLowLevel_Alarm.Q THEN
          Alarm.LowTankLevel := TRUE;
       END_IF;
@@ -200,6 +202,7 @@ BEGIN
          PT := T#2M
       );
 
+      #tonDelayCheckChiller.Q;
       IF ((Config.ChillerExist AND tonDelayCheckChiller.Q) AND NOT (DataIn.ChillerWaterFluxOk)) THEN
          Warning.ChillerLowWater := TRUE;
       ELSIF Ctrl.RstAlarms THEN
@@ -218,6 +221,7 @@ BEGIN
          PT := T#1M
       );
 
+      #tonOilMaxTemperature.Q;
       IF #tonOilMaxTemperature.Q THEN
          Alarm.OilMaxTemperature := TRUE;
       END_IF;
@@ -229,6 +233,7 @@ BEGIN
          PT := Par.DelayCheckFilterClogged
       );
 
+      #tonAlrRecircFilterClogged.Q;
       IF #tonAlrRecircFilterClogged.Q THEN
          Alarm.RecircFilterClogged := TRUE;
       END_IF;
@@ -245,6 +250,8 @@ BEGIN
          PT := Config.DelayCollingStart
       );
 
+      #tonCoolingStop.Q;
+      #tonCoolingStart.Q;
       IF #tonCoolingStart.Q THEN
          Sts.CoolingReq := TRUE;
       ELSIF (#tonCoolingStop.Q OR NOT (Par.CoolingEnable)) THEN
@@ -258,6 +265,7 @@ BEGIN
          PT := Par.DelayRecirculationPumpOff
       );
 
+      #tonRecirculationPumpStop.Q;
    END_REGION
 
    REGION "Recirculation pump command"
@@ -282,6 +290,7 @@ BEGIN
          Contactor => DataOut.KmRecirculationPump
       );
 
+      #M_RecirculationPump.Q;
    END_REGION
 
    REGION "Heat exchanger fan command"
@@ -306,6 +315,7 @@ BEGIN
          Contactor => DataOut.KmHeatExchangerFan
       );
 
+      #M_HeatExchangerFan.Q;
    END_REGION
 
    REGION "Chiller Valve"
@@ -327,6 +337,8 @@ BEGIN
       IF (Par.HeatingSetpoint - Config.HeatingHysteresys) THEN
          StopHeating := (Par.HeatingSetpoint + Config.HeatingHysteresys);
       END_IF;
+      #tonDelayStartHeating1.Q;
+      #tonDelayStopHeating1.Q;
       IF (#tonDelayStopHeating1.Q OR NOT (Par.HeatingEnable) OR (AreaInterface.EStop AND NOT (Sts.WeeklyClockEnabled)) OR (Par.WeeklyClockEnable AND NOT (Sts.WeeklyClockEnabled))) THEN
          Sts.HeatingReq := FALSE;
       ELSIF #tonDelayStartHeating1.Q THEN
@@ -361,6 +373,8 @@ BEGIN
       IF (Par.HeatingSetpoint - Par.HeatingUnit2Delta) THEN
          StopHeating := (StopHeating + Config.HeatingHysteresys);
       END_IF;
+      #tonDelayStartHeating2.Q;
+      #tonDelayStopHeating2.Q;
       IF (#tonDelayStopHeating2.Q OR NOT (Sts.HeatingReq) OR (Config.HeatingUnitExistNum <= 1)) THEN
          Ctrl.HeatingUnit2_Run := FALSE;
       ELSIF #tonDelayStartHeating2.Q THEN
@@ -385,6 +399,7 @@ BEGIN
          Contactor => DataOut.KmHeatingUnit1
       );
 
+      #M_HeatingUnit1.Q;
    END_REGION
 
    REGION "Heating unit 2 controls"
@@ -404,6 +419,7 @@ BEGIN
          Contactor => DataOut.KmHeatingUnit2
       );
 
+      #M_HeatingUnit2.Q;
    END_REGION
 
    REGION "Heating Active Warning"

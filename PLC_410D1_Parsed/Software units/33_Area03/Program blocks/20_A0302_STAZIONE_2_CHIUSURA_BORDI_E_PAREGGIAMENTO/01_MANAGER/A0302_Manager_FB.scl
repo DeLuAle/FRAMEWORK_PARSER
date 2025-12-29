@@ -516,7 +516,26 @@ BEGIN
    END_REGION
 
    REGION "== Cerco order ID nelle macchine precedenti e leggo i dati dal MES=="
+      "Find_O_ID"(
+         en := TRUE,
+         NumStazione := #STATION_A0302_EXIT,
+         O_ID => Sts.BTrk.A0302Exit_Actual_O_ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := ("Find_O_ID"(NumStazione := #STATION_A0302_EXIT) OR (BTrk_A0302_EXIT_GetData.Sts >= 0)),
+         O_ID := Sts.BTrk.A0302Exit_Actual_O_ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => BTrk_A0302_EXIT_GetData.Sts,
+         Item => BTrk_A0302_EXIT_GetData.Item,
+         indx => BTrk_A0302_EXIT_GetData.indx
+      );
+
       Sts.Attrezzamento.FindNewID := Sts.BTrk.ZoneA0302Exit_Empty;
+      "Find_O_ID"(NumStazione := #STATION_A0302_EXIT);
+      IF ("Find_O_ID"(NumStazione := #STATION_A0302_EXIT) OR (BTrk_A0302_EXIT_GetData.Sts >= 0)) THEN
+         BTrk_A0302_EXIT_GetData.Sts := "Prod_item_GetData_By_O_ID"(O_ID := Sts.BTrk.A0302Exit_Actual_O_ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
+      END_IF;
    END_REGION
 
    REGION "== Richiesta nuovo posizionamento carri Testa/Coda per cambio Traking =="
@@ -569,38 +588,188 @@ BEGIN
    END_REGION
 
    REGION "[Ax]  Pos5.1 Long Work Pos  == a ==> Posiz. Attesa Spintore Long."
-      Ctrl.TRK.BTrk.P5.1_To_LongPosAttesa := ???;
-      IF ??? THEN
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.P5.1_To_LongPosAttesa,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      IF "BTrk_Presence"(Item := BTrk.A0301.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.P5.1_To_LongPosAttesa := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      IF (((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND NOT (CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro)) AND CIn.P5.Sollevatori.Work) AND CIn.P5.SpintoreLong.Spintore.Work) AND NOT (CIn.P5.SpintoreLong.Ax_Sts.PosAttesa_Reached)) THEN
          Ctrl.TRK.BTrk.P5.1_To_LongPosAttesa := TRUE;
       END_IF;
-      Ctrl.TRK.BTrk.P5.2_LongPosAttesa_TO_Spintore := ???;
-      IF ??? THEN
+      Ctrl.TRK.BTrk.P5.2_LongPosAttesa_TO_Spintore := (((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND NOT (CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro)) AND CIn.P5.Sollevatori.Work) AND CIn.P5.SpintoreLong.Spintore.Work) AND CIn.P5.SpintoreLong.Ax_Sts.PosAttesa_Reached);
+      IF (((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND NOT (CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro)) AND CIn.P5.Sollevatori.Work) AND CIn.P5.SpintoreLong.Spintore.Work) AND CIn.P5.SpintoreLong.Ax_Sts.PosAttesa_Reached) THEN
          Ctrl.TRK.BTrk.P5.1_To_LongPosAttesa := FALSE;
       END_IF;
    END_REGION
 
    REGION "[Ax]  Movimento BTrk da Pos5.1 Long Pos.Attesa  == a ==> Spintore"
+      "BTrk_Presence"(
+         en := BTrk.A0301.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
       IF Ctrl.TRK.BTrk.P5.2_LongPosAttesa_TO_Spintore THEN
          BTrk.A0302_ENTRY.B := BTrk.A0301.B;
+      END_IF;
+      IF BTrk.A0301.B THEN
+         "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
       END_IF;
    END_REGION
 
    REGION "[Ax]  Movimento BTrk da A3202 Spintore ==a==> Uscita Trasporto A031"
-      Ctrl.TRK.BTrk.P5.2_Spintore_TO_ExitA031 := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.P5.2_Spintore_TO_ExitA031,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.P5.2_Spintore_TO_ExitA031 := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
       IF ((((Ctrl.TRK.BTrk.P5.2_Spintore_TO_ExitA031 AND CIn.P5.SpintoreLong.Spintore.Work) AND CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro) AND (A0302_Bordatrice.Ax.COut.ActualVelocity > A0302_Spintore_PERS.Par_Ax_Auto.Aut_Vel)) OR (((Ctrl.TRK.BTrk.P5.2_Spintore_TO_ExitA031 AND CIn.P5.SpintoreLong.Spintore.Work) AND CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro) AND Sys.Bit1)) THEN
          BTrk.A0302_ENTRY.B := BTrk.A0302_ENTRY.B;
       END_IF;
    END_REGION
 
    REGION "[Ax] Movimento BTrk  Uscita Trasporto A031 ==a==> Spin Ingresso Bordatrice"
-      Ctrl.TRK.BTrk.P5.2_ExitA031_To_IngBord := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.P5.2_ExitA031_To_IngBord,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.P5.2_ExitA031_To_IngBord := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.TRK.BTrk.P5.2_ExitA031_To_IngBord := ("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro);
       IF Ctrl.TRK.BTrk.P5.2_ExitA031_To_IngBord THEN
          BTrk.A0302_ENTRY.B := BTrk.A0302_ENTRY.B;
       END_IF;
    END_REGION
 
    REGION "[Ax] Spintore - Control - Pos. Fine Spinta"
-      Ctrl.SpintoreLong.MoveAttesaDisable := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.SpintoreLong.MoveAttesaDisable := ("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND Sts.Attrezzamento.Ready);
       Ctrl.TRK.BTrk.P5.2_Ax_MoveToPosSpinta := ((((((Ctrl.SpintoreLong.MoveAttesaDisable AND CIn.P5.Sollevatori.Work) AND NOT (A0301_Spintore_Lat.Warning.Finestre.SpinLat2_SpinLong_Stop)) AND NOT (A0301_Spintore_Lat.Warning.Finestre.SpinLat1_SpinLong_Stop)) OR ((Ctrl.SpintoreLong.MoveAttesaDisable AND CIn.P5.Sollevatori.Work) AND Sys.Bit1)) AND (A0302_Bordatrice.Ax.COut.ActualVelocity > A0302_Spintore_PERS.Par_Ax_Auto.Aut_Vel)) OR (((((Ctrl.SpintoreLong.MoveAttesaDisable AND CIn.P5.Sollevatori.Work) AND NOT (A0301_Spintore_Lat.Warning.Finestre.SpinLat2_SpinLong_Stop)) AND NOT (A0301_Spintore_Lat.Warning.Finestre.SpinLat1_SpinLong_Stop)) OR ((Ctrl.SpintoreLong.MoveAttesaDisable AND CIn.P5.Sollevatori.Work) AND Sys.Bit1)) AND Sys.Bit1));
    END_REGION
 
@@ -621,15 +790,79 @@ BEGIN
    END_REGION
 
    REGION "[Ax]  Movimento BTrk Spin Ingresso Bordatrice ==a==> Ingresso Bordatrice"
-      Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In := ???;
-      Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In := (??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In := (("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.P5.SpintoreLong.Ax_Sts.PosFineSpinta_Reached) OR ((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND Ctrl.TRK.BTrk.P5.2_Ax_MoveToPosSpinta) AND CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro) AND Sys.ByPass));
       IF Ctrl.TRK.BTrk.SpinBord_In_To_Bord_In THEN
          BTrk.A0302_ENTRY.B := BTrk.A0302_ENTRY.B;
       END_IF;
    END_REGION
 
    REGION "[Ax]  Movimento BTrk da Ingresso Bordatrice ==a==> Uscita Bordatrice"
-      Ctrl.TRK.BTrk.Bordatrice_In_To_Out := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := Ctrl.TRK.BTrk.Bordatrice_In_To_Out,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Bordatrice_In_To_Out := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.TRK.BTrk.Bordatrice_In_To_Out := ("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.Bordatrice.Sens.FTC_Uscita);
       IF Ctrl.TRK.BTrk.Bordatrice_In_To_Out THEN
          BTrk.A0302_ENTRY.B := BTrk.A0302_ENTRY.B;
       END_IF;
@@ -637,14 +870,65 @@ BEGIN
    END_REGION
 
    REGION "[Ax]  Movimento BTrk da Uscita Bordatrice ==a==> Uscita Bord. Pareggiatore Coda Basso"
-      Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaDown := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaDown := ("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.CarroPareggCoda.BattutaVerticale.Work);
       IF Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaDown THEN
          BTrk.A0302_ENTRY.B := BTrk.A0302_ENTRY.B;
       END_IF;
    END_REGION
 
    REGION "Bordatrice = Controllo condizioni di START - Fwd"
-      Ctrl.Bordatrice.Run := (??? OR ??? OR ??? OR ??? OR ??? OR ((((((((BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND CIn.Bordatrice.Sts.PosTargetEnable) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR (((((((BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND NOT (CIn.Bordatrice.Sts.PosTargetEnable)));
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0301.B);
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.Bordatrice.Run := ("BTrk_Presence"(Item := BTrk.A0301.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR ((((((((BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND CIn.Bordatrice.Sts.PosTargetEnable) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR (((((((BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND (BTrk.A0302_EXIT.B.B_ID = 0)) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND NOT (CIn.Bordatrice.Sts.PosTargetEnable)));
    END_REGION
 
    REGION "[Ax] Bordatrice = COut Manager"
@@ -662,61 +946,366 @@ BEGIN
    END_REGION
 
    REGION "Rulliera - Move BTrk da Uscita Bord. Pareggiatore Coda Basso =a=> Uscita Bord. Pareggiatore Coda Alto"
-      Ctrl.TRK.BTrk.PCodaDown_TO_Rulli_PCodaDown := ???;
-      Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaUp := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaUp,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaUp,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCodaDown_TO_Rulli_PCodaDown := (("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND Ctrl.TRK.BTrk.RulliereVode) AND NOT (CIn.Bordatrice.Sens.FTC_Uscita));
+      IF ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_ENTRY.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Bordatrice_Out_To_PareggCodaUp := (((("BTrk_Absence"(Item := BTrk.A0302_ENTRY.B) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND Ctrl.TRK.BTrk.RulliereVode) AND NOT (CIn.Bordatrice.Sens.FTC_Uscita)) AND NOT (CIn.Rulliera.Centro.Sens.FTC_Centrale));
       IF Ctrl.TRK.BTrk.PCodaDown_TO_Rulli_PCodaDown THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_ENTRY.B;
+      END_IF;
+      IF BTrk.A0302_ENTRY.B THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
       END_IF;
    END_REGION
 
    REGION "Rulliera - Movimento BTrk da Bordatrice-Paregg Rulliera Prima Paregg Basso => Rallenta Rulliera"
-      Ctrl.TRK.BTrk.PCodaDown_TO_RALL_Rulli_PCodaDown := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCodaDown_TO_RALL_Rulli_PCodaDown := ("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Coda.Sens.FTC_Rall);
       IF Ctrl.TRK.BTrk.PCodaDown_TO_RALL_Rulli_PCodaDown THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Rulliera - Movimento BTrk da Rallentamento Rulliera Paregg Basso  ==a==>  STOP Rulliera Paregg Basso"
-      Ctrl.TRK.BTrk.PCodaDown_TO_STOP_PCodaDown := (??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCodaDown_TO_STOP_PCodaDown := (((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing) OR ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing));
       IF Ctrl.TRK.BTrk.PCodaDown_TO_STOP_PCodaDown THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Rulliera - Movimento BTrk da Uscita Bord. Coda Alto  ==a==> Rulliera Prima Paregg Alto"
-      Ctrl.TRK.BTrk.PareggCodaUp_To_Rull-PrimaPareggCodaAltro := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PareggCodaUp_To_Rull-PrimaPareggCodaAltro := (((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND CIn.Rulliera.Centraggio.Rest) AND Ctrl.TRK.BTrk.RulliereVode) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing);
       IF Ctrl.TRK.BTrk.PareggCodaUp_To_Rull-PrimaPareggCodaAltro THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_ENTRY.B;
+      END_IF;
+      IF BTrk.A0302_ENTRY.B THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
       END_IF;
    END_REGION
 
    REGION "########### [Ax] Rulliera - Controllo condizioni di START - Fwd ################"
-      Ctrl.TRK.BTrk.Rulliera_Ax_2_Start_Frw := ((??? OR ??? OR ??? OR ???) AND Sys.ByPass);
-      Ctrl.TRK.BTrk.Rulliera_Ax_1_Start_Frw := ((??? OR ??? OR ??? OR ??? OR ((??? OR ??? OR ??? OR ???) AND Sys.ByPass) OR ??? OR ??? OR ??? OR (((??? OR ???) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) OR ((((??? OR ???) AND Ctrl.TRK.BTrk.RulliereVode) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls)) OR ((((??? OR ???) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Rall)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing) OR ((((??? OR ???) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR ((((??? OR ???) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing))) AND Sys.ByPass);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Absence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Rulliera_Ax_2_Start_Frw := ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing)) OR ("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing)) OR ("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls))) AND Sys.ByPass);
+      Ctrl.TRK.BTrk.Rulliera_Ax_1_Start_Frw := (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing)) OR ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND CIn.Rulliera.Coda.Sens.FTC_Rall) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing)) OR ("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing)) OR ("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls))) AND Sys.ByPass) OR ((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR ((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) OR (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND Ctrl.TRK.BTrk.RulliereVode) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND NOT (CIn.CarroPareggTesta.Sens.FTC_Prox_Ls)) OR (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Rall)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing) OR (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND CIn.Rulliera.Coda.Sens.FTC_Prox_Ing) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing)) OR (((("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Rulliera.Coda.Sens.FTC_Rall) AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing))) AND Sys.ByPass);
    END_REGION
 
    REGION "[Ax] Rulliera - Controllo condizioni di START - Fwd a velocità Bordatrice"
-      Ctrl.Rulliera.Ax_1_Vel_Bord := (??? OR ??? OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      Ctrl.Rulliera.Ax_1_Vel_Bord := ("BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B));
       Ctrl.Rulliera.Ax_2_Vel_Bord := (Ctrl.Rulliera.Ax_1_Vel_Bord AND Ctrl.TRK.BTrk.RulliereVode);
    END_REGION
 
    REGION "[Ax] Rulliera - Controllo condizioni di START - Fwd a velocità LENTA CARRO CODA"
-      Ctrl.Rulliera.Ax_1_Lenta_CarroCoda := (??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Rulliera.Ax_1_Lenta_CarroCoda := ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B));
    END_REGION
 
    REGION "[Ax] Rulliera - Controllo condizioni di START - Fwd Velocità CARRO TESTA"
-      Ctrl.Rulliera.Ax_1_2_Vel_CarroTesta := (??? OR ??? OR ??? OR ??? OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Rulliera.Ax_1_2_Vel_CarroTesta := ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B));
    END_REGION
 
    REGION "[Ax] Rulliera - Rallentamento Rulliera Calcolato"
+      "Feed2Stopper_DelayVel0Calc"(
+         en := ((Ctrl.Rulliera.Ax_1_2_Vel_CarroTesta AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing) AND NOT (Ctrl.Rulliera.Ax_2_MemoRall)),
+         Sensor_Distance_mm := 265.0,
+         Conveyor_Vel_mm_min := A0302_Rulliera.COut.Ax_2.ActualVelocity,
+         Conveyor_Dec_mm_s2 := A0302_Rulliera_PERS.Par.Ax_Aut.Aut_Dec,
+         Ret_Val => Ctrl.Rulliera.SP_TimeMemoRall
+      );
+
       #Ctrl.Rulliera.TON_RitardoRallenta(
          IN := Ctrl.Rulliera.Ax_2_MemoRall,
          PT := Ctrl.Rulliera.SP_TimeMemoRall
       );
 
+      IF ((Ctrl.Rulliera.Ax_1_2_Vel_CarroTesta AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing) AND NOT (Ctrl.Rulliera.Ax_2_MemoRall)) THEN
+         Ctrl.Rulliera.SP_TimeMemoRall := "Feed2Stopper_DelayVel0Calc"(Sensor_Distance_mm := 265.0, Conveyor_Vel_mm_min := A0302_Rulliera.COut.Ax_2.ActualVelocity, Conveyor_Dec_mm_s2 := A0302_Rulliera_PERS.Par.Ax_Aut.Aut_Dec);
+      END_IF;
       IF (Ctrl.Rulliera.Ax_1_2_Vel_CarroTesta AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing) THEN
          Ctrl.Rulliera.Ax_2_MemoRall := TRUE;
       END_IF;
+      #Ctrl.Rulliera.TON_RitardoRallenta.Q;
       IF (#Ctrl.Rulliera.TON_RitardoRallenta.Q AND (A0302_Rulliera.COut.Ax_2.ActualVelocity > 100.0)) THEN
          Ctrl.Rulliera.Ax_1_2_Vel_ZeroTesta := TRUE;
       END_IF;
@@ -910,8 +1499,34 @@ BEGIN
    REGION "Paregg. Testa - [Sollevatore] - Movimento operazione a lavoro / a riposo"
       // Sollevatore del Centraggio - Scende quando è in posizione e sta attendendo il pezzo
 
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
       CarroTestaCentraggio_Disable := ((A0302_Centratori.HMI.Selection.Centraggio[1] AND A0302_Centratori.HMI.Selection.Sollevamento[1]) OR (A0302_Centratori.HMI.Selection.Centraggio[3] AND A0302_Centratori.HMI.Selection.Sollevamento[3]));
-      Ctrl.CarroPareggTesta.Sollevatore.Work := (((??? OR ??? OR ??? OR ??? OR ???) AND CIn.CarroPareggTesta.Bloccaggio.Work) AND NOT (CarroTestaCentraggio_Disable));
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.CarroPareggTesta.Sollevatore.Work := ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.CarroPareggTesta.Bloccaggio.Work) AND NOT (CarroTestaCentraggio_Disable));
       Ctrl.CarroPareggTesta.Sollevatore.Rest := (NOT (Ctrl.CarroPareggTesta.Sollevatore.Work) AND CIn.CarroPareggTesta.Centraggio.Rest);
    END_REGION
 
@@ -943,7 +1558,26 @@ BEGIN
    REGION "Centratori - Movimento BTrk da Rull - PTesta ==a==> Rull - Centrato"
       // Pezzo su rulliera (1/2) tra i pareggiatori  + centratori  a lavoro
 
-      Ctrl.TRK.BTrk.Stop_PTesta_TO_Rull-Centratori := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Stop_PTesta_TO_Rull-Centratori := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Centraggio.Work) AND CIn.CarroPareggTesta.Sens.FTC_Prox_Ls) AND CIn.Rulliera.Centro.Sens.FTC_Centrale);
       IF Ctrl.TRK.BTrk.Stop_PTesta_TO_Rull-Centratori THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
@@ -952,7 +1586,26 @@ BEGIN
    REGION "Centratori - Movimento BTrk da Rull - Centrato ==a==> Pareggiamento Coda basso"
       // Pezzo su rulliera (1/2) tra i pareggiatori (quello di coda è basso)  + centratori  a lavoro
 
-      Ctrl.TRK.BTrk.Rull-Centratori_TO_Cnd_PareggCoda := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Rull-Centratori_TO_Cnd_PareggCoda := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio)) AND CIn.Rulliera.Centraggio.Work) AND CIn.Rulliera.Sollevamento.Work);
       IF Ctrl.TRK.BTrk.Rull-Centratori_TO_Cnd_PareggCoda THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
@@ -961,19 +1614,97 @@ BEGIN
    REGION "Centratori - Movimento BTrk da Pareggiamento Coda basso ==a==> Pareggiato"
       // Pezzo su rulliera (1/2) tra i pareggiatori e paregiatura di coda eseguito lavoro cilindro idraulico (ora si sa la misura del pezzo, si può mettere utenze in attesa del prossimo pezzo)
 
-      BTrk.A0302_EXIT.B.Quality := #UNKNOW;
-      Ctrl.CarroPareggCoda.MisuraPzPareggiato := ???;
-      Ctrl.TRK.BTrk.Cnd_PareggCoda_TO_Pareggiato := ((??? OR ???) AND CIn.CarroPareggCoda.Sens.PosPareggLong.Standstill);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := #UNKNOW,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         BTrk.A0302_EXIT.B.Quality := #UNKNOW;
+      END_IF;
+      IF #UNKNOW THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.CarroPareggCoda.MisuraPzPareggiato := (((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio)) AND CIn.Rulliera.Centraggio.Work) AND CIn.Rulliera.Sollevamento.Work) AND CIn.CarroPareggCoda.BattutaVerticale.Work);
+      Ctrl.TRK.BTrk.Cnd_PareggCoda_TO_Pareggiato := ((((((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio)) AND CIn.Rulliera.Centraggio.Work) AND CIn.Rulliera.Sollevamento.Work) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND CIn.CarroPareggCoda.PareggiatoreLong.Work) OR ((((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio)) AND CIn.Rulliera.Centraggio.Work) AND CIn.Rulliera.Sollevamento.Work) AND CIn.CarroPareggCoda.BattutaVerticale.Work) AND A0302_PareggiatoreCoda.Ctrl.PareggLong.CheckMesure)) AND CIn.CarroPareggCoda.Sens.PosPareggLong.Standstill);
       Ctrl.TRK.BTrk.Cnd_PareggCoda_TO_Pareggiato := Ctrl.TRK.BTrk.Cnd_PareggCoda_TO_Pareggiato;
    END_REGION
 
    REGION "[Sollevamento] -  Rulliera -  Movimento operazione a lavoro / a riposo"
-      Ctrl.Rulliera.Sollevamento.Work := (??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Rulliera.Sollevamento.Work := ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B));
       Ctrl.Rulliera.Sollevamento.Rest := (NOT (Ctrl.Rulliera.Sollevamento.Work) AND COut.Rulliera.Centratori.Centraggio.Rest);
    END_REGION
 
    REGION "[Centraggio] -  Rulliera -  Movimento operazione a lavoro / a riposo"
-      Ctrl.Rulliera.Centraggio.Work := (??? OR ??? OR ??? OR ((CIn.Rulliera.Sollevamento.Work AND Ctrl.Rulliera.Ax_1_2_Vel_ZeroTesta) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out)));
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Rulliera.Centraggio.Work := ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR ((CIn.Rulliera.Sollevamento.Work AND Ctrl.Rulliera.Ax_1_2_Vel_ZeroTesta) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out)));
       Ctrl.Rulliera.Centraggio.Rest := NOT (Ctrl.Rulliera.Centraggio.Work);
    END_REGION
 
@@ -995,14 +1726,80 @@ BEGIN
    REGION "Paregg. Coda - Movimento BTrk da  STOP Rull Paregg Coda Basso  ==a==>  Paregg Coda Alto"
       // Pezzo su rulliera (1) + pareggiatore coda alto quindi può muoversi liberamente
 
-      Ctrl.TRK.BTrk.STOP_PCodaDown_TO_PCoda_Up := ???;
-      BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Absence"(
+         en := (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND NOT (CIn.Bordatrice.Sens.FTC_Uscita)),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk.STOP_PCodaDown_TO_PCoda_Up,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk.STOP_PCodaDown_TO_PCoda_Up,
+         Item := BTrk.A0302_ENTRY.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_ENTRY.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B);
+      IF (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_ENTRY.B)) AND NOT (CIn.Bordatrice.Sens.FTC_Uscita)) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.STOP_PCodaDown_TO_PCoda_Up := ((((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood)) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND CIn.Rulliera.Sollevamento.Rest) AND CIn.Rulliera.Centraggio.Rest) AND CIn.Rulliera.Centraggio.Rest);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
+      END_IF;
    END_REGION
 
    REGION "Paregg. Coda - Movimento BTrk Rull prima P Coda Alto ==a==>  Paregg Coda Alto e Beams in Sens S3"
       // Pezzo su rulliera (1) + pareggiatore coda alto ed ha incontrato il sensore 3 (in ingresso al pareg.)
 
-      Ctrl.TRK.BTrk.PCoda_Up_TO_PCoda_UP_S3 := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCoda_Up_TO_PCoda_UP_S3 := (((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood)) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND NOT (CIn.Rulliera.Ax_2.Standstill)) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing);
       IF Ctrl.TRK.BTrk.PCoda_Up_TO_PCoda_UP_S3 THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
@@ -1011,7 +1808,26 @@ BEGIN
    REGION "Paregg. Coda - Movimento BTrk da Paregg Coda Alto  Rull Sens S3 ==a==>  Paregg Coda Alto - Sens S4"
       // Pezzo su rulliera (1) + pareggiatore coda alto ed ha incontrato il sensore 4 (in uscita al pareg.)
 
-      Ctrl.TRK.BTrk.PCoda_UP_S3_TO_PCoda_UP_S4 := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCoda_UP_S3_TO_PCoda_UP_S4 := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND NOT (CIn.Rulliera.Ax_2.Standstill)) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out);
       IF Ctrl.TRK.BTrk.PCoda_UP_S3_TO_PCoda_UP_S4 THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
@@ -1020,14 +1836,62 @@ BEGIN
    REGION "Paregg. Coda - Movimento BTrk da Paregg Coda Alto - Rull Sens S4 ==a==>Rull tra PCoda e PTesta"
       // Pezzo su rulliera (1/2) + pareggiatore coda che è alto ed ha liberato il sensore 4-> Pareg. può andare basso (posizione di lavoro)
 
-      Ctrl.TRK.BTrk.PCoda_Beam_TO_PTesta := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCoda_Beam_TO_PTesta := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Rulliera.Ax_1.Standstill)) AND NOT (CIn.Rulliera.Ax_2.Standstill)) AND CIn.Rulliera.Centro.Sens.FTC_Centrale);
       IF Ctrl.TRK.BTrk.PCoda_Beam_TO_PTesta THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Paregg. Coda - Movimento BTrk tra Rull PCoda e PTesta  => Rull dopo PCoda alto"
-      Ctrl.TRK.BTrk.PCoda_UP_S4_TO_PCoda_DownCnd := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PCoda_UP_S4_TO_PCoda_DownCnd := (("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Centro.Sens.FTC_Centrale) AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing);
       IF Ctrl.TRK.BTrk.PCoda_UP_S4_TO_PCoda_DownCnd THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
@@ -1036,29 +1900,92 @@ BEGIN
    REGION "Paregg. Coda - Movimento BTrk dopo PCoda alto ==a==> Rull su PTesta"
       // Pezzo su rulliera (1/2) + ha incontrato il sensore 5 su pareggiatore di testa
 
-      Ctrl.TRK.BTrk.Beam_TO_Stop_PTesta := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Beam_TO_Stop_PTesta := ((((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Ax_2.Standstill) AND CIn.Rulliera.Centro.Sens.FTC_Centrale) AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing) AND CIn.CarroPareggTesta.Sens.FTC_Prox_Ls) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out));
       IF Ctrl.TRK.BTrk.Beam_TO_Stop_PTesta THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Paregg. Coda - Allarme pezzo NON Pareggiabile per ingombro CarroCoda"
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
       #TON_Alarm_FTC_CarroCodaOut(
+         IN := ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing) AND CIn.CarroPareggTesta.Sens.FTC_Prox_Ls) AND CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out),
          PT := T#2S
       );
 
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      #TON_Alarm_FTC_CarroCodaOut.Q;
       IF #TON_Alarm_FTC_CarroCodaOut.Q THEN
          Alarm.Pz_NonPareggiabile := TRUE;
       END_IF;
    END_REGION
 
    REGION "Paregg. Coda [Battuta Vrt] - Movimento operazione a lavoro / a riposo"
-      Ctrl.CarroPareggCoda.BattutaVerticale.Work := (((??? OR ??? OR ???) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out)) OR ???);
-      Ctrl.CarroPareggCoda.BattutaVerticale.Rest := (??? OR (NOT (Ctrl.CarroPareggCoda.BattutaVerticale.Work) AND CIn.CarroPareggCoda.PareggiatoreLong.Rest));
+      "BTrk_Presence"(
+         en := NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      IF NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood) THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.CarroPareggCoda.BattutaVerticale.Work := ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND NOT (CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out)) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B));
+      Ctrl.CarroPareggCoda.BattutaVerticale.Rest := (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND CIn.CarroPareggCoda.PareggiatoreLong.Rest) OR (NOT (Ctrl.CarroPareggCoda.BattutaVerticale.Work) AND CIn.CarroPareggCoda.PareggiatoreLong.Rest));
    END_REGION
 
    REGION "Paregg. Coda [Pareggiatore Orz] - Movimento operazione a lavoro / a riposo"
-      Ctrl.CarroPareggCoda.PareggiatoreLong.Work := ???;
+      "BTrk_Presence"(
+         en := CIn.CarroPareggCoda.BattutaVerticale.Work,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      IF CIn.CarroPareggCoda.BattutaVerticale.Work THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.CarroPareggCoda.PareggiatoreLong.Work := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
       Ctrl.CarroPareggCoda.PareggiatoreLong.Rest := NOT (Ctrl.CarroPareggCoda.PareggiatoreLong.Work);
    END_REGION
 
@@ -1113,7 +2040,15 @@ BEGIN
    END_REGION
 
    REGION "== Controllo della misura se è buona o da scartare =="
-      Ctrl.TRK.BTrk.Check_Tolleranza_BLen_Qlty := ???;
+      "BTrk_Presence"(
+         en := NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      IF NOT (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood) THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Check_Tolleranza_BLen_Qlty := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
       IF (BTrk_A0302_EXIT_GetData.Sts >= 0) THEN
          BTrk_A0302_Exit_Item.Tol_Min := BTrk_A0302_EXIT_GetData.Item.Beams_Len_Min;
       END_IF;
@@ -1144,7 +2079,26 @@ BEGIN
       // Pezzo su magneti del manipolatore basso in posizione di presa.
 // Quando faccio la presa
 
-      Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Centraggio.Rest) AND CIn.Rulliera.Sollevamento.Rest) AND CIn.Manipolatori.InPos_Prelievo);
       Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso := ((((((((Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso AND CIn.Manipolatori.Coda.Sollevatore.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat) AND (BTrk.A0302_EXIT.B.Quality = #GOOD)) OR (((((((Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso AND CIn.Manipolatori.Coda.Sollevatore.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat) AND (BTrk.A0302_EXIT.B.Quality = #GOOD_R)) OR (((((((Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso AND CIn.Manipolatori.Coda.Sollevatore.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat) AND (BTrk.A0302_EXIT.B.Quality = #TO_CHECK)));
       IF Ctrl.TRK.BTrk.Pareggiato_TO_PresaBasso THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
@@ -1154,7 +2108,26 @@ BEGIN
    REGION "Manipolatori - Movimento BTrk da Presa in Basso ==a==> Presa in Alto"
       // Pezzo su magneti del manipolatore alto in posizione di presa.
 
-      Ctrl.TRK.BTrk.PresaBasso_TO_PresaAlto := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PresaBasso_TO_PresaAlto := ((((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (Alarm.WrongReadPz_ManipBasso)) AND CIn.Rulliera.Centraggio.Rest) AND CIn.Rulliera.Sollevamento.Rest) AND CIn.CarroPareggTesta.Centraggio.Rest) AND CIn.CarroPareggTesta.Sollevatore.Rest);
       Ctrl.TRK.BTrk.PresaBasso_TO_PresaAlto := (((((((Ctrl.TRK.BTrk.PresaBasso_TO_PresaAlto AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggTesta.Sollevatore.Rest) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat);
       IF Ctrl.TRK.BTrk.PresaBasso_TO_PresaAlto THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
@@ -1165,7 +2138,31 @@ BEGIN
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk da Presa in Alto Vs USCITA SCARTO alto"
-      Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND (BTrk.A0302_EXIT.B.Quality = #TO_CHECK)) AND NOT (Alarm.ToCheckList_Full)),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND (BTrk.A0302_EXIT.B.Quality = #TO_CHECK)) AND NOT (Alarm.ToCheckList_Full)) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
       Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty := ((((Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat);
       Ctrl.TRK.BTrk.CheckOut_BadQlty_UP_MoveToPos := ((((Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat);
       IF (Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_BadQlty AND CIn.Manipolatori.InPos_BancoScarto) THEN
@@ -1174,48 +2171,177 @@ BEGIN
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk da Uscita Scarto alto Vs Uscita Scarto basso"
-      Ctrl.TRK.BTrk.CheckOut_BadQlty_UP_To_DOWN := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A03_EXIT_TOCHECK.B[1]
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      IF "BTrk_Absence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]);
+      END_IF;
+      Ctrl.TRK.BTrk.CheckOut_BadQlty_UP_To_DOWN := ("BTrk_Absence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]) AND CIn.Manipolatori.InPos_BancoScarto);
       IF Ctrl.TRK.BTrk.CheckOut_BadQlty_UP_To_DOWN THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk  Uscita Scarto basso == a ==> Rilascia Beam"
-      Ctrl.TRK.BTrk.CheckOut_BadQlty_DOWN_To_Sgancia := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A03_EXIT_TOCHECK.B[1]
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A03_EXIT_TOCHECK.B[1]
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]);
+      END_IF;
+      Ctrl.TRK.BTrk.CheckOut_BadQlty_DOWN_To_Sgancia := "BTrk_Absence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]);
       IF (((Ctrl.TRK.BTrk.CheckOut_BadQlty_DOWN_To_Sgancia AND CIn.Manipolatori.InPos_BancoScarto) AND CIn.Manipolatori.Testa.Magnete.Rest) AND CIn.Manipolatori.Coda.Magnete.Rest) THEN
          BTrk.A03_EXIT_TOCHECK.B[1] := BTrk.A0302_EXIT.B;
+      END_IF;
+      IF BTrk.A0302_EXIT.B THEN
+         "BTrk_Presence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]);
       END_IF;
    END_REGION
 
    REGION "== TRASFERISCI  BTrk su elenco Tracking TO_CHECK =="
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A03_EXIT_TOCHECK.B[1]
+      );
+
       #A0302_Mng_BtrkListToCheck(
-         en := (??? OR NOT (Sys.ByPass) OR Ctrl.TRK.BTrk_ToCheck.ClearList),
+         en := ("BTrk_Presence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]) OR NOT (Sys.ByPass) OR Ctrl.TRK.BTrk_ToCheck.ClearList),
          BTrk := BTrk.A03_EXIT_TOCHECK.B,
          FullList := Alarm.ToCheckList_Full
       );
 
+      "BTrk_Presence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]);
+      IF ("BTrk_Presence"(Item := BTrk.A03_EXIT_TOCHECK.B[1]) OR NOT (Sys.ByPass) OR Ctrl.TRK.BTrk_ToCheck.ClearList) THEN
+         #A0302_Mng_BtrkListToCheck.Q;
+      END_IF;
    END_REGION
 
    REGION "== Reset List - Controllo Qualità Banco Scarto =="
       // // Se tutti i Beam presenti sul banco sono Qlty: NG_R allora posso cancellare tutta la lista
 // //
 
+      "PieceToCheck_QtyClear"(
+         en := TRUE,
+         Trk_B := BTrk.A03_EXIT_TOCHECK.B,
+         Beam_Qty := BTrk.A03_EXIT_TOCHECK.Beam_Qty,
+         EnableClearList_ToCheck := Ctrl.TRK.BTrk_ToCheck.ClearList,
+         Ret_Val => Ctrl.TRK.BTrk_ToCheck.QtyClear_RetVal
+      );
+
+      Ctrl.TRK.BTrk_ToCheck.QtyClear_RetVal := "PieceToCheck_QtyClear"(Trk_B := BTrk.A03_EXIT_TOCHECK.B, Beam_Qty := BTrk.A03_EXIT_TOCHECK.Beam_Qty, EnableClearList_ToCheck := Ctrl.TRK.BTrk_ToCheck.ClearList);
       Sts.BTrk.A0302_CheckBancoAccumulo := (NOT (Ctrl.TRK.BTrk_ToCheck.QtyClear_RetVal) AND (BTrk.A03_EXIT_TOCHECK.Beam_Qty <> 0));
       Warning.CheckBancoAccumulo := (NOT (Ctrl.TRK.BTrk_ToCheck.QtyClear_RetVal) AND (BTrk.A03_EXIT_TOCHECK.Beam_Qty <> 0));
       A0302_Mng_BtrkListToCheck.Control.Pls_ClearArchive := (Ctrl.TRK.BTrk_ToCheck.ClearList AND HMI.PlsClear_ListToCheck);
    END_REGION
 
    REGION "= Movimento BTrk (RECOND_GOOD)  Da banco accumulo ToChech == a ==> Centrori & Pareggiatori ="
+      "PieceToCheck_Recond"(
+         en := ((A0302_Manager.Sts.BTrk.ZoneA0302Entry_Empty AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND Sts.BTrk.A0302_CheckBancoAccumulo),
+         Trk_B := BTrk.A03_EXIT_TOCHECK.B,
+         Ret_Val => BTrk_ListToCheck.Recond.Found,
+         Nr_B => BTrk_ListToCheck.Recond.Nr_B
+      );
+
+      "BTrk_Absence"(
+         en := (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood AND Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      IF ((A0302_Manager.Sts.BTrk.ZoneA0302Entry_Empty AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND Sts.BTrk.A0302_CheckBancoAccumulo) THEN
+         BTrk_ListToCheck.Recond.Found := "PieceToCheck_Recond"(Trk_B := BTrk.A03_EXIT_TOCHECK.B);
+      END_IF;
       IF (((((((A0302_Manager.Sts.BTrk.ZoneA0302Entry_Empty AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND Sts.Attrezzamento.Ready) AND BTrk_ListToCheck.Recond.Found) AND (BTrk_ListToCheck.Recond.Nr_B <> -1)) AND CIn.Rulliera.Centraggio.Rest) AND CIn.Rulliera.Sollevamento.Rest) AND A0302_Manipolatore.COut.InPos_Prelievo) THEN
          Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood := TRUE;
       END_IF;
       Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio := ((((((((A0302_Manager.Sts.BTrk.ZoneA0302Entry_Empty AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND Sts.Attrezzamento.Ready) AND BTrk_ListToCheck.Recond.Found) AND (BTrk_ListToCheck.Recond.Nr_B <> -1)) AND CIn.Rulliera.Centraggio.Rest) AND CIn.Rulliera.Sollevamento.Rest) AND CIn.CarroPareggTesta.Sens.FTC_Prox_Ls) AND CIn.Rulliera.Centro.Sens.FTC_Centrale);
-      BTrk.A0302_EXIT.B := BTrk.A03_EXIT_TOCHECK.B;
-      Ctrl.TRK.BTrk_ToCheck.RegG_InPos_ReadyPickUp := ???;
+      IF (Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood AND Ctrl.TRK.BTrk_ToCheck.RecG_InPos_Centraggio) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      IF "BTrk_Absence"(Item := BTrk.A0302_EXIT.B) THEN
+         BTrk.A0302_EXIT.B := BTrk.A03_EXIT_TOCHECK.B;
+      END_IF;
+      IF Ctrl.TRK.BTrk_ToCheck.Prelievo_RecondGood THEN
+         "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk_ToCheck.RegG_InPos_ReadyPickUp := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND CIn.Rulliera.Centraggio.Work) AND CIn.Rulliera.Sollevamento.Work) AND A0302_Manipolatore.COut.InPos_Prelievo);
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk da Presa in Alto Vs USCITA DEPOSITO A0303"
-      Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
       Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty := ((((((Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat);
       Ctrl.TRK.BTrk.CheckOut_GoodQlty_UP_MoveToPos := ((((((Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND CIn.CarroPareggTesta.Sens.PresenzaMat);
       IF (Ctrl.TRK.BTrk.PresaAlto_To_CheckOut_GoodQlty AND CIn.Manipolatori.InPos_BancoA0303) THEN
@@ -1224,36 +2350,141 @@ BEGIN
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk da Uscita Deposito A0303 alto Vs Uscita deposito A0303 basso"
-      Ctrl.TRK.BTrk.CheckOut_GoodQlty_UP_To_DOWN := (??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Presence"(
+         en := BTrk.A0302_EXIT.B,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      END_IF;
+      IF "BTrk_Absence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
+      END_IF;
+      Ctrl.TRK.BTrk.CheckOut_GoodQlty_UP_To_DOWN := ((("BTrk_Absence"(Item := BTrk.A0303.Preparation.B) AND CIn.Manipolatori.InPos_BancoA0303) AND CIn.Banco_A0303.ReadyToRecive) OR (("BTrk_Absence"(Item := BTrk.A0303.Preparation.B) AND CIn.Manipolatori.InPos_BancoA0303) AND A03_DEBUG.A0302_Manager.A0303_ReadyToRecive));
       IF ((Ctrl.TRK.BTrk.CheckOut_GoodQlty_UP_To_DOWN AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Coda.Sollevatore.Work) THEN
          BTrk.A0302_EXIT.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "Manipolatori - Movimento BTrk  Uscita deposito A0303 basso == a ==> Rilascia Beam"
-      Ctrl.TRK.BTrk.CheckOut_GoodQlty_DOWN_To_Sgancia := ???;
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Presence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0303.Preparation.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      IF "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) THEN
+         "BTrk_Absence"(Item := BTrk.A0303.Preparation.B);
+      END_IF;
+      Ctrl.TRK.BTrk.CheckOut_GoodQlty_DOWN_To_Sgancia := (((("BTrk_Absence"(Item := BTrk.A0303.Preparation.B) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Sollevatore.Standstill) AND CIn.Manipolatori.Coda.Sollevatore.Standstill);
       IF ((((Ctrl.TRK.BTrk.CheckOut_GoodQlty_DOWN_To_Sgancia AND CIn.Manipolatori.Testa.Magnete.Rest) AND CIn.Manipolatori.Coda.Magnete.Rest) AND NOT (CIn.CarroPareggTesta.Sens.PresenzaMat)) AND NOT (CIn.CarroPareggCoda.Sens.PresenzaMat)) THEN
          BTrk.A0303.Preparation.B := BTrk.A0302_EXIT.B;
       END_IF;
    END_REGION
 
    REGION "[Ax] Manipolatore - Control - Pos. PRELIEVO su carri pareggiatori"
-      Ctrl.TRK.BTrk.Manipolatori_Return_ToPrelievo := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0302_EXIT.B),
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.TRK.BTrk.Manipolatori_Return_ToPrelievo := ((("BTrk_Absence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.InPos_Prelievo)) AND NOT (CIn.CarroPareggCoda.Sens.PresenzaMat)) AND NOT (CIn.CarroPareggTesta.Sens.PresenzaMat));
    END_REGION
 
    REGION "Manipolatori - Controllo del pezzo sui Magneti - Allarme grave se perdo i sensori presenza"
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
       #TON_AlarmWrongReadPz_Manip(
-         IN := ((((((((??? OR ??? OR ???) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND NOT (CIn.CarroPareggCoda.Sens.PresenzaMat)) AND CIn.CarroPareggTesta.Sens.PresenzaMat) OR (((((((??? OR ??? OR ???) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND NOT (CIn.CarroPareggTesta.Sens.PresenzaMat))),
+         IN := (((((((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND NOT (CIn.CarroPareggCoda.Sens.PresenzaMat)) AND CIn.CarroPareggTesta.Sens.PresenzaMat) OR ((((((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Manipolatori.Testa.Sollevatore.Rest) AND CIn.Manipolatori.Coda.Sollevatore.Rest) AND CIn.Manipolatori.Testa.Magnete.Work) AND CIn.Manipolatori.Coda.Magnete.Work) AND CIn.CarroPareggCoda.Sens.PresenzaMat) AND NOT (CIn.CarroPareggTesta.Sens.PresenzaMat))),
          PT := T#2S
       );
 
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      #TON_AlarmWrongReadPz_Manip.Q;
       IF #TON_AlarmWrongReadPz_Manip.Q THEN
          Alarm.WrongReadPz_ManipBasso := TRUE;
       END_IF;
    END_REGION
 
    REGION "[Sollevatori] - Manipolatori Testa/Coda - Movimento operazione a lavoro / a riposo"
-      Ctrl.Manipolatori.Sollevatori.Work := (((??? OR ??? OR ???) AND CIn.Manipolatori.InPos_Prelievo) OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := CIn.Manipolatori.InPos_BancoA0303,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Manipolatori.Sollevatori.Work := ((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Manipolatori.InPos_Prelievo) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND CIn.Banco_A0303.ReadyToRecive) OR (("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.Testa.Magnete.Rest)) AND NOT (CIn.Manipolatori.Coda.Magnete.Rest)));
       IF ((NOT (CIn.Manipolatori.InPos_BancoA0303) AND NOT (CIn.Manipolatori.InPos_Prelievo)) AND NOT (CIn.Manipolatori.InPos_BancoScarto)) THEN
          Ctrl.Manipolatori.Sollevatori.Work := FALSE;
       END_IF;
@@ -1261,7 +2492,38 @@ BEGIN
    END_REGION
 
    REGION "[Magneti] - Manipolatori Testa/Coda - Movimento operazione a lavoro / a riposo"
-      Ctrl.Manipolatori.Magneti.Work := (((((??? OR ???) AND CIn.Manipolatori.InPos_Prelievo) AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Coda.Sollevatore.Work) OR ??? OR ??? OR ??? OR ??? OR ???);
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(
+         en := TRUE,
+         Item := BTrk.A0302_EXIT.B
+      );
+
+      "BTrk_Presence"(Item := BTrk.A0302_EXIT.B);
+      Ctrl.Manipolatori.Magneti.Work := ((((("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B)) AND CIn.Manipolatori.InPos_Prelievo) AND CIn.Manipolatori.Testa.Sollevatore.Work) AND CIn.Manipolatori.Coda.Sollevatore.Work) OR "BTrk_Presence"(Item := BTrk.A0302_EXIT.B) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.Testa.Sollevatore.Work)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.Coda.Sollevatore.Work)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.InPos_BancoScarto)) OR ("BTrk_Presence"(Item := BTrk.A0302_EXIT.B) AND NOT (CIn.Manipolatori.InPos_BancoA0303)));
       Ctrl.Manipolatori.Magneti.Rest := NOT (Ctrl.Manipolatori.Magneti.Work);
    END_REGION
 
@@ -1298,6 +2560,7 @@ BEGIN
          PT := T#1s
       );
 
+      #TON_Stop.Q;
       Ctrl.Stop := #TON_Stop.Q;
       IF (#TON_Stop.Q AND CIn.ProdManager.STOP_FineTurno) THEN
          Alarm.STOP_FineTurno := TRUE;

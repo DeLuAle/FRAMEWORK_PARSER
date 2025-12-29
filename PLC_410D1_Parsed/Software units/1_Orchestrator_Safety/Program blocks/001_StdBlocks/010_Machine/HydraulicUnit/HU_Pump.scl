@@ -121,6 +121,7 @@ BEGIN
          PT := Par.DelayCheckFilterClogged
       );
 
+      #tonAlrPumpFilterClogged.Q;
       IF #tonAlrPumpFilterClogged.Q THEN
          Alarm.PumpFilterClogged := TRUE;
       END_IF;
@@ -132,6 +133,7 @@ BEGIN
          PT := T#1s
       );
 
+      #tonNoPressureReq.Q;
    END_REGION
 
    REGION "Stop due next door opening"
@@ -168,6 +170,7 @@ BEGIN
          PT := Par.DelayPumpInactivity
       );
 
+      #tonMainPumpInactivity.Q;
    END_REGION
 
    REGION "Main pump automatic start"
@@ -203,6 +206,7 @@ BEGIN
          Contactor => DataOut.KmOilPump
       );
 
+      #M_MainPump.Q;
    END_REGION
 
    REGION "Delay pressure command Start"
@@ -211,6 +215,7 @@ BEGIN
          PT := Par.DelayEvPressureStart
       );
 
+      #tonDelayPressureStart.Q;
    END_REGION
 
    REGION "Delay pressure command Stop"
@@ -219,6 +224,7 @@ BEGIN
          PT := Par.DelayEvPressureStop
       );
 
+      #tonDelayPressureStop.Q;
    END_REGION
 
    REGION "Accumulator valve (ON WITH MOTOR)"
@@ -251,6 +257,7 @@ BEGIN
          PT := T#500MS
       );
 
+      #tonNoPendingCmd.Q;
    END_REGION
 
    REGION "Coordination out"
@@ -260,6 +267,7 @@ BEGIN
       );
 
       COut.PumpRunning := M_MainPump.MotorSts.Running;
+      #tonDelayPressureRunning.Q;
       COut.PressureRunning := #tonDelayPressureRunning.Q;
       COut.CheckNext_Run := NOT ((NOT (Ctrl.MainPump_ManStart) AND NOT (Ctrl.MainPump_AutStart)));
       COut.Standstill := NOT (M_MainPump.MotorSts.Running);

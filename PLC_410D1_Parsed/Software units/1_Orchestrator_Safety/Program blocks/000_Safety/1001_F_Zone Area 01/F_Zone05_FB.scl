@@ -45,6 +45,7 @@ BEGIN
          Unlock => D04_Unlock
       );
 
+      #D04.Q;
    END_REGION
 
    REGION "D05 - Peeler + Straightener + JB rear"
@@ -59,6 +60,7 @@ BEGIN
          Unlock => D05_Unlock
       );
 
+      #D05.Q;
    END_REGION
 
    REGION "Zone must stay in Normal Stop During Restart"
@@ -70,6 +72,7 @@ BEGIN
          ForceNormalStop => F_DB.FNS_Zone05
       );
 
+      #FNS.Q;
    END_REGION
 
    REGION "Cumulative Zone Safety"
@@ -95,6 +98,7 @@ BEGIN
          EV_SAFETY => FDo_V_CoilCar
       );
 
+      #F_SafetyValve_CoilCar.Q;
    END_REGION
 
    REGION "HU A01 Safety Valve Peeler"
@@ -113,6 +117,7 @@ BEGIN
          EV_SAFETY => FDo_V_Peeler
       );
 
+      #F_SafetyValve_Peeler.Q;
    END_REGION
 
    REGION "Network 12"
@@ -137,6 +142,7 @@ BEGIN
          EV_SAFETY => FDo_V_JB_Cut_Rest
       );
 
+      #F_SafetyValve_JB_Cut_Rest.Q;
    END_REGION
 
    REGION "Network 14"
@@ -161,6 +167,7 @@ BEGIN
          EV_SAFETY => FDo_V_JB_Cut_Work
       );
 
+      #F_SafetyValve_JB_Cut_Work.Q;
    END_REGION
 
    REGION "HU A01 Motor contactor"
@@ -179,6 +186,7 @@ BEGIN
          OUT => FDo_C_HU_Area01
       );
 
+      #F_Contactor_HU_Area01_Motor.Q;
    END_REGION
 
    REGION "HU A01 Standby valve"
@@ -203,6 +211,7 @@ BEGIN
          Tlg30_OUT => JBWelderTorch_CtrlOut
       );
 
+      #F_Sinamics_JBTorch.Q;
    END_REGION
 
    REGION "S120 - JB pinch-roll"
@@ -219,6 +228,7 @@ BEGIN
          Tlg30_OUT => JBPinchRoll_CtrlOut
       );
 
+      #F_Sinamics_JBPinchRoll.Q;
    END_REGION
 
 

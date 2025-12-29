@@ -41,7 +41,18 @@ BEGIN
    END_REGION
 
    REGION "Delta Space in mm"
+      "M_PosAMinusPosB"(
+         en := (PositionModule > 0.0),
+         PosA := Sts.Act_Pos,
+         PosB := Sts.Prv_Pos,
+         MODULE := PositionModule,
+         Ret_Val => Sts.Delta_S
+      );
+
       Sts.Prv_Pos := Sts.Act_Pos;
+      IF (PositionModule > 0.0) THEN
+         Sts.Delta_S := "M_PosAMinusPosB"(PosA := Sts.Act_Pos, PosB := Sts.Prv_Pos, MODULE := PositionModule);
+      END_IF;
       IF NOT ((PositionModule > 0.0)) THEN
          Sts.Delta_S := (Sts.Act_Pos - Sts.Prv_Pos);
       END_IF;

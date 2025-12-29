@@ -95,6 +95,7 @@ BEGIN
          PT := Config.LowTankLevelDly
       );
 
+      #TON_LowTankLevel.Q;
       IF NOT (Parameter.SystemOnOff) THEN
          Alr.LowTankLevel := FALSE;
       ELSIF #TON_LowTankLevel.Q THEN
@@ -126,6 +127,7 @@ BEGIN
          PT := Parameter.DelayOff
       );
 
+      #TON_DelayBlowerStop.Q;
       IF #TON_DelayBlowerStop.Q THEN
          Sts.RunReq := FALSE;
       ELSIF CoordinationIn.MaterialMoving THEN

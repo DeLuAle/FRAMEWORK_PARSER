@@ -164,6 +164,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_Brake_TimeOut.Q;
       IF #TON_Brake_TimeOut.Q THEN
          Alarm.BrakeTimeOut := TRUE;
       END_IF;
@@ -212,6 +213,7 @@ BEGIN
          Persistent_EncoderSelection_OK := Pers_Data.AxisEncoderSelection_OK
       );
 
+      #EncoderSelection.Q;
    END_REGION
 
    REGION "Force encoder selction OK if option is not active"
@@ -241,6 +243,7 @@ BEGIN
          Persistent_AxisParameters_OK := Pers_Data.AxisParameters_OK
       );
 
+      #WritePar.Q;
    END_REGION
 
    REGION "Force parameter write execution ok if option is not active"
@@ -268,6 +271,7 @@ BEGIN
          Persistent_ActualPosition := Pers_Data.ActualPosition
       );
 
+      #ReloadPosition.Q;
    END_REGION
 
    REGION "Force status of reloaded position done if procedure not active"
@@ -289,6 +293,7 @@ BEGIN
       );
 
       PE.B_Preset := PosEdge(HMI.B_Preset);
+      #LoadPosition.Q;
    END_REGION
 
    REGION "At each Load position done Set Reloaad position OK"
@@ -324,6 +329,7 @@ BEGIN
       Ctrl.Bwd_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND NOT (DataIn.PB.MoveToPos)) AND PE.PB_Bwd) OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND NOT (DataIn.PB.MoveToPos)) AND Ctrl.Bwd_Man)) AND DataIn.PB.Bwd_Minus) AND NOT (DataIn.PB.Fwd_Plus));
       Ctrl.Fwd_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND NOT (DataIn.PB.MoveToPos)) AND PE.PB_Fwd) OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND NOT (DataIn.PB.MoveToPos)) AND Ctrl.Fwd_Man)) AND DataIn.PB.Fwd_Plus) AND NOT (DataIn.PB.Bwd_Minus));
       Sts.Man_UsePositionLimits := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND TO_Ax.PositionLimits_SW.Active) OR ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND CIn.PositionLimits.EnableMin) OR ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND CIn.PositionLimits.EnableMax));
+      #TON_Feed_DelayManChangeSpeed.Q;
       Ctrl.Man_HighSpeed := (#TON_Feed_DelayManChangeSpeed.Q AND (Par.Man.DelayChangeVel > T#0s));
    END_REGION
 
@@ -715,11 +721,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_MissingCndBwd.Q;
       IF (COut.Bwd_CheckNext AND Sts.Bwd_Cnd) THEN
          Warning.MissingCnd_BWD := FALSE;
       ELSIF #TON_MissingCndBwd.Q THEN
          Warning.MissingCnd_BWD := TRUE;
       END_IF;
+      #TON_MissingCndFwd.Q;
       IF (COut.Fwd_CheckNext AND Sts.Fwd_Cnd) THEN
          Warning.MissingCnd_FWD := FALSE;
       ELSIF #TON_MissingCndFwd.Q THEN
@@ -754,6 +762,7 @@ BEGIN
          Infeed_REQ_ON => COut.Infeed_ReqON
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "Mask warning 1699 = Test stop STO required"
@@ -793,6 +802,7 @@ BEGIN
          ErrorId => Alarm.AxisTorqueLim.ErrorId
       );
 
+      #TorqueLimit.Q;
    END_REGION
 
    REGION "Coordination Out"
@@ -820,6 +830,7 @@ BEGIN
 
       Req := NOT (((NOT (Ax.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext)));
       Ctrl.Fan := ((NOT (((NOT (Ax.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext))) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      #TON_Fan_DelayOff.Q;
       IF #TON_Fan_DelayOff.Q THEN
          Ctrl.Fan := FALSE;
       END_IF;
@@ -838,6 +849,9 @@ BEGIN
       Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
       Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
       Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF Config.Fan.Presence THEN
+         #Fan_M.Q;
+      END_IF;
       IF NOT (Config.Fan.Presence) THEN
          DataOut.Fan_M_Contactor := FALSE;
       END_IF;
@@ -869,6 +883,7 @@ BEGIN
          PT := T#500MS
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warnings presence"

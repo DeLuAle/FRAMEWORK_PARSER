@@ -213,6 +213,8 @@ BEGIN
          PT := T#200MS
       );
 
+      #TON_Anticipi.Work.Sollevamento.Q;
+      #TON_Anticipi.Work.Centraggio.Q;
    END_REGION
 
    REGION "Anticipi Movimento RIPOSO"
@@ -246,6 +248,8 @@ BEGIN
          PT := T#200MS
       );
 
+      #TON_Anticipi.Work.Sollevamento.Q;
+      #TON_Anticipi.Work.Centraggio.Q;
    END_REGION
 
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
@@ -391,11 +395,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_Centr_MissingCnd.Q;
       IF (Sts.Centraggio.OP_Rest_Cnd OR Ctrl.Centraggio.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_Centr_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_Centr_MissingCnd.Q THEN
          Warning.OP_REST_Centr_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_Centr_MissingCnd.Q;
       IF (Sts.Centraggio.Op_Work_Cnd OR Ctrl.Centraggio.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_Centr_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_Centr_MissingCnd.Q THEN
@@ -414,11 +420,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_Sollev_MissingCnd.Q;
       IF (Sts.Sollevamento.OP_Rest_Cnd OR Ctrl.Sollevamento.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_Sollev_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_Sollev_MissingCnd.Q THEN
          Warning.OP_REST_Sollev_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_Sollev_MissingCnd.Q;
       IF (Sts.Sollevamento.Op_Work_Cnd OR Ctrl.Sollevamento.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_Sollev_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_Sollev_MissingCnd.Q THEN
@@ -491,6 +499,7 @@ BEGIN
          Warning := Warning.Centratore[1]
       );
 
+      #Centraggio.Q;
    END_REGION
 
    REGION "Sollevamento - Valve Machine"
@@ -504,6 +513,7 @@ BEGIN
          Warning := Warning.Sollevamento[1]
       );
 
+      #Sollevamento.Q;
    END_REGION
 
    REGION "Centraggio - Valve Machine"
@@ -517,6 +527,7 @@ BEGIN
          Warning := Warning.Centratore[2]
       );
 
+      #Centraggio.Q;
    END_REGION
 
    REGION "Sollevamento - Valve Machine"
@@ -530,6 +541,7 @@ BEGIN
          Warning := Warning.Sollevamento[2]
       );
 
+      #Sollevamento.Q;
    END_REGION
 
    REGION "Centraggio - Finestra di lavoro - Enable/Disable"
@@ -571,6 +583,7 @@ BEGIN
          Warning := Warning.Centratore[3]
       );
 
+      #Centraggio.Q;
    END_REGION
 
    REGION "Sollevamento - Valve Machine"
@@ -584,6 +597,7 @@ BEGIN
          Warning := Warning.Sollevamento[3]
       );
 
+      #Sollevamento.Q;
    END_REGION
 
    REGION "Centraggio + Sollevamento - COut Centratori"
@@ -777,6 +791,56 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Centraggio[1].MachineInterface,
+         MachineInterface_2 := Sollevamento[1].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Centraggio[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevamento[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Centraggio[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_Centr_MissingCnd) AND NOT (Warning.OP_WORK_Centr_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Sollevamento[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Centraggio[1].MachineInterface, MachineInterface_2 := Sollevamento[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Centraggio[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevamento[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Centraggio[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_Centr_MissingCnd) AND NOT (Warning.OP_WORK_Centr_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Sollevamento[3].MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

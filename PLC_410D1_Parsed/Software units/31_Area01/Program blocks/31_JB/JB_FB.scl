@@ -539,6 +539,13 @@ BEGIN
    END_REGION
 
    REGION "Welding cycle -  Lamp cycle 1 = Started inside the guards"
+      "Lamp"(
+         en := TRUE,
+         Signal := ((Sts.WeldCycle.ON1 AND (Sts.WeldCycle.Phase <> #PHASE_03_WAIT_START_ACK)) OR (Sts.WeldCycle.ON1 AND Sys.Clock_1S)),
+         Ret_Val => DataOut.LpWeldingCycle_1
+      );
+
+      DataOut.LpWeldingCycle_1 := "Lamp"(Signal := ((Sts.WeldCycle.ON1 AND (Sts.WeldCycle.Phase <> #PHASE_03_WAIT_START_ACK)) OR (Sts.WeldCycle.ON1 AND Sys.Clock_1S)));
    END_REGION
 
    REGION "Welding cycle -  Lamp cycle 2 = Started outside the guards"
@@ -613,6 +620,7 @@ BEGIN
          Alarm := Alarm.TorchEnc
       );
 
+      #TorchEnc.Q;
    END_REGION
 
    REGION "Axis Machine Manager"
@@ -634,11 +642,39 @@ BEGIN
          COut => COut.Torch
       );
 
+      #Torch.Q;
    END_REGION
 
    REGION "Torch positions status"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Torch.COut.ActualPosition,
+         Target := PersistentValues.Torch.Parking_Pos,
+         PosWin := PersistentValues.TorchAx.PosTolerance,
+         Ret_Val => PosOK
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Torch.COut.ActualPosition,
+         Target := Sts.WeldCycle.PosOutStripEdgeSideWeldStart,
+         PosWin := PersistentValues.TorchAx.PosTolerance,
+         Ret_Val => PosOK
+      );
+
+      "TolWin_REAL"(
+         en := TRUE,
+         ActPos := Torch.COut.ActualPosition,
+         Target := Sts.WeldCycle.PosWeldStart,
+         PosWin := PersistentValues.TorchAx.PosTolerance,
+         Ret_Val => PosOK
+      );
+
+      PosOK := "TolWindow"(ActPos := Torch.COut.ActualPosition, Target := PersistentValues.Torch.Parking_Pos, PosWin := PersistentValues.TorchAx.PosTolerance);
       Sts.Torch.InParkPosition := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = PersistentValues.Torch.Parking_Pos)) OR (NOT (Torch.COut.InPosition) AND PosOK));
+      PosOK := "TolWindow"(ActPos := Torch.COut.ActualPosition, Target := Sts.WeldCycle.PosOutStripEdgeSideWeldStart, PosWin := PersistentValues.TorchAx.PosTolerance);
       Sts.Torch.InOutEdgeOfWeldStart := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = Sts.WeldCycle.PosOutStripEdgeSideWeldStart)) OR (NOT (Torch.COut.InPosition) AND PosOK));
+      PosOK := "TolWin_REAL"(ActPos := Torch.COut.ActualPosition, Target := Sts.WeldCycle.PosWeldStart, PosWin := PersistentValues.TorchAx.PosTolerance);
       Sts.Torch.InWeldStart := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = Sts.WeldCycle.PosWeldStart)) OR (NOT (Torch.COut.InPosition) AND PosOK));
       Sts.Torch.inWeldStop := ((CurrentWeldingSetUp.WeldingDirection AND (Torch.COut.ActualPosition >= Sts.WeldCycle.PosWeldStop)) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND (Torch.COut.ActualPosition <= Sts.WeldCycle.PosWeldStop)));
       Sts.Torch.InWeldON := (((CurrentWeldingSetUp.WeldingDirection AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosWeldStart)) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosWeldStop)) OR ((NOT (CurrentWeldingSetUp.WeldingDirection) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosWeldStart)) AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosWeldStop)));
@@ -683,6 +719,7 @@ BEGIN
 
       COut.Weld_CheckNext := NOT ((NOT (Ctrl.Welder.Man_ON) AND NOT (Ctrl.WeldCycle.Welder_ON)));
       DataOut.WelderON := (NOT ((NOT (Ctrl.Welder.Man_ON) AND NOT (Ctrl.WeldCycle.Welder_ON))) AND CndWelderON);
+      #TOF_Aspiratore.Q;
       DataOut.AspiratoreON := #TOF_Aspiratore.Q;
    END_REGION
 
@@ -728,6 +765,7 @@ BEGIN
          DataOut => DataOut.ClampEntry
       );
 
+      #ClampEntry.Q;
    END_REGION
 
    REGION "Work Ls"
@@ -772,6 +810,7 @@ BEGIN
          DataOut => DataOut.ClampExit
       );
 
+      #ClampExit.Q;
    END_REGION
 
    REGION "Sequence of a manual cut cycle"
@@ -837,6 +876,7 @@ BEGIN
          DataOut => DataOut.CutHead
       );
 
+      #CutHead.Q;
    END_REGION
 
    REGION "CIn (External enables)"
@@ -870,6 +910,7 @@ BEGIN
          COut => COut.Pinchroll_Feed
       );
 
+      #PinchRoll_Feed.Q;
    END_REGION
 
    REGION "CIn (External enables)"
@@ -878,6 +919,7 @@ BEGIN
          PT := Config.Pinchroll_Lift.DelayMissingCondition
       );
 
+      #TON_LiftPbUp.Q;
       PinchRoll_Lift.Cin.Rest_ExtEnable := ((NOT (Loop1.COut.SystemOn) OR PinchRoll_Lift.V.ValveSts.IsAtRest OR AreaInterface.Cycle OR PinchRoll_Lift.Cin.Manager.Control_ON OR #TON_LiftPbUp.Q) AND PinchRoll_Feed.S120.AxisSts.Standstill);
       PinchRoll_Lift.Cin.Work_ExtEnable := (PinchRoll_Feed.S120.AxisSts.Standstill OR PinchRoll_Lift.V.ValveSts.IsAtWork);
    END_REGION
@@ -900,6 +942,7 @@ BEGIN
          DataOut => DataOut.Pinchroll_Lift
       );
 
+      #PinchRoll_Lift.Q;
    END_REGION
 
    REGION "Coordination Out"
@@ -910,6 +953,56 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Torch.MachineInterface,
+         MachineInterface_2 := ClampEntry.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := ClampExit.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := CutHead.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PinchRoll_Feed.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PinchRoll_Lift.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Torch.MachineInterface, MachineInterface_2 := ClampEntry.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := ClampExit.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := CutHead.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PinchRoll_Feed.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PinchRoll_Lift.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
    END_REGION
 
 

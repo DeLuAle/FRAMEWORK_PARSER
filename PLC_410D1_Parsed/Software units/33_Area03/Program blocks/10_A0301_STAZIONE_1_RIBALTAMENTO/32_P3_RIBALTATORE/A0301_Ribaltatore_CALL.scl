@@ -75,6 +75,18 @@ BEGIN
    END_REGION
 
    REGION "DataIn - Solleva Ribalta"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Ribaltatore.Solleva_Rib[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "DataIn - Fermi [1..6]"
@@ -117,6 +129,7 @@ BEGIN
          Pers_Data := A0301_Ribaltatore_PERS.Pers_Data
       );
 
+      #A0301_Ribaltatore.Q;
    END_REGION
 
    REGION "<< TRASFERIMENTO stati DataOut  >>"

@@ -159,6 +159,7 @@ BEGIN
          Alarm := Alarm.DimeterSensor
       );
 
+      #DiameterSensor.Q;
    END_REGION
 
    REGION "< Loop control >"
@@ -173,6 +174,7 @@ BEGIN
          Warning := Warning.Loop
       );
 
+      #Loop.Q;
    END_REGION
 
    REGION "Alarm End of coil"
@@ -181,6 +183,7 @@ BEGIN
          PT := PersistentValues.CoilDiamSensor.Par.EndCoil_Timer
       );
 
+      #TON_EndCoilDetect.Q;
       IF #TON_EndCoilDetect.Q THEN
          Warning.EndCoilDetect := TRUE;
       END_IF;
@@ -276,6 +279,7 @@ BEGIN
          COut => COut.Feed
       );
 
+      #Feed.Q;
    END_REGION
 
    REGION "< Pneumatic brake >"
@@ -306,11 +310,14 @@ BEGIN
       );
 
       Req := NOT ((NOT (Feed.COut.Bwd_CheckNext) AND NOT (Feed.COut.Fwd_CheckNext)));
+      #Ctrl.Brake.TON_OpenOFF.Q;
       IF (#Ctrl.Brake.TON_OpenOFF.Q OR NOT (Feed.S120.Sts.AxisEnabled)) THEN
          Ctrl.Brake.Open_ReqByMotor := FALSE;
       ELSIF NOT ((NOT (Feed.COut.Bwd_CheckNext) AND NOT (Feed.COut.Fwd_CheckNext))) THEN
          Ctrl.Brake.Open_ReqByMotor := TRUE;
       END_IF;
+      #Ctrl.Brake.TON_PartialOFF.Q;
+      #PneumaticBrake.Q;
    END_REGION
 
    REGION "Ctrl Automatic Open"
@@ -324,9 +331,11 @@ BEGIN
          PT := PersistentValues.Jaws.Par.Duration
       );
 
+      #Ctrl.Jaws.TON_Pause.Q;
       IF #Ctrl.Jaws.TON_Pause.Q THEN
          Ctrl.Jaws.AutoOpen := TRUE;
       END_IF;
+      #Ctrl.Jaws.TON_Duration.Q;
       IF #Ctrl.Jaws.TON_Duration.Q THEN
          Ctrl.Jaws.AutoOpen := FALSE;
       END_IF;
@@ -370,6 +379,7 @@ BEGIN
          DataOut => DataOut.Jaws
       );
 
+      #Jaws.Q;
    END_REGION
 
    REGION "CIn Manager"
@@ -396,6 +406,7 @@ BEGIN
          DataOut => DataOut.Coupling
       );
 
+      #Coupling.Q;
    END_REGION
 
    REGION "Coupling is engagged"
@@ -430,6 +441,7 @@ BEGIN
          DataOut => DataOut.SnubberLift
       );
 
+      #SnubberLift.Q;
    END_REGION
 
    REGION "CIn Manager"
@@ -456,6 +468,7 @@ BEGIN
          DataOut => DataOut.SnubberRoll
       );
 
+      #SnubberRoll.Q;
    END_REGION
 
    REGION "COut  machine"
@@ -465,6 +478,62 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface in all cases"
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Jaws.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Coupling.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := SnubberLift.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         AdditionalWarnings := NOT ((NOT (Loop.Sts.WarningsPresence) AND NOT (DiameterSensor.Sts.WarningsPresence))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := SnubberRoll.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_NotExist"(
+         en := CIn.Manager.IsOutLine,
+         MachineInterface => MachineInterface
+      );
+
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Jaws.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Coupling.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := SnubberLift.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Loop.Sts.WarningsPresence) AND NOT (DiameterSensor.Sts.WarningsPresence))), MachineInterface_1 := MachineInterface, MachineInterface_2 := SnubberRoll.MachineInterface, AdditionalAlarms := FALSE);
+      END_IF;
+      IF CIn.Manager.IsOutLine THEN
+         "MachineInterface_NotExist"();
+      END_IF;
    END_REGION
 
 

@@ -60,6 +60,7 @@ BEGIN
          HMI_StatusDinamicText => A04_HMI.Area04.Status.Status
       );
 
+      #Area04.Q;
    END_REGION
 
    REGION "Alarms collect Area 04 (001...400)"
@@ -462,6 +463,7 @@ BEGIN
          MessageCount => A04_HMI.Area04.Status.AlarmsNumber
       );
 
+      #Area04_Msg_Alarms.Q;
    END_REGION
 
    REGION "Warnings collect Area 04 (001..400)"
@@ -850,6 +852,7 @@ BEGIN
          MessageCount => A04_HMI.Area04.Status.WarningsNumber
       );
 
+      #Area04_Msg_Warnings.Q;
    END_REGION
 
    REGION "MB lamp indicators"
@@ -870,6 +873,7 @@ BEGIN
          PT := T#5S
       );
 
+      #TON_NewMessage_A04.Q;
       A03_TowerHorn_SL301 := (Area04.DataOut.horn OR ((Area04_Msg_Alarms.NewMessage AND NOT (TON_NewMessage_A04.Q)) AND Sys.Clock_500MS));
    END_REGION
 
@@ -946,6 +950,11 @@ BEGIN
    END_REGION
 
    REGION "AREA ITF"
+      "Area04_ITF"(
+         en := TRUE
+      );
+
+      "Area04_ITF"();
    END_REGION
 
    REGION "Entry enable Z27 (CREAZIONE PACCO)"

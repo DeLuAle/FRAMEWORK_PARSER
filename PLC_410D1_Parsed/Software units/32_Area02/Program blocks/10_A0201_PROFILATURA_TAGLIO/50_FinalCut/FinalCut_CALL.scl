@@ -12,6 +12,54 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - PB Feed"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.Locking,
+         LB_PB_Rest := LB212.PB.DieClamp_Rest,
+         LB_PB_Work := LB212.PB.DieClamp_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.Locking.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.CutHead,
+         LB_PB_Rest := LB212.PB.DieT1CutHead_Rest,
+         LB_PB_Work := LB212.PB.DieT1CutHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.CutHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.DrawHead,
+         LB_PB_Rest := LB212.PB.DieT3MarkHead_Rest,
+         LB_PB_Work := LB212.PB.DieT3MarkHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.DrawHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.MarkHead,
+         LB_PB_Rest := LB212.PB.DieT2MarkHead_Rest,
+         LB_PB_Work := LB212.PB.DieT2MarkHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.MarkHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.Locking, LB_PB_Rest := LB212.PB.DieClamp_Rest, LB_PB_Work := LB212.PB.DieClamp_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.CutHead, LB_PB_Rest := LB212.PB.DieT1CutHead_Rest, LB_PB_Work := LB212.PB.DieT1CutHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.DrawHead, LB_PB_Rest := LB212.PB.DieT3MarkHead_Rest, LB_PB_Work := LB212.PB.DieT3MarkHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.MarkHead, LB_PB_Rest := LB212.PB.DieT2MarkHead_Rest, LB_PB_Work := LB212.PB.DieT2MarkHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "Data In - Sensor"
@@ -55,6 +103,7 @@ BEGIN
          PersistentValues := FinalCut_PERS.PersistentValues
       );
 
+      #FinalCut.Q;
    END_REGION
 
    REGION "Data Out"

@@ -207,6 +207,15 @@ BEGIN
    END_REGION
 
    REGION "Reduction ratio calculation - Motor revolution -> position Eng Unit"
+      "Calc_RedutionRatio"(
+         en := TRUE,
+         LoadRevolution := Config.Ax.LoadRevolution,
+         MotorRevolution := Config.Ax.MotorRevolution,
+         LeadScrewPitchValue := Config.Ax.LeadScrewPitchVal,
+         ReductionRatio => Sts.ReductionRatio
+      );
+
+      "Calc_RedutionRatio"(LoadRevolution := Config.Ax.LoadRevolution, MotorRevolution := Config.Ax.MotorRevolution, LeadScrewPitchValue := Config.Ax.LeadScrewPitchVal);
    END_REGION
 
    REGION "Machine stop movements due door open request"
@@ -349,6 +358,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_Brake_TimeOut.Q;
       IF #TON_Brake_TimeOut.Q THEN
          Alarm.BrakeTimeOut := TRUE;
       END_IF;
@@ -698,6 +708,7 @@ BEGIN
          PT := Config.Ax.PowerOffDelay
       );
 
+      #TON_DelayOFF.Q;
       IF ((((Status >= #STS_DIRECT_HOME) AND (Status <= #STS_DIRECT_HOME_END)) AND NOT (Ctrl.S120.Preset)) OR #TON_DelayOFF.Q) THEN
          Status := #STS_STOP;
       END_IF;
@@ -709,6 +720,7 @@ BEGIN
          PT := t#1500ms
       );
 
+      #TON_ModeTimeOut.Q;
       IF #TON_ModeTimeOut.Q THEN
          Status := #STS_STOP;
       END_IF;
@@ -1113,6 +1125,7 @@ BEGIN
          HWIDZSW := HW_ID_TEL111
       );
 
+      #S120_SinaPos.Q;
    END_REGION
 
    REGION "Save actual position for reloading pourpose"
@@ -1129,6 +1142,7 @@ BEGIN
       );
 
       Ctrl.Fan := (((S120_SinaPos.AxisEnabled OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted) AND Config.Fan.Presence);
+      #TON_Fan_DelayOff.Q;
       IF #TON_Fan_DelayOff.Q THEN
          Ctrl.Fan := FALSE;
       END_IF;
@@ -1147,6 +1161,9 @@ BEGIN
       Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
       Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
       Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF Config.Fan.Presence THEN
+         #Fan_M.Q;
+      END_IF;
       IF NOT (Config.Fan.Presence) THEN
          DataOut.Fan_M_Contactor := FALSE;
       END_IF;
@@ -1183,11 +1200,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_MinusCnd.Q;
       IF (COut.MinusCheckNext AND Sts.Minus_Cnd) THEN
          Warning.Minus_CndMissing := FALSE;
       ELSIF #TON_MinusCnd.Q THEN
          Warning.Minus_CndMissing := TRUE;
       END_IF;
+      #TON_PlusCnd.Q;
       IF (COut.PlusCheckNext AND Sts.Plus_Cnd) THEN
          Warning.Plus_CndMissing := FALSE;
       ELSIF #TON_PlusCnd.Q THEN
@@ -1205,6 +1224,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warning presence"

@@ -8,21 +8,69 @@ VERSION : 0.1
 
 BEGIN
    REGION "Data In - Spintore Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Vrt_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_Spintore.Vrt_Testa.DataIn.Rest_Ls[1] := A0303_Spintore_Testa_Verticale_Ls_Rest;
       A0303_Spintore.Vrt_Testa.DataIn.Work_Ls[1] := A0303_Spintore_Testa_Verticale_Ls_Work;
    END_REGION
 
    REGION "Data In - Spintore Orizzontale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Orz_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_Spintore.Orz_Testa.DataIn.Rest_Ls[1] := A0303_Spintore_Testa_Orizzontale_Ls_Rest;
       A0303_Spintore.Orz_Testa.DataIn.Work_Ls[1] := A0303_Spintore_Testa_Orizzontale_Ls_Work;
    END_REGION
 
    REGION "Data In - Spintore Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Vrt_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_Spintore.Vrt_Coda.DataIn.Rest_Ls[1] := A0303_Spintore_Coda_Verticale_Ls_Rest;
       A0303_Spintore.Vrt_Coda.DataIn.Work_Ls[1] := A0303_Spintore_Coda_Verticale_Ls_Work;
    END_REGION
 
    REGION "Data In - Spintore Orizzontale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Orz_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
       A0303_Spintore.Orz_Coda.DataIn.Rest_Ls[1] := A0303_Spintore_Coda_Orizzontale_Ls_Rest;
       A0303_Spintore.Orz_Coda.DataIn.Work_Ls[1] := A0303_Spintore_Coda_Orizzontale_Ls_Work;
    END_REGION
@@ -47,6 +95,7 @@ BEGIN
          DSI := F_DB.DSI_V_Air_A0302_A0303
       );
 
+      #A0303_Spintore.Q;
    END_REGION
 
    REGION "DataOut - Spintore Verticale"

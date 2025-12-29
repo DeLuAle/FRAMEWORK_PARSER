@@ -87,7 +87,23 @@ VERSION : 0.1
 
 BEGIN
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_CanMoveFreely := ???;
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := "PTrk_Absence"(Item := PTrk.A0301.P),
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Sts.OP_CanMoveFreely := "PTrk_Absence"(Item := PTrk.A0301.P);
       Sts.OP_CanMoveFreely := (Sts.OP_CanMoveFreely OR (Sts.OP_CanMoveFreely AND CIn.Trasporto.Standstill));
    END_REGION
 
@@ -246,11 +262,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.OP_REST_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.Op_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -335,6 +353,7 @@ BEGIN
          Warning := Warning.Fermi[1]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[2] Valve Manager"
@@ -348,6 +367,7 @@ BEGIN
          Warning := Warning.Fermi[2]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[3] Valve Manager"
@@ -361,6 +381,7 @@ BEGIN
          Warning := Warning.Fermi[3]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[4] Valve Manager"
@@ -374,6 +395,7 @@ BEGIN
          Warning := Warning.Fermi[4]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[5] Valve Manager"
@@ -387,6 +409,7 @@ BEGIN
          Warning := Warning.Fermi[5]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[6] Valve Manager"
@@ -400,6 +423,7 @@ BEGIN
          Warning := Warning.Fermi[6]
       );
 
+      #Fermi.Q;
    END_REGION
 
    REGION "P[1...6]  COut Fermi"
@@ -449,7 +473,13 @@ BEGIN
    END_REGION
 
    REGION "P[Pareggiatore] Pareggiamento su A03 Pos.1 eseguito"
-      IF ??? THEN
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0301.P);
+      IF ("PTrk_Presence"(Item := PTrk.A0301.P) AND Pareggiatore.COut.Work) THEN
          PTrk.A0301.P.ShiftDone := TRUE;
       END_IF;
    END_REGION
@@ -477,6 +507,7 @@ BEGIN
          Warning := Warning.Pareggiatore
       );
 
+      #Pareggiatore.Q;
    END_REGION
 
    REGION "P[Pareggiatore]  COut"
@@ -509,6 +540,66 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Fermi[1].MachineInterface,
+         MachineInterface_2 := Fermi[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[4].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[5].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[6].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Pareggiatore.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Fermi[1].MachineInterface, MachineInterface_2 := Fermi[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[5].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[6].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Pareggiatore.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

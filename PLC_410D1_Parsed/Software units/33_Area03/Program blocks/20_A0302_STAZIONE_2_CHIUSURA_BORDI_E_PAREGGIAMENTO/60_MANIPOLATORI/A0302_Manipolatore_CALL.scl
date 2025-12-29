@@ -84,31 +84,103 @@ BEGIN
    END_REGION
 
    REGION "Data In - Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0302_Manipolatore.Ax_Testa.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax);
       A0302_Manipolatore.Ax_Testa.DataIn.LS_Minus := NOT (A0302_Manipolatore_Ax_Testa_Ls_Minimo);
       A0302_Manipolatore.Ax_Testa.DataIn.LS_Plus := NOT (A0302_Manipolatore_Ax_Testa_Ls_Massimo);
    END_REGION
 
    REGION "Data In - Magnete"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Magnete,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Manipolatore.Magnete_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Magnete, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_Manipolatore.Magnete_Testa.DataIn.Rest_Ls[1] := A0302_Manipolatore_Testa_Magnete_Ls_Rest;
       A0302_Manipolatore.Magnete_Testa.DataIn.Work_Ls[1] := A0302_Manipolatore_Testa_Magnete_Ls_Work;
    END_REGION
 
    REGION "Data In - Sollevatore"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Manipolatore.Sollevatore_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 2), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_Manipolatore.Sollevatore_Testa.DataIn.Rest_Ls[1] := A0302_Manipolatore_Testa_Ls_Alto;
       A0302_Manipolatore.Sollevatore_Testa.DataIn.Work_Ls[1] := A0302_Manipolatore_Testa_Ls_Basso;
    END_REGION
 
    REGION "Data In - Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0302_Manipolatore.Ax_Coda.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax);
       A0302_Manipolatore.Ax_Coda.DataIn.LS_Minus := NOT (A0302_Manipolatore_Ax_Coda_Ls_Minimo);
       A0302_Manipolatore.Ax_Coda.DataIn.LS_Plus := NOT (A0302_Manipolatore_Ax_Coda_Ls_Massimo);
    END_REGION
 
    REGION "Data In - Magnete"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Magnete,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Manipolatore.Magnete_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Magnete, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_Manipolatore.Magnete_Coda.DataIn.Rest_Ls[1] := A0302_Manipolatore_Coda_Magnete_Ls_Rest;
       A0302_Manipolatore.Magnete_Coda.DataIn.Work_Ls[1] := FALSE;
    END_REGION
 
    REGION "Data In - Sollevatore"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Manipolatore.Sollevatore_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (A0302_Manipolatore.HMI.Selection.Ax <> 1), HMI_PB := A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
       A0302_Manipolatore.Sollevatore_Coda.DataIn.Rest_Ls[1] := A0302_Manipolatore_Coda_Ls_Alto;
       A0302_Manipolatore.Sollevatore_Coda.DataIn.Work_Ls[1] := A0302_Manipolatore_Coda_Ls_Basso;
    END_REGION
@@ -152,6 +224,7 @@ BEGIN
          Pers_Data := A0302_Manipolatore_PERS.Pers_Data
       );
 
+      #A0302_Manipolatore.Q;
    END_REGION
 
    REGION "Data Out - Magnete"

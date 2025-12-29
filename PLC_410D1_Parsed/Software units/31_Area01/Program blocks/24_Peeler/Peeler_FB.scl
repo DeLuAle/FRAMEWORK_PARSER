@@ -89,6 +89,7 @@ BEGIN
          DataOut => DataOut.Lift
       );
 
+      #Lift.Q;
    END_REGION
 
    REGION "CIn ( Area manager controls )"
@@ -118,6 +119,7 @@ BEGIN
          DataOut => DataOut.Extension
       );
 
+      #Extension.Q;
    END_REGION
 
    REGION "COut machine"
@@ -126,6 +128,16 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Lift.MachineInterface,
+         MachineInterface_2 := Extension.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := false,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Lift.MachineInterface, MachineInterface_2 := Extension.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := false);
    END_REGION
 
 

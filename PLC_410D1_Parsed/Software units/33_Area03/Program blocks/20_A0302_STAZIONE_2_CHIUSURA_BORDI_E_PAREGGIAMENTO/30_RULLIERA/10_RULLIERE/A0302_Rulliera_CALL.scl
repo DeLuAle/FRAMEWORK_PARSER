@@ -88,6 +88,30 @@ BEGIN
    END_REGION
 
    REGION "DataIn"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Rulliera.HMI.Selection.Ax <> 2),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Rulliera.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0302_Rulliera.Ax_1.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := (A0302_Rulliera.HMI.Selection.Ax <> 1),
+         HMI_PB := A03_HMI.MB3.Button.A0302.Rulliera.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0302_Rulliera.Ax_2.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := (A0302_Rulliera.HMI.Selection.Ax <> 2), HMI_PB := A03_HMI.MB3.Button.A0302.Rulliera.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax);
+      "Ax_PB_Connector"(Enable := (A0302_Rulliera.HMI.Selection.Ax <> 1), HMI_PB := A03_HMI.MB3.Button.A0302.Rulliera.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "DSI"
@@ -132,6 +156,7 @@ BEGIN
          IEC_SP := A0302_Rulliera_PERS.IEC_SP
       );
 
+      #A0302_Rulliera.Q;
    END_REGION
 
 

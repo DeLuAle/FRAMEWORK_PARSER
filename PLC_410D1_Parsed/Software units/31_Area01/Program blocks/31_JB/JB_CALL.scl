@@ -20,18 +20,90 @@ BEGIN
    END_REGION
 
    REGION "Data In - PB Torch Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := LB113_W.PB.JBTorch_Bwd,
+         LB_PB_Fwd_Plus := LB113_W.PB.JBTorch_Fwd,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Torch,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => JB.DataIn.Torch.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := LB113_W.PB.JBTorch_Bwd, LB_PB_Fwd_Plus := LB113_W.PB.JBTorch_Fwd, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Torch, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - PB Clamps"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := LB113_JB_EntryClamp_Sel_Open,
+         LB_PB_Work := LB113_JB_EntryClamp_Sel_Close,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => JB.DataIn.ClampEntry.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := LB113_JB_ExitClamp_Sel_Open,
+         LB_PB_Work := LB113_JB_ExitClamp_Sel_Close,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.ClampExit,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => JB.DataIn.ClampExit.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := LB113_JB_EntryClamp_Sel_Open, LB_PB_Work := LB113_JB_EntryClamp_Sel_Close, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(LB_PB_Rest := LB113_JB_ExitClamp_Sel_Open, LB_PB_Work := LB113_JB_ExitClamp_Sel_Close, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.ClampExit, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "Data In - PB Pinch Roll Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := LB113.PB.JBPinchroll_Bwd,
+         LB_PB_Fwd_Plus := LB113.PB.JBPinchroll_Fwd,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => JB.DataIn.PinchRoll_Feed.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := LB113.PB.JBPinchroll_Bwd, LB_PB_Fwd_Plus := LB113.PB.JBPinchroll_Fwd, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
    END_REGION
 
    REGION "Data In - PB Pinch Roll Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := LB113_PinchRoll_Sel_Open,
+         LB_PB_Work := LB113_PinchRoll_Sel_Close,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => JB.DataIn.PinchRoll_Lift.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := LB113_PinchRoll_Sel_Open, LB_PB_Work := LB113_PinchRoll_Sel_Close, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
    END_REGION
 
    REGION "Data In - PB Cut Head"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.CutHead,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => JB.DataIn.CutHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.JB.CutHead, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
       JB.DataIn.CutHead_PbCycle := LB113.PB.JBCutCycle;
    END_REGION
 
@@ -120,6 +192,7 @@ BEGIN
          PersistentValues := JB_PERS.PersistentValues
       );
 
+      #JB.Q;
    END_REGION
 
    REGION "Data Out - Clamps"
@@ -142,6 +215,13 @@ BEGIN
    END_REGION
 
    REGION "Data Out - Lamp welding gycle"
+      "Lamp"(
+         en := TRUE,
+         Signal := JB.DataOut.LpWeldingCycle_1,
+         Ret_Val => LB113_JB_Weld_Lp_Cycle
+      );
+
+      LB113_JB_Weld_Lp_Cycle := "Lamp"(Signal := JB.DataOut.LpWeldingCycle_1);
    END_REGION
 
    REGION "Data Out - Welder interface signal (START)"
@@ -150,6 +230,13 @@ BEGIN
    END_REGION
 
    REGION "Data Out - Lamp Junction Bench @ rest"
+      "Lamp"(
+         en := TRUE,
+         Signal := (((JB.COut.CutHead.Rest AND JB.COut.ClampEntry.Rest) AND JB.COut.ClampExit.Rest) AND JB.COut.TorchInParkPosition),
+         Ret_Val => LB113_JB_Lp_AtRest
+      );
+
+      LB113_JB_Lp_AtRest := "Lamp"(Signal := (((JB.COut.CutHead.Rest AND JB.COut.ClampEntry.Rest) AND JB.COut.ClampExit.Rest) AND JB.COut.TorchInParkPosition));
    END_REGION
 
 

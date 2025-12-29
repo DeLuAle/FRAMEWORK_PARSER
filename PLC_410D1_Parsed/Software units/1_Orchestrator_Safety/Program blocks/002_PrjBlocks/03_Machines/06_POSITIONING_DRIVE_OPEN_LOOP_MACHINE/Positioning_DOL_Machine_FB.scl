@@ -177,6 +177,7 @@ BEGIN
          INPUTS := S120_STW_TEL1
       );
 
+      #GETIO_STW_TEL1.Q;
       IF (GETIO_STW_TEL1.STATUS <> 0) THEN
          Alarm.S120_ComErr := TRUE;
       END_IF;
@@ -198,6 +199,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_Brake_TimeOut.Q;
       IF #TON_Brake_TimeOut.Q THEN
          Alarm.BrakeTimeOut := TRUE;
       END_IF;
@@ -212,11 +214,21 @@ BEGIN
    END_REGION
 
    REGION "Preset"
+      "Um2-1"(
+         en := PE.B_Preset_UM2,
+         y := HMI.PresetPosition,
+         coeff := Config.Ax_UM2,
+         Ret_Val => Ax.AxisCtrl.HomePosition
+      );
+
       Sts.Preset_Cnd := (AreaInterface.Man AND Ax.AxisSts.HomingPermitted);
       IF PE.B_Preset THEN
          Ax.AxisCtrl.HomePosition := HMI.PresetPosition;
       END_IF;
-      Ctrl.Preset := (((((HMI.PresetPosition OR ??? OR Ctrl.Preset) AND HMI.B_Preset) AND NOT (HMI.B_Preset_UM2)) OR (((HMI.PresetPosition OR ??? OR Ctrl.Preset) AND HMI.B_Preset_UM2) AND NOT (HMI.B_Preset))) AND Sts.Preset_Cnd);
+      IF PE.B_Preset_UM2 THEN
+         Ax.AxisCtrl.HomePosition := "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2);
+      END_IF;
+      Ctrl.Preset := (((((HMI.PresetPosition OR "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2) OR Ctrl.Preset) AND HMI.B_Preset) AND NOT (HMI.B_Preset_UM2)) OR (((HMI.PresetPosition OR "Um2-1"(y := HMI.PresetPosition, coeff := Config.Ax_UM2) OR Ctrl.Preset) AND HMI.B_Preset_UM2) AND NOT (HMI.B_Preset))) AND Sts.Preset_Cnd);
    END_REGION
 
    REGION "Man"
@@ -402,6 +414,7 @@ BEGIN
          AxisHomed := Pers_Data.AxisHomed
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "On/Off Axis -Reset Wanrning"
@@ -491,6 +504,7 @@ BEGIN
          Diag := Diag.S120
       );
 
+      #S120.Q;
    END_REGION
 
    REGION "Mask warning 1699 = Test stop STO required"
@@ -506,6 +520,7 @@ BEGIN
          OUTPUTS := S120_ZSW_TEL1
       );
 
+      #SETIO_ZSW_TEL1.Q;
       IF (GETIO_STW_TEL1.STATUS <> 0) THEN
          Alarm.S120_ComErr := TRUE;
       END_IF;
@@ -519,6 +534,7 @@ BEGIN
 
       Req := NOT (((NOT (S120.AxisSts.Enabled) AND NOT (Ax.ActorCtrl.CmdMinus)) AND NOT (Ax.ActorCtrl.CmdPlus)));
       Ctrl.Fan := ((NOT (((NOT (S120.AxisSts.Enabled) AND NOT (Ax.ActorCtrl.CmdMinus)) AND NOT (Ax.ActorCtrl.CmdPlus))) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      #TON_Fan_DelayOff.Q;
       IF #TON_Fan_DelayOff.Q THEN
          Ctrl.Fan := FALSE;
       END_IF;
@@ -537,6 +553,9 @@ BEGIN
       Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
       Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
       Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF Config.Fan.Presence THEN
+         #Fan_M.Q;
+      END_IF;
       IF NOT (Config.Fan.Presence) THEN
          DataOut.Fan_M_Contactor := FALSE;
       END_IF;
@@ -558,6 +577,13 @@ BEGIN
    END_REGION
 
    REGION "Coordination Out"
+      "Um1-2"(
+         en := LREAL_TO_REAL(Sts.ActualPosition),
+         x := REAL_value,
+         coeff := Config.Ax_UM2,
+         Ret_Val => COut.ActualPosition_UM2
+      );
+
       COut.CtrlSafe := (NOT (TON_NoPendingCmd.IN) OR (CIn.Manager.Control_ON AND NOT (Ctrl.StopDueDoorOpeningRequest)));
       COut.Infeed_ReqON := S120.Infeed_REQ_ON;
       COut.Homed := Ax.AxisSts.Homed;
@@ -570,6 +596,9 @@ BEGIN
       COut.PlusRunning := ((S120.AxisCtrl.MovePlus AND S120.AxisSts.Enabled) AND (S120.AxisSts.ActualVelocity > 0.0));
       COut.ActualPosition := Sts.ActualPosition;
       REAL_value := LREAL_TO_REAL(Sts.ActualPosition);
+      IF LREAL_TO_REAL(Sts.ActualPosition) THEN
+         COut.ActualPosition_UM2 := "Um1-2"(x := REAL_value, coeff := Config.Ax_UM2);
+      END_IF;
    END_REGION
 
    REGION "Coordination Out - Actual speed drive 0-100 %"
@@ -588,11 +617,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_MinusCnd.Q;
       IF (COut.MinusCheckNext AND Sts.Minus_Cnd) THEN
          Warning.MissingCnd_Minus := FALSE;
       ELSIF #TON_MinusCnd.Q THEN
          Warning.MissingCnd_Minus := TRUE;
       END_IF;
+      #TON_PlusCnd.Q;
       IF (COut.PlusCheckNext AND Sts.Plus_Cnd) THEN
          Warning.MissingCnd_Plus := FALSE;
       ELSIF #TON_PlusCnd.Q THEN
@@ -610,6 +641,7 @@ BEGIN
          PT := t#1s
       );
 
+      #TON_NoPendingCmd.Q;
    END_REGION
 
    REGION "Warning presence"

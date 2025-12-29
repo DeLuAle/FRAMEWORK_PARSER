@@ -385,6 +385,7 @@ BEGIN
          PT := T#2S
       );
 
+      #TON_CheckAxMove.Q;
       IF #TON_CheckAxMove.Q THEN
          Alarm.CheckBothAxMove := TRUE;
       END_IF;
@@ -417,6 +418,7 @@ BEGIN
          Alarm := Alarm.Testa.Enc
       );
 
+      #Enc_Testa.Q;
    END_REGION
 
    REGION "HMI preset position"
@@ -441,6 +443,7 @@ BEGIN
          COut => COut.Ax_Testa
       );
 
+      #Ax_Testa.Q;
    END_REGION
 
    REGION "[Ax] -  Cin Ext Enable"
@@ -460,6 +463,7 @@ BEGIN
          Alarm := Alarm.Coda.Enc
       );
 
+      #Enc_Coda.Q;
    END_REGION
 
    REGION "HMI preset position"
@@ -484,10 +488,22 @@ BEGIN
          COut => COut.Ax_Coda
       );
 
+      #Ax_Coda.Q;
    END_REGION
 
    REGION "HMI Position"
+      "LinearIn"(
+         en := TRUE,
+         ValueIn := ValueIn,
+         x1 := X1,
+         y1 := 0.0,
+         x2 := X2,
+         y2 := 100.0,
+         retVal => Ret_Val
+      );
+
       ValueIn := Ax_Testa.COut.ActualPosition;
+      "LinearIn"(ValueIn := ValueIn, x1 := X1, y1 := 0.0, x2 := X2, y2 := 100.0);
       HMI.PositionGraph := LREAL_TO_INT(Ret_Val);
    END_REGION
 
@@ -500,6 +516,16 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := NOT (NOT (Alarm.CheckBothAxMove)),
+         AdditionalWarnings := NOT ((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))),
+         MachineInterface_1 := Ax_Testa.MachineInterface,
+         MachineInterface_2 := Ax_Coda.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := NOT (NOT (Alarm.CheckBothAxMove)), AdditionalWarnings := NOT ((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))), MachineInterface_1 := Ax_Testa.MachineInterface, MachineInterface_2 := Ax_Coda.MachineInterface);
    END_REGION
 
 

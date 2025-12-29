@@ -322,6 +322,7 @@ BEGIN
          Warining := Warning.G
       );
 
+      #AreaG_Safety.Q;
    END_REGION
 
    REGION "Area 01"
@@ -334,6 +335,7 @@ BEGIN
          MachineInterface => MachineInterface1
       );
 
+      #Area01_Safety.Q;
    END_REGION
 
    REGION "Area 02"
@@ -346,6 +348,7 @@ BEGIN
          MachineInterface => MachineInterface2
       );
 
+      #Area02_Safety.Q;
    END_REGION
 
    REGION "Area 03"
@@ -360,6 +363,7 @@ BEGIN
          MachineInterface_A04 => MachineInterface4
       );
 
+      #Area03_04_Safety.Q;
    END_REGION
 
    REGION "Reset Eletric Door"
@@ -368,6 +372,7 @@ BEGIN
          PT := T#2S
       );
 
+      #TON_ResetEletricDoor.Q;
       IF #TON_ResetEletricDoor.Q THEN
          HMI.PbResetEletricDoor := FALSE;
       END_IF;

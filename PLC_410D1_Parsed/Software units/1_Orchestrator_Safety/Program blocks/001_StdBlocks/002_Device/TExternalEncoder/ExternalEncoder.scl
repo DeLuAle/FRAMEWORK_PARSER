@@ -102,12 +102,22 @@ BEGIN
    END_REGION
 
    REGION "Is Standstill"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := TO_Encoder.ActualPosition,
+         Target := PrevPos,
+         PosWin := 0.01,
+         Ret_Val => NoMove
+      );
+
       #tonStandstill(
          IN := ((TO_Encoder.ActualVelocity < 0.1) AND NoMove),
          PT := t#200ms
       );
 
+      NoMove := "TolWindow"(ActPos := TO_Encoder.ActualPosition, Target := PrevPos, PosWin := 0.01);
       PrevPos := TO_Encoder.ActualPosition;
+      #tonStandstill.Q;
       Sts.Standstill := #tonStandstill.Q;
    END_REGION
 
@@ -274,6 +284,7 @@ BEGIN
          Axis := TO_Encoder
       );
 
+      #POWER.Q;
       Sts.MC_Power_IDLE := (NOT (POWER.Status) AND NOT (POWER.Busy));
    END_REGION
 
@@ -294,6 +305,7 @@ BEGIN
          Axis := TO_Encoder
       );
 
+      #RESET.Q;
       Sts.MC_Reset_IDLE := ((NOT (RESET.Busy) AND NOT (RESET.Done)) AND NOT (RESET.Error));
    END_REGION
 
@@ -305,6 +317,7 @@ BEGIN
          Mode := EncoderCtrl.HomeMode
       );
 
+      #HOME.Q;
       Sts.MC_Home_IDLE := ((NOT (HOME.Busy) AND NOT (HOME.Done)) AND NOT (HOME.Error));
    END_REGION
 

@@ -75,6 +75,7 @@ BEGIN
          PT := Config.RestTime
       );
 
+      #tonRest.Q;
    END_REGION
 
    REGION "Time for valve at work status"
@@ -83,6 +84,7 @@ BEGIN
          PT := Config.WorkTime
       );
 
+      #tonWork.Q;
    END_REGION
 
    REGION "Status valve is at rest"
@@ -108,6 +110,7 @@ BEGIN
       );
 
       CheckTOutRest := (Ctrl.RestSolenoid AND NOT (IsAtRest));
+      #tonTimeOutRest.Q;
    END_REGION
 
    REGION "Time for check timeout work"
@@ -117,6 +120,7 @@ BEGIN
       );
 
       CheckTOutWork := (Ctrl.WorkSolenoid AND NOT (IsAtWork));
+      #tonTimeOutWork.Q;
    END_REGION
 
    REGION "Set alarm time out at rest"

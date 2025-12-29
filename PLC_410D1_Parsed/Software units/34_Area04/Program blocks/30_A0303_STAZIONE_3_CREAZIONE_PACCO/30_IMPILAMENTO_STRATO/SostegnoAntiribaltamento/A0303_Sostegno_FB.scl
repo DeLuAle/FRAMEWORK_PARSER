@@ -215,6 +215,15 @@ BEGIN
    END_REGION
 
    REGION "Ax in posizione di riposo"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax.Sts.ActualPosition,
+         Target := Par_Mach.RestPosition,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => Sts.InRestPos
+      );
+
+      Sts.InRestPos := "TolWindow"(ActPos := Ax.Sts.ActualPosition, Target := Par_Mach.RestPosition, PosWin := Par_Mach.ToleranceWindow);
    END_REGION
 
    REGION "Warning Paletto non puo muoversi perche asse non in posizione di riposo"
@@ -303,11 +312,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Rest_Cnd OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_REST := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.MissingCnd.OP_REST := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.OP_Work_Cnd OR AreaInterface.RstAlarms) THEN
          Warning.MissingCnd.OP_WORK := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -333,6 +344,7 @@ BEGIN
          Alarm := Alarm.Enc
       );
 
+      #Enc.Q;
    END_REGION
 
    REGION "[Ax] HMI preset position"
@@ -356,6 +368,7 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "CIn External Alarm"
@@ -378,6 +391,7 @@ BEGIN
          Warning := Warning.V_1
       );
 
+      #V_1.Q;
    END_REGION
 
    REGION "CIn External Alarm"
@@ -400,6 +414,7 @@ BEGIN
          Warning := Warning.V_2
       );
 
+      #V_2.Q;
    END_REGION
 
    REGION "[Paletti] - Alarm Ls"
@@ -418,12 +433,15 @@ BEGIN
          PT := Par_Mach.PosTimeout
       );
 
+      #TON_MissingLsPos0.Q;
       IF #TON_MissingLsPos0.Q THEN
          Alarm.Missing_Pos0_Ls_ON := TRUE;
       END_IF;
+      #TON_MissingLsPos1.Q;
       IF #TON_MissingLsPos1.Q THEN
          Alarm.Missing_Pos1_Ls_ON := TRUE;
       END_IF;
+      #TON_MissingLsPos2.Q;
       IF #TON_MissingLsPos2.Q THEN
          Alarm.Missing_Pos2_Ls_ON := TRUE;
       END_IF;
@@ -467,6 +485,26 @@ BEGIN
    END_REGION
 
    REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := V_1.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_REST) AND NOT (Warning.MissingCnd.OP_WORK)) AND NOT (Warning.MissingCnd.AxInRestPos))),
+         MachineInterface_1 := V_1.MachineInterface,
+         MachineInterface_2 := V_2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := V_1.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_REST) AND NOT (Warning.MissingCnd.OP_WORK)) AND NOT (Warning.MissingCnd.AxInRestPos))), MachineInterface_1 := V_1.MachineInterface, MachineInterface_2 := V_2.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

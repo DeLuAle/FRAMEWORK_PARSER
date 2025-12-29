@@ -68,6 +68,7 @@ BEGIN
          PT := T#1S
       );
 
+      #tonComunicationON.Q;
       ComunicationON := #tonComunicationON.Q;
    END_REGION
 
@@ -82,6 +83,7 @@ BEGIN
       IF (((Enable AND EStopDly) AND SinaInfeed.Ready) AND NOT (Simulation)) THEN
          EnableInfeed := TRUE;
       END_IF;
+      #tonPowerOff.Q;
       IF (#tonPowerOff.Q OR NOT (EStopDly) OR NOT (SinaInfeed.Ready) OR Simulation) THEN
          EnableInfeed := FALSE;
       END_IF;
@@ -99,6 +101,7 @@ BEGIN
          Warning => Warning.InfeedWarning
       );
 
+      #SinaInfeed.Q;
    END_REGION
 
    REGION "Communication Fault"
@@ -115,6 +118,7 @@ BEGIN
          PT := T#20S
       );
 
+      #tonTimeoutActivation.Q;
       IF #tonTimeoutActivation.Q THEN
          Alarm.TimeoutActivation := TRUE;
       ELSIF Rst THEN
@@ -140,6 +144,7 @@ BEGIN
          PT := T#500MS
       );
 
+      #tonPowered.Q;
       Running := (#tonPowered.Q OR (Enable AND Simulation));
    END_REGION
 

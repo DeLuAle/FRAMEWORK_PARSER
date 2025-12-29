@@ -241,9 +241,49 @@ BEGIN
    END_REGION
 
    REGION "CONTROLLO MES lunghezza Beams"
+      "Find_O_ID"(
+         en := GetData_A0302_In,
+         NumStazione := #STATION_A0302_ENTRY,
+         O_ID => BTrk_Item.O_ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY),
+         O_ID := BTrk_Item.O_ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => BTrk_GetData_A0302.Sts,
+         Item => BTrk_GetData_A0302.Item,
+         indx => BTrk_GetData_A0302.indx
+      );
+
+      "Find_O_ID"(
+         en := TRUE,
+         NumStazione := #STATION_A0301_B,
+         O_ID => BTrk_Item.O_ID
+      );
+
+      "Prod_item_GetData_By_O_ID"(
+         en := "Find_O_ID"(NumStazione := #STATION_A0301_B),
+         O_ID := BTrk_Item.O_ID,
+         Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data,
+         Ret_Val => BTrk_GetData_A0301.Sts,
+         Item => BTrk_GetData_A0301.Item,
+         indx => BTrk_GetData_A0301.indx
+      );
+
       GetData_A0302_In := ((BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0) OR (BTrk.A0302_ENTRY.B.B_ID <> 0));
+      IF GetData_A0302_In THEN
+         "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY);
+      END_IF;
+      IF "Find_O_ID"(NumStazione := #STATION_A0302_ENTRY) THEN
+         BTrk_GetData_A0302.Sts := "Prod_item_GetData_By_O_ID"(O_ID := BTrk_Item.O_ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
+      END_IF;
       IF (GetData_A0302_In AND (BTrk_GetData_A0302.Sts >= 0)) THEN
          Sts.A0302_Beam_BLean := BTrk_GetData_A0302.Item.Beams_Len;
+      END_IF;
+      "Find_O_ID"(NumStazione := #STATION_A0301_B);
+      IF "Find_O_ID"(NumStazione := #STATION_A0301_B) THEN
+         BTrk_GetData_A0301.Sts := "Prod_item_GetData_By_O_ID"(O_ID := BTrk_Item.O_ID, Beams_Data := Areas_ITF.Prod.A03_A04.Beams_Data);
       END_IF;
    END_REGION
 
@@ -321,11 +361,45 @@ BEGIN
          PT := T#1S
       );
 
+      #IEC.TON_DelayFTC_Ingombro_A0301.Q;
+      #IEC.TOF_DelayFTC_Ingombro_A0301.Q;
       IEC.FTC_On := #IEC.TOF_DelayFTC_Ingombro_A0301.Q;
    END_REGION
 
    REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
-      Sts.OP_CanMoveFreely := ???;
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := ("BTrk_Absence"(Item := BTrk.A0301.B) OR (((Cin.P4.Fermi.Work AND Cin.P5.Spintore_Lat.Spin_Lat1.Rest) AND Cin.P5.Spintore_Lat.Spin_Lat2.Rest) AND Cin.P5.Spintore_Lat.Sollevatori.Rest)),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := "BTrk_Absence"(Item := BTrk.A0301.B),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := ("BTrk_Absence"(Item := BTrk.A0301.B) AND NOT (IEC.FTC_On));
    END_REGION
 
    REGION "Ax  - Comando Operazione Lavoro / Riposo (AUT)"
@@ -456,11 +530,13 @@ BEGIN
          PT := Config.DelayMissingCondition
       );
 
+      #TON_OP_REST_MissingCnd.Q;
       IF (Sts.OP_Ax_Rest_Cnd OR Ctrl.Ax.OP_Work OR AreaInterface.RstAlarms) THEN
          Warning.OP_REST_MissingCnd := FALSE;
       ELSIF #TON_OP_REST_MissingCnd.Q THEN
          Warning.OP_REST_MissingCnd := TRUE;
       END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
       IF (Sts.OP_Ax_Work_Cnd OR Ctrl.Ax.OP_Rest OR AreaInterface.RstAlarms) THEN
          Warning.OP_WORK_MissingCnd := FALSE;
       ELSIF #TON_OP_WORK_MissingCnd.Q THEN
@@ -571,12 +647,31 @@ BEGIN
          COut => COut.Ax
       );
 
+      #Ax.Q;
    END_REGION
 
    REGION "[Ax] Spintore - Status / Control - Pos. Attesa"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := A0302_Spintore.COut.Ax.ActualPosition,
+         Target := Data.Ax_Pos.PosAttesa,
+         PosWin := 1.0,
+         Ret_Val => COut.Ax_Sts.PosAttesa_Reached
+      );
+
+      COut.Ax_Sts.PosAttesa_Reached := "TolWindow"(ActPos := A0302_Spintore.COut.Ax.ActualPosition, Target := Data.Ax_Pos.PosAttesa, PosWin := 1.0);
    END_REGION
 
    REGION "[Ax] Spintore - Status / Control - Pos. Spinta"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := A0302_Spintore.COut.Ax.ActualPosition,
+         Target := Data.Ax_Pos.PosFineSpinta,
+         PosWin := 1.0,
+         Ret_Val => COut.Ax_Sts.PosFineSpinta_Reached
+      );
+
+      COut.Ax_Sts.PosFineSpinta_Reached := "TolWindow"(ActPos := A0302_Spintore.COut.Ax.ActualPosition, Target := Data.Ax_Pos.PosFineSpinta, PosWin := 1.0);
    END_REGION
 
    REGION "[VRT] - CIn External alarm"
@@ -600,6 +695,7 @@ BEGIN
          COut => COut.Vrt
       );
 
+      #Vrt.Q;
    END_REGION
 
    REGION "[ORZ] - Scalatura sensore"
@@ -615,6 +711,7 @@ BEGIN
          Warning := Warning.Orz_AnalSens
       );
 
+      #Orz_AnalSens.Q;
    END_REGION
 
    REGION "[ORZ] - Allarme problemi sul sensore analogico"
@@ -669,6 +766,7 @@ BEGIN
          COut => COut.Orz
       );
 
+      #Orz.Q;
    END_REGION
 
    REGION "Stazione COut"
@@ -687,6 +785,26 @@ BEGIN
    END_REGION
 
    REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Vrt.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Orz.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Vrt.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Orz.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 
