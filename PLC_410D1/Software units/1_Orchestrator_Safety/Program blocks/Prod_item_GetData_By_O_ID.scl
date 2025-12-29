@@ -1,0 +1,106 @@
+﻿FUNCTION "Prod_item_GetData_By_O_ID" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      O_ID : DInt;
+      Beams_Data : "Prod_Beam_Data";
+   END_VAR
+
+   VAR_OUTPUT 
+      Item : "Prod_Item_small";   // Dati dell'ordone di produzione
+      indx : Int;   // Se trovato tra i TODO / ENDING / OUT questo è l'indice dove sono stati prelevati i dati
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      PROD_ERR_O_ID_NOT_FOUND : Int := -1010;
+      PROD_ERR_O_ID_NOT_VALID : Int := -1011;
+      PROD_O_ID_IS_AT_O_ACT : Int := 0;
+      PROD_O_ID_IS_AT_O_TODO : Int := 1;
+      PROD_O_ID_IS_AT_O_ENDING : Int := 2;
+      PROD_O_ID_IS_AT_O_OUT : Int := 3;
+   END_VAR
+
+
+BEGIN
+	// Restituisce l'item di produzione richiesto con corrispondenza dell'ID_Prod (assegnato dal PLC)
+	// 
+	
+	
+	// Iniziazlizza risposta per batch non trovato
+	// 
+	#Prod_item_GetData_By_O_ID := #PROD_ERR_O_ID_NOT_FOUND;
+	
+	#Item.O_ID := -1;
+	#Item.PPrf_No := -1;
+	#Item.MES_IDP := '?';
+	#Item.MES_PPrf_Name := 'non trovato';
+	
+	
+	
+	
+	#indx := 1; // Default impostato a 1 per non fare indicizzazioni su array fuori dei limiti
+	
+	IF #O_ID <= 0 THEN
+	    #Prod_item_GetData_By_O_ID := #PROD_ERR_O_ID_NOT_VALID;
+	    RETURN;
+	END_IF;
+	
+	
+	// Ricerca su batch attualmente in produzione
+	// 
+	IF #Beams_Data.O_ACT.O_ID = #O_ID THEN
+	    #Item := #Beams_Data.O_ACT;
+	    #Prod_item_GetData_By_O_ID := #PROD_O_ID_IS_AT_O_ACT;
+	    RETURN;
+	END_IF;
+	
+	// Ricerca su batch non iniziato / interrotto
+	//
+	FOR #i := 1 TO 15 DO
+	    IF #Beams_Data.O_TODO[#i].O_ID = #O_ID THEN
+	        #Item := #Beams_Data.O_TODO[#i];
+	        #indx := #i;
+	        #Prod_item_GetData_By_O_ID := #PROD_O_ID_IS_AT_O_TODO;
+	        RETURN;
+	    END_IF;
+	END_FOR; 
+	
+	
+	
+	
+	// ricerca su batch in via di completameno = finiti al taglio ma non ancora scaricati
+	// 
+	FOR #i := 1 TO 5 DO
+	    IF #Beams_Data.O_ENDING[#i].O_ID = #O_ID THEN
+	        #Item := #Beams_Data.O_ENDING[#i];
+	        #indx := #i;
+	        #Prod_item_GetData_By_O_ID := #PROD_O_ID_IS_AT_O_ENDING;
+	        RETURN;
+	    END_IF;
+	END_FOR;
+	
+	// ricerca sui batch conclusi = Tutti i pezzi sonon usciti dalla linea
+	// 
+	FOR #i := 1 TO 5 DO
+	    IF #Beams_Data.O_OUT[#i].O_ID = #O_ID THEN
+	        #Item := #Beams_Data.O_OUT[#i];
+	        #indx := #i;
+	        #Prod_item_GetData_By_O_ID := #PROD_O_ID_IS_AT_O_OUT;
+	        RETURN;
+	    END_IF;
+	END_FOR;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,2898 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp" />
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <Name>A0301_Fermi_P2_CALL</Name>
+      <Namespace />
+      <Number>86</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> TRASFERIMENTO #CIn MANAGER</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Fermi_P2" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="CIn" UId="29" />
+      <Token Text="." UId="30" />
+      <Component Name="Manager_Fermi" UId="31" />
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="A0301_Manager" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="39" />
+      <Component Name="COut" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="P2" UId="42" />
+      <Token Text="." UId="43" />
+      <Component Name="Fermi" UId="44" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="45" />
+  <NewLine UId="46" />
+  <Access Scope="GlobalVariable" UId="47">
+    <Symbol UId="48">
+      <Component Name="A0301_Fermi_P2" UId="49">
+        <BooleanAttribute Name="HasQuotes" UId="50">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="51" />
+      <Component Name="CIn" UId="52" />
+      <Token Text="." UId="53" />
+      <Component Name="Manager_Sollevatori" UId="54" />
+    </Symbol>
+  </Access>
+  <Blank UId="55" />
+  <Token Text=":=" UId="56" />
+  <Blank UId="57" />
+  <Access Scope="GlobalVariable" UId="58">
+    <Symbol UId="59">
+      <Component Name="A0301_Manager" UId="60">
+        <BooleanAttribute Name="HasQuotes" UId="61">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="62" />
+      <Component Name="COut" UId="63" />
+      <Token Text="." UId="64" />
+      <Component Name="P2" UId="65" />
+      <Token Text="." UId="66" />
+      <Component Name="Sollevatore" UId="67" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="68" />
+  <NewLine UId="69" />
+  <LineComment UId="70">
+    <Text UId="71" />
+  </LineComment>
+  <NewLine UId="72" />
+  <Access Scope="GlobalVariable" UId="73">
+    <Symbol UId="74">
+      <Component Name="A0301_Fermi_P2" UId="75">
+        <BooleanAttribute Name="HasQuotes" UId="76">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="77" />
+      <Component Name="CIn" UId="78" />
+      <Token Text="." UId="79" />
+      <Component Name="SemiAut" UId="80" />
+    </Symbol>
+  </Access>
+  <Blank UId="81" />
+  <Token Text=":=" UId="82" />
+  <Blank UId="83" />
+  <Access Scope="GlobalVariable" UId="84">
+    <Symbol UId="85">
+      <Component Name="A0301_Manager" UId="86">
+        <BooleanAttribute Name="HasQuotes" UId="87">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="88" />
+      <Component Name="DataIn" UId="89" />
+      <Token Text="." UId="90" />
+      <Component Name="SemiAut_Pb" UId="91" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="92" />
+  <NewLine Num="2" UId="93" />
+  <LineComment UId="94">
+    <Text UId="95"> TRASFERIMENTO #CIn FERMI POSTAZIONI P2 E DEI SOLLEVATORI SU P3</Text>
+  </LineComment>
+  <NewLine UId="96" />
+  <LineComment UId="97">
+    <Text UId="98"> Trasferimento status alla Stazione P2 da COut a Cin delle stazioni successive</Text>
+  </LineComment>
+  <NewLine UId="99" />
+  <Access Scope="GlobalVariable" UId="100">
+    <Symbol UId="101">
+      <Component Name="A0301_Fermi_P2" UId="102">
+        <BooleanAttribute Name="HasQuotes" UId="103">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="104" />
+      <Component Name="CIn" UId="105" />
+      <Token Text="." UId="106" />
+      <Component Name="P1" UId="107" />
+      <Token Text="." UId="108" />
+      <Component Name="Fermi" UId="109" />
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="GlobalVariable" UId="113">
+    <Symbol UId="114">
+      <Component Name="A0301_Fermi_P1" UId="115">
+        <BooleanAttribute Name="HasQuotes" UId="116">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="117" />
+      <Component Name="COut" UId="118" />
+      <Token Text="." UId="119" />
+      <Component Name="Fermi" UId="120" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="121" />
+  <NewLine Num="2" UId="122" />
+  <LineComment UId="123">
+    <Text UId="124"> Trasferimento status alla Stazione P2 da COut a Cin dello Sfasatore P1</Text>
+  </LineComment>
+  <NewLine UId="125" />
+  <Access Scope="GlobalVariable" UId="126">
+    <Symbol UId="127">
+      <Component Name="A0301_Fermi_P2" UId="128">
+        <BooleanAttribute Name="HasQuotes" UId="129">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="130" />
+      <Component Name="CIn" UId="131" />
+      <Token Text="." UId="132" />
+      <Component Name="P1" UId="133" />
+      <Token Text="." UId="134" />
+      <Component Name="Pareggiatore" UId="135" />
+    </Symbol>
+  </Access>
+  <Blank UId="136" />
+  <Token Text=":=" UId="137" />
+  <Blank UId="138" />
+  <Access Scope="GlobalVariable" UId="139">
+    <Symbol UId="140">
+      <Component Name="A0301_Fermi_P1" UId="141">
+        <BooleanAttribute Name="HasQuotes" UId="142">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="143" />
+      <Component Name="COut" UId="144" />
+      <Token Text="." UId="145" />
+      <Component Name="Pareggiatore" UId="146" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="147" />
+  <NewLine Num="2" UId="148" />
+  <Token Text="REGION" UId="149" />
+  <Blank UId="150" />
+  <Text UId="151">TRASFERIMENTO CIn TRASPORTO E RIBALTATORE</Text>
+  <NewLine UId="152" />
+  <Blank Num="4" UId="153" />
+  <NewLine UId="154" />
+  <Blank Num="4" UId="155" />
+  <LineComment UId="156">
+    <Text UId="157"> Trasferimenti status lettura posizioni Ribaltatore al Cin delle stazioni</Text>
+  </LineComment>
+  <NewLine UId="158" />
+  <Blank Num="4" UId="159" />
+  <Access Scope="GlobalVariable" UId="160">
+    <Symbol UId="161">
+      <Component Name="A0301_Fermi_P2" UId="162">
+        <BooleanAttribute Name="HasQuotes" UId="163">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="164" />
+      <Component Name="CIn" UId="165" />
+      <Token Text="." UId="166" />
+      <Component Name="Sts_Ribalta" UId="167" />
+    </Symbol>
+  </Access>
+  <Blank UId="168" />
+  <Token Text=":=" UId="169" />
+  <Blank UId="170" />
+  <Access Scope="GlobalVariable" UId="171">
+    <Symbol UId="172">
+      <Component Name="A0301_Ribaltatore" UId="173">
+        <BooleanAttribute Name="HasQuotes" UId="174">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="175" />
+      <Component Name="COut" UId="176" />
+      <Token Text="." UId="177" />
+      <Component Name="Ribaltatore_Sts" UId="178" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="179" />
+  <NewLine UId="180" />
+  <Blank Num="4" UId="181" />
+  <NewLine UId="182" />
+  <Blank Num="4" UId="183" />
+  <LineComment UId="184">
+    <Text UId="185"> Trasferimenti status lettura posizioni Trasporto al Cin delle stazioni</Text>
+  </LineComment>
+  <NewLine UId="186" />
+  <Blank Num="4" UId="187" />
+  <Access Scope="GlobalVariable" UId="188">
+    <Symbol UId="189">
+      <Component Name="A0301_Fermi_P2" UId="190">
+        <BooleanAttribute Name="HasQuotes" UId="191">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="192" />
+      <Component Name="CIn" UId="193" />
+      <Token Text="." UId="194" />
+      <Component Name="Trasporto" UId="195" />
+    </Symbol>
+  </Access>
+  <Blank UId="196" />
+  <Token Text=":=" UId="197" />
+  <Blank UId="198" />
+  <Access Scope="GlobalVariable" UId="199">
+    <Symbol UId="200">
+      <Component Name="A0301_Trasporto" UId="201">
+        <BooleanAttribute Name="HasQuotes" UId="202">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="203" />
+      <Component Name="COut" UId="204" />
+      <Token Text="." UId="205" />
+      <Component Name="Ax" UId="206" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="207" />
+  <NewLine UId="208" />
+  <Token Text="END_REGION" UId="209" />
+  <Blank UId="210" />
+  <Text UId="211">;</Text>
+  <NewLine UId="212" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; TRASFERIMENTO stati CIn del blocco &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <NewLine Num="2" UId="21" />
+  <Token Text="REGION" UId="22" />
+  <Blank UId="23" />
+  <Text UId="24">TRASFERIMENTO DataIn DIGITAL INPUT dei LIMIT SWITCH</Text>
+  <NewLine UId="25" />
+  <Blank Num="4" UId="26" />
+  <NewLine UId="27" />
+  <Blank Num="4" UId="28" />
+  <LineComment UId="29">
+    <Text UId="30"> Trasferimento ingressi digitali Limit Switch Fermi P2</Text>
+  </LineComment>
+  <NewLine UId="31" />
+  <Blank Num="4" UId="32" />
+  <LineComment UId="33">
+    <Text UId="34"> </Text>
+  </LineComment>
+  <NewLine UId="35" />
+  <Blank Num="4" UId="36" />
+  <Access Scope="GlobalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="A0301_Fermi_P2" UId="39">
+        <BooleanAttribute Name="HasQuotes" UId="40">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="41" />
+      <Component Name="Fermi" UId="42">
+        <Token Text="[" UId="43" />
+        <Access Scope="LiteralConstant" UId="44">
+          <Constant UId="45">
+            <ConstantValue UId="47">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="48" />
+      </Component>
+      <Token Text="." UId="49" />
+      <Component Name="DataIn" UId="50" />
+      <Token Text="." UId="51" />
+      <Component Name="Rest_Ls" UId="52">
+        <Token Text="[" UId="53" />
+        <Access Scope="LiteralConstant" UId="54">
+          <Constant UId="55">
+            <ConstantValue UId="57">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="58" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="59" />
+  <Token Text=":=" UId="60" />
+  <Blank UId="61" />
+  <Access Scope="GlobalVariable" UId="62">
+    <Symbol UId="63">
+      <Component Name="A0301_CinghiaTrasporto_1.1_Ls_Rest_7" UId="64" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="65" />
+  <NewLine UId="66" />
+  <Blank Num="4" UId="67" />
+  <Access Scope="GlobalVariable" UId="68">
+    <Symbol UId="69">
+      <Component Name="A0301_Fermi_P2" UId="70">
+        <BooleanAttribute Name="HasQuotes" UId="71">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="72" />
+      <Component Name="Fermi" UId="73">
+        <Token Text="[" UId="74" />
+        <Access Scope="LiteralConstant" UId="75">
+          <Constant UId="76">
+            <ConstantValue UId="78">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="79" />
+      </Component>
+      <Token Text="." UId="80" />
+      <Component Name="DataIn" UId="81" />
+      <Token Text="." UId="82" />
+      <Component Name="Rest_Ls" UId="83">
+        <Token Text="[" UId="84" />
+        <Access Scope="LiteralConstant" UId="85">
+          <Constant UId="86">
+            <ConstantValue UId="88">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="89" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="90" />
+  <Token Text=":=" UId="91" />
+  <Blank UId="92" />
+  <Access Scope="GlobalVariable" UId="93">
+    <Symbol UId="94">
+      <Component Name="A0301_CinghiaTrasporto_2.1_Ls_Rest_7" UId="95" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="96" />
+  <NewLine UId="97" />
+  <Blank Num="4" UId="98" />
+  <Access Scope="GlobalVariable" UId="99">
+    <Symbol UId="100">
+      <Component Name="A0301_Fermi_P2" UId="101">
+        <BooleanAttribute Name="HasQuotes" UId="102">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="103" />
+      <Component Name="Fermi" UId="104">
+        <Token Text="[" UId="105" />
+        <Access Scope="LiteralConstant" UId="106">
+          <Constant UId="107">
+            <ConstantValue UId="109">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="110" />
+      </Component>
+      <Token Text="." UId="111" />
+      <Component Name="DataIn" UId="112" />
+      <Token Text="." UId="113" />
+      <Component Name="Rest_Ls" UId="114">
+        <Token Text="[" UId="115" />
+        <Access Scope="LiteralConstant" UId="116">
+          <Constant UId="117">
+            <ConstantValue UId="119">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="120" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="121" />
+  <Token Text=":=" UId="122" />
+  <Blank UId="123" />
+  <Access Scope="GlobalVariable" UId="124">
+    <Symbol UId="125">
+      <Component Name="A0301_CinghiaTrasporto_3.1_Ls_Rest_7" UId="126" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="127" />
+  <NewLine UId="128" />
+  <Blank Num="4" UId="129" />
+  <Access Scope="GlobalVariable" UId="130">
+    <Symbol UId="131">
+      <Component Name="A0301_Fermi_P2" UId="132">
+        <BooleanAttribute Name="HasQuotes" UId="133">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="134" />
+      <Component Name="Fermi" UId="135">
+        <Token Text="[" UId="136" />
+        <Access Scope="LiteralConstant" UId="137">
+          <Constant UId="138">
+            <ConstantValue UId="140">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="141" />
+      </Component>
+      <Token Text="." UId="142" />
+      <Component Name="DataIn" UId="143" />
+      <Token Text="." UId="144" />
+      <Component Name="Rest_Ls" UId="145">
+        <Token Text="[" UId="146" />
+        <Access Scope="LiteralConstant" UId="147">
+          <Constant UId="148">
+            <ConstantValue UId="150">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="151" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="152" />
+  <Token Text=":=" UId="153" />
+  <Blank UId="154" />
+  <Access Scope="GlobalVariable" UId="155">
+    <Symbol UId="156">
+      <Component Name="A0301_CinghiaTrasporto_4.1_Ls_Rest_7" UId="157" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="158" />
+  <NewLine UId="159" />
+  <Blank Num="4" UId="160" />
+  <Access Scope="GlobalVariable" UId="161">
+    <Symbol UId="162">
+      <Component Name="A0301_Fermi_P2" UId="163">
+        <BooleanAttribute Name="HasQuotes" UId="164">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="165" />
+      <Component Name="Fermi" UId="166">
+        <Token Text="[" UId="167" />
+        <Access Scope="LiteralConstant" UId="168">
+          <Constant UId="169">
+            <ConstantValue UId="171">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="172" />
+      </Component>
+      <Token Text="." UId="173" />
+      <Component Name="DataIn" UId="174" />
+      <Token Text="." UId="175" />
+      <Component Name="Rest_Ls" UId="176">
+        <Token Text="[" UId="177" />
+        <Access Scope="LiteralConstant" UId="178">
+          <Constant UId="179">
+            <ConstantValue UId="181">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="182" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="183" />
+  <Token Text=":=" UId="184" />
+  <Blank UId="185" />
+  <Access Scope="GlobalVariable" UId="186">
+    <Symbol UId="187">
+      <Component Name="A0301_CinghiaTrasporto_5.1_Ls_Rest_7" UId="188" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="189" />
+  <NewLine UId="190" />
+  <Blank Num="4" UId="191" />
+  <Access Scope="GlobalVariable" UId="192">
+    <Symbol UId="193">
+      <Component Name="A0301_Fermi_P2" UId="194">
+        <BooleanAttribute Name="HasQuotes" UId="195">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="196" />
+      <Component Name="Fermi" UId="197">
+        <Token Text="[" UId="198" />
+        <Access Scope="LiteralConstant" UId="199">
+          <Constant UId="200">
+            <ConstantValue UId="202">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="203" />
+      </Component>
+      <Token Text="." UId="204" />
+      <Component Name="DataIn" UId="205" />
+      <Token Text="." UId="206" />
+      <Component Name="Rest_Ls" UId="207">
+        <Token Text="[" UId="208" />
+        <Access Scope="LiteralConstant" UId="209">
+          <Constant UId="210">
+            <ConstantValue UId="212">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="213" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="214" />
+  <Token Text=":=" UId="215" />
+  <Blank UId="216" />
+  <Access Scope="GlobalVariable" UId="217">
+    <Symbol UId="218">
+      <Component Name="A0301_CinghiaTrasporto_6.1_Ls_Rest_7" UId="219" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="220" />
+  <NewLine UId="221" />
+  <Blank Num="4" UId="222" />
+  <NewLine UId="223" />
+  <Blank Num="4" UId="224" />
+  <LineComment UId="225">
+    <Text UId="226"> Trasferimento ingressi digitali Limit Switch Sollevatori P2</Text>
+  </LineComment>
+  <NewLine UId="227" />
+  <Blank Num="4" UId="228" />
+  <Access Scope="GlobalVariable" UId="229">
+    <Symbol UId="230">
+      <Component Name="A0301_Fermi_P2" UId="231">
+        <BooleanAttribute Name="HasQuotes" UId="232">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="233" />
+      <Component Name="Sollevatori" UId="234">
+        <Token Text="[" UId="235" />
+        <Access Scope="LiteralConstant" UId="236">
+          <Constant UId="237">
+            <ConstantValue UId="239">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="240" />
+      </Component>
+      <Token Text="." UId="241" />
+      <Component Name="DataIn" UId="242" />
+      <Token Text="." UId="243" />
+      <Component Name="Rest_Ls" UId="244">
+        <Token Text="[" UId="245" />
+        <Access Scope="LiteralConstant" UId="246">
+          <Constant UId="247">
+            <ConstantValue UId="249">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="250" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="251" />
+  <Token Text=":=" UId="252" />
+  <Blank UId="253" />
+  <Access Scope="GlobalVariable" UId="254">
+    <Symbol UId="255">
+      <Component Name="A0301_CinghiaTrasporto_1.1_Ls_Rest_5" UId="256" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="257" />
+  <NewLine UId="258" />
+  <Blank Num="4" UId="259" />
+  <Access Scope="GlobalVariable" UId="260">
+    <Symbol UId="261">
+      <Component Name="A0301_Fermi_P2" UId="262">
+        <BooleanAttribute Name="HasQuotes" UId="263">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="264" />
+      <Component Name="Sollevatori" UId="265">
+        <Token Text="[" UId="266" />
+        <Access Scope="LiteralConstant" UId="267">
+          <Constant UId="268">
+            <ConstantValue UId="270">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="271" />
+      </Component>
+      <Token Text="." UId="272" />
+      <Component Name="DataIn" UId="273" />
+      <Token Text="." UId="274" />
+      <Component Name="Work_Ls" UId="275">
+        <Token Text="[" UId="276" />
+        <Access Scope="LiteralConstant" UId="277">
+          <Constant UId="278">
+            <ConstantValue UId="280">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="281" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="282" />
+  <Token Text=":=" UId="283" />
+  <Blank UId="284" />
+  <Access Scope="GlobalVariable" UId="285">
+    <Symbol UId="286">
+      <Component Name="A0301_CinghiaTrasporto_1.1_Ls_Work_6" UId="287" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="288" />
+  <NewLine UId="289" />
+  <Blank Num="4" UId="290" />
+  <Access Scope="GlobalVariable" UId="291">
+    <Symbol UId="292">
+      <Component Name="A0301_Fermi_P2" UId="293">
+        <BooleanAttribute Name="HasQuotes" UId="294">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="295" />
+      <Component Name="Sollevatori" UId="296">
+        <Token Text="[" UId="297" />
+        <Access Scope="LiteralConstant" UId="298">
+          <Constant UId="299">
+            <ConstantValue UId="301">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="302" />
+      </Component>
+      <Token Text="." UId="303" />
+      <Component Name="DataIn" UId="304" />
+      <Token Text="." UId="305" />
+      <Component Name="Rest_Ls" UId="306">
+        <Token Text="[" UId="307" />
+        <Access Scope="LiteralConstant" UId="308">
+          <Constant UId="309">
+            <ConstantValue UId="311">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="312" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="313" />
+  <Token Text=":=" UId="314" />
+  <Blank UId="315" />
+  <Access Scope="GlobalVariable" UId="316">
+    <Symbol UId="317">
+      <Component Name="A0301_CinghiaTrasporto_2.1_Ls_Rest_5" UId="318" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="319" />
+  <NewLine UId="320" />
+  <Blank Num="4" UId="321" />
+  <Access Scope="GlobalVariable" UId="322">
+    <Symbol UId="323">
+      <Component Name="A0301_Fermi_P2" UId="324">
+        <BooleanAttribute Name="HasQuotes" UId="325">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="326" />
+      <Component Name="Sollevatori" UId="327">
+        <Token Text="[" UId="328" />
+        <Access Scope="LiteralConstant" UId="329">
+          <Constant UId="330">
+            <ConstantValue UId="332">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="333" />
+      </Component>
+      <Token Text="." UId="334" />
+      <Component Name="DataIn" UId="335" />
+      <Token Text="." UId="336" />
+      <Component Name="Work_Ls" UId="337">
+        <Token Text="[" UId="338" />
+        <Access Scope="LiteralConstant" UId="339">
+          <Constant UId="340">
+            <ConstantValue UId="342">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="343" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="344" />
+  <Token Text=":=" UId="345" />
+  <Blank UId="346" />
+  <Access Scope="GlobalVariable" UId="347">
+    <Symbol UId="348">
+      <Component Name="A0301_CinghiaTrasporto_2.1_Ls_Work_6" UId="349" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="350" />
+  <NewLine UId="351" />
+  <Blank Num="4" UId="352" />
+  <Access Scope="GlobalVariable" UId="353">
+    <Symbol UId="354">
+      <Component Name="A0301_Fermi_P2" UId="355">
+        <BooleanAttribute Name="HasQuotes" UId="356">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="357" />
+      <Component Name="Sollevatori" UId="358">
+        <Token Text="[" UId="359" />
+        <Access Scope="LiteralConstant" UId="360">
+          <Constant UId="361">
+            <ConstantValue UId="363">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="364" />
+      </Component>
+      <Token Text="." UId="365" />
+      <Component Name="DataIn" UId="366" />
+      <Token Text="." UId="367" />
+      <Component Name="Rest_Ls" UId="368">
+        <Token Text="[" UId="369" />
+        <Access Scope="LiteralConstant" UId="370">
+          <Constant UId="371">
+            <ConstantValue UId="373">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="374" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="375" />
+  <Token Text=":=" UId="376" />
+  <Blank UId="377" />
+  <Access Scope="GlobalVariable" UId="378">
+    <Symbol UId="379">
+      <Component Name="A0301_CinghiaTrasporto_3.1_Ls_Rest_5" UId="380" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="381" />
+  <NewLine UId="382" />
+  <Blank Num="4" UId="383" />
+  <Access Scope="GlobalVariable" UId="384">
+    <Symbol UId="385">
+      <Component Name="A0301_Fermi_P2" UId="386">
+        <BooleanAttribute Name="HasQuotes" UId="387">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="388" />
+      <Component Name="Sollevatori" UId="389">
+        <Token Text="[" UId="390" />
+        <Access Scope="LiteralConstant" UId="391">
+          <Constant UId="392">
+            <ConstantValue UId="394">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="395" />
+      </Component>
+      <Token Text="." UId="396" />
+      <Component Name="DataIn" UId="397" />
+      <Token Text="." UId="398" />
+      <Component Name="Work_Ls" UId="399">
+        <Token Text="[" UId="400" />
+        <Access Scope="LiteralConstant" UId="401">
+          <Constant UId="402">
+            <ConstantValue UId="404">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="405" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="406" />
+  <Token Text=":=" UId="407" />
+  <Blank UId="408" />
+  <Access Scope="GlobalVariable" UId="409">
+    <Symbol UId="410">
+      <Component Name="A0301_CinghiaTrasporto_3.1_Ls_Work_6" UId="411" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="412" />
+  <NewLine UId="413" />
+  <Blank Num="4" UId="414" />
+  <Access Scope="GlobalVariable" UId="415">
+    <Symbol UId="416">
+      <Component Name="A0301_Fermi_P2" UId="417">
+        <BooleanAttribute Name="HasQuotes" UId="418">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="419" />
+      <Component Name="Sollevatori" UId="420">
+        <Token Text="[" UId="421" />
+        <Access Scope="LiteralConstant" UId="422">
+          <Constant UId="423">
+            <ConstantValue UId="425">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="426" />
+      </Component>
+      <Token Text="." UId="427" />
+      <Component Name="DataIn" UId="428" />
+      <Token Text="." UId="429" />
+      <Component Name="Rest_Ls" UId="430">
+        <Token Text="[" UId="431" />
+        <Access Scope="LiteralConstant" UId="432">
+          <Constant UId="433">
+            <ConstantValue UId="435">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="436" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="437" />
+  <Token Text=":=" UId="438" />
+  <Blank UId="439" />
+  <Access Scope="GlobalVariable" UId="440">
+    <Symbol UId="441">
+      <Component Name="A0301_CinghiaTrasporto_4.1_Ls_Rest_5" UId="442" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="443" />
+  <NewLine UId="444" />
+  <Blank Num="4" UId="445" />
+  <Access Scope="GlobalVariable" UId="446">
+    <Symbol UId="447">
+      <Component Name="A0301_Fermi_P2" UId="448">
+        <BooleanAttribute Name="HasQuotes" UId="449">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="450" />
+      <Component Name="Sollevatori" UId="451">
+        <Token Text="[" UId="452" />
+        <Access Scope="LiteralConstant" UId="453">
+          <Constant UId="454">
+            <ConstantValue UId="456">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="457" />
+      </Component>
+      <Token Text="." UId="458" />
+      <Component Name="DataIn" UId="459" />
+      <Token Text="." UId="460" />
+      <Component Name="Work_Ls" UId="461">
+        <Token Text="[" UId="462" />
+        <Access Scope="LiteralConstant" UId="463">
+          <Constant UId="464">
+            <ConstantValue UId="466">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="467" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="468" />
+  <Token Text=":=" UId="469" />
+  <Blank UId="470" />
+  <Access Scope="GlobalVariable" UId="471">
+    <Symbol UId="472">
+      <Component Name="A0301_CinghiaTrasporto_4.1_Ls_Work_6" UId="473" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="474" />
+  <NewLine UId="475" />
+  <Blank Num="4" UId="476" />
+  <Access Scope="GlobalVariable" UId="477">
+    <Symbol UId="478">
+      <Component Name="A0301_Fermi_P2" UId="479">
+        <BooleanAttribute Name="HasQuotes" UId="480">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="481" />
+      <Component Name="Sollevatori" UId="482">
+        <Token Text="[" UId="483" />
+        <Access Scope="LiteralConstant" UId="484">
+          <Constant UId="485">
+            <ConstantValue UId="487">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="488" />
+      </Component>
+      <Token Text="." UId="489" />
+      <Component Name="DataIn" UId="490" />
+      <Token Text="." UId="491" />
+      <Component Name="Rest_Ls" UId="492">
+        <Token Text="[" UId="493" />
+        <Access Scope="LiteralConstant" UId="494">
+          <Constant UId="495">
+            <ConstantValue UId="497">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="498" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="499" />
+  <Token Text=":=" UId="500" />
+  <Blank UId="501" />
+  <Access Scope="GlobalVariable" UId="502">
+    <Symbol UId="503">
+      <Component Name="A0301_CinghiaTrasporto_5.1_Ls_Rest_5" UId="504" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="505" />
+  <NewLine UId="506" />
+  <Blank Num="4" UId="507" />
+  <Access Scope="GlobalVariable" UId="508">
+    <Symbol UId="509">
+      <Component Name="A0301_Fermi_P2" UId="510">
+        <BooleanAttribute Name="HasQuotes" UId="511">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="512" />
+      <Component Name="Sollevatori" UId="513">
+        <Token Text="[" UId="514" />
+        <Access Scope="LiteralConstant" UId="515">
+          <Constant UId="516">
+            <ConstantValue UId="518">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="519" />
+      </Component>
+      <Token Text="." UId="520" />
+      <Component Name="DataIn" UId="521" />
+      <Token Text="." UId="522" />
+      <Component Name="Work_Ls" UId="523">
+        <Token Text="[" UId="524" />
+        <Access Scope="LiteralConstant" UId="525">
+          <Constant UId="526">
+            <ConstantValue UId="528">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="529" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="530" />
+  <Token Text=":=" UId="531" />
+  <Blank UId="532" />
+  <Access Scope="GlobalVariable" UId="533">
+    <Symbol UId="534">
+      <Component Name="A0301_CinghiaTrasporto_5.1_Ls_Work_6" UId="535" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="536" />
+  <NewLine UId="537" />
+  <Blank Num="4" UId="538" />
+  <Access Scope="GlobalVariable" UId="539">
+    <Symbol UId="540">
+      <Component Name="A0301_Fermi_P2" UId="541">
+        <BooleanAttribute Name="HasQuotes" UId="542">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="543" />
+      <Component Name="Sollevatori" UId="544">
+        <Token Text="[" UId="545" />
+        <Access Scope="LiteralConstant" UId="546">
+          <Constant UId="547">
+            <ConstantValue UId="549">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="550" />
+      </Component>
+      <Token Text="." UId="551" />
+      <Component Name="DataIn" UId="552" />
+      <Token Text="." UId="553" />
+      <Component Name="Rest_Ls" UId="554">
+        <Token Text="[" UId="555" />
+        <Access Scope="LiteralConstant" UId="556">
+          <Constant UId="557">
+            <ConstantValue UId="559">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="560" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="561" />
+  <Token Text=":=" UId="562" />
+  <Blank UId="563" />
+  <Access Scope="GlobalVariable" UId="564">
+    <Symbol UId="565">
+      <Component Name="A0301_CinghiaTrasporto_6.1_Ls_Rest_5" UId="566" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="567" />
+  <NewLine UId="568" />
+  <Blank Num="4" UId="569" />
+  <Access Scope="GlobalVariable" UId="570">
+    <Symbol UId="571">
+      <Component Name="A0301_Fermi_P2" UId="572">
+        <BooleanAttribute Name="HasQuotes" UId="573">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="574" />
+      <Component Name="Sollevatori" UId="575">
+        <Token Text="[" UId="576" />
+        <Access Scope="LiteralConstant" UId="577">
+          <Constant UId="578">
+            <ConstantValue UId="580">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="581" />
+      </Component>
+      <Token Text="." UId="582" />
+      <Component Name="DataIn" UId="583" />
+      <Token Text="." UId="584" />
+      <Component Name="Work_Ls" UId="585">
+        <Token Text="[" UId="586" />
+        <Access Scope="LiteralConstant" UId="587">
+          <Constant UId="588">
+            <ConstantValue UId="590">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="591" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="592" />
+  <Token Text=":=" UId="593" />
+  <Blank UId="594" />
+  <Access Scope="GlobalVariable" UId="595">
+    <Symbol UId="596">
+      <Component Name="A0301_CinghiaTrasporto_6.1_Ls_Work_6" UId="597" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="598" />
+  <NewLine UId="599" />
+  <Blank Num="4" UId="600" />
+  <NewLine UId="601" />
+  <Token Text="END_REGION" UId="602" />
+  <Blank UId="603" />
+  <Text UId="604">;</Text>
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; TRASFERIMENTO stati DataIn  &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>TRUE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="A03_HMI" />
+        <Component Name="MB3" />
+        <Component Name="Button" />
+        <Component Name="A0301" />
+        <Component Name="P2" />
+        <Component Name="Fermi" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="23">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="24">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="25">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="GlobalVariable" UId="26">
+      <Symbol>
+        <Component Name="A03_HMI" />
+        <Component Name="MB3" />
+        <Component Name="Button" />
+        <Component Name="PB_Empty" />
+        <Component Name="Valve" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="27">
+      <Symbol>
+        <Component Name="A0301_Fermi_P2" />
+        <Component Name="Fermi" AccessModifier="Array">
+          <Access Scope="LiteralConstant">
+            <Constant>
+              <ConstantType>DInt</ConstantType>
+              <ConstantValue>1</ConstantValue>
+            </Constant>
+          </Access>
+        </Component>
+        <Component Name="DataIn" />
+        <Component Name="PB" />
+      </Symbol>
+    </Access>
+    <Call UId="28">
+      <CallInfo Name="ValveMachine_PB_Connector" BlockType="FC">
+        <Parameter Name="Enable" Section="Input" Type="Bool" />
+        <Parameter Name="HMI_PB" Section="Input" Type="&quot;ValveMachine_PB&quot;" />
+        <Parameter Name="LB_PB_Rest" Section="Input" Type="Bool" />
+        <Parameter Name="LB_PB_Work" Section="Input" Type="Bool" />
+        <Parameter Name="LB_PB_StartStop" Section="Input" Type="Bool" />
+        <Parameter Name="Other_PB" Section="Input" Type="&quot;ValveMachine_PB&quot;" />
+        <Parameter Name="PB" Section="Output" Type="&quot;ValveMachine_PB&quot;" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="29">
+      <Powerrail />
+      <NameCon UId="28" Name="en" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="21" />
+      <NameCon UId="28" Name="Enable" />
+    </Wire>
+    <Wire UId="31">
+      <IdentCon UId="22" />
+      <NameCon UId="28" Name="HMI_PB" />
+    </Wire>
+    <Wire UId="32">
+      <IdentCon UId="23" />
+      <NameCon UId="28" Name="LB_PB_Rest" />
+    </Wire>
+    <Wire UId="33">
+      <IdentCon UId="24" />
+      <NameCon UId="28" Name="LB_PB_Work" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="25" />
+      <NameCon UId="28" Name="LB_PB_StartStop" />
+    </Wire>
+    <Wire UId="35">
+      <IdentCon UId="26" />
+      <NameCon UId="28" Name="Other_PB" />
+    </Wire>
+    <Wire UId="36">
+      <NameCon UId="28" Name="PB" />
+      <IdentCon UId="27" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>DataIn - Fermi</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> TRASFERIMENTO STATO PULSANTI - Comando manuale diretto </Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Fermi_P2" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="Fermi" UId="29">
+        <Token Text="[" UId="30" />
+        <Access Scope="LiteralConstant" UId="31">
+          <Constant UId="32">
+            <ConstantValue UId="34">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="35" />
+      </Component>
+      <Token Text="." UId="36" />
+      <Component Name="DataIn" UId="37" />
+      <Token Text="." UId="38" />
+      <Component Name="PB" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="GlobalVariable" UId="43">
+    <Symbol UId="44">
+      <Component Name="A0301_Fermi_P2" UId="45">
+        <BooleanAttribute Name="HasQuotes" UId="46">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="47" />
+      <Component Name="Fermi" UId="48">
+        <Token Text="[" UId="49" />
+        <Access Scope="LiteralConstant" UId="50">
+          <Constant UId="51">
+            <ConstantValue UId="53">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="54" />
+      </Component>
+      <Token Text="." UId="55" />
+      <Component Name="DataIn" UId="56" />
+      <Token Text="." UId="57" />
+      <Component Name="PB" UId="58" />
+    </Symbol>
+  </Access>
+  <Blank UId="59" />
+  <Token Text=":=" UId="60" />
+  <Blank UId="61" />
+  <Access Scope="GlobalVariable" UId="62">
+    <Symbol UId="63">
+      <Component Name="A0301_Fermi_P2" UId="64">
+        <BooleanAttribute Name="HasQuotes" UId="65">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="66" />
+      <Component Name="Fermi" UId="67">
+        <Token Text="[" UId="68" />
+        <Access Scope="LiteralConstant" UId="69">
+          <Constant UId="70">
+            <ConstantValue UId="72">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="73" />
+      </Component>
+      <Token Text="." UId="74" />
+      <Component Name="DataIn" UId="75" />
+      <Token Text="." UId="76" />
+      <Component Name="PB" UId="77" />
+    </Symbol>
+  </Access>
+  <Blank UId="78" />
+  <Token Text=":=" UId="79" />
+  <NewLine UId="80" />
+  <Access Scope="GlobalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="A0301_Fermi_P2" UId="83">
+        <BooleanAttribute Name="HasQuotes" UId="84">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="85" />
+      <Component Name="Fermi" UId="86">
+        <Token Text="[" UId="87" />
+        <Access Scope="LiteralConstant" UId="88">
+          <Constant UId="89">
+            <ConstantValue UId="91">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="92" />
+      </Component>
+      <Token Text="." UId="93" />
+      <Component Name="DataIn" UId="94" />
+      <Token Text="." UId="95" />
+      <Component Name="PB" UId="96" />
+    </Symbol>
+  </Access>
+  <Blank UId="97" />
+  <Token Text=":=" UId="98" />
+  <Blank UId="99" />
+  <Access Scope="GlobalVariable" UId="100">
+    <Symbol UId="101">
+      <Component Name="A0301_Fermi_P2" UId="102">
+        <BooleanAttribute Name="HasQuotes" UId="103">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="104" />
+      <Component Name="Fermi" UId="105">
+        <Token Text="[" UId="106" />
+        <Access Scope="LiteralConstant" UId="107">
+          <Constant UId="108">
+            <ConstantValue UId="110">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="111" />
+      </Component>
+      <Token Text="." UId="112" />
+      <Component Name="DataIn" UId="113" />
+      <Token Text="." UId="114" />
+      <Component Name="PB" UId="115" />
+    </Symbol>
+  </Access>
+  <Blank UId="116" />
+  <Token Text=":=" UId="117" />
+  <Blank UId="118" />
+  <Access Scope="GlobalVariable" UId="119">
+    <Symbol UId="120">
+      <Component Name="A0301_Fermi_P2" UId="121">
+        <BooleanAttribute Name="HasQuotes" UId="122">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="123" />
+      <Component Name="Fermi" UId="124">
+        <Token Text="[" UId="125" />
+        <Access Scope="LiteralConstant" UId="126">
+          <Constant UId="127">
+            <ConstantValue UId="129">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="130" />
+      </Component>
+      <Token Text="." UId="131" />
+      <Component Name="DataIn" UId="132" />
+      <Token Text="." UId="133" />
+      <Component Name="PB" UId="134" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="135" />
+  <NewLine UId="136" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>DataIn - Fermi [1..6]</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="29" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LiteralConstant" UId="21">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>TRUE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="A03_HMI" />
+        <Component Name="MB3" />
+        <Component Name="Button" />
+        <Component Name="A0301" />
+        <Component Name="P2" />
+        <Component Name="Sollevatori" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="23">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="24">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LiteralConstant" UId="25">
+      <Constant>
+        <ConstantType>Bool</ConstantType>
+        <ConstantValue>FALSE</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="GlobalVariable" UId="26">
+      <Symbol>
+        <Component Name="A03_HMI" />
+        <Component Name="MB3" />
+        <Component Name="Button" />
+        <Component Name="PB_Empty" />
+        <Component Name="Valve" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="27">
+      <Symbol>
+        <Component Name="A0301_Fermi_P2" />
+        <Component Name="Sollevatori" AccessModifier="Array">
+          <Access Scope="LiteralConstant">
+            <Constant>
+              <ConstantType>DInt</ConstantType>
+              <ConstantValue>1</ConstantValue>
+            </Constant>
+          </Access>
+        </Component>
+        <Component Name="DataIn" />
+        <Component Name="PB" />
+      </Symbol>
+    </Access>
+    <Call UId="28">
+      <CallInfo Name="ValveMachine_PB_Connector" BlockType="FC">
+        <Parameter Name="Enable" Section="Input" Type="Bool" />
+        <Parameter Name="HMI_PB" Section="Input" Type="&quot;ValveMachine_PB&quot;" />
+        <Parameter Name="LB_PB_Rest" Section="Input" Type="Bool" />
+        <Parameter Name="LB_PB_Work" Section="Input" Type="Bool" />
+        <Parameter Name="LB_PB_StartStop" Section="Input" Type="Bool" />
+        <Parameter Name="Other_PB" Section="Input" Type="&quot;ValveMachine_PB&quot;" />
+        <Parameter Name="PB" Section="Output" Type="&quot;ValveMachine_PB&quot;" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="29">
+      <Powerrail />
+      <NameCon UId="28" Name="en" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="21" />
+      <NameCon UId="28" Name="Enable" />
+    </Wire>
+    <Wire UId="31">
+      <IdentCon UId="22" />
+      <NameCon UId="28" Name="HMI_PB" />
+    </Wire>
+    <Wire UId="32">
+      <IdentCon UId="23" />
+      <NameCon UId="28" Name="LB_PB_Rest" />
+    </Wire>
+    <Wire UId="33">
+      <IdentCon UId="24" />
+      <NameCon UId="28" Name="LB_PB_Work" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="25" />
+      <NameCon UId="28" Name="LB_PB_StartStop" />
+    </Wire>
+    <Wire UId="35">
+      <IdentCon UId="26" />
+      <NameCon UId="28" Name="Other_PB" />
+    </Wire>
+    <Wire UId="36">
+      <NameCon UId="28" Name="PB" />
+      <IdentCon UId="27" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2E" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>DataIn - Sollevatori</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> TRASFERIMENTO STATO PULSANTI - Comando manuale diretto </Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Fermi_P2" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="Sollevatori" UId="29">
+        <Token Text="[" UId="30" />
+        <Access Scope="LiteralConstant" UId="31">
+          <Constant UId="32">
+            <ConstantValue UId="34">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="35" />
+      </Component>
+      <Token Text="." UId="36" />
+      <Component Name="DataIn" UId="37" />
+      <Token Text="." UId="38" />
+      <Component Name="PB" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="GlobalVariable" UId="43">
+    <Symbol UId="44">
+      <Component Name="A0301_Fermi_P2" UId="45">
+        <BooleanAttribute Name="HasQuotes" UId="46">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="47" />
+      <Component Name="Sollevatori" UId="48">
+        <Token Text="[" UId="49" />
+        <Access Scope="LiteralConstant" UId="50">
+          <Constant UId="51">
+            <ConstantValue UId="53">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="54" />
+      </Component>
+      <Token Text="." UId="55" />
+      <Component Name="DataIn" UId="56" />
+      <Token Text="." UId="57" />
+      <Component Name="PB" UId="58" />
+    </Symbol>
+  </Access>
+  <Blank UId="59" />
+  <Token Text=":=" UId="60" />
+  <Blank UId="61" />
+  <Access Scope="GlobalVariable" UId="62">
+    <Symbol UId="63">
+      <Component Name="A0301_Fermi_P2" UId="64">
+        <BooleanAttribute Name="HasQuotes" UId="65">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="66" />
+      <Component Name="Sollevatori" UId="67">
+        <Token Text="[" UId="68" />
+        <Access Scope="LiteralConstant" UId="69">
+          <Constant UId="70">
+            <ConstantValue UId="72">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="73" />
+      </Component>
+      <Token Text="." UId="74" />
+      <Component Name="DataIn" UId="75" />
+      <Token Text="." UId="76" />
+      <Component Name="PB" UId="77" />
+    </Symbol>
+  </Access>
+  <Blank UId="78" />
+  <Token Text=":=" UId="79" />
+  <NewLine UId="80" />
+  <Access Scope="GlobalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="A0301_Fermi_P2" UId="83">
+        <BooleanAttribute Name="HasQuotes" UId="84">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="85" />
+      <Component Name="Sollevatori" UId="86">
+        <Token Text="[" UId="87" />
+        <Access Scope="LiteralConstant" UId="88">
+          <Constant UId="89">
+            <ConstantValue UId="91">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="92" />
+      </Component>
+      <Token Text="." UId="93" />
+      <Component Name="DataIn" UId="94" />
+      <Token Text="." UId="95" />
+      <Component Name="PB" UId="96" />
+    </Symbol>
+  </Access>
+  <Blank UId="97" />
+  <Token Text=":=" UId="98" />
+  <Blank UId="99" />
+  <Access Scope="GlobalVariable" UId="100">
+    <Symbol UId="101">
+      <Component Name="A0301_Fermi_P2" UId="102">
+        <BooleanAttribute Name="HasQuotes" UId="103">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="104" />
+      <Component Name="Sollevatori" UId="105">
+        <Token Text="[" UId="106" />
+        <Access Scope="LiteralConstant" UId="107">
+          <Constant UId="108">
+            <ConstantValue UId="110">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="111" />
+      </Component>
+      <Token Text="." UId="112" />
+      <Component Name="DataIn" UId="113" />
+      <Token Text="." UId="114" />
+      <Component Name="PB" UId="115" />
+    </Symbol>
+  </Access>
+  <Blank UId="116" />
+  <Token Text=":=" UId="117" />
+  <Blank UId="118" />
+  <Access Scope="GlobalVariable" UId="119">
+    <Symbol UId="120">
+      <Component Name="A0301_Fermi_P2" UId="121">
+        <BooleanAttribute Name="HasQuotes" UId="122">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="123" />
+      <Component Name="Sollevatori" UId="124">
+        <Token Text="[" UId="125" />
+        <Access Scope="LiteralConstant" UId="126">
+          <Constant UId="127">
+            <ConstantValue UId="129">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="130" />
+      </Component>
+      <Token Text="." UId="131" />
+      <Component Name="DataIn" UId="132" />
+      <Token Text="." UId="133" />
+      <Component Name="PB" UId="134" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="135" />
+  <NewLine UId="136" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="37" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="38" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>DataIn - Sollevatori [1..6]</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="3B" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="GlobalVariable" UId="21">
+      <Symbol>
+        <Component Name="Area03" />
+        <Component Name="AreaInterface" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="F_DB" />
+        <Component Name="ZSI_Zone21" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="23">
+      <Symbol>
+        <Component Name="F_DB" />
+        <Component Name="DSI_V_Air_A0301_A0302" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="24">
+      <Symbol>
+        <Component Name="PrjConfig_A03" />
+        <Component Name="A0301" />
+        <Component Name="Fermi_P2" />
+      </Symbol>
+    </Access>
+    <Call UId="25">
+      <CallInfo Name="A0301_Fermi_P2_FB" BlockType="FB">
+        <Instance Scope="GlobalVariable" UId="26">
+          <Component Name="A0301_Fermi_P2" />
+        </Instance>
+        <Parameter Name="AreaInterface" Section="Input" Type="&quot;AreaInterface&quot;" />
+        <Parameter Name="ZSI" Section="Input" Type="&quot;udt_ZoneSafetyInterface&quot;" />
+        <Parameter Name="DSI" Section="Input" Type="&quot;udt_DeviceSafetyInterface&quot;" />
+        <Parameter Name="DataIn" Section="Input" Type="Struct" />
+        <Parameter Name="CIn" Section="Input" Type="Struct" />
+        <Parameter Name="Config" Section="Input" Type="Struct" />
+        <Parameter Name="MachineInterface" Section="Output" Type="&quot;MachineInterface&quot;" />
+        <Parameter Name="COut" Section="Output" Type="Struct" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="31">
+      <Powerrail />
+      <NameCon UId="25" Name="en" />
+    </Wire>
+    <Wire UId="32">
+      <IdentCon UId="21" />
+      <NameCon UId="25" Name="AreaInterface" />
+    </Wire>
+    <Wire UId="33">
+      <IdentCon UId="22" />
+      <NameCon UId="25" Name="ZSI" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="23" />
+      <NameCon UId="25" Name="DSI" />
+    </Wire>
+    <Wire UId="35">
+      <OpenCon UId="27" />
+      <NameCon UId="25" Name="DataIn" />
+    </Wire>
+    <Wire UId="36">
+      <OpenCon UId="28" />
+      <NameCon UId="25" Name="CIn" />
+    </Wire>
+    <Wire UId="37">
+      <IdentCon UId="24" />
+      <NameCon UId="25" Name="Config" />
+    </Wire>
+    <Wire UId="38">
+      <NameCon UId="25" Name="MachineInterface" />
+      <OpenCon UId="29" />
+    </Wire>
+    <Wire UId="39">
+      <NameCon UId="25" Name="COut" />
+      <OpenCon UId="30" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3C" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="3D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="40" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="41" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; RICHIAMO STAZIONE 2 - FERMI P2 &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="42" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="43" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="44" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="REGION" UId="21" />
+  <Blank UId="22" />
+  <Text UId="23">COMANDO DELLE USCITE FERMI P2</Text>
+  <NewLine UId="24" />
+  <Blank Num="4" UId="25" />
+  <NewLine UId="26" />
+  <Blank Num="4" UId="27" />
+  <LineComment UId="28">
+    <Text UId="29"> Fermi blocco prodotto Stazione P2 - RIPOSO</Text>
+  </LineComment>
+  <NewLine UId="30" />
+  <Blank Num="4" UId="31" />
+  <LineComment UId="32">
+    <Text UId="33"> </Text>
+  </LineComment>
+  <NewLine UId="34" />
+  <Blank Num="4" UId="35" />
+  <Access Scope="GlobalVariable" UId="36">
+    <Symbol UId="37">
+      <Component Name="A0301_CinghiaTrasporto_1.1_V_Rest_7" UId="38" />
+    </Symbol>
+  </Access>
+  <Blank UId="39" />
+  <Token Text=":=" UId="40" />
+  <Blank UId="41" />
+  <Access Scope="GlobalVariable" UId="42">
+    <Symbol UId="43">
+      <Component Name="A0301_Fermi_P2" UId="44">
+        <BooleanAttribute Name="HasQuotes" UId="45">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="46" />
+      <Component Name="Fermi" UId="47">
+        <Token Text="[" UId="48" />
+        <Access Scope="LiteralConstant" UId="49">
+          <Constant UId="50">
+            <ConstantValue UId="52">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="53" />
+      </Component>
+      <Token Text="." UId="54" />
+      <Component Name="DataOut" UId="55" />
+      <Token Text="." UId="56" />
+      <Component Name="RestSolenoid" UId="57" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="58" />
+  <NewLine UId="59" />
+  <Blank Num="4" UId="60" />
+  <Access Scope="GlobalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="A0301_CinghiaTrasporto_2.1_V_Rest_7" UId="63" />
+    </Symbol>
+  </Access>
+  <Blank UId="64" />
+  <Token Text=":=" UId="65" />
+  <Blank UId="66" />
+  <Access Scope="GlobalVariable" UId="67">
+    <Symbol UId="68">
+      <Component Name="A0301_Fermi_P2" UId="69">
+        <BooleanAttribute Name="HasQuotes" UId="70">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="71" />
+      <Component Name="Fermi" UId="72">
+        <Token Text="[" UId="73" />
+        <Access Scope="LiteralConstant" UId="74">
+          <Constant UId="75">
+            <ConstantValue UId="77">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="78" />
+      </Component>
+      <Token Text="." UId="79" />
+      <Component Name="DataOut" UId="80" />
+      <Token Text="." UId="81" />
+      <Component Name="RestSolenoid" UId="82" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="83" />
+  <NewLine UId="84" />
+  <Blank Num="4" UId="85" />
+  <Access Scope="GlobalVariable" UId="86">
+    <Symbol UId="87">
+      <Component Name="A0301_CinghiaTrasporto_3.1_V_Rest_7" UId="88" />
+    </Symbol>
+  </Access>
+  <Blank UId="89" />
+  <Token Text=":=" UId="90" />
+  <Blank UId="91" />
+  <Access Scope="GlobalVariable" UId="92">
+    <Symbol UId="93">
+      <Component Name="A0301_Fermi_P2" UId="94">
+        <BooleanAttribute Name="HasQuotes" UId="95">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="96" />
+      <Component Name="Fermi" UId="97">
+        <Token Text="[" UId="98" />
+        <Access Scope="LiteralConstant" UId="99">
+          <Constant UId="100">
+            <ConstantValue UId="102">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="103" />
+      </Component>
+      <Token Text="." UId="104" />
+      <Component Name="DataOut" UId="105" />
+      <Token Text="." UId="106" />
+      <Component Name="RestSolenoid" UId="107" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="108" />
+  <NewLine UId="109" />
+  <Blank Num="4" UId="110" />
+  <Access Scope="GlobalVariable" UId="111">
+    <Symbol UId="112">
+      <Component Name="A0301_CinghiaTrasporto_4.1_V_Rest_7" UId="113" />
+    </Symbol>
+  </Access>
+  <Blank UId="114" />
+  <Token Text=":=" UId="115" />
+  <Blank UId="116" />
+  <Access Scope="GlobalVariable" UId="117">
+    <Symbol UId="118">
+      <Component Name="A0301_Fermi_P2" UId="119">
+        <BooleanAttribute Name="HasQuotes" UId="120">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="121" />
+      <Component Name="Fermi" UId="122">
+        <Token Text="[" UId="123" />
+        <Access Scope="LiteralConstant" UId="124">
+          <Constant UId="125">
+            <ConstantValue UId="127">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="128" />
+      </Component>
+      <Token Text="." UId="129" />
+      <Component Name="DataOut" UId="130" />
+      <Token Text="." UId="131" />
+      <Component Name="RestSolenoid" UId="132" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="133" />
+  <NewLine UId="134" />
+  <Blank Num="4" UId="135" />
+  <Access Scope="GlobalVariable" UId="136">
+    <Symbol UId="137">
+      <Component Name="A0301_CinghiaTrasporto_5.1_V_Rest_7" UId="138" />
+    </Symbol>
+  </Access>
+  <Blank UId="139" />
+  <Token Text=":=" UId="140" />
+  <Blank UId="141" />
+  <Access Scope="GlobalVariable" UId="142">
+    <Symbol UId="143">
+      <Component Name="A0301_Fermi_P2" UId="144">
+        <BooleanAttribute Name="HasQuotes" UId="145">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="146" />
+      <Component Name="Fermi" UId="147">
+        <Token Text="[" UId="148" />
+        <Access Scope="LiteralConstant" UId="149">
+          <Constant UId="150">
+            <ConstantValue UId="152">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="153" />
+      </Component>
+      <Token Text="." UId="154" />
+      <Component Name="DataOut" UId="155" />
+      <Token Text="." UId="156" />
+      <Component Name="RestSolenoid" UId="157" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="158" />
+  <NewLine UId="159" />
+  <Blank Num="4" UId="160" />
+  <Access Scope="GlobalVariable" UId="161">
+    <Symbol UId="162">
+      <Component Name="A0301_CinghiaTrasporto_6.1_V_Rest_7" UId="163" />
+    </Symbol>
+  </Access>
+  <Blank UId="164" />
+  <Token Text=":=" UId="165" />
+  <Blank UId="166" />
+  <Access Scope="GlobalVariable" UId="167">
+    <Symbol UId="168">
+      <Component Name="A0301_Fermi_P2" UId="169">
+        <BooleanAttribute Name="HasQuotes" UId="170">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="171" />
+      <Component Name="Fermi" UId="172">
+        <Token Text="[" UId="173" />
+        <Access Scope="LiteralConstant" UId="174">
+          <Constant UId="175">
+            <ConstantValue UId="177">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="178" />
+      </Component>
+      <Token Text="." UId="179" />
+      <Component Name="DataOut" UId="180" />
+      <Token Text="." UId="181" />
+      <Component Name="RestSolenoid" UId="182" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="183" />
+  <NewLine UId="184" />
+  <Blank Num="4" UId="185" />
+  <NewLine UId="186" />
+  <Blank Num="4" UId="187" />
+  <LineComment UId="188">
+    <Text UId="189"> Fermi blocco prodotto Stazione P2 - LAVORO</Text>
+  </LineComment>
+  <NewLine UId="190" />
+  <Blank Num="4" UId="191" />
+  <LineComment UId="192">
+    <Text UId="193"> </Text>
+  </LineComment>
+  <NewLine UId="194" />
+  <Blank Num="4" UId="195" />
+  <Access Scope="GlobalVariable" UId="196">
+    <Symbol UId="197">
+      <Component Name="A0301_CinghiaTrasporto_1.1_V_Work_8" UId="198" />
+    </Symbol>
+  </Access>
+  <Blank UId="199" />
+  <Token Text=":=" UId="200" />
+  <Blank UId="201" />
+  <Access Scope="GlobalVariable" UId="202">
+    <Symbol UId="203">
+      <Component Name="A0301_Fermi_P2" UId="204">
+        <BooleanAttribute Name="HasQuotes" UId="205">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="206" />
+      <Component Name="Fermi" UId="207">
+        <Token Text="[" UId="208" />
+        <Access Scope="LiteralConstant" UId="209">
+          <Constant UId="210">
+            <ConstantValue UId="212">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="213" />
+      </Component>
+      <Token Text="." UId="214" />
+      <Component Name="DataOut" UId="215" />
+      <Token Text="." UId="216" />
+      <Component Name="WorkSolenoid" UId="217" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="218" />
+  <NewLine UId="219" />
+  <Blank Num="4" UId="220" />
+  <Access Scope="GlobalVariable" UId="221">
+    <Symbol UId="222">
+      <Component Name="A0301_CinghiaTrasporto_2.1_V_Work_8" UId="223" />
+    </Symbol>
+  </Access>
+  <Blank UId="224" />
+  <Token Text=":=" UId="225" />
+  <Blank UId="226" />
+  <Access Scope="GlobalVariable" UId="227">
+    <Symbol UId="228">
+      <Component Name="A0301_Fermi_P2" UId="229">
+        <BooleanAttribute Name="HasQuotes" UId="230">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="231" />
+      <Component Name="Fermi" UId="232">
+        <Token Text="[" UId="233" />
+        <Access Scope="LiteralConstant" UId="234">
+          <Constant UId="235">
+            <ConstantValue UId="237">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="238" />
+      </Component>
+      <Token Text="." UId="239" />
+      <Component Name="DataOut" UId="240" />
+      <Token Text="." UId="241" />
+      <Component Name="WorkSolenoid" UId="242" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="243" />
+  <NewLine UId="244" />
+  <Blank Num="4" UId="245" />
+  <Access Scope="GlobalVariable" UId="246">
+    <Symbol UId="247">
+      <Component Name="A0301_CinghiaTrasporto_3.1_V_Work_8" UId="248" />
+    </Symbol>
+  </Access>
+  <Blank UId="249" />
+  <Token Text=":=" UId="250" />
+  <Blank UId="251" />
+  <Access Scope="GlobalVariable" UId="252">
+    <Symbol UId="253">
+      <Component Name="A0301_Fermi_P2" UId="254">
+        <BooleanAttribute Name="HasQuotes" UId="255">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="256" />
+      <Component Name="Fermi" UId="257">
+        <Token Text="[" UId="258" />
+        <Access Scope="LiteralConstant" UId="259">
+          <Constant UId="260">
+            <ConstantValue UId="262">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="263" />
+      </Component>
+      <Token Text="." UId="264" />
+      <Component Name="DataOut" UId="265" />
+      <Token Text="." UId="266" />
+      <Component Name="WorkSolenoid" UId="267" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="268" />
+  <NewLine UId="269" />
+  <Blank Num="4" UId="270" />
+  <Access Scope="GlobalVariable" UId="271">
+    <Symbol UId="272">
+      <Component Name="A0301_CinghiaTrasporto_4.1_V_Work_8" UId="273" />
+    </Symbol>
+  </Access>
+  <Blank UId="274" />
+  <Token Text=":=" UId="275" />
+  <Blank UId="276" />
+  <Access Scope="GlobalVariable" UId="277">
+    <Symbol UId="278">
+      <Component Name="A0301_Fermi_P2" UId="279">
+        <BooleanAttribute Name="HasQuotes" UId="280">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="281" />
+      <Component Name="Fermi" UId="282">
+        <Token Text="[" UId="283" />
+        <Access Scope="LiteralConstant" UId="284">
+          <Constant UId="285">
+            <ConstantValue UId="287">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="288" />
+      </Component>
+      <Token Text="." UId="289" />
+      <Component Name="DataOut" UId="290" />
+      <Token Text="." UId="291" />
+      <Component Name="WorkSolenoid" UId="292" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="293" />
+  <NewLine UId="294" />
+  <Blank Num="4" UId="295" />
+  <Access Scope="GlobalVariable" UId="296">
+    <Symbol UId="297">
+      <Component Name="A0301_CinghiaTrasporto_5.1_V_Work_8" UId="298" />
+    </Symbol>
+  </Access>
+  <Blank UId="299" />
+  <Token Text=":=" UId="300" />
+  <Blank UId="301" />
+  <Access Scope="GlobalVariable" UId="302">
+    <Symbol UId="303">
+      <Component Name="A0301_Fermi_P2" UId="304">
+        <BooleanAttribute Name="HasQuotes" UId="305">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="306" />
+      <Component Name="Fermi" UId="307">
+        <Token Text="[" UId="308" />
+        <Access Scope="LiteralConstant" UId="309">
+          <Constant UId="310">
+            <ConstantValue UId="312">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="313" />
+      </Component>
+      <Token Text="." UId="314" />
+      <Component Name="DataOut" UId="315" />
+      <Token Text="." UId="316" />
+      <Component Name="WorkSolenoid" UId="317" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="318" />
+  <NewLine UId="319" />
+  <Blank Num="4" UId="320" />
+  <Access Scope="GlobalVariable" UId="321">
+    <Symbol UId="322">
+      <Component Name="A0301_CinghiaTrasporto_6.1_V_Work_8" UId="323" />
+    </Symbol>
+  </Access>
+  <Blank UId="324" />
+  <Token Text=":=" UId="325" />
+  <Blank UId="326" />
+  <Access Scope="GlobalVariable" UId="327">
+    <Symbol UId="328">
+      <Component Name="A0301_Fermi_P2" UId="329">
+        <BooleanAttribute Name="HasQuotes" UId="330">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="331" />
+      <Component Name="Fermi" UId="332">
+        <Token Text="[" UId="333" />
+        <Access Scope="LiteralConstant" UId="334">
+          <Constant UId="335">
+            <ConstantValue UId="337">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="338" />
+      </Component>
+      <Token Text="." UId="339" />
+      <Component Name="DataOut" UId="340" />
+      <Token Text="." UId="341" />
+      <Component Name="WorkSolenoid" UId="342" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="343" />
+  <NewLine UId="344" />
+  <Token Text="END_REGION" UId="345" />
+  <Blank UId="346" />
+  <Text UId="347">;</Text>
+  <NewLine Num="2" UId="348" />
+  <Token Text="REGION" UId="349" />
+  <Blank UId="350" />
+  <Text UId="351">COMANDO DELLE USCITE SOLLEVATORE P2</Text>
+  <NewLine UId="352" />
+  <Blank Num="4" UId="353" />
+  <LineComment UId="354">
+    <Text UId="355"> Sollevatore Semi guscio prodotto Stazione P2 - RIPOSO</Text>
+  </LineComment>
+  <NewLine UId="356" />
+  <Blank Num="4" UId="357" />
+  <LineComment UId="358">
+    <Text UId="359"> </Text>
+  </LineComment>
+  <NewLine UId="360" />
+  <Blank Num="4" UId="361" />
+  <Access Scope="GlobalVariable" UId="362">
+    <Symbol UId="363">
+      <Component Name="A0301_CinghiaTrasporto_1.1_V_Rest_5" UId="364" />
+    </Symbol>
+  </Access>
+  <Blank UId="365" />
+  <Token Text=":=" UId="366" />
+  <Blank UId="367" />
+  <Access Scope="GlobalVariable" UId="368">
+    <Symbol UId="369">
+      <Component Name="A0301_Fermi_P2" UId="370">
+        <BooleanAttribute Name="HasQuotes" UId="371">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="372" />
+      <Component Name="Sollevatori" UId="373">
+        <Token Text="[" UId="374" />
+        <Access Scope="LiteralConstant" UId="375">
+          <Constant UId="376">
+            <ConstantValue UId="378">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="379" />
+      </Component>
+      <Token Text="." UId="380" />
+      <Component Name="DataOut" UId="381" />
+      <Token Text="." UId="382" />
+      <Component Name="RestSolenoid" UId="383" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="384" />
+  <NewLine UId="385" />
+  <Blank Num="4" UId="386" />
+  <Access Scope="GlobalVariable" UId="387">
+    <Symbol UId="388">
+      <Component Name="A0301_CinghiaTrasporto_2.1_V_Rest_5" UId="389" />
+    </Symbol>
+  </Access>
+  <Blank UId="390" />
+  <Token Text=":=" UId="391" />
+  <Blank UId="392" />
+  <Access Scope="GlobalVariable" UId="393">
+    <Symbol UId="394">
+      <Component Name="A0301_Fermi_P2" UId="395">
+        <BooleanAttribute Name="HasQuotes" UId="396">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="397" />
+      <Component Name="Sollevatori" UId="398">
+        <Token Text="[" UId="399" />
+        <Access Scope="LiteralConstant" UId="400">
+          <Constant UId="401">
+            <ConstantValue UId="403">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="404" />
+      </Component>
+      <Token Text="." UId="405" />
+      <Component Name="DataOut" UId="406" />
+      <Token Text="." UId="407" />
+      <Component Name="RestSolenoid" UId="408" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="409" />
+  <NewLine UId="410" />
+  <Blank Num="4" UId="411" />
+  <Access Scope="GlobalVariable" UId="412">
+    <Symbol UId="413">
+      <Component Name="A0301_CinghiaTrasporto_3.1_V_Rest_5" UId="414" />
+    </Symbol>
+  </Access>
+  <Blank UId="415" />
+  <Token Text=":=" UId="416" />
+  <Blank UId="417" />
+  <Access Scope="GlobalVariable" UId="418">
+    <Symbol UId="419">
+      <Component Name="A0301_Fermi_P2" UId="420">
+        <BooleanAttribute Name="HasQuotes" UId="421">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="422" />
+      <Component Name="Sollevatori" UId="423">
+        <Token Text="[" UId="424" />
+        <Access Scope="LiteralConstant" UId="425">
+          <Constant UId="426">
+            <ConstantValue UId="428">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="429" />
+      </Component>
+      <Token Text="." UId="430" />
+      <Component Name="DataOut" UId="431" />
+      <Token Text="." UId="432" />
+      <Component Name="RestSolenoid" UId="433" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="434" />
+  <NewLine UId="435" />
+  <Blank Num="4" UId="436" />
+  <Access Scope="GlobalVariable" UId="437">
+    <Symbol UId="438">
+      <Component Name="A0301_CinghiaTrasporto_4.1_V_Rest_5" UId="439" />
+    </Symbol>
+  </Access>
+  <Blank UId="440" />
+  <Token Text=":=" UId="441" />
+  <Blank UId="442" />
+  <Access Scope="GlobalVariable" UId="443">
+    <Symbol UId="444">
+      <Component Name="A0301_Fermi_P2" UId="445">
+        <BooleanAttribute Name="HasQuotes" UId="446">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="447" />
+      <Component Name="Sollevatori" UId="448">
+        <Token Text="[" UId="449" />
+        <Access Scope="LiteralConstant" UId="450">
+          <Constant UId="451">
+            <ConstantValue UId="453">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="454" />
+      </Component>
+      <Token Text="." UId="455" />
+      <Component Name="DataOut" UId="456" />
+      <Token Text="." UId="457" />
+      <Component Name="RestSolenoid" UId="458" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="459" />
+  <NewLine UId="460" />
+  <Blank Num="4" UId="461" />
+  <Access Scope="GlobalVariable" UId="462">
+    <Symbol UId="463">
+      <Component Name="A0301_CinghiaTrasporto_5.1_V_Rest_5" UId="464" />
+    </Symbol>
+  </Access>
+  <Blank UId="465" />
+  <Token Text=":=" UId="466" />
+  <Blank UId="467" />
+  <Access Scope="GlobalVariable" UId="468">
+    <Symbol UId="469">
+      <Component Name="A0301_Fermi_P2" UId="470">
+        <BooleanAttribute Name="HasQuotes" UId="471">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="472" />
+      <Component Name="Sollevatori" UId="473">
+        <Token Text="[" UId="474" />
+        <Access Scope="LiteralConstant" UId="475">
+          <Constant UId="476">
+            <ConstantValue UId="478">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="479" />
+      </Component>
+      <Token Text="." UId="480" />
+      <Component Name="DataOut" UId="481" />
+      <Token Text="." UId="482" />
+      <Component Name="RestSolenoid" UId="483" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="484" />
+  <NewLine UId="485" />
+  <Blank Num="4" UId="486" />
+  <Access Scope="GlobalVariable" UId="487">
+    <Symbol UId="488">
+      <Component Name="A0301_CinghiaTrasporto_6.1_V_Rest_5" UId="489" />
+    </Symbol>
+  </Access>
+  <Blank UId="490" />
+  <Token Text=":=" UId="491" />
+  <Blank UId="492" />
+  <Access Scope="GlobalVariable" UId="493">
+    <Symbol UId="494">
+      <Component Name="A0301_Fermi_P2" UId="495">
+        <BooleanAttribute Name="HasQuotes" UId="496">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="497" />
+      <Component Name="Sollevatori" UId="498">
+        <Token Text="[" UId="499" />
+        <Access Scope="LiteralConstant" UId="500">
+          <Constant UId="501">
+            <ConstantValue UId="503">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="504" />
+      </Component>
+      <Token Text="." UId="505" />
+      <Component Name="DataOut" UId="506" />
+      <Token Text="." UId="507" />
+      <Component Name="RestSolenoid" UId="508" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="509" />
+  <NewLine UId="510" />
+  <Blank Num="4" UId="511" />
+  <NewLine UId="512" />
+  <Blank Num="4" UId="513" />
+  <LineComment UId="514">
+    <Text UId="515"> Sollevatore Semi guscio prodotto Stazione P2 - LAVORO</Text>
+  </LineComment>
+  <NewLine UId="516" />
+  <Blank Num="4" UId="517" />
+  <LineComment UId="518">
+    <Text UId="519"> </Text>
+  </LineComment>
+  <NewLine UId="520" />
+  <Blank Num="4" UId="521" />
+  <Access Scope="GlobalVariable" UId="522">
+    <Symbol UId="523">
+      <Component Name="A0301_CinghiaTrasporto_1.1_V_Work_6" UId="524" />
+    </Symbol>
+  </Access>
+  <Blank UId="525" />
+  <Token Text=":=" UId="526" />
+  <Blank UId="527" />
+  <Access Scope="GlobalVariable" UId="528">
+    <Symbol UId="529">
+      <Component Name="A0301_Fermi_P2" UId="530">
+        <BooleanAttribute Name="HasQuotes" UId="531">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="532" />
+      <Component Name="Sollevatori" UId="533">
+        <Token Text="[" UId="534" />
+        <Access Scope="LiteralConstant" UId="535">
+          <Constant UId="536">
+            <ConstantValue UId="538">1</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="539" />
+      </Component>
+      <Token Text="." UId="540" />
+      <Component Name="DataOut" UId="541" />
+      <Token Text="." UId="542" />
+      <Component Name="WorkSolenoid" UId="543" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="544" />
+  <NewLine UId="545" />
+  <Blank Num="4" UId="546" />
+  <Access Scope="GlobalVariable" UId="547">
+    <Symbol UId="548">
+      <Component Name="A0301_CinghiaTrasporto_2.1_V_Work_6" UId="549" />
+    </Symbol>
+  </Access>
+  <Blank UId="550" />
+  <Token Text=":=" UId="551" />
+  <Blank UId="552" />
+  <Access Scope="GlobalVariable" UId="553">
+    <Symbol UId="554">
+      <Component Name="A0301_Fermi_P2" UId="555">
+        <BooleanAttribute Name="HasQuotes" UId="556">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="557" />
+      <Component Name="Sollevatori" UId="558">
+        <Token Text="[" UId="559" />
+        <Access Scope="LiteralConstant" UId="560">
+          <Constant UId="561">
+            <ConstantValue UId="563">2</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="564" />
+      </Component>
+      <Token Text="." UId="565" />
+      <Component Name="DataOut" UId="566" />
+      <Token Text="." UId="567" />
+      <Component Name="WorkSolenoid" UId="568" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="569" />
+  <NewLine UId="570" />
+  <Blank Num="4" UId="571" />
+  <Access Scope="GlobalVariable" UId="572">
+    <Symbol UId="573">
+      <Component Name="A0301_CinghiaTrasporto_3.1_V_Work_6" UId="574" />
+    </Symbol>
+  </Access>
+  <Blank UId="575" />
+  <Token Text=":=" UId="576" />
+  <Blank UId="577" />
+  <Access Scope="GlobalVariable" UId="578">
+    <Symbol UId="579">
+      <Component Name="A0301_Fermi_P2" UId="580">
+        <BooleanAttribute Name="HasQuotes" UId="581">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="582" />
+      <Component Name="Sollevatori" UId="583">
+        <Token Text="[" UId="584" />
+        <Access Scope="LiteralConstant" UId="585">
+          <Constant UId="586">
+            <ConstantValue UId="588">3</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="589" />
+      </Component>
+      <Token Text="." UId="590" />
+      <Component Name="DataOut" UId="591" />
+      <Token Text="." UId="592" />
+      <Component Name="WorkSolenoid" UId="593" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="594" />
+  <NewLine UId="595" />
+  <Blank Num="4" UId="596" />
+  <Access Scope="GlobalVariable" UId="597">
+    <Symbol UId="598">
+      <Component Name="A0301_CinghiaTrasporto_4.1_V_Work_6" UId="599" />
+    </Symbol>
+  </Access>
+  <Blank UId="600" />
+  <Token Text=":=" UId="601" />
+  <Blank UId="602" />
+  <Access Scope="GlobalVariable" UId="603">
+    <Symbol UId="604">
+      <Component Name="A0301_Fermi_P2" UId="605">
+        <BooleanAttribute Name="HasQuotes" UId="606">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="607" />
+      <Component Name="Sollevatori" UId="608">
+        <Token Text="[" UId="609" />
+        <Access Scope="LiteralConstant" UId="610">
+          <Constant UId="611">
+            <ConstantValue UId="613">4</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="614" />
+      </Component>
+      <Token Text="." UId="615" />
+      <Component Name="DataOut" UId="616" />
+      <Token Text="." UId="617" />
+      <Component Name="WorkSolenoid" UId="618" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="619" />
+  <NewLine UId="620" />
+  <Blank Num="4" UId="621" />
+  <Access Scope="GlobalVariable" UId="622">
+    <Symbol UId="623">
+      <Component Name="A0301_CinghiaTrasporto_5.1_V_Work_6" UId="624" />
+    </Symbol>
+  </Access>
+  <Blank UId="625" />
+  <Token Text=":=" UId="626" />
+  <Blank UId="627" />
+  <Access Scope="GlobalVariable" UId="628">
+    <Symbol UId="629">
+      <Component Name="A0301_Fermi_P2" UId="630">
+        <BooleanAttribute Name="HasQuotes" UId="631">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="632" />
+      <Component Name="Sollevatori" UId="633">
+        <Token Text="[" UId="634" />
+        <Access Scope="LiteralConstant" UId="635">
+          <Constant UId="636">
+            <ConstantValue UId="638">5</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="639" />
+      </Component>
+      <Token Text="." UId="640" />
+      <Component Name="DataOut" UId="641" />
+      <Token Text="." UId="642" />
+      <Component Name="WorkSolenoid" UId="643" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="644" />
+  <NewLine UId="645" />
+  <Blank Num="4" UId="646" />
+  <Access Scope="GlobalVariable" UId="647">
+    <Symbol UId="648">
+      <Component Name="A0301_CinghiaTrasporto_6.1_V_Work_6" UId="649" />
+    </Symbol>
+  </Access>
+  <Blank UId="650" />
+  <Token Text=":=" UId="651" />
+  <Blank UId="652" />
+  <Access Scope="GlobalVariable" UId="653">
+    <Symbol UId="654">
+      <Component Name="A0301_Fermi_P2" UId="655">
+        <BooleanAttribute Name="HasQuotes" UId="656">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="657" />
+      <Component Name="Sollevatori" UId="658">
+        <Token Text="[" UId="659" />
+        <Access Scope="LiteralConstant" UId="660">
+          <Constant UId="661">
+            <ConstantValue UId="663">6</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="664" />
+      </Component>
+      <Token Text="." UId="665" />
+      <Component Name="DataOut" UId="666" />
+      <Token Text="." UId="667" />
+      <Component Name="WorkSolenoid" UId="668" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="669" />
+  <NewLine UId="670" />
+  <Blank Num="4" UId="671" />
+  <NewLine UId="672" />
+  <Token Text="END_REGION" UId="673" />
+  <Blank UId="674" />
+  <Text UId="675">;*)</Text>
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="45" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="46" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="47" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="48" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="49" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="4A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; TRASFERIMENTO stati DataOut  &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="4B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="4C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="4D" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="4E" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="50" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

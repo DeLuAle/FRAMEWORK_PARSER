@@ -1,0 +1,208 @@
+﻿FUNCTION "Prod_Material_To_Go_Mng" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Material_Presence_RollFormer : Bool;
+      Material_Full_CoilHandling : Bool;
+      Material_Qty_FromLastCut : LReal;   // Quanta lamiera dal taglio finale al taglio di abort
+      Material_Extra : LReal;
+      SLOW_Space : LReal;
+      SET_UP : "Prod_SetUp_Data";
+   END_VAR
+
+   VAR_OUTPUT 
+      Material_To_Go : LReal;   // Materiale che manca alla fine degli ordini
+      SLOW_Fine_Ordini : Bool;
+      STOP_Taglio_Lamiera_Fine_Ordini : Bool;
+      Kanban_Presence : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+	
+	
+	"Prod_O_Counters_Sum_Update"(O_ID_Location := "PROD_ORDER_IS_AT_O_ACT",
+	                             Index         := 1);
+	
+	
+	FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	    
+	    "Prod_O_Counters_Sum_Update"(O_ID_Location := "PROD_ORDER_IS_AT_O_TODO",
+	                                 Index         := #i);
+	END_FOR;
+	
+	
+	FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	    "Prod_O_Counters_Sum_Update"(O_ID_Location := "PROD_ORDER_IS_AT_O_ENDING",
+	                                 Index         := #i);
+	END_FOR;
+	
+	
+	
+	
+	(*   
+	//########################################################################################################################################################
+	//
+	// GESTIONE CONTEGGIO MATERIALE MANCANTE ALLA FINE DEGLI ORDINI
+	// 
+	// 
+	//########################################################################################################################################################
+	*)
+	REGION INIT
+	    
+	    
+	    #SLOW_Fine_Ordini := FALSE;
+	    #STOP_Taglio_Lamiera_Fine_Ordini := FALSE;
+	    #Kanban_Presence := FALSE;
+	    
+	    
+	    #Material_To_Go := 0;
+	    
+	END_REGION
+	
+	
+	
+	REGION Condizini
+	    
+	    IF NOT #Material_Presence_RollFormer THEN
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	REGION Somma materiale nell' ordine O_ACT
+	    
+	    #RETVAL := "Prod_Item_Check_CanGoinProduction"("Production".O_ACT);
+	    
+	    IF #RETVAL >= "PROD_FUN_RESULT_OK" THEN
+	        #Material_To_Go := #Material_To_Go + "Production".O_ACT.Material_Len_ToGo;
+	        
+	        IF "Production".O_ACT.Kanban_Style THEN
+	            #Kanban_Presence := TRUE;
+	        END_IF;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	REGION Somma materiale negli ordini O_TODO
+	    
+	    // Ricerca tra gli ordini pendenti...
+	    // 
+	    FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	        
+	        #RETVAL := "Prod_Item_Check_CanGoinProduction"("Production".O_TODO[#i]);
+	        
+	        IF #RETVAL >= "PROD_FUN_RESULT_OK" THEN
+	            #Material_To_Go := #Material_To_Go + "Production".O_TODO[#i].Material_Len_ToGo;
+	            
+	            IF "Production".O_TODO[#i].Kanban_Style THEN
+	                #Kanban_Presence := TRUE;
+	            END_IF;
+	        END_IF;
+	        
+	        
+	    END_FOR;
+	    
+	END_REGION
+	
+	REGION Somma materiale negli ordini O_ENDING
+	    // Ricerca tra gli ordini in via di completamento...
+	    // 
+	    
+	    
+	    
+	    
+	    
+	    FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	        
+	        #RETVAL := "Prod_Item_Check_CanGoinProduction"("Production".O_ENDING[#i]);
+	        
+	        IF #RETVAL >= "PROD_FUN_RESULT_OK" THEN
+	            
+	            #Material_To_Go := #Material_To_Go + "Production".O_ENDING[#i].Material_Len_ToGo;
+	            
+	            IF "Production".O_TODO[#i].Kanban_Style THEN
+	                #Kanban_Presence := TRUE;
+	            END_IF;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	END_REGION
+	
+	
+	REGION Somma materiale per compensare interasse ruota di misura
+	    
+	    // Materiale in più per compensare distanza ruota di misura / taglio finale
+	    // 
+	    #Material_To_Go := #Material_To_Go + #Material_Extra;
+	    
+	END_REGION
+	
+	
+	
+	REGION Sottrazione materiale che c'è in macchina
+	    
+	    // Sottrazione materiale che c'è tra il taglio di abort ed il taglio finale + materiale uscito dalla lama di taglio
+	    // 
+	    #Material_To_Go := #Material_To_Go - #Material_Qty_FromLastCut;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION Rallentamento / Stop per eseguire Taglio di interruzione produzione
+	    
+	    
+	    // Rallentamento profilo perchè siamo vicini alla posizione di esecuzione taglio di abort
+	    // 
+	    #SLOW_Fine_Ordini := #Material_To_Go <= #SLOW_Space;
+	    
+	    
+	    // Stop avanzamento profilo perchè è arrivata la posizione di esecuzione taglio di abort
+	    // 
+	    #STOP_Taglio_Lamiera_Fine_Ordini := #Material_To_Go <= 0.0;
+	    
+	    // Se almeno un ordine è Kanban non si deve mai interrompere il rotolo perchè si usa fino alla fine
+	    IF #Kanban_Presence THEN
+	        #SLOW_Fine_Ordini := FALSE;
+	        #STOP_Taglio_Lamiera_Fine_Ordini := FALSE;
+	    END_IF;
+	    
+	    // Se CoilHandling non è Full ovvero se è vuoto|Fine rotolo|Taglio di interruzione eseguito
+	    // Allora si può interrompere lo stop perchè ci sono le condizioni per il vuotamento
+	    // 
+	    IF NOT #Material_Full_CoilHandling THEN
+	        #SLOW_Fine_Ordini := FALSE;
+	        #STOP_Taglio_Lamiera_Fine_Ordini := FALSE;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

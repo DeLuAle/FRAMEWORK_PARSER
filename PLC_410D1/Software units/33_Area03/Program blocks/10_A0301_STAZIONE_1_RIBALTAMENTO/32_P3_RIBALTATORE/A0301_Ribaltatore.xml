@@ -1,0 +1,240 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0301_Ribaltatore_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI_Feed" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DSI_Valve" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="Drive" Datatype="&quot;TAx_DriveInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="OP_MoveToPos_PB" Datatype="Bool" />
+      <Member Name="OP_Rest_PB" Datatype="Bool" />
+      <Member Name="OP_Work_PB" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Manager&quot;" />
+        <Member Name="Solleva" Datatype="&quot;ValveMachine_Manager&quot;" />
+      </Member>
+      <Member Name="SemiAut_PB" Datatype="Bool" />
+      <Member Name="Ax_Req" Datatype="Struct">
+        <Member Name="Pos0" Datatype="Bool" />
+        <Member Name="Pos1" Datatype="Bool" />
+        <Member Name="Pos2" Datatype="Bool" />
+        <Member Name="Pos3" Datatype="Bool" />
+      </Member>
+      <Member Name="P2" Datatype="Struct">
+        <Member Name="Fermi" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Sollevatore" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="P3" Datatype="Struct">
+        <Member Name="Fermi" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="P4" Datatype="Struct">
+        <Member Name="Fermi" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="Trasporto" Datatype="&quot;SpeedMachine_COut&quot;" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Config_NEW&quot;" />
+      <Member Name="Solleva_Rib" Datatype="Array[1..6] of &quot;ValveMachine_Config&quot;" />
+    </Member>
+    <Member Name="HWID_Ax_TEL111" Datatype="HW_SUBMODULE" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="DataOut" Datatype="&quot;Positioning_EPOS_Machine_DataOut&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Solleva_Rib" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Ribaltatore" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+      <Member Name="Ribaltatore_Sts" Datatype="Struct">
+        <Member Name="Pos0_Reached" Datatype="Bool" />
+        <Member Name="Pos1_Reached" Datatype="Bool" />
+        <Member Name="Pos2_Reached" Datatype="Bool" />
+        <Member Name="Pos3_Reached" Datatype="Bool" />
+      </Member>
+      <Member Name="Ribaltatore_AtRest" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par_Manu" Datatype="&quot;Positioning_EPOS_Machine_Par&quot;" />
+    <Member Name="Par_Aut" Datatype="&quot;A0301_Mach_Ribaltatore_Par&quot;" />
+    <Member Name="Pers_Data" Datatype="Struct">
+      <Member Name="EncoderAbsolute_Preset_OK" Datatype="Bool" />
+      <Member Name="Persistent_ActualPosition" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Solleva_Rib" Datatype="Array[1..6] of &quot;ValveAlr&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Alr&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Wng&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Solleva_Rib" Datatype="Array[1..6] of &quot;ValveMachine_Wng&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="OP_REST_MissingCnd" Datatype="Bool" />
+      <Member Name="OP_WORK_MissingCnd" Datatype="Bool" />
+    </Member>
+    <Member Name="ValueVelOvr" Datatype="Array[1..10] of Real">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_FB_NEW&quot;" />
+    <Member Name="Solleva_Rib" Datatype="Array[1..6] of &quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON" Datatype="Struct">
+      <Member Name="DelayPos1_SG" Datatype="IEC_TIMER" Version="1.0" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="ReadyForMove" Datatype="Bool" />
+      <Member Name="OP_CanMoveFreely" Datatype="Bool" />
+      <Member Name="OP_MoveToPos_Cnd" Datatype="Bool" />
+      <Member Name="OP_Rest_Cnd" Datatype="Bool" />
+      <Member Name="OP_Work_Cnd" Datatype="Bool" />
+      <Member Name="Solleva_Rib_AlarmPresence" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Ribaltatore" Datatype="Struct">
+        <Member Name="OP_MoveToPos" Datatype="Bool" />
+        <Member Name="Ax_MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="Solleva" Datatype="Struct">
+        <Member Name="OP_Rest_Man" Datatype="Bool" />
+        <Member Name="OP_Work_Man" Datatype="Bool" />
+        <Member Name="OP_Rest_Aut" Datatype="Bool" />
+        <Member Name="OP_Work_Aut" Datatype="Bool" />
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Ax" Datatype="Struct">
+        <Member Name="B_Preset" Datatype="Bool" />
+        <Member Name="PresetPosition" Datatype="LReal" />
+        <Member Name="TargetPosition" Datatype="LReal" />
+      </Member>
+      <Member Name="SollevaRibSts" Datatype="&quot;UDT_HMI-Sts_ValvePosA0301&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="OP_Sel_Pos0" Datatype="Bool" />
+      <Member Name="OP_Sel_Pos1" Datatype="Bool" />
+      <Member Name="OP_Sel_Pos2" Datatype="Bool" />
+      <Member Name="OP_Sel_Pos3" Datatype="Bool" />
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="Solleva_Rib" Datatype="Struct">
+        <Member Name="OP_Rest_PB" Datatype="Bool" />
+        <Member Name="OP_Work_PB" Datatype="Bool" />
+      </Member>
+      <Member Name="Ribaltatore" Datatype="Struct">
+        <Member Name="Ax_MoveToPos_PB" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="TON_Anticipi" Datatype="Struct">
+      <Member Name="Rest" Datatype="Struct">
+        <Member Name="SollevaRib" Datatype="IEC_TIMER" Version="1.0">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="Work" Datatype="Struct">
+        <Member Name="SollevaRib" Datatype="IEC_TIMER" Version="1.0" />
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>A0301_Ribaltatore</Name>
+      <Namespace />
+      <Number>77</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

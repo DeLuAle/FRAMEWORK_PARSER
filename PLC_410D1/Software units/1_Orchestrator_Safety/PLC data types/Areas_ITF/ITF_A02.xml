@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="PostPunch_MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="Infeed_REQ_ON" Datatype="Bool">
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="PB" Datatype="Struct">
+      <Member Name="MB2_PB_Reset" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="MB2_Area01_PB_Start" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="MB2_Area01_PB_Stop" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="MB2_Area03_PB_Start" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="MB2_Area03_PB_Stop" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="MB2_Loop1_PB" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="LB114_Interlock_PB_FeedA01" Datatype="Bool" />
+      <Member Name="Area_DataOut_LampCycle" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_SuperUser" Datatype="Struct">
+      <Member Name="PbSafetyReset" Datatype="Bool" />
+      <Member Name="SgnSafetyReset" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_EntryEnable" Datatype="Struct">
+      <Member Name="Z11" Datatype="Bool" />
+      <Member Name="Z13" Datatype="Bool" />
+      <Member Name="Z15" Datatype="Bool" />
+      <Member Name="Z20" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_CtrlSafe" Datatype="Struct">
+      <Member Name="HU_FinalCut_Motor" Datatype="Bool" />
+      <Member Name="HU_FinalCut_StandbyValve" Datatype="Bool" />
+      <Member Name="HU_FinalCut_DegasValve" Datatype="Bool" />
+      <Member Name="HU_FinalCut_SafetyValve" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta1_OP" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta1_MOT" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta2_OP" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta2_MOT" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta3_OP" Datatype="Bool" />
+      <Member Name="Sinamics_Cassetta3_MOT" Datatype="Bool" />
+      <Member Name="Sinamics_Rollformer" Datatype="Bool" />
+      <Member Name="Sinamics_FAK_Pusher" Datatype="Bool" />
+      <Member Name="Sinamics_Carriage" Datatype="Bool" />
+      <Member Name="Sinamics_AccRolls1" Datatype="Bool" />
+      <Member Name="Sinamics_AccRolls2" Datatype="Bool" />
+      <Member Name="Sinamics_AccRolls3" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_SOS" Datatype="Struct">
+      <Member Name="Rollformer" Datatype="Bool" />
+    </Member>
+    <Member Name="Doors_Closed" Datatype="Bool" />
+    <Member Name="Weld_Presence" Datatype="Bool" />
+    <Member Name="Weld_Missing_To_FinalCut" Datatype="LReal" />
+    <Member Name="Production_Running" Datatype="Bool" />
+    <Member Name="Production_Halted" Datatype="Struct">
+      <Member Name="Code" Datatype="Int" />
+      <Member Name="Message_N" Datatype="Int">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="MaterialCounter" Datatype="&quot;MatCountData&quot;" />
+    <Member Name="MaterialPresence" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">="PartsCuttingMng_PERS".Data.MaterialPresence</MultiLanguageText>
+      </Comment>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MaterialPresence_Entry" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Presenza lamiera ingresso profilatrice</MultiLanguageText>
+      </Comment>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MaterialPresence_Exit" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Presenza lamiera prima e dopo encoder profilatrice</MultiLanguageText>
+      </Comment>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="Material_Qty_FromLastCut" Datatype="LReal" />
+    <Member Name="PitTable" Datatype="Struct">
+      <Member Name="IsUp" Datatype="Bool" />
+      <Member Name="IsDown" Datatype="Bool" />
+    </Member>
+    <Member Name="Rollformer" Datatype="Struct">
+      <Member Name="VelocitySetpoint" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">TOAX.VelocitySetpoint</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="FWD_CheckNext" Datatype="Bool" />
+      <Member Name="BWD_CheckNext" Datatype="Bool" />
+    </Member>
+    <Member Name="SetUp_Profiatrice_Done" Datatype="Array[1..14] of Bool" />
+    <Member Name="PHC" Datatype="Struct">
+      <Member Name="Loop_Synchro_Request" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+    </Member>
+    <Member Name="Part_Done" Datatype="&quot;Prod_Part_Done&quot;" />
+    <Member Name="LeadCutMem" Datatype="Bool" />
+    <Member Name="StopInactivity" Datatype="Bool" />
+    <Member Name="FreeBool" Datatype="Array[1..16] of Bool" />
+    <Member Name="FreeLReal" Datatype="Array[1..16] of LReal" />
+    <Member Name="FreeDINT" Datatype="Array[1..16] of DInt" />
+  </Section>
+</Sections></Interface>
+      <Name>ITF_A02</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

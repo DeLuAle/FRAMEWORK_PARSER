@@ -1,0 +1,34 @@
+﻿FUNCTION "RollformerVelocityCalc" : LReal
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PLen : Real;
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_VEL : LReal := 36000.0;
+      MIN_VEL : LReal := 10000.0;
+      MIN_LEN : Real := 900.0;
+      MAX_LEN : Real := 2700.0;
+   END_VAR
+
+
+BEGIN
+	// Velocita profila = massima se pezzi >= 2700 mm
+	// 
+	IF #PLen >= #MAX_LEN THEN
+	    #RollformerVelocityCalc := #MAX_VEL;
+	    RETURN;
+	END_IF;
+	
+	// Velocita profila proporzionale alla lunghezza per pezzi < 2700 mm
+	// 
+	#RollformerVelocityCalc := (((#PLen - #MIN_LEN) / (#MAX_LEN - #MIN_LEN)) * (#MAX_VEL - #MIN_VEL)) + #MIN_VEL;
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

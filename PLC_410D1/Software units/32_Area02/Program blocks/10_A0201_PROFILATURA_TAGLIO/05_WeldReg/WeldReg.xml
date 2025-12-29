@@ -1,0 +1,159 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>WeldReg_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="StraightnerMaterialPresence" Datatype="Bool" />
+      <Member Name="PinchrollMaterialPresence" Datatype="Bool" />
+      <Member Name="PrePunchingMaterialPresence" Datatype="Bool" />
+      <Member Name="CoilHandling_CounterValue" Datatype="LReal" />
+      <Member Name="CoilHandling_CounterInOperation" Datatype="Bool" />
+      <Member Name="PhaseCounterValue" Datatype="LReal" />
+      <Member Name="PhaseCounterInOperation" Datatype="Bool" />
+      <Member Name="WeldDone" Datatype="Bool" />
+      <Member Name="Carriage_CounterValue" Datatype="LReal" />
+      <Member Name="PostPunching_CounterData" Datatype="&quot;MatCountData&quot;" />
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="ActTarget_P_ID" Datatype="DInt" />
+        <Member Name="ActTarget_XStart" Datatype="LReal" />
+        <Member Name="ActTarget_XEnd" Datatype="LReal" />
+        <Member Name="NextTarget_P_ID" Datatype="DInt" />
+        <Member Name="NextTarget_XStart" Datatype="LReal" />
+        <Member Name="NextTarget_XEnd" Datatype="LReal" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="WeldDoneAck" Datatype="Bool" />
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="ActTarget_P_ID" Datatype="DInt" />
+        <Member Name="ActTarget_WeldPresence" Datatype="Bool" />
+        <Member Name="ActTarget_WeldEndPos" Datatype="LReal" />
+        <Member Name="NextTarget_P_ID" Datatype="DInt" />
+        <Member Name="NextTarget_WeldPresence" Datatype="Bool" />
+        <Member Name="NextTarget_WeldEndPos" Datatype="LReal" />
+        <Member Name="WeldMIssingToFinalCut" Datatype="LReal" />
+        <Member Name="WeldPresence" Datatype="Bool" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="&quot;udt_WeldReg_Pers&quot;" />
+    <Member Name="TO_WeldMeasInput" Datatype="TO_MeasuringInput" Version="8.0" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="SetScrapCaseThreading" Datatype="Bool" />
+      <Member Name="SetScrapCaseEndOfCoil" Datatype="Bool" />
+      <Member Name="SetScrapCaseFullEmptying" Datatype="Bool" />
+      <Member Name="WelderWriteRegExe" Datatype="Bool" />
+      <Member Name="MeasInp_Enable" Datatype="Bool" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="InitDone" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="WelderInitDone" Datatype="Bool" />
+      <Member Name="WelderMWCounter" Datatype="LReal" />
+      <Member Name="WelderPhaseCounter" Datatype="LReal" />
+      <Member Name="WelderBegin_PhaseCounter" Datatype="LReal" />
+      <Member Name="WelderEnd_PhaseCounter" Datatype="LReal" />
+      <Member Name="WelderBegin_MWCounter" Datatype="LReal" />
+      <Member Name="WelderEnd_MWCounter" Datatype="LReal" />
+      <Member Name="WelderWriteRegDone" Datatype="Bool" />
+      <Member Name="WelderEnableReg" Datatype="Bool" />
+      <Member Name="WelderOffsetConvPhaseCounter" Datatype="LReal" />
+      <Member Name="WelderNextScrapBegin_MWCounter" Datatype="LReal" />
+      <Member Name="LimitOlderItem" Datatype="LReal" />
+      <Member Name="WeldMeasInp" Datatype="Struct">
+        <Member Name="LastID" Datatype="UInt" />
+        <Member Name="SavedPosAxValue2" Datatype="LReal" />
+        <Member Name="SavedPosAxValue1" Datatype="LReal" />
+        <Member Name="SavedPosMatValue1" Datatype="LReal" />
+        <Member Name="SavedPosMatValue2" Datatype="LReal" />
+        <Member Name="PosBegin" Datatype="LReal" />
+        <Member Name="PosEnd" Datatype="LReal" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="DeleteWeldRegBuffer" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarms" Datatype="Struct">
+      <Member Name="WeldMeasInput" Datatype="&quot;TMeasuring_Alarms&quot;" />
+    </Member>
+    <Member Name="Diag" Datatype="Struct">
+      <Member Name="WelMeasInput" Datatype="&quot;TO_Diagnostic&quot;" />
+    </Member>
+    <Member Name="Warnings" Datatype="Struct">
+      <Member Name="NoAutReady" Datatype="Bool" />
+    </Member>
+    <Member Name="WeldMesInp" Datatype="&quot;MeasuringInput&quot;" />
+    <Member Name="WeldReg_Empty" Datatype="&quot;udt_WeldReg_Item&quot;" />
+    <Member Name="TP_Status" Datatype="Int">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>WeldReg</Name>
+      <Namespace />
+      <Number>167</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

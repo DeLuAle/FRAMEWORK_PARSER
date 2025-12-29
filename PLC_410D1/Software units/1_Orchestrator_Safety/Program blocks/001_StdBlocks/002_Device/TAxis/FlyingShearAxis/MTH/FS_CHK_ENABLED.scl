@@ -1,0 +1,13 @@
+﻿FUNCTION "FS_CHK_ENABLED" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      Ax : "FlyingShearAxis";
+   END_VAR
+
+
+BEGIN
+	#"FS_CHK_ENABLED" := #Ax.Sts.FsRunning;
+	
+END_FUNCTION
+

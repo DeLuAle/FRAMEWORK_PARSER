@@ -1,0 +1,121 @@
+﻿FUNCTION_BLOCK "Prod_O_TODO_Swap_Positions"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      UP { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      DW { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+   END_VAR
+
+   VAR_IN_OUT 
+      Index { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+   END_VAR
+
+   VAR 
+      ItemCopy { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "Prod_Item";
+      OK { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      iDest { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      iSource { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      O_ID_Source { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+      O_ID_Dest { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+      O_Temp { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+   END_VAR
+
+
+BEGIN
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// CONTROLLI INTERNI
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+	// Uscita indice TODO non valido
+	// 
+	IF (#Index < 1) OR (#Index > "PROD_TODO_ITEMS") THEN
+	    
+	    RETURN;
+	END_IF;
+	
+	
+	
+	// Uscita perchè non c'è nienete da fare
+	// 
+	
+	IF NOT (#UP OR #DW) THEN
+	   
+	    RETURN;
+	END_IF;
+	
+	
+	
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	// 
+	// Calocolo indice di destinazione con limitazione
+	// 
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	// 
+	#iSource := #Index;
+	
+	
+	// Se UP (spostare sorgente su indice + basso) e..
+	// .. Se O_ID che si muove ha valore più alto allora SWAP O_ID
+	// 
+	
+	IF #UP THEN
+	    #iDest := #iSource - 1;
+	END_IF;
+	
+	
+	// Se DW (spostare sorgente su indice + alto) e..
+	// .. Se O_ID che si muove ha valore più basso allora SWAP O_ID
+	//
+	
+	IF #DW THEN
+	    #iDest := #iSource + 1;
+	END_IF;
+	
+	
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	// 
+	// SWAP 
+	// 
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	// Controlla limiti indice di destinazione
+	// 
+	#iDest := LIMIT(MN := 1, IN := #iDest, MX := "PROD_TODO_ITEMS");
+	
+	
+	// Esegue scambio degli item O_TODO 
+	// 
+	#OK := "Prod_O_TODO_Swap"(Index_A := #iSource, Index_B := #iDest);
+	
+	
+	
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	// 
+	// AGGIORNA INDICE
+	// 
+	// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	// In uscita segnala nuova posizione se lo swap è avvenuto
+	//
+	IF #OK THEN
+	    
+	    #Index := #iDest;
+	END_IF;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

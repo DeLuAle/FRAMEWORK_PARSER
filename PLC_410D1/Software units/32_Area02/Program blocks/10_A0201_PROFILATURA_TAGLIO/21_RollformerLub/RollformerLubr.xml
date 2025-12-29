@@ -1,0 +1,1444 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>RollformerLubr_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="EStop" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Man" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Aut" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Cycle" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="RstAlarms" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="ManOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AutOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CycleOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CheckAutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="AutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aborting" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="MotionsStandStill" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="AlarmsPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="WarningPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="Pump" Datatype="&quot;Lubr_Motor&quot;">
+      <Sections>
+        <Section Name="Input">
+          <Member Name="DataIn" Datatype="Struct">
+            <Member Name="PbManualLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LubrRotationFbk" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="SensorLevel" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="MotorFdbkRunning" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="MotorThermalProtection" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="ValveCycleTimeOut" Datatype="Time">
+            <StartValue>T#5M</StartValue>
+          </Member>
+          <Member Name="Simulation" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="RunContactor" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="Ctrl" Datatype="Struct">
+            <Member Name="RunReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Sts" Datatype="Struct">
+            <Member Name="OldValve" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Alarm" Datatype="&quot;LubrMotor_Alr&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="RotationFeedback" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="LowLevelLubrication" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="MotorAlr" Datatype="&quot;MotorAlr&quot;">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="ThermalProtection" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                      <Member Name="Feedback" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="HMI" Datatype="&quot;LubrMotorPump_HMI&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="Alarm" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Running" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="LubrInterface" Datatype="&quot;LubrValve_ITF&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="Sts" Datatype="Struct">
+                  <Member Name="PumpType" Datatype="Int">
+                    <StartValue>0</StartValue>
+                  </Member>
+                  <Member Name="Running" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="Error" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                </Member>
+                <Member Name="Ctrl" Datatype="Struct">
+                  <Member Name="RstAlarms" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="WorkReq" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                </Member>
+                <Member Name="ValveChain" Datatype="Struct">
+                  <Member Name="ActualValve" Datatype="Int">
+                    <StartValue>4</StartValue>
+                  </Member>
+                  <Member Name="MaxValve" Datatype="Int">
+                    <StartValue>3</StartValue>
+                  </Member>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonRotationON" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonRotationOFF" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonLowLevel" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="ValveChianTimeOut" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#5M</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="LubrMotor" Datatype="&quot;Motor&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="MotorCtrl" Datatype="&quot;MotorCtrl&quot;">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="SafeStop" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                      <Member Name="Rst" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                      <Member Name="Run" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="ThermalProtection" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="FdbkRunning" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="FeedbackTimeout" Datatype="Time">
+                  <StartValue>T#500MS</StartValue>
+                </Member>
+                <Member Name="Simulation" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="MotorSts" Datatype="&quot;MotorSts&quot;">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="AlarmPresence" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                      <Member Name="RunPermitted" Datatype="Bool">
+                        <StartValue>TRUE</StartValue>
+                      </Member>
+                      <Member Name="Running" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="Contactor" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="DelayContactorFeedbackON" Datatype="IEC_TIMER" Version="1.0">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="PT" Datatype="Time">
+                        <StartValue>T#500MS</StartValue>
+                      </Member>
+                      <Member Name="IN" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="Ctrl_RunContactor" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="Valves1" Datatype="&quot;Lubr_Valve&quot;">
+      <Sections>
+        <Section Name="Input">
+          <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="EStop" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Man" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="Aut" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Cycle" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="RstAlarms" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ManOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CycleOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CheckAutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="DataIn" Datatype="Struct">
+            <Member Name="PbStartLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="PbStopLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="CycleFbk" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ConnectorPlugged" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="CIn" Datatype="Struct">
+            <Member Name="LubrEnable" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ActualPosition" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="OperationDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Config" Datatype="&quot;LubrValve_Config&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="WorkMode" Datatype="Int">
+                  <StartValue>2</StartValue>
+                </Member>
+                <Member Name="CounterMode" Datatype="Int">
+                  <StartValue>0</StartValue>
+                </Member>
+                <Member Name="ValveType" Datatype="Int">
+                  <StartValue>1</StartValue>
+                </Member>
+                <Member Name="ManualCmdTimeOut" Datatype="Time">
+                  <StartValue>T#5M</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Simulation" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="AutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Aborting" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="MotionsStandStill" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="AlarmsPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="WarningPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="COut" Datatype="Struct">
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="ValveCmd" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="Ctrl" Datatype="Struct">
+            <Member Name="ManualReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="AutomaticReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveCmd" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Sts" Datatype="Struct">
+            <Member Name="EstopDelayed" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveEnabled" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="WorkEnable" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="CycleDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LastFeed" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="IsStandstill" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="AlarmsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="WarningsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Alarm" Datatype="&quot;LubrValve_Alr&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="CycleFeedback" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConnectorNotPlugged" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConfigError" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Warning" Datatype="&quot;LubrValve_Wng&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="SystemNotON" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="HMI" Datatype="&quot;LubrValve_HMI&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="ManReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutoReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Running" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Alarm" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ActualWorkTime" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonEStopDelayed" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneON" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneOFF" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonManualCycleReset" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#5M</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOn" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOff" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonWorkTime" Datatype="&quot;TonEna&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ENA" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="Q" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="ET" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="ton" Datatype="IEC_TIMER" Version="1.0">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="PT" Datatype="Time">
+                        <StartValue>T#0MS</StartValue>
+                      </Member>
+                      <Member Name="IN" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="LocalPT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="AuxSavePT" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Aux_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_CyckeFkb" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_CycleFbk" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_ValveCount" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Pe_ValveCount" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="Valves2" Datatype="&quot;Lubr_Valve&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="EStop" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Man" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="Aut" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Cycle" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="RstAlarms" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ManOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CycleOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CheckAutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="DataIn" Datatype="Struct">
+            <Member Name="PbStartLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="PbStopLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="CycleFbk" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ConnectorPlugged" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="CIn" Datatype="Struct">
+            <Member Name="LubrEnable" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ActualPosition" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="OperationDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Config" Datatype="&quot;LubrValve_Config&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="WorkMode" Datatype="Int">
+                  <StartValue>2</StartValue>
+                </Member>
+                <Member Name="CounterMode" Datatype="Int">
+                  <StartValue>0</StartValue>
+                </Member>
+                <Member Name="ValveType" Datatype="Int">
+                  <StartValue>1</StartValue>
+                </Member>
+                <Member Name="ManualCmdTimeOut" Datatype="Time">
+                  <StartValue>T#5M</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Simulation" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="AutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Aborting" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="MotionsStandStill" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="AlarmsPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="WarningPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="COut" Datatype="Struct">
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="ValveCmd" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="Ctrl" Datatype="Struct">
+            <Member Name="ManualReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="AutomaticReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveCmd" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Sts" Datatype="Struct">
+            <Member Name="EstopDelayed" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveEnabled" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="WorkEnable" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="CycleDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LastFeed" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="IsStandstill" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="AlarmsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="WarningsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Alarm" Datatype="&quot;LubrValve_Alr&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="CycleFeedback" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConnectorNotPlugged" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConfigError" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Warning" Datatype="&quot;LubrValve_Wng&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="SystemNotON" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="HMI" Datatype="&quot;LubrValve_HMI&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="ManReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutoReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Running" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Alarm" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ActualWorkTime" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonEStopDelayed" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneON" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneOFF" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonManualCycleReset" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOn" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOff" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonWorkTime" Datatype="&quot;TonEna&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ENA" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="Q" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="ET" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="ton" Datatype="IEC_TIMER" Version="1.0">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="PT" Datatype="Time">
+                        <StartValue>T#0MS</StartValue>
+                      </Member>
+                      <Member Name="IN" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="LocalPT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="AuxSavePT" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Aux_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_CyckeFkb" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_CycleFbk" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_ValveCount" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Pe_ValveCount" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="Valves3" Datatype="&quot;Lubr_Valve&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="Input">
+          <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="EStop" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Man" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="Aut" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Cycle" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="StopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="RstAlarms" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ManOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CycleOneShot" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="CheckAutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="DataIn" Datatype="Struct">
+            <Member Name="PbStartLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="PbStopLubr" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="CycleFbk" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ConnectorPlugged" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="CIn" Datatype="Struct">
+            <Member Name="LubrEnable" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ActualPosition" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="OperationDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Config" Datatype="&quot;LubrValve_Config&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="WorkMode" Datatype="Int">
+                  <StartValue>2</StartValue>
+                </Member>
+                <Member Name="CounterMode" Datatype="Int">
+                  <StartValue>0</StartValue>
+                </Member>
+                <Member Name="ValveType" Datatype="Int">
+                  <StartValue>1</StartValue>
+                </Member>
+                <Member Name="ManualCmdTimeOut" Datatype="Time">
+                  <StartValue>T#5M</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Simulation" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="Output">
+          <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="AutReady" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Aborting" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopInPhase" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AckStopProgrammed" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="MotionsStandStill" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="AlarmsPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="WarningPresence" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="COut" Datatype="Struct">
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="ValveCmd" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+        <Section Name="InOut" />
+        <Section Name="Static">
+          <Member Name="Ctrl" Datatype="Struct">
+            <Member Name="ManualReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="AutomaticReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LubrReq" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveCmd" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Sts" Datatype="Struct">
+            <Member Name="EstopDelayed" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="ValveEnabled" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="WorkEnable" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="CycleDone" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="LastFeed" Datatype="LReal">
+              <StartValue>324862.052</StartValue>
+            </Member>
+            <Member Name="IsStandstill" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="AlarmsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="WarningsPresence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Alarm" Datatype="&quot;LubrValve_Alr&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="CycleFeedback" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConnectorNotPlugged" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ConfigError" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Warning" Datatype="&quot;LubrValve_Wng&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="SystemNotON" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="HMI" Datatype="&quot;LubrValve_HMI&quot;">
+            <Sections>
+              <Section Name="None">
+                <Member Name="ManReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="AutoReq" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Running" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="Alarm" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ActualWorkTime" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonEStopDelayed" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneON" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonCycleDoneOFF" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonManualCycleReset" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOn" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonValveOff" Datatype="IEC_TIMER" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#1S</StartValue>
+                </Member>
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="tonWorkTime" Datatype="&quot;TonEna&quot;">
+            <Sections>
+              <Section Name="Input">
+                <Member Name="IN" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="ENA" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+                <Member Name="PT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="Output">
+                <Member Name="Q" Datatype="Bool">
+                  <StartValue>TRUE</StartValue>
+                </Member>
+                <Member Name="ET" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+              </Section>
+              <Section Name="InOut" />
+              <Section Name="Static">
+                <Member Name="ton" Datatype="IEC_TIMER" Version="1.0">
+                  <Sections>
+                    <Section Name="None">
+                      <Member Name="PT" Datatype="Time">
+                        <StartValue>T#0MS</StartValue>
+                      </Member>
+                      <Member Name="IN" Datatype="Bool">
+                        <StartValue>FALSE</StartValue>
+                      </Member>
+                    </Section>
+                  </Sections>
+                </Member>
+                <Member Name="LocalPT" Datatype="Time">
+                  <StartValue>T#0MS</StartValue>
+                </Member>
+                <Member Name="AuxSavePT" Datatype="Bool">
+                  <StartValue>FALSE</StartValue>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="Aux_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_PbStartLubr" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_CyckeFkb" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_CycleFbk" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Pe_OpDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aux_ValveCount" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Pe_ValveCount" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>RollformerLubr</Name>
+      <Namespace />
+      <Number>140</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

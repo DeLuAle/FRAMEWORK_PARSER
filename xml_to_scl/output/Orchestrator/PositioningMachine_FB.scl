@@ -1,0 +1,917 @@
+﻿// Block: PositioningMachine_FB
+// Title: Init
+
+FUNCTION_BLOCK "PositioningMachine_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Init
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : PositioningMachine_DataIn;
+      CIn : PositioningMachine_CIn;
+      Config : PositioningMachine_Config;
+      OL_CL_Space : LReal;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : PositioningMachine_DataOut;
+      COut : PositioningMachine_COut;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+      Par : PositioningMachine_Par;
+      Pers_Data : PositioningMachine_DataPers;
+      Warning : PositioningMachine_Wng;
+      Alarm : PositioningMachine_Alr;
+   END_VAR
+
+   VAR
+      InitDone : Bool;
+      Diag : Struct
+         Ax : TO_Diagnostic;
+      END_STRUCT;
+      HMI : Struct
+         B_Preset : Bool;
+         PresetPosition : LReal;
+         TargetPosition : LReal;
+      END_STRUCT;
+      Sts : Struct
+         Standstill : Bool;
+         AlarmPresence : Bool;
+         WarningPresence : Bool;
+         Man_UsePositionLimits : Bool;
+         Aut_UsePositionLimits : Bool;
+         Gen_Cnd : Bool;
+         Bwd_Cnd : Bool;
+         Fwd_Cnd : Bool;
+         InTargetPosition : Bool;
+         AxisModulo : LReal;
+         MissingToTarget : LReal;
+         MissingToTarget_ABS : LReal;
+      END_STRUCT;
+      Ctrl : Struct
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         Man_HighSpeed : Bool;
+         Bwd_Man : Bool;
+         Fwd_Man : Bool;
+         MoveToPos_Man : Bool;
+         Bwd_Aut : Bool;
+         Fwd_Aut : Bool;
+         MoveToPos_Aut : Bool;
+         Fan : Bool;
+         Vel : LReal;
+         Acc : LReal;
+         Dec : LReal;
+         Jerk : LReal;
+      END_STRUCT;
+      EncoderSelection : Axis_EncoderSelection_FB;
+      WritePar : Axis_WritePar_FB;
+      ReloadPosition : Axis_ReloadPosition_FB;
+      LoadPosition : Axis_ManPreset_FB;
+      Ax : PositioningAxis;
+      TorqueLimit : MC_TORQUELIMITING;
+      Fan_M : Motor;
+      TON_NoPendingCmd : TON_TIME;
+      TON_Feed_DelayManChangeSpeed : TON_TIME;
+      TON_InTargetPosition : TON_TIME;
+      TON_MissingCndBwd : TON_TIME;
+      TON_MissingCndFwd : TON_TIME;
+      TON_Fan_DelayOff : TON_TIME;
+      TON_Brake_TimeOut : TON_TIME;
+      AUX : Struct
+         PB_Bwd : Bool;
+         PB_Fwd : Bool;
+         PB_MoveToPos : Bool;
+         B_Preset : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         PB_Bwd : Bool;
+         PB_Fwd : Bool;
+         PB_MoveToPos : Bool;
+         B_Preset : Bool;
+      END_STRUCT;
+      Cnd : Bool;
+      Req : Bool;
+      Check : Bool;
+      VelMaterialMover : LReal;
+      RetVal_MeasWheelCheckRotation_Man : Int;
+      RetVal_MeasWheelCheckRotation_Aut : Int;
+      RetVal_MeasWheelCheckMechGearRatio : Int;
+      MeasWheelVelOK : Bool;
+      TorqueLimit_EngUnit : LReal;
+      TorqueLimit_Percentage : LReal;
+      TorqueLimit_DriveUnit : LReal;
+      Bwd_CheckVel : Bool;
+      Fwd_CheckVel : Bool;
+      Bwd_CheckPos : Bool;
+      Fwd_CheckPos : Bool;
+      Real_VelTarget : LReal;
+      RemainingDistanceABS : LReal;
+      LimitExceeds : Bool;
+      NegativeTolerance : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Init"
+      IF NOT InitDone THEN
+          
+          InitDone := TRUE;
+          
+          Pers_Data.AxisEncoderSelection_OK := FALSE;
+          
+          Pers_Data.AxisParameters_OK := FALSE;
+          
+          Pers_Data.AxisReloadPostion_OK := FALSE;
+          
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Network 2: Reset"
+      IF AreaInterface.RstAlarms THEN
+          
+          Alarm.AxisNotInOperation :=
+          
+          Alarm.BrakeTimeOut :=
+          
+          Warning.NotAutReady :=
+          Warning.AxisNotInOperation :=
+          Warning.MissingCnd_BWD :=
+          Warning.MissingCnd_FWD := FALSE;
+          
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 3: Alarm motor brake timeout"
+      #TON_Brake_TimeOut(
+         IN := (((Config.Brake_Presence AND DataIn.Brake_M_Q) AND NOT DataIn.Brake_M_Feedback) OR ((Config.Brake_Presence AND NOT DataIn.Brake_M_Q) AND DataIn.Brake_M_Feedback)),
+         PT := t#1s
+      );
+
+      IF #TON_Brake_TimeOut.Q THEN
+         Alarm.BrakeTimeOut := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4: Force to FALSE manual paramter 'Use position control'"
+      IF NOT CIn.Manager.UsePositionControl THEN
+         Par.Man.UsePositionControl := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 6: Stop due next door opening"
+      Ctrl.StopDueDoorOpeningRequest := (((((TON_NoPendingCmd.Q AND Sts.Standstill) OR Ctrl.StopDueDoorOpeningRequest) AND CIn.Manager.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT ZSI.Door_Opened);
+   END_REGION
+
+   REGION "Network 7: Stop in phase"
+      IF NOT AreaInterface.StopInPhase THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 8: Stop programmed"
+      IF NOT AreaInterface.StopProgrammed THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 11: Optional procedure condition"
+      Cnd := ((TON_NoPendingCmd.Q AND Ax.Sts.AxisSts.Standstill) AND AreaInterface.Man);
+   END_REGION
+
+   REGION "Network 12: (OPTION) Motor / Measuring wheel encoder exchange"
+      #EncoderSelection(
+         en := TRUE,
+         OptionON := Config.Ax.OptionON_EncoderSelection,
+         Execute := ((AreaInterface.RstAlarms AND EncoderSelection.Ready) AND Cnd),
+         Rst := ((((AreaInterface.RstAlarms AND EncoderSelection.AlarmsPresence) AND NOT EncoderSelection.Ready) AND NOT EncoderSelection.Running) AND NOT EncoderSelection.Done),
+         SelectMotorEncoder := CIn.Manager.SelectMotorEncoder,
+         Ax_Sts_PM := Ax.AxisSts,
+         Ax_Sts_SIEMENS := Ax.Sts.AxisSts,
+         TO_Ax := TO_Ax,
+         Persistent_EncoderSelection_OK := Pers_Data.AxisEncoderSelection_OK
+      );
+
+   END_REGION
+
+   REGION "Network 13: Force encoder selction OK if option is not active"
+      IF NOT Config.Ax.OptionON_EncoderSelection THEN
+         Pers_Data.AxisEncoderSelection_OK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 14: At each changing of the encoder it is forced the automatic reloading of position if option is active"
+      IF EncoderSelection.Running THEN
+         Pers_Data.AxisReloadPostion_OK := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 15: (OPTIONAL) Change axis parameters"
+      #WritePar(
+         en := TRUE,
+         OptionON := Config.Ax.OptionON_ParameterChange,
+         Execute := ((((AreaInterface.RstAlarms AND WritePar.Ready) AND Cnd) AND CIn.TOParameters.DataPresence) AND Pers_Data.AxisEncoderSelection_OK),
+         Rst := ((((AreaInterface.RstAlarms AND WritePar.AlarmsPresence) AND NOT WritePar.Ready) AND NOT WritePar.Running) AND NOT WritePar.Done),
+         SelectMotorEncoder := CIn.Manager.SelectMotorEncoder,
+         ParametersValuePresence := CIn.TOParameters.DataPresence,
+         Parameters := CIn.TOParameters.Data,
+         Ax_Sts_PM := Ax.AxisSts,
+         Ax_Sts_SIEMENS := Ax.Sts.AxisSts,
+         TO_Ax := TO_Ax,
+         Persistent_AxisParameters_OK := Pers_Data.AxisParameters_OK
+      );
+
+   END_REGION
+
+   REGION "Network 16: Force parameter write execution ok if option is not active"
+      IF NOT Config.Ax.OptionON_ParameterChange THEN
+         Pers_Data.AxisParameters_OK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 17: At each parameter change it is forced the automatic reloading of position if option is active"
+      IF WritePar.Running THEN
+         Pers_Data.AxisReloadPostion_OK := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 18: (OPTIONAL) Reload axis position @ StartUp | after an encoder change | after axis parameters change"
+      #ReloadPosition(
+         en := TRUE,
+         OptionON := Config.Ax.OptionON_AutoReloadPosition,
+         Execute := ((((AreaInterface.RstAlarms AND ReloadPosition.Ready) AND Cnd) AND Pers_Data.AxisEncoderSelection_OK) AND Pers_Data.AxisParameters_OK),
+         Rst := ((((AreaInterface.RstAlarms AND ReloadPosition.AlarmsPresence) AND NOT ReloadPosition.Ready) AND NOT ReloadPosition.Running) AND NOT ReloadPosition.Done),
+         Ax_Sts_PM := Ax.AxisSts,
+         Ax_Sts_SIEMENS := Ax.Sts.AxisSts,
+         TO_Ax := TO_Ax,
+         Persistent_AxisReloadPostion_OK := Pers_Data.AxisReloadPostion_OK,
+         Persistent_ActualPosition := Pers_Data.ActualPosition
+      );
+
+   END_REGION
+
+   REGION "Network 19: Force status of reloaded position done if procedure not active"
+      IF NOT Config.Ax.OptionON_AutoReloadPosition THEN
+         Pers_Data.AxisReloadPostion_OK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 20: (OPTIONAL) Manual Preset"
+      #LoadPosition(
+         en := TRUE,
+         OptionON := Config.Ax.OptionON_ManPreset,
+         Execute := ((((((PE.B_Preset AND NOT LoadPosition.Execute) OR (HMI.B_Preset AND LoadPosition.Execute)) AND LoadPosition.Ready) AND Cnd) AND Pers_Data.AxisEncoderSelection_OK) AND Pers_Data.AxisParameters_OK),
+         Rst := ((((AreaInterface.RstAlarms AND LoadPosition.AlarmsPresence) AND NOT LoadPosition.Ready) AND NOT LoadPosition.Running) AND NOT LoadPosition.Done),
+         LoadPosAx := HMI.PresetPosition,
+         Ax_Sts_PM := Ax.AxisSts,
+         Ax_Sts_SIEMENS := Ax.Sts.AxisSts,
+         TO_Ax := TO_Ax
+      );
+
+      PE.B_Preset := PosEdge(HMI.B_Preset);
+   END_REGION
+
+   REGION "Network 21: At each Load position done Set Reloaad position OK"
+      IF LoadPosition.Done THEN
+         Pers_Data.AxisReloadPostion_OK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 22: Status axis in operation = Homed + Parameters OK + encoder selection  OK"
+      COut.AxisInOperation := (((((((Ax.AxisSts.Homed OR (NOT Config.Ax.OptionON_AutoReloadPosition AND NOT Config.Ax.OptionON_ManPreset)) AND Pers_Data.AxisEncoderSelection_OK) AND Pers_Data.AxisParameters_OK) AND Pers_Data.AxisReloadPostion_OK) AND NOT WritePar.Running) AND NOT EncoderSelection.Running) AND NOT ReloadPosition.Running);
+   END_REGION
+
+   REGION "Network 23: Alarm / Warning- Axis not in operation"
+      IF ((NOT COut.AxisInOperation AND AreaInterface.Aut) OR (NOT COut.AxisInOperation AND CIn.Manager.Control_ON)) THEN
+         Alarm.AxisNotInOperation := TRUE;
+      END_IF;
+      Warning.AxisNotInOperation := (NOT COut.AxisInOperation AND NOT Alarm.AxisNotInOperation);
+   END_REGION
+
+   REGION "Network 25: PB"
+      PE.PB_Bwd := PosEdge(DataIn.PB.Bwd_Minus);
+      PE.PB_Fwd := PosEdge(DataIn.PB.Fwd_Plus);
+      PE.PB_MoveToPos := PosEdge(DataIn.PB.MoveToPos);
+   END_REGION
+
+   REGION "Network 26: Man"
+      #TON_Feed_DelayManChangeSpeed(
+         IN := ((((Ctrl.Fwd_Man AND NOT Sts.Standstill) AND NOT CIn.VelocityOverride.Enable) AND CIn.EnableManChangeVel) AND Ax.AxisSts.Homed),
+         PT := Par.Man.DelayChangeVel
+      );
+
+      Ctrl.MoveToPos_Man := ((((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND PE.PB_MoveToPos) OR ((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ctrl.MoveToPos_Man)) AND DataIn.PB.MoveToPos) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl);
+      Ctrl.Bwd_Man := ((((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND NOT DataIn.PB.MoveToPos) AND PE.PB_Bwd) OR (((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND NOT DataIn.PB.MoveToPos) AND Ctrl.Bwd_Man)) AND DataIn.PB.Bwd_Minus) AND NOT DataIn.PB.Fwd_Plus);
+      Ctrl.Fwd_Man := ((((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND NOT DataIn.PB.MoveToPos) AND PE.PB_Fwd) OR (((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND NOT DataIn.PB.MoveToPos) AND Ctrl.Fwd_Man)) AND DataIn.PB.Fwd_Plus) AND NOT DataIn.PB.Bwd_Minus);
+      Sts.Man_UsePositionLimits := (((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND TO_Ax.PositionLimits_SW.Active) OR ((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND CIn.PositionLimits.EnableMin) OR ((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ax.AxisSts.Homed) AND Par.Man.UsePositionControl) AND CIn.PositionLimits.EnableMax));
+      Ctrl.Man_HighSpeed := (#TON_Feed_DelayManChangeSpeed.Q AND (Par.Man.DelayChangeVel > T#0s));
+   END_REGION
+
+   REGION "Network 27: Aut"
+      Ctrl.MoveToPos_Aut := (((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND CIn.Manager.MoveToPos) AND Ax.AxisSts.Homed) AND CIn.Manager.UsePositionControl);
+      Ctrl.Fwd_Aut := ((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND NOT CIn.Manager.MoveToPos) AND CIn.Manager.Fwd);
+      Ctrl.Bwd_Aut := (((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND NOT CIn.Manager.MoveToPos) AND NOT CIn.Manager.Fwd) AND CIn.Manager.Bwd);
+      Sts.Aut_UsePositionLimits := ((((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND Ax.AxisSts.Homed) AND CIn.Manager.UsePositionControl) AND TO_Ax.PositionLimits_SW.Active) OR (((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND Ax.AxisSts.Homed) AND CIn.Manager.UsePositionControl) AND CIn.PositionLimits.EnableMin) OR (((NOT ((NOT CIn.Manager.Control_ON AND NOT AreaInterface.Cycle)) AND Ax.AxisSts.Homed) AND CIn.Manager.UsePositionControl) AND CIn.PositionLimits.EnableMax));
+   END_REGION
+
+   REGION "Network 29: Axis Modulo value; 0 If isn't a modulo axis"
+      Sts.AxisModulo := 0.0;
+
+      IF TO_Ax.Modulo.Enable THEN
+          Sts.AxisModulo := TO_Ax.Modulo.Length - TO_Ax.Modulo.StartValue;
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 30: Position Limits"
+      IF Sts.AxisModulo > 0.0 THEN
+          
+          COut.MinPosition := Sts.AxisModulo * 5;
+          COut.MaxPosition := Sts.AxisModulo * 5;
+      ELSE
+          
+          COut.MinPosition := -999999999.99;
+          COut.MaxPosition := +999999999.99;
+          
+      END_IF;
+
+
+
+      COut.BwdMinusLsSwReached := FALSE;
+      COut.FwdPlusLsSwReached := FALSE;
+
+      COut.BwdMinusLimitReached := FALSE;
+      COut.FwdPlusLimitReached := FALSE;
+
+
+
+      IF Ax.AxisSts.Homed THEN
+          
+          
+          //.. If software limits are enabled...
+          //
+          IF TO_Ax.PositionLimits_SW.Active THEN
+              
+              
+              // Software limit Minus reached or exceeds
+              // 
+              RemainingDistanceABS := (M_PosAMinusPosB(PosA := Pers_Data.ActualPosition, PosB := TO_Ax.PositionLimits_SW.MinPosition, MODULE := Sts.AxisModulo));
+              
+              LimitExceeds := M_CmpLT(Xa := Pers_Data.ActualPosition, Xb := TO_Ax.PositionLimits_SW.MinPosition, MODULE := Sts.AxisModulo);
+              
+              COut.BwdMinusLsSwReached := (RemainingDistanceABS <= Par.PosTolerance) OR LimitExceeds;
+              
+              
+              // Software limit Plus reached or exceeds
+              // 
+              RemainingDistanceABS := (M_PosAMinusPosB(PosA := Pers_Data.ActualPosition, PosB := TO_Ax.PositionLimits_SW.MaxPosition, MODULE := Sts.AxisModulo));
+              
+              LimitExceeds := M_CmpGT(Xa := Pers_Data.ActualPosition, Xb := TO_Ax.PositionLimits_SW.MaxPosition, MODULE := Sts.AxisModulo);
+              
+              COut.FwdPlusLsSwReached := (RemainingDistanceABS <= Par.PosTolerance) OR LimitExceeds;
+              
+              
+              
+              // Set general Min / Max position limit
+              // 
+              COut.MinPosition := M_PosAPlusCostB(PosA := TO_Ax.PositionLimits_SW.MinPosition, CostB := (Par.PosTolerance / 2), MODULE := Sts.AxisModulo);
+              COut.MaxPosition := M_PosAMinusCostB(PosA := TO_Ax.PositionLimits_SW.MaxPosition, CostB := (Par.PosTolerance / 2), MODULE := Sts.AxisModulo);
+              
+          END_IF;
+          
+          //.. IF dynamic MIN limit set..
+          //
+          IF CIn.PositionLimits.EnableMin
+          THEN
+              
+              
+              RemainingDistanceABS := (M_PosAMinusPosB(PosA := Pers_Data.ActualPosition, PosB := CIn.PositionLimits.PosMin, MODULE := Sts.AxisModulo));
+              
+              LimitExceeds := M_CmpLT(Xa := Pers_Data.ActualPosition, Xb := CIn.PositionLimits.PosMin, MODULE := Sts.AxisModulo);
+              
+              COut.BwdMinusLimitReached := (RemainingDistanceABS <= Par.PosTolerance) OR LimitExceeds;
+              
+              // Update general MIN limit
+              // 
+              IF M_CmpGT(Xa := CIn.PositionLimits.PosMin, Xb := COut.MinPosition, MODULE := Sts.AxisModulo)
+              THEN
+                  COut.MinPosition := CIn.PositionLimits.PosMin;
+              END_IF;
+          END_IF;
+          
+          
+          //.. IF dynamic MAX limit set..
+          //
+          IF CIn.PositionLimits.EnableMax
+          THEN
+              
+              RemainingDistanceABS := (M_PosAMinusPosB(PosA := Pers_Data.ActualPosition, PosB := CIn.PositionLimits.PosMax, MODULE := Sts.AxisModulo));
+              
+              LimitExceeds := M_CmpGT(Xa := Pers_Data.ActualPosition, Xb := CIn.PositionLimits.PosMax, MODULE := Sts.AxisModulo);
+              
+              COut.FwdPlusLimitReached := (RemainingDistanceABS <= Par.PosTolerance) OR LimitExceeds;
+              
+              
+              // Update general MAX limit
+              // 
+              IF M_CmpLT(Xa := CIn.PositionLimits.PosMax, Xb := COut.MaxPosition, MODULE := Sts.AxisModulo)
+              THEN
+                  COut.MaxPosition := CIn.PositionLimits.PosMax;
+              END_IF;
+              
+          END_IF;
+          
+          
+          
+          
+          IF CIn.PositionLimits.EnableMin THEN
+              COut.MinPosition := (IN1 := COut.MinPosition, IN2 := CIn.PositionLimits.PosMin);
+          END_IF;
+          
+          
+          IF CIn.PositionLimits.EnableMax THEN
+              COut.MaxPosition := (IN1 := COut.MaxPosition, IN2 := CIn.PositionLimits.PosMax);
+          END_IF;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 31: Axis Control (Target position)"
+      // Move Abs parameters
+      // 
+      Ax.AxisCtrl.MoveAbsDirection := 3;
+
+
+      // Target position choose
+      // 
+
+      IF CIn.Manager.Control_ON THEN
+          
+          Ax.AxisCtrl.MoveAbsTarget := CIn.Manager.Pos;
+          
+          
+          IF Ctrl.Bwd_Aut AND Sts.Aut_UsePositionLimits THEN
+          
+              Ax.AxisCtrl.MoveAbsTarget := COut.MinPosition;
+              
+          ELSIF Ctrl.Fwd_Aut AND Sts.Aut_UsePositionLimits THEN
+          
+              Ax.AxisCtrl.MoveAbsTarget := COut.MinPosition;
+          END_IF;
+          
+          HMI.TargetPosition := Ax.AxisCtrl.MoveAbsTarget;
+          
+          
+      ELSIF Ctrl.MoveToPos_Man  THEN
+          
+          Ax.AxisCtrl.MoveAbsTarget := HMI.TargetPosition;
+          
+          
+      ELSIF Ctrl.Bwd_Man AND Sts.Man_UsePositionLimits THEN
+          
+          Ax.AxisCtrl.MoveAbsTarget := COut.MinPosition;
+          HMI.TargetPosition := Ax.AxisCtrl.MoveAbsTarget;
+          
+      ELSIF Ctrl.Fwd_Man AND Sts.Man_UsePositionLimits THEN
+          
+          Ax.AxisCtrl.MoveAbsTarget := COut.MaxPosition;
+          HMI.TargetPosition := Ax.AxisCtrl.MoveAbsTarget;
+          
+      END_IF;
+
+
+      // Check Target position within limits
+      //
+
+      IF Sts.Man_UsePositionLimits OR Sts.Aut_UsePositionLimits THEN
+          
+          
+          // Target position exceeds MIN limit
+          // 
+          LimitExceeds := M_CmpLT(Xa := Ax.AxisCtrl.MoveAbsTarget, Xb := COut.MinPosition, MODULE := Sts.AxisModulo);
+          IF LimitExceeds THEN
+              Ax.AxisCtrl.MoveAbsTarget := COut.MinPosition;
+              HMI.TargetPosition := Ax.AxisCtrl.MoveAbsTarget;
+          END_IF;
+          
+          // Target position exceeds MAX limit
+          // 
+          LimitExceeds := M_CmpGT(Xa := Ax.AxisCtrl.MoveAbsTarget, Xb := COut.MaxPosition, MODULE := Sts.AxisModulo);
+          IF LimitExceeds THEN
+              Ax.AxisCtrl.MoveAbsTarget := COut.MaxPosition;
+              HMI.TargetPosition := Ax.AxisCtrl.MoveAbsTarget;
+          END_IF;
+
+      END_IF;
+
+
+
+
+
+   END_REGION
+
+   REGION "Network 32: Check missing position to reach the target"
+      Sts.MissingToTarget := M_PosAMinusPosB(PosA := Ax.AxisCtrl.MoveAbsTarget, PosB := Pers_Data.ActualPosition, MODULE := Sts.AxisModulo);
+
+      //  Missing position to reach the target ABS value
+      //  
+      Sts.MissingToTarget_ABS := (Sts.MissingToTarget);
+
+
+   END_REGION
+
+   REGION "Network 33: Status axis in target position"
+
+      TON_InTargetPosition(IN := (Sts.MissingToTarget) <= Par.PosTolerance, PT:=Par.DelayInPosition);
+         
+      Sts.InTargetPosition := TON_InTargetPosition.Q AND Ax.AxisSts.Homed AND (Ax.AxisSts.Positioned OR NOT Ax.AxisCtrl.MoveAbsolute);
+
+
+
+   END_REGION
+
+   REGION "Network 34: Axis Control (Velocity / Acceleration / Deceleration / Jerk)"
+
+      COut.MaxVelocity := (IN1 := TO_Ax.DynamicLimits.MaxVelocity, IN2 := TO_Ax.DynamicLimits.Velocity);
+
+      Ctrl.Vel := 0.0;
+
+
+      IF Ctrl.Bwd_Man OR Ctrl.Fwd_Man OR Ctrl.MoveToPos_Man THEN
+          
+          
+          Ctrl.Acc := Par.Man.Acc;
+          Ctrl.Dec := Par.Man.Dec;
+          Ctrl.Jerk := Par.Man.Jerk;
+          
+          
+          
+          IF Ctrl.Bwd_Man THEN
+              
+              Ctrl.Vel := Par.Man.VelBwd;
+              
+          ELSIF Ctrl.Fwd_Man AND Ctrl.Man_HighSpeed  THEN
+              Ctrl.Vel := Par.Man.VelFwdHigh;
+              
+          ELSIF Ctrl.Fwd_Man OR Ctrl.MoveToPos_Man  THEN
+              
+              Ctrl.Vel := Par.Man.VelFwdLow;
+          END_IF;
+              
+             
+          
+      ELSIF Ctrl.MoveToPos_Aut OR Ctrl.Bwd_Aut OR Ctrl.Fwd_Aut  THEN
+          
+          Ctrl.Vel := CIn.Manager.Vel;
+          
+          Ctrl.Acc := CIn.Manager.Acc;
+          Ctrl.Dec := CIn.Manager.Dec;
+          Ctrl.Jerk := CIn.Manager.Jerk;
+          
+          
+      END_IF;
+          
+          
+          
+          
+      // Dynamic limits
+      // 
+
+      Ctrl.Vel := (IN1:=Ctrl.Vel, IN2 := COut.MaxVelocity);
+
+      Ctrl.Acc :=     (IN1:=Ctrl.Acc, IN2:= TO_Ax.DynamicLimits.MaxAcceleration);
+      IF Ctrl.Acc <= 0.0 THEN
+          Ctrl.Acc :=  Par.Man.Acc;
+      END_IF;
+
+      Ctrl.Dec :=     (IN1:=Ctrl.Dec, IN2:= TO_Ax.DynamicLimits.MaxDeceleration);
+      IF Ctrl.Dec <= 0.0 THEN
+          Ctrl.Dec :=  Par.Man.Dec;
+      END_IF;
+
+      IF  Ctrl.Jerk > 0.0 THEN
+          
+          Ctrl.Jerk :=    (IN1:= Ctrl.Jerk,IN2:= TO_Ax.DynamicLimits.MaxJerk);
+      ELSE
+          Ctrl.Jerk := 0.0;
+      END_IF;
+          
+          
+          
+          
+          
+          
+      // Velocity override
+      // 
+
+      TO_Ax.Override.Velocity := 100.0;
+
+      IF CIn.VelocityOverride.Enable THEN
+          TO_Ax.Override.Velocity := CIn.VelocityOverride.Value;
+      END_IF;
+
+
+      // SLS velocity limit
+      // 
+      IF ZSI.Door_Opened AND Ctrl.Vel > Config.SLS_VEL THEN
+          Ctrl.Vel := (IN1:= Ctrl.Vel, IN2:= Config.SLS_VEL);
+      END_IF;
+
+
+      // Brake not open... Velocity  = 0.0
+      // 
+      IF Config.Brake_Presence AND NOT DataIn.Brake_M_Feedback THEN
+          Ctrl.Vel := 0.0;
+      END_IF;
+
+      // Init cycle force velocity = 0.0
+      //
+      IF WritePar.Running OR EncoderSelection.Running OR ReloadPosition.Running OR LoadPosition.Running  THEN
+          Ctrl.Vel := 0.0;
+      END_IF;
+
+
+
+      // Write dynamics value
+
+      Ax.AxisCtrl.Velocity :=   Ctrl.Vel;
+      Ax.AxisCtrl.Acceleration := Ctrl.Acc;
+      Ax.AxisCtrl.Deceleration := Ctrl.Dec;
+      Ax.AxisCtrl.Jerk:=  Ctrl.Jerk;
+
+
+
+
+   END_REGION
+
+   REGION "Network 35: Axis Control (Home Parameters)"
+      Ax.AxisCtrl.HomeMode := Config.Ax.HomeMode;
+
+      IF ReloadPosition.Running THEN
+          Ax.AxisCtrl.HomePosition := ReloadPosition.Ctrl_ReloadPosAx;
+      ELSIF LoadPosition.Running THEN
+          Ax.AxisCtrl.HomePosition := LoadPosition.Ctrl_LoadPosAx;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Network 36: Move request in bwd / fwd direction case positioning"
+      Bwd_CheckPos := (((Ctrl.Bwd_Man AND Sts.Man_UsePositionLimits) OR (Ctrl.Bwd_Aut AND Sts.Aut_UsePositionLimits) OR NOT ((NOT Ctrl.MoveToPos_Man AND NOT Ctrl.MoveToPos_Aut))) AND (Sts.MissingToTarget < 0.0));
+      Fwd_CheckPos := (((Ctrl.Fwd_Man AND Sts.Man_UsePositionLimits) OR (Ctrl.Fwd_Aut AND Sts.Aut_UsePositionLimits) OR NOT ((NOT Ctrl.MoveToPos_Man AND NOT Ctrl.MoveToPos_Aut))) AND (Sts.MissingToTarget >= 0.0));
+   END_REGION
+
+   REGION "Network 37: Move request in bwd / fwd direction case velocity"
+      IF ((Bwd_CheckPos AND (Sts.MissingToTarget_ABS >= OL_CL_Space)) AND (OL_CL_Space > 0.0)) THEN
+         Bwd_CheckPos := FALSE;
+      END_IF;
+      Bwd_CheckVel := ((Ctrl.Bwd_Man AND NOT Sts.Man_UsePositionLimits) OR (Ctrl.Bwd_Aut AND NOT Sts.Aut_UsePositionLimits) OR ((Bwd_CheckPos AND (Sts.MissingToTarget_ABS >= OL_CL_Space)) AND (OL_CL_Space > 0.0)));
+      IF ((Fwd_CheckPos AND (Sts.MissingToTarget_ABS >= OL_CL_Space)) AND (OL_CL_Space > 0.0)) THEN
+         Fwd_CheckPos := FALSE;
+      END_IF;
+      Fwd_CheckVel := ((Ctrl.Fwd_Man AND NOT Sts.Man_UsePositionLimits) OR (Ctrl.Fwd_Aut AND NOT Sts.Aut_UsePositionLimits) OR ((Fwd_CheckPos AND (Sts.MissingToTarget_ABS >= OL_CL_Space)) AND (OL_CL_Space > 0.0)));
+   END_REGION
+
+   REGION "Network 38: Cumulative move request in bwd / fwd direction"
+      COut.Bwd_CheckNext := NOT ((NOT Bwd_CheckPos AND NOT Bwd_CheckVel));
+      COut.Fwd_CheckNext := NOT ((NOT Fwd_CheckPos AND NOT Fwd_CheckVel));
+   END_REGION
+
+   REGION "Network 39: Conditions"
+      Sts.Gen_Cnd := (((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND COut.AxisInOperation) AND NOT Alarm.BrakeTimeOut) AND Fan_M.MotorSts.Running) OR ((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND COut.AxisInOperation) AND NOT Alarm.BrakeTimeOut) AND NOT Config.Fan.Presence) OR ((((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND COut.AxisInOperation) AND NOT Alarm.BrakeTimeOut) AND Sts.Bwd_Cnd) OR ((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND COut.AxisInOperation) AND NOT Alarm.BrakeTimeOut) AND Sts.Fwd_Cnd)) AND NOT TON_NoPendingCmd.Q));
+      Sts.Bwd_Cnd := (((((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Bwd_CheckVel) AND CIn.Bwd_ExtEnable) AND Ax.AxisSts.MoveMinusPermitted) OR ((((((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Bwd_CheckPos) AND CIn.Bwd_ExtEnable) OR (((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Bwd_CheckPos) AND Sts.InTargetPosition)) AND Ax.AxisSts.MoveAbsPermitted) AND (Ctrl.Vel > 0.0)));
+      Sts.Fwd_Cnd := (((((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Fwd_CheckVel) AND CIn.Fwd_ExtEnable) AND Ax.AxisSts.MovePlusPermitted) OR ((((((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Fwd_CheckPos) AND CIn.Fwd_ExtEnable) OR (((((Sts.Gen_Cnd AND TRUE) AND TRUE) AND TRUE) AND Fwd_CheckPos) AND Sts.InTargetPosition)) AND Ax.AxisSts.MoveAbsPermitted) AND (Ctrl.Vel > 0.0)));
+   END_REGION
+
+   REGION "Network 40: Missing conditions"
+      #TON_MissingCndBwd(
+         IN := (COut.Bwd_CheckNext AND NOT Sts.Bwd_Cnd),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_MissingCndFwd(
+         IN := (COut.Fwd_CheckNext AND NOT Sts.Fwd_Cnd),
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (COut.Bwd_CheckNext AND Sts.Bwd_Cnd) THEN
+         Warning.MissingCnd_BWD := FALSE;
+      ELSIF #TON_MissingCndBwd.Q THEN
+         Warning.MissingCnd_BWD := TRUE;
+      END_IF;
+      IF (COut.Fwd_CheckNext AND Sts.Fwd_Cnd) THEN
+         Warning.MissingCnd_FWD := FALSE;
+      ELSIF #TON_MissingCndFwd.Q THEN
+         Warning.MissingCnd_FWD := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 41: Axis Control (bit)"
+      Ax.AxisCtrl.SafeStop := (NOT ((NOT EncoderSelection.Ctrl_ForceAxPowerOff AND NOT WritePar.Ctrl_ForcePowerOff)) OR (DSI.DevicesInSafeState AND NOT CIn.SOS_Enable));
+      Ax.AxisCtrl.Rst := AreaInterface.RstAlarms;
+      Ax.AxisCtrl.RstHW := WritePar.Ctrl_ResetHw;
+      Ax.AxisCtrl.Power := (((CIn.Manager.Control_ON AND Config.Fan.Presence) AND NOT Ctrl.StopDueDoorOpeningRequest) OR (((COut.Bwd_CheckNext OR COut.Fwd_CheckNext OR Ax.AxisCtrl.Power) AND CIn.SOS_Enable) AND NOT Ax.AxisCtrl.SafeStop));
+      Ax.AxisCtrl.Homing := NOT ((NOT ReloadPosition.Ctrl_ReloadPosition AND NOT LoadPosition.Ctrl_LoadPosition));
+      Ax.AxisCtrl.MoveMinus := (Bwd_CheckVel AND Sts.Bwd_Cnd);
+      Ax.AxisCtrl.MovePlus := ((Fwd_CheckVel AND Sts.Fwd_Cnd) OR NOT ((NOT ReloadPosition.Ctrl_ForcePosCtrl AND NOT LoadPosition.Ctrl_ForcePosCtrl)));
+      Ax.AxisCtrl.VelocityPositionControlled := (NOT ((NOT ReloadPosition.Ctrl_ForcePosCtrl AND NOT LoadPosition.Ctrl_ForcePosCtrl)) OR (NOT CIn.Manager.Control_ON AND Par.Man.UsePositionControl) OR (CIn.Manager.Control_ON AND CIn.Manager.UsePositionControl));
+      Ax.AxisCtrl.MoveAbsolute := (((Bwd_CheckPos AND Sts.Bwd_Cnd) OR (Fwd_CheckPos AND Sts.Fwd_Cnd)) AND TRUE);
+      IF TRUE THEN
+         Ax.AxisCtrl.ExtControl := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 42: Axis manager"
+      #Ax(
+         en := TRUE,
+         PowerEnable := DSI.PowerEnable,
+         AxisCtrl := ???,
+         Drive := Drive,
+         Config := ???,
+         Axis := TO_Ax,
+         Alarm := Alarm.Ax,
+         Warning := Warning.Ax,
+         Diag := Diag.Ax,
+         Infeed_REQ_ON => COut.Infeed_ReqON
+      );
+
+   END_REGION
+
+   REGION "Network 43: Mask warning 1699 = Test stop STO required"
+      IF (Warning.Ax.Drive AND (Diag.Ax.Drive_Message = 1699)) THEN
+         Warning.Ax.Drive := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 44: Save actual position if reload procedure has been performed OK"
+      IF (Pers_Data.AxisReloadPostion_OK AND Ax.AxisSts.Homed) THEN
+         Pers_Data.ActualPosition := TO_Ax.ActualPosition;
+      END_IF;
+   END_REGION
+
+   REGION "Network 45: Axis Torque Limit normalization"
+
+      TorqueLimit_EngUnit := (MN:=0.0, IN:=CIn.TorqueLimits.Value, MX:=(TO_Ax.Actor.DriveParameter.ReferenceTorque / 2.0));
+
+      TorqueLimit_Percentage := TorqueLimit_EngUnit / (TO_Ax.Actor.DriveParameter.ReferenceTorque / 2.0)  * 100.0;
+
+      TorqueLimit_DriveUnit := 30720 / 100.0 * TorqueLimit_Percentage;
+
+
+
+      TorqueLimit_DriveUnit := TorqueLimit_Percentage;
+
+   END_REGION
+
+   REGION "Network 46: Axis Torque Limiting function call"
+      #TorqueLimit(
+         en := TRUE,
+         Enable := CIn.TorqueLimits.Enable,
+         Axis := TO_Ax,
+         Limit := TorqueLimit_DriveUnit,
+         Mode := 0,
+         Error => Alarm.AxisTorqueLim.Error,
+         ErrorId => Alarm.AxisTorqueLim.ErrorId
+      );
+
+   END_REGION
+
+   REGION "Network 47: Coordination Out"
+      COut.CtrlSafe := (NOT TON_NoPendingCmd.IN OR (COut.CtrlSafe AND Ax.AxisSts.Enabled) OR (AreaInterface.Cycle AND NOT Ctrl.StopDueDoorOpeningRequest));
+      Real_VelTarget := (Ax.MOVE_VELOCITY.Velocity * TO_Ax.Override.Velocity);
+      IF (Ax.MOVE_VELOCITY.Velocity * TO_Ax.Override.Velocity) THEN
+         Real_VelTarget := (Real_VelTarget / 100.0);
+      END_IF;
+      COut.VelFwd_VelZero := (((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 1)) AND (Real_VelTarget = 0.0)) AND Ax.MOVE_VELOCITY.InVelocity);
+      COut.VelFwd_Running := ((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 1)) AND (Real_VelTarget > 0.0));
+      COut.VelBwd_VelZero := (((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 2)) AND (Real_VelTarget = 0.0)) AND Ax.MOVE_VELOCITY.InVelocity);
+      COut.VelBwd_Running := ((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 2)) AND (Real_VelTarget > 0.0));
+      COut.InPosition := Sts.InTargetPosition;
+      NegativeTolerance := (Par.PosTolerance * -1.0);
+      COut.PosBwd_Running := ((Ax.MOVE_ABS.Busy AND NOT COut.InPosition) AND (Sts.MissingToTarget < NegativeTolerance));
+      COut.PosFwd_Running := ((Ax.MOVE_ABS.Busy AND NOT COut.InPosition) AND (Sts.MissingToTarget >= Par.PosTolerance));
+      COut.ActualPosition := Ax.AxisSts.ActualPosition;
+      COut.ActualTargetPos := Ax.AxisCtrl.MoveAbsTarget;
+      COut.ActualVelocity := Ax.AxisSts.ActualSpeed;
+   END_REGION
+
+   REGION "Network 50: Run"
+      #TON_Fan_DelayOff(
+         IN := (NOT Req AND Ctrl.Fan),
+         PT := Config.Fan.DelayOff
+      );
+
+      Req := NOT (((NOT Ax.AxisSts.Enabled AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext));
+      Ctrl.Fan := ((NOT (((NOT Ax.AxisSts.Enabled AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext)) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      IF #TON_Fan_DelayOff.Q THEN
+         Ctrl.Fan := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 51: Device"
+      #Fan_M(
+         en := Config.Fan.Presence,
+         MotorCtrl := ???,
+         ThermalProtection := DataIn.Fan_M_ThermalProtection,
+         FdbkRunning := DataIn.Fan_M_Feedback,
+         FeedbackTimeout := T#1S,
+         Simulation := ???,
+         Alarm := Alarm.Fan_M,
+         Contactor => DataOut.Fan_M_Contactor
+      );
+
+      Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
+      Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
+      Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF NOT Config.Fan.Presence THEN
+         DataOut.Fan_M_Contactor := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Presence THEN
+         Fan_M.MotorSts.RunPermitted := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Presence THEN
+         Fan_M.MotorSts.Running := TRUE;
+      END_IF;
+      IF NOT Config.Fan.Presence THEN
+         Alarm.Fan_M.ThermalProtection := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Presence THEN
+         Alarm.Fan_M.Feedback := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Presence THEN
+         Fan_M.MotorSts.AlarmPresence := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 55: Standstill"
+      Sts.Standstill := ((Ax.AxisSts.Standstill AND (TO_Ax.VelocitySetpoint = 0.0)) OR DSI.DevicesInSafeState);
+      COut.Standstill := ((Ax.AxisSts.Standstill AND (TO_Ax.VelocitySetpoint = 0.0)) OR DSI.DevicesInSafeState);
+   END_REGION
+
+   REGION "Network 56: No pending commands"
+      #TON_NoPendingCmd(
+         IN := (((((NOT Sys.FirstPLCCycle AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext) AND NOT Ax.AxisCtrl.MovePlus) AND NOT Ax.AxisCtrl.MoveMinus) AND NOT Ax.AxisCtrl.MoveAbsolute),
+         PT := T#500MS
+      );
+
+   END_REGION
+
+   REGION "Network 57: Warnings presence"
+      Sts.WarningPresence := (NOT ((((NOT Warning.NotAutReady AND NOT Warning.AxisNotInOperation) AND NOT Warning.MissingCnd_BWD) AND NOT Warning.MissingCnd_FWD)) OR NOT ((((NOT EncoderSelection.WarningPresence AND NOT WritePar.WarningsPresene) AND NOT Warning.Ax.Drive) AND NOT Warning.Ax.TOAxis)));
+   END_REGION
+
+   REGION "Network 58: Alarms presence"
+      Sts.AlarmPresence := NOT ((((((((((NOT Alarm.AxisNotInOperation AND NOT Alarm.BrakeTimeOut) AND NOT Ax.AxisSts.AlarmPresence) AND NOT Alarm.AxisTorqueLim.Error) AND NOT ReloadPosition.AlarmsPresence) AND NOT LoadPosition.AlarmsPresence) AND NOT EncoderSelection.AlarmsPresence) AND NOT WritePar.AlarmsPresence) AND NOT Fan_M.MotorSts.AlarmPresence) AND NOT CIn.ExternalAlarms));
+   END_REGION
+
+   REGION "Network 59: Stop aborting"
+      Ctrl.StopAborting := (((AreaInterface.Cycle AND Sts.Standstill) OR (AreaInterface.Cycle AND Ctrl.StopAborting) OR AreaInterface.Aut OR CIn.Manager.Control_ON) AND Sts.AlarmPresence);
+   END_REGION
+
+   REGION "Network 60: Collect machine to zone interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmPresence;
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      MachineInterface.MotionsStandStill := TON_NoPendingCmd.Q AND Sts.Standstill;
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      MachineInterface.AlarmsPresence := Sts.AlarmPresence;
+      MachineInterface.WarningPresence := Sts.WarningPresence;
+
+   END_REGION
+
+   REGION "Network 61: Warning Machine not ready for automatic"
+      IF AreaInterface.Cycle THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 62: ENO"
+      ENO := NOT Sts.AlarmPresence;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

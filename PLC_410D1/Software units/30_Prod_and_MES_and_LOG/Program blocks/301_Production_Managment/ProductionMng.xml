@@ -1,0 +1,345 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>ProductionMng_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Cin" Datatype="&quot;Prod_CIn&quot;" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="COut" Datatype="&quot;Prod_COut&quot;" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Pers" Datatype="&quot;Prod_Pers&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Warnings" Datatype="Struct">
+      <Member Name="Error_Send_Message_To_MES_Cumulative" Datatype="Bool" />
+      <Member Name="SetUp" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="PUSH_MSG101" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+        <Member Name="Caricamento_PPrf" Datatype="Struct">
+          <Member Name="Err_Load_PPrf" Datatype="Bool" />
+          <Member Name="Err_Load_Timeout" Datatype="Bool" />
+          <Member Name="Err_NumeroProgrammaNonValido" Datatype="Bool" />
+          <Member Name="Err_NonCorrisponde_W_A" Datatype="Bool" />
+          <Member Name="Err_NonCorrisponde_H_B" Datatype="Bool" />
+          <Member Name="Err_NonCorrisponde_Spessore" Datatype="Bool" />
+        </Member>
+        <Member Name="Attesa_Avvio_SetUp_Automatico" Datatype="Bool" />
+        <Member Name="SetUp_Automatico_Avviato" Datatype="Bool" />
+        <Member Name="Attesa_Completamento_SetUp_Manuale" Datatype="Bool" />
+        <Member Name="Attesa_Inizio_Inserimento_lamiera" Datatype="Bool" />
+        <Member Name="Attesa_Fine_inserimento_lamiera" Datatype="Bool" />
+        <Member Name="Attesa_Taglio_di_Intestazione" Datatype="Bool" />
+        <Member Name="PUSH_MSG102" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      </Member>
+      <Member Name="Error_Pop_O_ACT_to_O_ENDING" Datatype="&quot;MES_Err&quot;" />
+      <Member Name="Error_Pop_O_TODO_to_O_ACT" Datatype="&quot;MES_Err&quot;" />
+      <Member Name="O_ACT_Empty" Datatype="Bool" />
+    </Member>
+    <Member Name="Messages" Datatype="Struct">
+      <Member Name="Err_MSG131_Part_GOOD" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_Part_NG" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_Part_GOOD_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_Part_NG_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_Part_DELETE" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_Beam_GOOD" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_Beam_GOOD_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_Beam_NG_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_Beam_DELETE" Datatype="&quot;MES_Err_&amp;_Msg&quot;" />
+      <Member Name="Err_MSG131_O_ACT_Status_Update" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_O_TODO_Status_Update" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_O_ENDING_Status_Update" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG131_O_OUT_Status_Update" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg201" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg211" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg310_O_ACT" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg310_O_ENDING" Datatype="Array[1..&quot;PROD_ENDING_ITEMS&quot;] of &quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg311_O_ACT" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg311_O_ENDING" Datatype="Array[1..&quot;PROD_ENDING_ITEMS&quot;] of &quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg411" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg413" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg423" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Part_BAD" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Part_NG" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Part_NG_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Part_DELETE" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Beam_NG_R" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_MSG431_Beam_DELETE" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Err_Msg431_FineLamieraRF" Datatype="&quot;MES_Err_&amp;_Msg&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="i" Datatype="Int" />
+    <Member Name="Part_Done_Event" Datatype="Struct">
+      <Member Name="Exe_Update" Datatype="Bool" />
+      <Member Name="ACK_Done" Datatype="Bool" />
+      <Member Name="Is_BAD_WELD" Datatype="Bool" />
+      <Member Name="IS_BAD_EXCEED_TOL" Datatype="Bool" />
+      <Member Name="Is_BAD_TEST" Datatype="Bool" />
+      <Member Name="is_GOOD" Datatype="Bool" />
+      <Member Name="Is_TO_CHECK_LEN" Datatype="Bool" />
+      <Member Name="OK_StampoSpessore" Datatype="Bool" />
+      <Member Name="OK_StampoColata" Datatype="Bool" />
+      <Member Name="Save_PTrk" Datatype="&quot;PTrk_Item&quot;" />
+      <Member Name="LenErr" Datatype="Real" />
+      <Member Name="LenErrAbs" Datatype="Real" />
+      <Member Name="LenErrBADLimit" Datatype="Real" />
+      <Member Name="RETVAL_PTrk_Update" Datatype="Int" />
+      <Member Name="RETVAL_Next_To_Do" Datatype="Int" />
+    </Member>
+    <Member Name="Part_GOOD_R_Event" Datatype="Struct">
+      <Member Name="Exe" Datatype="Bool" />
+      <Member Name="Save_PTrk" Datatype="&quot;PTrk_Item&quot;" />
+    </Member>
+    <Member Name="Part_NG_R_Event" Datatype="Struct">
+      <Member Name="Exe" Datatype="Bool" />
+      <Member Name="Save_PTrk" Datatype="&quot;PTrk_Item&quot;" />
+      <Member Name="Indx" Datatype="Int">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Part_Delete_Event" Datatype="Struct">
+      <Member Name="Exe" Datatype="Bool" />
+      <Member Name="index" Datatype="Int" />
+      <Member Name="P_Array_Code" Datatype="Int" />
+      <Member Name="PTrk_Save" Datatype="&quot;PTrk_Item&quot;" />
+    </Member>
+    <Member Name="Beam_Done_Event" Datatype="Struct">
+      <Member Name="GOOD" Datatype="Bool" />
+      <Member Name="TO_CHECK" Datatype="Bool" />
+    </Member>
+    <Member Name="Beam_Recondition_Event" Datatype="Struct">
+      <Member Name="GOOD_R" Datatype="Bool" />
+      <Member Name="NG_R" Datatype="Bool" />
+      <Member Name="NG_R_Index" Datatype="Int" />
+    </Member>
+    <Member Name="Beam_Delete_Event" Datatype="Struct">
+      <Member Name="Exe" Datatype="Bool" />
+      <Member Name="Index" Datatype="Int" />
+      <Member Name="B_Array_Code" Datatype="Int" />
+      <Member Name="BTRK_Item_Save" Datatype="&quot;BTrk_item&quot;" />
+    </Member>
+    <Member Name="Update_Part_BAD" Datatype="&quot;Prod_O_Counters_Update_Push_MSG431_PTRK&quot;" />
+    <Member Name="Update_Part_GOOD" Datatype="&quot;Prod_O_Counters_Update_Part_GOOD&quot;" />
+    <Member Name="Update_Part_TOCHECK" Datatype="&quot;Prod_O_Counters_Update_Part_TOCHECK&quot;" />
+    <Member Name="Update_Part_NG" Datatype="&quot;Prod_O_Counters_Update_Part_NG&quot;" />
+    <Member Name="Update_Part_GOOD_R" Datatype="&quot;Prod_O_Counters_Update_Part_GOOD_R&quot;" />
+    <Member Name="Update_Part_NG_R" Datatype="&quot;Prod_O_Counters_Update_Part_NG_R&quot;" />
+    <Member Name="Update_Part_Delete" Datatype="&quot;Prod_O_Counters_Update_Part_Delete&quot;" />
+    <Member Name="Update_Beam_GOOD" Datatype="&quot;Prod_O_Counters_Update_Beam_GOOD&quot;" />
+    <Member Name="Update_Beam_GOOD_R" Datatype="&quot;Prod_O_Counters_Update_Beam_GOOD_R&quot;" />
+    <Member Name="Update_Beam_TOCHECK" Datatype="&quot;Prod_O_Counters_Update_Beam_TOCHECK&quot;" />
+    <Member Name="Update_Beam_NG_R" Datatype="&quot;Prod_O_Counters_Update_Beam_NG_R&quot;" />
+    <Member Name="Update_Beam_Delete" Datatype="&quot;Prod_O_Counters_Update_Beam_Delete&quot;" />
+    <Member Name="O_Status_Update" Datatype="&quot;Prod_O_Status_Update&quot;" />
+    <Member Name="Clean_O_ENDING" Datatype="&quot;Prod_O_ENDING_Clean&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Sospensioni" Datatype="&quot;Prod_Update_Stato_Sospensioni_Mng&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="HMI_Mng" Datatype="&quot;Prod_HMI_Mng&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="SetUp_Mng" Datatype="&quot;Prod_SetUp_Mng_Vrs2&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Stato_Pacchi" Datatype="&quot;Prod_O_Update_Stato_Pacchi_Mng&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Coils_Mng" Datatype="&quot;Prod_Coils_Mng&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="OrdineKanban" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>ProductionMng</Name>
+      <Namespace />
+      <Number>169</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

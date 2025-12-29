@@ -1,0 +1,313 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <DBAccessibleFromOPCUA>false</DBAccessibleFromOPCUA>
+      <InstanceOfName>SmartLoopControl</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterfaceEntry" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="AreaInterfaceExit" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="Pb_StartStop" Datatype="Bool" />
+      <Member Name="Pb_Start" Datatype="Bool" />
+      <Member Name="Pb_Stop" Datatype="Bool" />
+      <Member Name="SensorEntryMaterialPresence" Datatype="Bool" />
+      <Member Name="SensorExitMaterialPresence" Datatype="Bool" />
+      <Member Name="SensorExitEnableUseEncoder" Datatype="Bool" />
+      <Member Name="SensorNotLoopMinHigh" Datatype="Bool" />
+      <Member Name="SensorLoopMaxLow_Or_TPEntry" Datatype="Bool" />
+      <Member Name="SensorLoopMaxLow_Or_TPExit" Datatype="Bool" />
+      <Member Name="PlugConnected" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="&quot;SmartLoopControl_CIn&quot;" />
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="PitTables_Exist" Datatype="Bool" />
+      <Member Name="Entry_PercentagePosError" Datatype="LReal" />
+      <Member Name="Exit_PercentagePosError" Datatype="LReal" />
+      <Member Name="Delay_CheckNoEntryBkwEnable" Datatype="Time" />
+      <Member Name="Delay_CheckNoEntryFwdEnable" Datatype="Time" />
+      <Member Name="Delay_CheckNoExitBkwEnable" Datatype="Time" />
+      <Member Name="Delay_CheckNoExitFwdEnable" Datatype="Time" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterfaceEntry" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="MachineInterfaceExit" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="&quot;SmartLoopControl_COut&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="LampSystemOn" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="Struct">
+      <Member Name="Par" Datatype="&quot;SmartLoopControl_Par&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="RstAlarms" Datatype="Bool" />
+      <Member Name="StopInPhase" Datatype="Bool" />
+      <Member Name="StopProgrammed" Datatype="Bool" />
+      <Member Name="StopAborting" Datatype="Bool" />
+      <Member Name="ForceSyncFirstStart" Datatype="Bool" />
+      <Member Name="ForceSyncMinHigh" Datatype="Bool" />
+      <Member Name="ForceSyncCyclic" Datatype="Bool" />
+      <Member Name="ForceSyncExt" Datatype="Bool" />
+      <Member Name="ForceSync" Datatype="Bool" />
+      <Member Name="Sync_Exe" Datatype="Bool" />
+      <Member Name="Sync_EntryReduceOrStopFeed" Datatype="Bool" />
+      <Member Name="Sync_ExitReduceOrStopFeed" Datatype="Bool" />
+      <Member Name="MeasuringEnable" Datatype="Bool" />
+      <Member Name="Entry_EnableFeedBkw" Datatype="Bool" />
+      <Member Name="Entry_EnableFeedFwd" Datatype="Bool" />
+      <Member Name="Exit_EnableFeedBkw" Datatype="Bool" />
+      <Member Name="Exit_EnableFeedFwd" Datatype="Bool" />
+      <Member Name="Entry_VelocityOverride" Datatype="LReal" />
+      <Member Name="Exit_VelocityOverride" Datatype="LReal" />
+      <Member Name="Exit_MaxAllowableFeedFwd" Datatype="LReal" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="SensorsMaxLow_OFF" Datatype="Bool" />
+      <Member Name="SensorsMaxLow_ON" Datatype="Bool" />
+      <Member Name="LoopMaterialCounterValid" Datatype="Bool" />
+      <Member Name="SynchroRunning" Datatype="Bool" />
+      <Member Name="CheckSensorCatchIsOn" Datatype="Bool" />
+      <Member Name="CheckSensorLooseIsOn" Datatype="Bool" />
+      <Member Name="WorkModeMatCounter" Datatype="Bool" />
+      <Member Name="WorkModeSensors" Datatype="Bool" />
+      <Member Name="SystemOn" Datatype="Bool" />
+      <Member Name="MinHighReached" Datatype="Bool" />
+      <Member Name="SynchroDone" Datatype="Bool" />
+      <Member Name="CntFeedIncValid" Datatype="Bool" />
+      <Member Name="AntiRepetitionForceSyncExt" Datatype="Bool" />
+      <Member Name="Entry_MeasuringValuePosAxValid" Datatype="Bool" />
+      <Member Name="Exit_MeasuringValuePosAxValid" Datatype="Bool" />
+      <Member Name="Entry_MeasuringValueMatCounterValid" Datatype="Bool" />
+      <Member Name="Exit_MeasuringValueMatCounterValid" Datatype="Bool" />
+      <Member Name="SynchroDoneTof2s" Datatype="Bool" />
+      <Member Name="MaxLowReached" Datatype="Bool" />
+      <Member Name="SelectedPosStopMaxLow" Datatype="LReal" />
+      <Member Name="SelectedOverrideScaling" Datatype="LReal" />
+      <Member Name="LoopMaterialCounter" Datatype="LReal" />
+      <Member Name="DifferenceInc" Datatype="LReal" />
+      <Member Name="CntFeedIncPrevious" Datatype="LReal" />
+      <Member Name="MissingToCyclicSync" Datatype="LReal" />
+      <Member Name="SyncroMemLoopMaterialCounter" Datatype="LReal" />
+      <Member Name="AntiRepetitionForceSyncExtSaveEntryMatCounter" Datatype="LReal" />
+      <Member Name="AntiRepetitionForceSyncExtSaveExitMatCounter" Datatype="LReal" />
+      <Member Name="EncEntry_MeasuringValuePosAx" Datatype="LReal" />
+      <Member Name="EncExit_MeasuringValuePosAx" Datatype="LReal" />
+      <Member Name="EncEntry_MeasuringValueMatCounter" Datatype="LReal" />
+      <Member Name="EncExit_MeasuringValueMatCounter" Datatype="LReal" />
+      <Member Name="LoopMaterialCounterOffset" Datatype="LReal" />
+      <Member Name="LoopMaterialMissingToMaxLow" Datatype="LReal" />
+      <Member Name="LoopMaterialMissingToMinHigh" Datatype="LReal" />
+      <Member Name="Cases_Entry_VelocityOverride" Datatype="UInt" />
+      <Member Name="Cases_Exit_VelocityOverride" Datatype="UInt" />
+      <Member Name="Cases_Exit_MaxFeed" Datatype="UInt" />
+      <Member Name="WorkMode" Datatype="UInt" />
+    </Member>
+    <Member Name="Wng" Datatype="Struct">
+      <Member Name="NoAutReady" Datatype="Bool" />
+      <Member Name="MeasInputsXORMeasuringValue" Datatype="Bool" />
+      <Member Name="TimeOutCalculateLoopCounterOffset" Datatype="Bool" />
+      <Member Name="SensorEnableEncIsOff" Datatype="Bool" />
+      <Member Name="Entry_MatCounterNotValid" Datatype="Bool" />
+      <Member Name="Exit_MatCounterNotValid" Datatype="Bool" />
+      <Member Name="NotSystemOn" Datatype="Bool" />
+      <Member Name="MinHighReached" Datatype="Bool" />
+      <Member Name="SyncNeedToLooseSensor" Datatype="Bool" />
+      <Member Name="SyncNeedToCatchSensor" Datatype="Bool" />
+      <Member Name="Entry_NoBkwEnable" Datatype="Bool" />
+      <Member Name="Entry_NoFwdEnable" Datatype="Bool" />
+      <Member Name="Exit_NoBkwEnable" Datatype="Bool" />
+      <Member Name="Exit_NoFwdEnable" Datatype="Bool" />
+    </Member>
+    <Member Name="Alr" Datatype="Struct">
+      <Member Name="MeasInputsXORInputState" Datatype="Bool" />
+      <Member Name="Entry_MatCounterLooseOfValidState" Datatype="Bool" />
+      <Member Name="Exit_MatCounterLooseOfValidState" Datatype="Bool" />
+      <Member Name="SensorError" Datatype="Bool" />
+      <Member Name="PlugNotConnected" Datatype="Bool" />
+      <Member Name="SyncSensorNotCatch" Datatype="Bool" />
+      <Member Name="SyncSensorNotLoose" Datatype="Bool" />
+      <Member Name="Entry_NoCounterMove" Datatype="Bool" />
+      <Member Name="Exit_NoCounterMove" Datatype="Bool" />
+    </Member>
+    <Member Name="tonCheckMeasInputStateXOR" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="tonDelaySensorMaxLowLoose" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonDelaySensorMaxLowCatch" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoEntryCounterMove" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoExitCounterMove" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonEnableForceSyncCyclic" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonSynchIdle" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckBothMeasuringDone" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonTimeOutCalculateCounterOffset" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonSynchAutoReset" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tof2sSynchroDone" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonRstMaterialCounterValid" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonSetMaxLow" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonRstMaxLow" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoEntryBkwEnable" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoEntryFwdEnable" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoExitBkwEnable" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonCheckNoExitFwdEnable" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="SynchCycle" Datatype="UInt">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CheckSensorCatchSaveLoopMaterialCounter" Datatype="LReal" />
+    <Member Name="CheckSensorCatchFeeding" Datatype="LReal" />
+    <Member Name="CheckSensorLooseSaveLoopMaterialCounter" Datatype="LReal" />
+    <Member Name="CheckSensorLooseFeeding" Datatype="LReal" />
+    <Member Name="AuxPbStartStopOneShot" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="AuxSyncFirstStartOneShot" Datatype="Bool" />
+    <Member Name="ModeMatCounterAndSystemOn" Datatype="Bool" />
+    <Member Name="MinHighCumulative" Datatype="Bool" />
+    <Member Name="AuxSyncMinHighOneShot" Datatype="Bool" />
+    <Member Name="Entry_SaveMesInpID" Datatype="UInt" />
+    <Member Name="Exit_SaveMesInpID" Datatype="UInt" />
+    <Member Name="Check_Entry_Velocity" Datatype="&quot;Check_Axis_Velocity&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Check_Exit_Velocity" Datatype="&quot;Check_Axis_Velocity&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>Loop1</Name>
+      <Namespace />
+      <Number>192</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

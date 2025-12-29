@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <DBAccessibleFromOPCUA>false</DBAccessibleFromOPCUA>
+      <InstanceOfName>DiesLubrication_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PbStop" Datatype="Bool" />
+      <Member Name="PbStart" Datatype="Bool" />
+      <Member Name="SensorLevel" Datatype="Bool" />
+      <Member Name="ConnectorPlugged" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="EnableStopInPhase" Datatype="Bool" />
+      <Member Name="EnableStopProgrammed" Datatype="Bool" />
+      <Member Name="EnableAborting" Datatype="Bool" />
+      <Member Name="JobDone" Datatype="Bool" />
+      <Member Name="ExternalPumpCycleDone" Datatype="Bool" />
+      <Member Name="CutBenchCode" Datatype="DInt" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="EnableWngSystemOff" Datatype="Bool" />
+      <Member Name="ExternalPump" Datatype="Bool" />
+      <Member Name="PumpWorkDuration" Datatype="Time" />
+      <Member Name="PumpPauseDuration" Datatype="Time" />
+      <Member Name="LowTankLevelDly" Datatype="Time" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="PneumaticPumpSolenoidValve" Datatype="Bool" />
+      <Member Name="Lamp" Datatype="Bool" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="IsRunning" Datatype="Bool" />
+      <Member Name="ToolsJobCounter" Datatype="UDInt" />
+      <Member Name="PumpCycleCounter" Datatype="UDInt" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="Struct">
+      <Member Name="Data" Datatype="Struct">
+        <Member Name="SavedCutBenchCode" Datatype="DInt" />
+        <Member Name="PumpJobCounter" Datatype="UDInt" />
+        <Member Name="JobsCounter" Datatype="UDInt" />
+      </Member>
+      <Member Name="Par" Datatype="Struct">
+        <Member Name="SystemOffOn" Datatype="Bool" />
+        <Member Name="JobsToStart" Datatype="UDInt" />
+        <Member Name="OilPumpCycles" Datatype="UDInt" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="PumpPauseDone" Datatype="Bool" />
+      <Member Name="PumpWorkDone" Datatype="Bool" />
+      <Member Name="LubNormCycleReq" Datatype="Bool" />
+      <Member Name="Condition" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="RstAlarms" Datatype="Bool" />
+      <Member Name="SafeMotion" Datatype="Bool" />
+      <Member Name="StopDoorOpen" Datatype="Bool" />
+      <Member Name="StopSafe" Datatype="Bool" />
+      <Member Name="StopInPhase" Datatype="Bool" />
+      <Member Name="StopProgrammed" Datatype="Bool" />
+      <Member Name="ManStart" Datatype="Bool" />
+      <Member Name="AutStart" Datatype="Bool" />
+      <Member Name="V_Pneumatic" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="NoAutReady" Datatype="Bool" />
+      <Member Name="SystemOff" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="LowTankLevel" Datatype="Bool" />
+      <Member Name="ConnectorUnplugged" Datatype="Bool" />
+    </Member>
+    <Member Name="TON_PumpPause" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_PumpWork" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_LowTankLevel" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="JobDonePEAux" Datatype="Bool" />
+    <Member Name="PbStartPEAux" Datatype="Bool" />
+  </Section>
+</Sections></Interface>
+      <Name>FinalCutLub</Name>
+      <Namespace />
+      <Number>219</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

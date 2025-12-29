@@ -1,0 +1,455 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0303_TraslazioneStrato_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI_Feed_Testa" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DSI_Feed_Coda" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DSI_Valve" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="OP_Vai_A_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Vai_A_Deposito" Datatype="Bool" />
+      <Member Name="OP_Deposito" Datatype="Bool" />
+      <Member Name="LsSensor1" Datatype="Bool" />
+      <Member Name="LsSensor2" Datatype="Bool" />
+      <Member Name="StratoDepositato_Testa_AnalSens" Datatype="Int" />
+      <Member Name="StratoDepositato_Coda_AnalSens" Datatype="Int" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="SemiAut_Pb" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+        <Member Name="Control_ON" Datatype="Bool" />
+        <Member Name="CanMoveFreely" Datatype="Bool" />
+        <Member Name="OP" Datatype="Struct">
+          <Member Name="VAI_A_PRELIEVO" Datatype="Bool" />
+          <Member Name="PRELIEVO" Datatype="Bool" />
+          <Member Name="VAI_A_DEPOSITO" Datatype="Bool" />
+          <Member Name="DEPOSITO" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="Sollevatore" Datatype="Struct">
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+        <Member Name="ActualPos_Testa" Datatype="LReal" />
+        <Member Name="ActualPos_Coda" Datatype="LReal" />
+      </Member>
+      <Member Name="Antiribaltamento" Datatype="Struct">
+        <Member Name="InRestPos" Datatype="Bool" />
+        <Member Name="InPos0" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Testa" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Config_NEW&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_Config&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_Config&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_Config&quot;" />
+      </Member>
+      <Member Name="Coda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Config_NEW&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_Config&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_Config&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_Config&quot;" />
+        <Member Name="DelayMissingCondition" Datatype="Time">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="DelayMissingCondition" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Testa" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="Coda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="Cumulativo" Datatype="Struct">
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par" Datatype="Struct">
+      <Member Name="Ax_Man" Datatype="&quot;Positioning_EPOS_Machine_Par&quot;" />
+      <Member Name="Ax_Aut" Datatype="&quot;Mach_Speed_Par&quot;" />
+      <Member Name="ToleranceHeight" Datatype="LReal" />
+      <Member Name="TimeoutTolerance" Datatype="Time" />
+      <Member Name="Pers_Data_Testa" Datatype="Struct">
+        <Member Name="EncoderAbsolute_Preset_OK" Datatype="Bool" />
+        <Member Name="Persistent_ActualPosition" Datatype="LReal" />
+      </Member>
+      <Member Name="Pers_Data_Coda" Datatype="Struct">
+        <Member Name="EncoderAbsolute_Preset_OK" Datatype="Bool" />
+        <Member Name="Persistent_ActualPosition" Datatype="LReal" />
+      </Member>
+      <Member Name="Sens_Testa" Datatype="&quot;Analogic_SensorManagement_Par&quot;" />
+      <Member Name="Sens_Coda" Datatype="&quot;Analogic_SensorManagement_Par&quot;" />
+    </Member>
+    <Member Name="Par_Mach" Datatype="Struct">
+      <Member Name="PosPrelievo" Datatype="LReal" />
+      <Member Name="PosDeposito" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+    <Member Name="Data_Testa" Datatype="&quot;Analogic_SensorManagement_Data&quot;" />
+    <Member Name="Data_Coda" Datatype="&quot;Analogic_SensorManagement_Data&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Testa" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Alr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveAlr&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveAlr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveAlr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="Coda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Alr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveAlr&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveAlr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveAlr&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="StratoDepositatoNoOk" Datatype="Bool" />
+      <Member Name="CheckBothAxMove" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Testa" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="Coda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_Wng&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="Sens_Testa" Datatype="&quot;Analogic_SensorManagement_Warning&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Sens_Coda" Datatype="&quot;Analogic_SensorManagement_Warning&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="MissingCnd" Datatype="Struct">
+        <Member Name="OP_VAI_A_PRELIEVO" Datatype="Bool" />
+        <Member Name="OP_PRELIEVO" Datatype="Bool" />
+        <Member Name="OP_DEPOSITO" Datatype="Bool" />
+        <Member Name="OP_VAI_A_DEPOSITO" Datatype="Bool" />
+        <Member Name="SollevatoreInWorkspace" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Selection" Datatype="Struct">
+        <Member Name="Ax" Datatype="Int" />
+        <Member Name="Manip_Sostegno" Datatype="Int" />
+        <Member Name="Manip_Pareggiatore" Datatype="Int" />
+        <Member Name="SostegnoVrt" Datatype="Int" />
+      </Member>
+      <Member Name="AnalogSensor_Testa" Datatype="&quot;HMI_Preset&quot;" />
+      <Member Name="AnalogSensor_Coda" Datatype="&quot;HMI_Preset&quot;" />
+      <Member Name="Testa" Datatype="Struct">
+        <Member Name="PbPreset" Datatype="Bool" />
+        <Member Name="PresetValue" Datatype="LReal" />
+      </Member>
+      <Member Name="Coda" Datatype="Struct">
+        <Member Name="PbPreset" Datatype="Bool" />
+        <Member Name="PresetValue" Datatype="LReal" />
+      </Member>
+      <Member Name="AltezzaPaccoTesta" Datatype="Struct">
+        <Member Name="Target" Datatype="LReal" />
+        <Member Name="AltezzaMassimaRilevata" Datatype="LReal" />
+        <Member Name="AltezzaMedia" Datatype="LReal" />
+        <Member Name="FuoriTolleranza" Datatype="Bool" />
+      </Member>
+      <Member Name="AltezzaPaccoCoda" Datatype="Struct">
+        <Member Name="Target" Datatype="LReal" />
+        <Member Name="AltezzaMassimaRilevata" Datatype="LReal" />
+        <Member Name="AltezzaMedia" Datatype="LReal" />
+        <Member Name="FuoriTolleranza" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="OP_CanMoveFreely" Datatype="Bool" />
+      <Member Name="OP_Vai_A_Prelievo_Cnd" Datatype="Bool" />
+      <Member Name="OP_Prelievo_Cnd" Datatype="Bool" />
+      <Member Name="OP_Deposito_Cnd" Datatype="Bool" />
+      <Member Name="OP_Vai_A_Deposito_Cnd" Datatype="Bool" />
+      <Member Name="Coda_PermessoDaSynchOk" Datatype="Bool" />
+      <Member Name="Testa_PermessoDaSynchOk" Datatype="Bool" />
+      <Member Name="HeightStackerLayer_Testa" Datatype="LReal" />
+      <Member Name="HeightStackerLayer_Coda" Datatype="LReal" />
+      <Member Name="ActPosPhcTesta" Datatype="LReal" />
+      <Member Name="ActPosPhcCoda" Datatype="LReal" />
+      <Member Name="MaxHeightDetectedCoda" Datatype="LReal" />
+      <Member Name="MaxHeightDetectedTesta" Datatype="LReal" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Man" Datatype="Struct">
+        <Member Name="OP_Vai_A_Prelievo" Datatype="Bool" />
+        <Member Name="OP_Prelievo" Datatype="Bool" />
+        <Member Name="OP_Deposito" Datatype="Bool" />
+        <Member Name="OP_Vai_A_Deposito" Datatype="Bool" />
+      </Member>
+      <Member Name="Aut" Datatype="Struct">
+        <Member Name="OP_Vai_A_Prelievo" Datatype="Bool" />
+        <Member Name="OP_Prelievo" Datatype="Bool" />
+        <Member Name="OP_Deposito" Datatype="Bool" />
+        <Member Name="OP_Vai_A_Deposito" Datatype="Bool" />
+      </Member>
+      <Member Name="OP_Vai_A_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Deposito" Datatype="Bool" />
+      <Member Name="OP_Vai_A_Deposito" Datatype="Bool" />
+    </Member>
+    <Member Name="Ax_Testa" Datatype="&quot;Positioning_EPOS_Machine_FB_NEW&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Ax_Coda" Datatype="&quot;Positioning_EPOS_Machine_FB_NEW&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="ValueVelOvr" Datatype="Array[1..10] of Real">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Manip_Sostegno_Testa" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Manip_Sostegno_Coda" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Manip_Pareggiatore_Testa" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Manip_Pareggiatore_Coda" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="SostegnoVrt_Testa" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="SostegnoVrt_Coda" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="StratoDepositato_Testa" Datatype="&quot;Analogic_SensorManagement&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="StratoDepositato_Coda" Datatype="&quot;Analogic_SensorManagement&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="ControlloStrato_Testa" Datatype="Struct">
+      <Member Name="Enable" Datatype="Bool" />
+      <Member Name="InsideCheckWindow" Datatype="Bool" />
+      <Member Name="OutOfTolerance" Datatype="Bool" />
+    </Member>
+    <Member Name="ControlloStrato_Coda" Datatype="Struct">
+      <Member Name="Enable" Datatype="Bool" />
+      <Member Name="InsideCheckWindow" Datatype="Bool" />
+      <Member Name="OutOfTolerance" Datatype="Bool" />
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="OP_Vai_A_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Prelievo" Datatype="Bool" />
+      <Member Name="OP_Deposito" Datatype="Bool" />
+      <Member Name="OP_Vai_A_Deposito" Datatype="Bool" />
+    </Member>
+    <Member Name="TON_OP_VAI_A_PRELIEVO_MissingCnd" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_OP_VAI_A_DEPOSITO_MissingCnd" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_OP_PRELIEVO_MissingCnd" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_OP_DEPOSITO_MissingCnd" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_StratoDepositatoAlarm" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_CheckAxMove" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CheckAxisSynch" Datatype="&quot;CheckAxisSynch&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="BufferHeight" Datatype="Array[1..9] of LReal">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>A0303_TraslazioneStrato</Name>
+      <Namespace />
+      <Number>97</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

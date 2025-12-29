@@ -1,0 +1,63 @@
+﻿FUNCTION "Coil_Assign_MES_ID" : String
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	
+	REGION INFO
+	    
+	    (*
+	    Trova l'ordine MES [MES_ID] che sta usando C_ID
+	    *)
+	    
+	    // Statement section REGION
+	    
+	    
+	    
+	END_REGION
+	
+	#Coil_Assign_MES_ID := '?';
+	
+	IF "Production".O_ACT.O_ID > 0 THEN
+	    #Coil_Assign_MES_ID := "Production".O_ACT.MES_IDP;
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	    IF "Production".O_ENDING[#i].O_ID > 0 THEN
+	        #Coil_Assign_MES_ID := "Production".O_ENDING[#i].MES_IDP;
+	        RETURN;
+	    END_IF;
+	END_FOR;
+	
+	
+	FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	    IF "Production".O_TODO[#i].O_ID > 0 THEN
+	        #Coil_Assign_MES_ID := "Production".O_TODO[#i].MES_IDP;
+	        RETURN;
+	    END_IF;
+	END_FOR;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

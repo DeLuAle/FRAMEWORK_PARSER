@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>Coilcar_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="EStop" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Man" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Aut" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Cycle" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="RstAlarms" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="ManOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AutOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CycleOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CheckAutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="Struct">
+      <Member Name="Move" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="LIft" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    </Member>
+    <Member Name="Drive" Datatype="&quot;TAx_DriveInterface&quot;" />
+    <Member Name="HW_ID_TEL1" Datatype="HW_SUBMODULE" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="Supports_Ls_FixPoleLeft_Plugged" Datatype="Bool" />
+      <Member Name="Supports_Ls_FixPoleRight_Plugged" Datatype="Bool" />
+      <Member Name="Supports_Ls_MobilePoleLeft_Plugged" Datatype="Bool" />
+      <Member Name="Supports_Ls_MobilePoleRight_Plugged" Datatype="Bool" />
+      <Member Name="Move_Ls_Outline" Datatype="Bool" />
+      <Member Name="Move_Ls_Inline" Datatype="Bool" />
+      <Member Name="Move_Ls_LowSpeedOutline" Datatype="Bool" />
+      <Member Name="Move_Ls_LowSpeedInline" Datatype="Bool" />
+      <Member Name="Move_Ls_CoilInserted" Datatype="Bool" />
+      <Member Name="Move" Datatype="&quot;SpeedMachine_DataIn&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_DataIn&quot;" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="PressureRunning" Datatype="Bool" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="LsStopDelayON" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="LsStopDelayOFF" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Move" Datatype="&quot;SpeedMachine_Config&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_Config&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="AutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aborting" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="MotionsStandStill" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="AlarmsPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="WarningPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="Move" Datatype="&quot;SpeedMachine_DataOut&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_DataOut&quot;" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="IsInline" Datatype="Bool" />
+      <Member Name="IsOutline" Datatype="Bool" />
+      <Member Name="Move" Datatype="&quot;SpeedMachine_COut&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_COut&quot;" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="Struct">
+      <Member Name="Move" Datatype="&quot;SpeedMachine_Par&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="Move" Datatype="Struct">
+        <Member Name="LowSpeedInline" Datatype="Bool" />
+        <Member Name="LowSpeedOutline" Datatype="Bool" />
+        <Member Name="IsInline" Datatype="Bool" />
+        <Member Name="IsOutline" Datatype="Bool" />
+        <Member Name="Inline_Cnd" Datatype="Bool" />
+        <Member Name="Outline_Cnd" Datatype="Bool" />
+        <Member Name="ReductionRatio" Datatype="LReal" />
+      </Member>
+      <Member Name="Free" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Move_UnvalidStateLsInOut" Datatype="Bool" />
+      <Member Name="Move_UnvalidStateLsLow" Datatype="Bool" />
+      <Member Name="Move" Datatype="&quot;SpeedMachine_Alr&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="Lift2" Datatype="&quot;ValveAlr&quot;" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Move" Datatype="&quot;SpeedMachine_Wng&quot;" />
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_Wng&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_Wng&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="NotOutline" Datatype="Bool" />
+      <Member Name="Supports_FixPolesNotPlugged" Datatype="Bool" />
+      <Member Name="Supports_MobilePolesNotPlugged" Datatype="Bool" />
+    </Member>
+    <Member Name="Move" Datatype="&quot;SpeedMachine_FB&quot;" />
+    <Member Name="Lift1" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="Lift2" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="TON_OutlinePos_DelayON" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_OutlinePos_DelayOFF" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_InlinePos_DelayON" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_InlinePos_DelayOFF" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="pippo" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>Coilcar</Name>
+      <Namespace />
+      <Number>112</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

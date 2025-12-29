@@ -1,0 +1,339 @@
+{
+    "category": "SCL Data Types",
+    "description": "Tipi di dati disponibili in SCL per TIA Portal S7-1500/S7-1200",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Data Types / IEC 61131-3 Standard",
+    "data_types": [
+        {
+            "name": "BOOL",
+            "category": "Elementary - Bit",
+            "size": "1 bit",
+            "range": "FALSE (0) o TRUE (1)",
+            "description": "Tipo booleano. Rappresenta un valore logico vero/falso.",
+            "example": "VAR\n    motorRunning : BOOL;\n    alarm : BOOL := FALSE;\nEND_VAR",
+            "notes": "Tipo più comune per I/O digitali, flag, condizioni. Occupa 1 byte in memoria ma usa solo 1 bit.",
+            "literals": "TRUE, FALSE, 0, 1"
+        },
+        {
+            "name": "BYTE",
+            "category": "Elementary - Bit String",
+            "size": "8 bit (1 byte)",
+            "range": "16#00 a 16#FF (0-255)",
+            "description": "Stringa di 8 bit senza segno. Usato per dati binari grezzi.",
+            "example": "VAR\n    statusByte : BYTE;\n    mask : BYTE := 16#0F;\nEND_VAR",
+            "notes": "Utile per maschere di bit, dati grezzi, comunicazioni. Notazione esadecimale: 16#XX.",
+            "literals": "16#00, 16#FF, 2#11111111"
+        },
+        {
+            "name": "WORD",
+            "category": "Elementary - Bit String",
+            "size": "16 bit (2 byte)",
+            "range": "16#0000 a 16#FFFF (0-65535)",
+            "description": "Stringa di 16 bit senza segno.",
+            "example": "VAR\n    controlWord : WORD;\n    flags : WORD := 16#0000;\nEND_VAR",
+            "notes": "Comune per registri di controllo, word di stato PLC.",
+            "literals": "16#0000, 16#FFFF, 2#1111111111111111"
+        },
+        {
+            "name": "DWORD",
+            "category": "Elementary - Bit String",
+            "size": "32 bit (4 byte)",
+            "range": "16#00000000 a 16#FFFFFFFF",
+            "description": "Stringa di 32 bit senza segno.",
+            "example": "VAR\n    statusDWord : DWORD;\nEND_VAR",
+            "notes": "Usato per dati a 32 bit, indirizzi, timestamp.",
+            "literals": "16#00000000, 16#FFFFFFFF"
+        },
+        {
+            "name": "LWORD",
+            "category": "Elementary - Bit String",
+            "size": "64 bit (8 byte)",
+            "range": "16#0000000000000000 a 16#FFFFFFFFFFFFFFFF",
+            "description": "Stringa di 64 bit senza segno.",
+            "example": "VAR\n    largeData : LWORD;\nEND_VAR",
+            "notes": "Disponibile solo su S7-1200/S7-1500.",
+            "literals": "16#0000000000000000"
+        },
+        {
+            "name": "SINT",
+            "category": "Elementary - Integer",
+            "size": "8 bit (1 byte)",
+            "range": "-128 a +127",
+            "description": "Short Integer con segno.",
+            "example": "VAR\n    smallValue : SINT;\nEND_VAR",
+            "notes": "Raramente usato. Preferire INT per compatibilità.",
+            "literals": "-128, 0, 127"
+        },
+        {
+            "name": "INT",
+            "category": "Elementary - Integer",
+            "size": "16 bit (2 byte)",
+            "range": "-32768 a +32767",
+            "description": "Integer standard con segno. Tipo intero più comune.",
+            "example": "VAR\n    counter : INT;\n    temperature : INT := 25;\nEND_VAR",
+            "notes": "Tipo intero predefinito. Usato per contatori, valori analogici, indici array.",
+            "literals": "-32768, 0, 100, 32767"
+        },
+        {
+            "name": "DINT",
+            "category": "Elementary - Integer",
+            "size": "32 bit (4 byte)",
+            "range": "-2147483648 a +2147483647",
+            "description": "Double Integer con segno. Intero a 32 bit.",
+            "example": "VAR\n    largeCounter : DINT;\n    timestamp : DINT;\nEND_VAR",
+            "notes": "Usato per valori grandi, timestamp, calcoli che superano range INT.",
+            "literals": "-2147483648, 0, 1000000, 2147483647"
+        },
+        {
+            "name": "LINT",
+            "category": "Elementary - Integer",
+            "size": "64 bit (8 byte)",
+            "range": "-9223372036854775808 a +9223372036854775807",
+            "description": "Long Integer con segno. Intero a 64 bit.",
+            "example": "VAR\n    veryLargeValue : LINT;\nEND_VAR",
+            "notes": "Disponibile solo su S7-1200/S7-1500. Per valori molto grandi.",
+            "literals": "0, 9223372036854775807"
+        },
+        {
+            "name": "USINT",
+            "category": "Elementary - Unsigned Integer",
+            "size": "8 bit (1 byte)",
+            "range": "0 a 255",
+            "description": "Unsigned Short Integer.",
+            "example": "VAR\n    percentage : USINT;\nEND_VAR",
+            "notes": "Senza segno, solo valori positivi.",
+            "literals": "0, 100, 255"
+        },
+        {
+            "name": "UINT",
+            "category": "Elementary - Unsigned Integer",
+            "size": "16 bit (2 byte)",
+            "range": "0 a 65535",
+            "description": "Unsigned Integer. Intero senza segno a 16 bit.",
+            "example": "VAR\n    adcValue : UINT;\n    count : UINT := 0;\nEND_VAR",
+            "notes": "Usato per valori ADC, contatori sempre positivi.",
+            "literals": "0, 1000, 65535"
+        },
+        {
+            "name": "UDINT",
+            "category": "Elementary - Unsigned Integer",
+            "size": "32 bit (4 byte)",
+            "range": "0 a 4294967295",
+            "description": "Unsigned Double Integer.",
+            "example": "VAR\n    totalCount : UDINT;\nEND_VAR",
+            "notes": "Per contatori grandi sempre positivi.",
+            "literals": "0, 1000000, 4294967295"
+        },
+        {
+            "name": "ULINT",
+            "category": "Elementary - Unsigned Integer",
+            "size": "64 bit (8 byte)",
+            "range": "0 a 18446744073709551615",
+            "description": "Unsigned Long Integer.",
+            "example": "VAR\n    hugeCounter : ULINT;\nEND_VAR",
+            "notes": "Disponibile solo su S7-1200/S7-1500.",
+            "literals": "0, 18446744073709551615"
+        },
+        {
+            "name": "REAL",
+            "category": "Elementary - Floating Point",
+            "size": "32 bit (4 byte)",
+            "range": "±1.18×10^-38 a ±3.40×10^38",
+            "description": "Numero in virgola mobile a precisione singola (IEEE 754).",
+            "example": "VAR\n    temperature : REAL;\n    pressure : REAL := 1.013;\n    pi : REAL := 3.14159;\nEND_VAR",
+            "notes": "Tipo floating point standard. Circa 7 cifre decimali di precisione. Usato per misure fisiche, calcoli scientifici.",
+            "literals": "0.0, 3.14, -273.15, 1.5E-3 (notazione scientifica)"
+        },
+        {
+            "name": "LREAL",
+            "category": "Elementary - Floating Point",
+            "size": "64 bit (8 byte)",
+            "range": "±2.23×10^-308 a ±1.79×10^308",
+            "description": "Numero in virgola mobile a precisione doppia (IEEE 754).",
+            "example": "VAR\n    preciseValue : LREAL;\n    constant : LREAL := 2.718281828459045;\nEND_VAR",
+            "notes": "Circa 15 cifre decimali di precisione. Usato quando serve alta precisione. Disponibile solo su S7-1200/S7-1500.",
+            "literals": "0.0, 3.141592653589793, 1.23E-100"
+        },
+        {
+            "name": "CHAR",
+            "category": "Elementary - Character",
+            "size": "8 bit (1 byte)",
+            "range": "Caratteri ASCII (0-255)",
+            "description": "Singolo carattere ASCII.",
+            "example": "VAR\n    letter : CHAR;\n    newline : CHAR := '$N';  // Line feed\nEND_VAR",
+            "notes": "Raramente usato direttamente. Preferire STRING. Notazione: 'A', '$N' (newline), '$R' (carriage return).",
+            "literals": "'A', 'z', '0', '$N', '$R', '$T' (tab)"
+        },
+        {
+            "name": "WCHAR",
+            "category": "Elementary - Character",
+            "size": "16 bit (2 byte)",
+            "range": "Caratteri Unicode (0-65535)",
+            "description": "Singolo carattere Unicode (UTF-16).",
+            "example": "VAR\n    unicodeChar : WCHAR;\nEND_VAR",
+            "notes": "Per caratteri internazionali. Disponibile solo su S7-1200/S7-1500.",
+            "literals": "\"A\", \"€\""
+        },
+        {
+            "name": "STRING",
+            "category": "Elementary - String",
+            "size": "Variabile (max 254 caratteri + 2 byte overhead)",
+            "range": "0-254 caratteri",
+            "description": "Stringa di caratteri ASCII. Lunghezza variabile.",
+            "example": "VAR\n    message : STRING;              // Max 254 caratteri\n    name : STRING[20];             // Max 20 caratteri\n    status : STRING := 'READY';    // Inizializzata\nEND_VAR",
+            "notes": "Lunghezza massima specificata tra parentesi quadre. Default 254 se non specificato. Usa 2 byte extra per lunghezza corrente e massima.",
+            "literals": "'Hello World', 'Error: Timeout', ''"
+        },
+        {
+            "name": "WSTRING",
+            "category": "Elementary - String",
+            "size": "Variabile (max 16382 caratteri Unicode)",
+            "range": "0-16382 caratteri",
+            "description": "Stringa di caratteri Unicode (UTF-16).",
+            "example": "VAR\n    unicodeMessage : WSTRING;\n    internationalText : WSTRING[100];\nEND_VAR",
+            "notes": "Per testo internazionale. Disponibile solo su S7-1200/S7-1500.",
+            "literals": "\"Hello 世界\", \"Привет\""
+        },
+        {
+            "name": "TIME",
+            "category": "Elementary - Time",
+            "size": "32 bit (4 byte)",
+            "range": "T#-24d20h31m23s648ms a T#24d20h31m23s647ms",
+            "description": "Durata temporale in millisecondi.",
+            "example": "VAR\n    delay : TIME;\n    timeout : TIME := T#5s;\n    cycleTime : TIME := T#100ms;\nEND_VAR",
+            "notes": "Usato per timer, ritardi, durate. Risoluzione: 1 ms. Notazione: T#<value><unit>.",
+            "literals": "T#0ms, T#100ms, T#5s, T#2m, T#1h, T#1d, T#1h30m45s500ms"
+        },
+        {
+            "name": "LTIME",
+            "category": "Elementary - Time",
+            "size": "64 bit (8 byte)",
+            "range": "LT#-106751d23h47m16s854ms775us808ns a LT#106751d23h47m16s854ms775us807ns",
+            "description": "Durata temporale ad alta precisione in nanosecondi.",
+            "example": "VAR\n    preciseDelay : LTIME;\n    highResTime : LTIME := LT#1ms500us;\nEND_VAR",
+            "notes": "Risoluzione: 1 ns. Disponibile solo su S7-1200/S7-1500. Per misure di tempo precise.",
+            "literals": "LT#0ns, LT#1us, LT#1ms, LT#1s, LT#1m30s500ms"
+        },
+        {
+            "name": "DATE",
+            "category": "Elementary - Date/Time",
+            "size": "16 bit (2 byte)",
+            "range": "D#1990-01-01 a D#2168-12-31",
+            "description": "Data (solo giorno, senza ora).",
+            "example": "VAR\n    productionDate : DATE;\n    today : DATE := D#2025-12-05;\nEND_VAR",
+            "notes": "Solo data, senza componente oraria. Notazione: D#YYYY-MM-DD.",
+            "literals": "D#1990-01-01, D#2025-12-05, D#2168-12-31"
+        },
+        {
+            "name": "TIME_OF_DAY (TOD)",
+            "category": "Elementary - Date/Time",
+            "size": "32 bit (4 byte)",
+            "range": "TOD#00:00:00.000 a TOD#23:59:59.999",
+            "description": "Ora del giorno (senza data).",
+            "example": "VAR\n    startTime : TOD;\n    currentTime : TOD := TOD#08:30:00;\nEND_VAR",
+            "notes": "Solo ora, senza componente data. Risoluzione: 1 ms. Notazione: TOD#HH:MM:SS[.mmm].",
+            "literals": "TOD#00:00:00, TOD#12:30:45, TOD#23:59:59.999"
+        },
+        {
+            "name": "DATE_AND_TIME (DT)",
+            "category": "Elementary - Date/Time",
+            "size": "64 bit (8 byte)",
+            "range": "DT#1990-01-01-00:00:00 a DT#2089-12-31-23:59:59",
+            "description": "Data e ora combinate (legacy).",
+            "example": "VAR\n    timestamp : DT;\n    eventTime : DT := DT#2025-12-05-08:30:00;\nEND_VAR",
+            "notes": "Tipo legacy. Preferire DTL per nuovi progetti. Notazione: DT#YYYY-MM-DD-HH:MM:SS.",
+            "literals": "DT#1990-01-01-00:00:00, DT#2025-12-05-14:30:00"
+        },
+        {
+            "name": "DTL",
+            "category": "Structured - Date/Time",
+            "size": "12 byte",
+            "range": "DTL#1970-01-01-00:00:00.000000000 a DTL#2262-04-11-23:47:16.854775807",
+            "description": "Date Time Long. Struttura per data/ora ad alta precisione.",
+            "example": "VAR\n    systemTime : DTL;\nEND_VAR\n// Accesso campi:\nsystemTime.YEAR := 2025;\nsystemTime.MONTH := 12;\nsystemTime.DAY := 5;\nsystemTime.HOUR := 8;\nsystemTime.MINUTE := 30;\nsystemTime.SECOND := 0;\nsystemTime.NANOSECOND := 0;",
+            "notes": "Tipo moderno per timestamp. Risoluzione nanosecondo. Campi: YEAR, MONTH, DAY, WEEKDAY, HOUR, MINUTE, SECOND, NANOSECOND. Solo S7-1200/S7-1500.",
+            "literals": "DTL#2025-12-05-08:30:00.0"
+        },
+        {
+            "name": "ARRAY",
+            "category": "Complex - Array",
+            "size": "Variabile",
+            "range": "Dipende da dimensioni e tipo elemento",
+            "description": "Array (vettore) di elementi dello stesso tipo.",
+            "example": "VAR\n    temperatures : ARRAY[0..9] OF REAL;           // 10 elementi REAL\n    matrix : ARRAY[1..3, 1..3] OF INT;            // Matrice 3x3\n    flags : ARRAY[0..15] OF BOOL;                 // 16 booleani\n    names : ARRAY[1..5] OF STRING[20];            // 5 stringhe\nEND_VAR\n// Accesso:\ntemperatures[0] := 25.5;\nmatrix[1,1] := 100;",
+            "notes": "Indici possono iniziare da qualsiasi valore. Array multidimensionali supportati. Tutti gli elementi devono essere dello stesso tipo.",
+            "syntax": "ARRAY[<lower_bound>..<upper_bound>] OF <data_type>"
+        },
+        {
+            "name": "STRUCT",
+            "category": "Complex - Structure",
+            "size": "Variabile",
+            "range": "Somma dimensioni campi",
+            "description": "Struttura (record) con campi di tipi diversi.",
+            "example": "TYPE\n    Motor_Data : STRUCT\n        running : BOOL;\n        speed : REAL;\n        current : REAL;\n        temperature : INT;\n        status : STRING[20];\n    END_STRUCT;\nEND_TYPE\n\nVAR\n    motor1 : Motor_Data;\nEND_VAR\n// Accesso:\nmotor1.running := TRUE;\nmotor1.speed := 1500.0;",
+            "notes": "Permette di raggruppare dati correlati. Campi possono essere di tipi diversi. Definita in sezione TYPE o inline.",
+            "syntax": "STRUCT\n    <field_name> : <data_type>;\n    ...\nEND_STRUCT"
+        },
+        {
+            "name": "UDT (User Defined Type)",
+            "category": "Complex - User Defined",
+            "size": "Variabile",
+            "range": "Definito dall'utente",
+            "description": "Tipo di dato definito dall'utente (tipicamente STRUCT).",
+            "example": "// Definito in PLC Data Types:\nTYPE \"Recipe_Data\"\n    STRUCT\n        name : STRING[50];\n        temperature : REAL;\n        pressure : REAL;\n        duration : TIME;\n    END_STRUCT\nEND_TYPE\n\nVAR\n    recipe1 : \"Recipe_Data\";\nEND_VAR",
+            "notes": "Creato nella sezione PLC Data Types di TIA Portal. Riutilizzabile in tutto il progetto. Migliora leggibilità e manutenibilità.",
+            "syntax": "Definito graficamente in TIA Portal"
+        },
+        {
+            "name": "POINTER",
+            "category": "Complex - Pointer",
+            "size": "6 byte (S7-1500), 10 byte (S7-300/400)",
+            "range": "Indirizzo memoria",
+            "description": "Puntatore a un'area di memoria.",
+            "example": "VAR\n    pData : POINTER;\nEND_VAR\npData := @myVariable;  // Indirizzo di myVariable",
+            "notes": "Uso avanzato. Permette accesso indiretto a memoria. Operatore @ per ottenere indirizzo. Usare con cautela.",
+            "syntax": "POINTER [TO <data_type>]"
+        },
+        {
+            "name": "ANY",
+            "category": "Generic - Parameter Type",
+            "size": "10 byte",
+            "range": "Qualsiasi tipo",
+            "description": "Tipo generico per parametri di funzioni. Accetta qualsiasi tipo di dato.",
+            "example": "FUNCTION MyFunc : VOID\nVAR_INPUT\n    data : ANY;  // Accetta qualsiasi tipo\nEND_VAR",
+            "notes": "Usato solo per parametri formali di funzioni/FB. Non per variabili normali. Permette funzioni generiche.",
+            "syntax": "ANY"
+        },
+        {
+            "name": "VARIANT",
+            "category": "Generic - Dynamic Type",
+            "size": "Variabile",
+            "range": "Qualsiasi tipo",
+            "description": "Tipo variante che può contenere diversi tipi di dato a runtime.",
+            "example": "VAR\n    dynData : VARIANT;\nEND_VAR\ndynData := 100;        // Contiene INT\ndynData := 'Hello';    // Ora contiene STRING",
+            "notes": "Solo S7-1200/S7-1500. Tipo determinato a runtime. Usare funzioni VariantGet, VariantPut, TypeOf per manipolazione.",
+            "syntax": "VARIANT"
+        }
+    ],
+    "type_categories": {
+        "Elementary": "Tipi di base predefiniti (BOOL, INT, REAL, STRING, TIME, ecc.)",
+        "Complex": "Tipi strutturati (ARRAY, STRUCT, UDT)",
+        "Generic": "Tipi generici per parametri (ANY, VARIANT)",
+        "Bit_String": "Stringhe di bit senza interpretazione numerica (BYTE, WORD, DWORD)",
+        "Integer": "Numeri interi con segno (SINT, INT, DINT, LINT)",
+        "Unsigned_Integer": "Numeri interi senza segno (USINT, UINT, UDINT, ULINT)",
+        "Floating_Point": "Numeri in virgola mobile (REAL, LREAL)",
+        "Time": "Durate temporali (TIME, LTIME)",
+        "Date_Time": "Date e orari (DATE, TOD, DT, DTL)"
+    },
+    "notes": [
+        "S7-1200/S7-1500 supportano più tipi rispetto a S7-300/400",
+        "Tipi con L prefix (LINT, LREAL, LTIME, LWORD) sono a 64 bit e solo per S7-1200/1500",
+        "DTL è il tipo moderno per timestamp, preferire a DT",
+        "STRING ha overhead di 2 byte per lunghezza corrente e massima",
+        "ARRAY può essere multidimensionale",
+        "STRUCT può contenere altri STRUCT (nesting)",
+        "UDT migliora riutilizzabilità e manutenibilità del codice",
+        "VARIANT permette programmazione dinamica ma con overhead di performance"
+    ]
+}

@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="req" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Activates the requested transmission if TRUE</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="disconnect" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Initiates a disconnect operation</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="mode" Datatype="USInt">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Specifies the type of request: read, write or diagnostic</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="DataAddr" Datatype="UDInt">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Specifies the starting address of the data to be accessed in the Modbus client</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="DataLen" Datatype="UInt" />
+    <Member Name="connect" Datatype="TCON_IP_v4" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Comment>
+        <MultiLanguageText Lang="en-US">Reference to the connection parameters</MultiLanguageText>
+      </Comment>
+      <Sections>
+        <Section Name="None">
+          <Member Name="InterfaceId" Datatype="HW_ANY">
+            <StartValue>64</StartValue>
+          </Member>
+          <Member Name="ID" Datatype="CONN_OUC">
+            <StartValue>1</StartValue>
+          </Member>
+          <Member Name="ActiveEstablished" Datatype="Bool">
+            <StartValue>true</StartValue>
+          </Member>
+          <Member Name="RemoteAddress" Datatype="IP_V4" Version="1.0">
+            <Sections>
+              <Section Name="None">
+                <Member Name="ADDR" Datatype="Array[1..4] of Byte">
+                  <Subelement Path="1">
+                    <StartValue>192</StartValue>
+                  </Subelement>
+                  <Subelement Path="2">
+                    <StartValue>168</StartValue>
+                  </Subelement>
+                  <Subelement Path="3">
+                    <StartValue>0</StartValue>
+                  </Subelement>
+                </Member>
+              </Section>
+            </Sections>
+          </Member>
+          <Member Name="RemotePort" Datatype="UInt">
+            <StartValue>502</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>udt_MbClient</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

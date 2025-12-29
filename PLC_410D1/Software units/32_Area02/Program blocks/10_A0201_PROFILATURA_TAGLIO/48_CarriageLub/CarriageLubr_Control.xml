@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>Lubr_Valve</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PbStartLubr" Datatype="Bool" />
+      <Member Name="PbStopLubr" Datatype="Bool" />
+      <Member Name="CycleFbk" Datatype="Bool" />
+      <Member Name="ConnectorPlugged" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="LubrEnable" Datatype="Bool" />
+      <Member Name="ActualPosition" Datatype="LReal" />
+      <Member Name="OperationDone" Datatype="Bool" />
+    </Member>
+    <Member Name="Config" Datatype="&quot;LubrValve_Config&quot;" />
+    <Member Name="Simulation" Datatype="Bool" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="LubrReq" Datatype="Bool" />
+    </Member>
+    <Member Name="ValveCmd" Datatype="Bool" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="LubrInterface" Datatype="&quot;LubrValve_ITF&quot;" />
+    <Member Name="Pers" Datatype="&quot;LubrValve_Pers&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="ManualReq" Datatype="Bool" />
+      <Member Name="AutomaticReq" Datatype="Bool" />
+      <Member Name="LubrReq" Datatype="Bool" />
+      <Member Name="ValveCmd" Datatype="Bool" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="EstopDelayed" Datatype="Bool" />
+      <Member Name="ValveEnabled" Datatype="Bool" />
+      <Member Name="WorkEnable" Datatype="Bool" />
+      <Member Name="CycleDone" Datatype="Bool" />
+      <Member Name="LastFeed" Datatype="LReal">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarm" Datatype="&quot;LubrValve_Alr&quot;" />
+    <Member Name="Warning" Datatype="&quot;LubrValve_Wng&quot;" />
+    <Member Name="HMI" Datatype="&quot;LubrValve_HMI&quot;" />
+    <Member Name="tonEStopDelayed" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonCycleDoneON" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonCycleDoneOFF" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonManualCycleReset" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonValveOn" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonValveOff" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonWorkTime" Datatype="&quot;TonEna&quot;" />
+    <Member Name="Aux_PbStartLubr" Datatype="Bool" />
+    <Member Name="Pe_PbStartLubr" Datatype="Bool" />
+    <Member Name="Aux_CyckeFkb" Datatype="Bool" />
+    <Member Name="Pe_CycleFbk" Datatype="Bool" />
+    <Member Name="Aux_OpDone" Datatype="Bool" />
+    <Member Name="Pe_OpDone" Datatype="Bool" />
+    <Member Name="Aux_ValveCount" Datatype="Bool" />
+    <Member Name="Pe_ValveCount" Datatype="Bool" />
+  </Section>
+</Sections></Interface>
+      <Name>CarriageLubr_Control</Name>
+      <Namespace />
+      <Number>142</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

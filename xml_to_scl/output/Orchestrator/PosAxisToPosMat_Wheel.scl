@@ -1,0 +1,60 @@
+﻿// Block: PosAxisToPosMat_Wheel
+// Title: Half MODULE
+
+FUNCTION "PosAxisToPosMat_Wheel" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Half MODULE
+   VAR_INPUT
+      PosAxis : LReal;
+      Data : MatCountData;
+   END_VAR
+
+   VAR_TEMP
+      HalfModule : LReal;
+      HalfNegativeModule : LReal;
+      DeltaPosAx : LReal;
+      DeltaMatCounter : LReal;
+      MatCountPosCandidate : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Half MODULE"
+      HalfModule := (Data.AX_MODULE / 2.0);
+      IF (Data.AX_MODULE / 2.0) THEN
+         HalfNegativeModule := NEG(IN:=HalfModule);
+      END_IF;
+   END_REGION
+
+   REGION "Network 2: Calculate position"
+      DeltaPosAx := PosAxis - Data.AxPositionPrevious;
+
+      IF DeltaPosAx > HalfModule THEN
+          DeltaPosAx := DeltaPosAx - Data.AX_MODULE;
+      ELSIF DeltaPosAx < HalfNegativeModule THEN
+          DeltaPosAx := DeltaPosAx + Data.AX_MODULE;
+      END_IF;
+
+      DeltaMatCounter := DeltaPosAx * Data.FAK;
+      MatCountPosCandidate := Data.CounterValue + DeltaMatCounter;
+
+      IF MatCountPosCandidate >= Data.COUNTER_MODULE THEN
+          MatCountPosCandidate := MatCountPosCandidate - Data.COUNTER_MODULE;
+      ELSIF MatCountPosCandidate < 0.0 THEN
+          MatCountPosCandidate := MatCountPosCandidate + Data.COUNTER_MODULE;
+      END_IF;
+
+      IF (MatCountPosCandidate - Data.COUNTER_MODULE) < 0.01 THEN
+          MatCountPosCandidate := 0.0;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Network 3: Conversion result"
+      PosAxisToPosMat_Wheel := MatCountPosCandidate;
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,241 @@
+{
+    "category": "Type Conversion and Scaling",
+    "description": "Funzioni per conversione di tipi dati e scaling di valori analogici",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions",
+    "functions": [
+        {
+            "name": "CONVERT",
+            "signature": "CONVERT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Tipo target",
+                "description": "Valore convertito nel tipo di destinazione"
+            },
+            "description": "Converte un valore da un tipo dati a un altro. Il tipo di destinazione è determinato dalla variabile di assegnazione.",
+            "example": "intValue := CONVERT(IN := realValue);  // REAL -> INT\nrealValue := CONVERT(IN := intValue);  // INT -> REAL",
+            "mandatory": true,
+            "notes": "Conversione esplicita raccomandata per chiarezza. Gestisce overflow/underflow secondo regole IEC.",
+            "see_also": [
+                "ROUND",
+                "TRUNC",
+                "TO_INT",
+                "TO_REAL"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SCALE_X",
+            "signature": "SCALE_X(MIN := <eng_min>, VALUE := <raw_value>, MAX := <eng_max>)",
+            "parameters": [
+                {
+                    "name": "MIN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore minimo scala ingegneristica",
+                    "optional": false
+                },
+                {
+                    "name": "VALUE",
+                    "type": "INT/DINT",
+                    "direction": "IN",
+                    "description": "Valore raw da scalare",
+                    "optional": false
+                },
+                {
+                    "name": "MAX",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore massimo scala ingegneristica",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore scalato in unità ingegneristiche"
+            },
+            "description": "Scala un valore intero (tipicamente da ADC) in un range di valori reali ingegneristici. Assume range input 0-27648 per INT.",
+            "example": "// Scala valore ADC (0-27648) in temperatura (0.0-100.0 °C)\ntemperature := SCALE_X(MIN := 0.0, VALUE := adcValue, MAX := 100.0);",
+            "anti_pattern": "// NON FARE:\nscaled := (REAL_value - rawMin) * (engMax - engMin) / (rawMax - rawMin) + engMin;",
+            "why_native": "Funzione ottimizzata per scaling analogico. Gestisce automaticamente il range standard 0-27648. Più leggibile e meno soggetta a errori.",
+            "mandatory": true,
+            "notes": "Range input standard: 0-27648 per INT, 0-2764800 per DINT. Per range custom usare formula manuale o NORM_X.",
+            "see_also": [
+                "NORM_X",
+                "UNSCALE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "NORM_X",
+            "signature": "NORM_X(MIN := <phys_min>, VALUE := <phys_value>, MAX := <phys_max>)",
+            "parameters": [
+                {
+                    "name": "MIN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore minimo fisico",
+                    "optional": false
+                },
+                {
+                    "name": "VALUE",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore fisico da normalizzare",
+                    "optional": false
+                },
+                {
+                    "name": "MAX",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore massimo fisico",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore normalizzato (0.0 - 1.0)"
+            },
+            "description": "Normalizza un valore fisico in un range 0.0-1.0. Inverso di SCALE_X.",
+            "example": "// Normalizza temperatura (0-100°C) in 0.0-1.0\nnormalized := NORM_X(MIN := 0.0, VALUE := temperature, MAX := 100.0);",
+            "mandatory": true,
+            "notes": "Utile per calcoli percentuali o per preparare valori per DAC. Output sempre tra 0.0 e 1.0 se VALUE è nel range [MIN, MAX].",
+            "see_also": [
+                "SCALE_X"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TO_INT",
+            "signature": "TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore convertito in INT"
+            },
+            "description": "Converte esplicitamente un valore in tipo INT.",
+            "example": "intValue := TO_INT(IN := realValue);",
+            "notes": "Conversione con troncamento per tipi REAL/LREAL. Overflow possibile se valore fuori range INT.",
+            "see_also": [
+                "TO_DINT",
+                "TO_REAL",
+                "CONVERT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TO_DINT",
+            "signature": "TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore convertito in DINT"
+            },
+            "description": "Converte esplicitamente un valore in tipo DINT.",
+            "example": "dintValue := TO_DINT(IN := realValue);",
+            "see_also": [
+                "TO_INT",
+                "TO_REAL",
+                "CONVERT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TO_REAL",
+            "signature": "TO_REAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore convertito in REAL"
+            },
+            "description": "Converte esplicitamente un valore in tipo REAL.",
+            "example": "realValue := TO_REAL(IN := intValue);",
+            "see_also": [
+                "TO_INT",
+                "TO_DINT",
+                "TO_LREAL",
+                "CONVERT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TO_BOOL",
+            "signature": "TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "Valore convertito in BOOL"
+            },
+            "description": "Converte un valore in tipo BOOL. Qualsiasi valore diverso da 0 diventa TRUE.",
+            "example": "boolValue := TO_BOOL(IN := intValue);",
+            "see_also": [
+                "BOOL_TO_INT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BOOL_TO_INT",
+            "signature": "BOOL_TO_INT(IN := <bool_value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Valore booleano",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "0 se FALSE, 1 se TRUE"
+            },
+            "description": "Converte un BOOL in INT (0 o 1).",
+            "example": "intValue := BOOL_TO_INT(IN := flag);",
+            "see_also": [
+                "TO_BOOL",
+                "TO_INT"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

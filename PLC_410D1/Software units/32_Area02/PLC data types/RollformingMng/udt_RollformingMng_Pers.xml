@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="Data" Datatype="Struct">
+      <Member Name="MaterialPresence" Datatype="Bool" />
+      <Member Name="MaterialPresence_Entry" Datatype="Bool" />
+      <Member Name="MaterialPresence_BeforeMW" Datatype="Bool" />
+      <Member Name="MaterialPresence_AfterMW" Datatype="Bool" />
+      <Member Name="MatPresence_ConveyorEntry" Datatype="Bool" />
+      <Member Name="FinalCut_DoneGood" Datatype="Bool" />
+      <Member Name="FinalCut_DoneWrong" Datatype="Bool" />
+      <Member Name="FinalCut_MemTargetResult" Datatype="Bool" />
+      <Member Name="ProfileHead_Found" Datatype="Bool" />
+      <Member Name="HeadingDone" Datatype="Bool" />
+      <Member Name="OldPPrf_PrgNo" Datatype="DInt" />
+      <Member Name="ActTarget" Datatype="&quot;udt_RollformingMng_Target&quot;" />
+      <Member Name="NextTarget" Datatype="&quot;udt_RollformingMng_Target&quot;" />
+      <Member Name="FS" Datatype="Struct">
+        <Member Name="LastCut_Material_Position" Datatype="LReal" />
+        <Member Name="LastJob_Material_Position" Datatype="LReal" />
+        <Member Name="PrevCut_Material_Position" Datatype="LReal" />
+        <Member Name="PrevJob_Material_Position" Datatype="LReal" />
+      </Member>
+      <Member Name="CutLenght" Datatype="Struct">
+        <Member Name="CarriageMeasID" Datatype="UInt">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="WheelMeasID" Datatype="UInt">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="CarriageEncoder" Datatype="LReal">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="WheelEncoder" Datatype="LReal">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="LastCut_Material_Position" Datatype="LReal">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="PrevCut_Material_Position" Datatype="LReal">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+    </Member>
+    <Member Name="Par" Datatype="Struct">
+      <Member Name="Override" Datatype="Struct">
+        <Member Name="ProductionRateOverride" Datatype="LReal" />
+        <Member Name="ChangeRateStepPercentage" Datatype="LReal" />
+        <Member Name="EarlyPieces_Qty" Datatype="Int" />
+        <Member Name="EarlyPieces_Percentage" Datatype="LReal" />
+        <Member Name="Emptying_Percentage" Datatype="LReal" />
+        <Member Name="ProdSlowDow_Percentage" Datatype="LReal" />
+        <Member Name="WeldPieces_Qty" Datatype="Int" />
+        <Member Name="WeldSlowDow_Percentage" Datatype="LReal" />
+        <Member Name="AccRollSlowDown_Percentage" Datatype="LReal" />
+      </Member>
+      <Member Name="SemiAut" Datatype="Struct">
+        <Member Name="Enable" Datatype="Bool" />
+        <Member Name="Vel" Datatype="LReal" />
+        <Member Name="Acc" Datatype="LReal" />
+        <Member Name="Dec" Datatype="LReal" />
+        <Member Name="Jerk" Datatype="LReal" />
+      </Member>
+      <Member Name="TimeStopInactivity" Datatype="Time">
+        <StartValue>T#1M</StartValue>
+      </Member>
+      <Member Name="AutoHeadingDistance" Datatype="LReal">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">Position of profile head relative to the zero position of the carriage</MultiLanguageText>
+        </Comment>
+        <StartValue>2000.0</StartValue>
+      </Member>
+      <Member Name="ExtractionDistance" Datatype="LReal">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">Gap between cutoff position and extractor pinch-roll</MultiLanguageText>
+        </Comment>
+        <StartValue>550.0</StartValue>
+      </Member>
+      <Member Name="AccRollsDistanceFromZero" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Gap from zero position of the carriage to sensor entry of rolway</MultiLanguageText>
+        </Comment>
+        <StartValue>1500.0</StartValue>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>udt_RollformingMng_Pers</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

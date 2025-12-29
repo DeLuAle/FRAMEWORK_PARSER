@@ -1,0 +1,547 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0302_PareggiatoreCoda_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI_Feed" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DSI_Valve" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DSI_OilValve" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="Drive" Datatype="&quot;TAx_DriveInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="OP_MoveToPos" Datatype="Bool" />
+      <Member Name="BattutaVrt" Datatype="Struct">
+        <Member Name="OP" Datatype="&quot;OP_PB&quot;" />
+      </Member>
+      <Member Name="PareggLong" Datatype="Struct">
+        <Member Name="OP" Datatype="&quot;OP_PB&quot;" />
+        <Member Name="AnalSens" Datatype="Int" />
+      </Member>
+      <Member Name="Sens" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="FTC_Ingombro_In" Datatype="Bool" />
+        <Member Name="FTC_Ingombro_Out" Datatype="Bool" />
+        <Member Name="PresenzaMat" Datatype="Bool" />
+        <Member Name="FC_Aticoll_Spalla" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="EnableStopInPhase" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="EnableStopProgrammed" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Control_ON" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="MoveToPos" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Pos" Datatype="LReal">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Speed" Datatype="LReal" />
+        <Member Name="Bloccaggio" Datatype="Struct">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="BattutaVrt" Datatype="Struct">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="PareggLong" Datatype="Struct">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="SemiAut_Pb" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Bordatrice" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Sts" Datatype="Struct">
+          <Member Name="PosTargetEnable" Datatype="Bool" />
+          <Member Name="PosTarget_Reached" Datatype="Bool" />
+          <Member Name="In_W_Pos" Datatype="Bool" />
+          <Member Name="AtRest" Datatype="Bool" />
+        </Member>
+        <Member Name="RegSpalla" Datatype="Struct">
+          <Member Name="Infeed_ReqON" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="Rulliera" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="Ax_1" Datatype="&quot;SpeedMachine_COut&quot;" />
+        <Member Name="Ax_2" Datatype="&quot;SpeedMachine_COut&quot;" />
+        <Member Name="Centratori" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Sens" Datatype="Struct">
+            <Member Name="FTC_Rall" Datatype="Bool" />
+            <Member Name="FTC_Prox_Ing" Datatype="Bool" />
+          </Member>
+        </Member>
+        <Member Name="Centro" Datatype="Struct">
+          <Member Name="Sens" Datatype="Struct">
+            <Member Name="FTC_Centrale" Datatype="Bool" />
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="CarroPareggCoda" Datatype="Struct">
+        <Member Name="Pareggia" Datatype="Bool" />
+        <Member Name="OilInTargetPressure" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="CarroPareggTesta" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="Sens" Datatype="Struct">
+          <Member Name="FTC1_Rall" Datatype="Bool" />
+          <Member Name="FTC2_Prox_Ls" Datatype="Bool" />
+          <Member Name="PresenzaMat" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="CarriPareggiatori" Datatype="Struct">
+        <Member Name="ZoneA0302Entry_Empty" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="ZoneA0302Exit_Empty" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="RequestNewPosition" Datatype="Bool" />
+      </Member>
+      <Member Name="Spalle" Datatype="Struct">
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="ActualPos" Datatype="LReal" />
+        </Member>
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="ActualPos" Datatype="LReal" />
+        </Member>
+      </Member>
+      <Member Name="Manipolatore" Datatype="Struct">
+        <Member Name="Sollevatore" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="Centratori" Datatype="Struct">
+        <Member Name="Sollevamento" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Config&quot;" />
+      <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="BattutaVerticale" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="PareggiatoreLong" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="PosPareggiatore" Datatype="Struct">
+        <Member Name="QuotaMin_Work" Datatype="LReal" />
+        <Member Name="QuotaMax_Work" Datatype="LReal" />
+      </Member>
+      <Member Name="MinDistanzaConSpalla" Datatype="LReal" />
+      <Member Name="DelayMissingCondition" Datatype="Time" />
+    </Member>
+    <Member Name="HWID" Datatype="Struct">
+      <Member Name="Ax_TEL1" Datatype="HW_SUBMODULE" />
+      <Member Name="Enc_IO" Datatype="HW_SUBMODULE" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+      <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="BattutaVerticale" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="PareggiatoreLong" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Ax_InWPos" Datatype="Bool" />
+      <Member Name="Anticipi" Datatype="Struct">
+        <Member Name="Work" Datatype="Struct">
+          <Member Name="BattutaVrt" Datatype="Bool" />
+          <Member Name="PareggLong" Datatype="Bool" />
+        </Member>
+        <Member Name="Rest" Datatype="Struct">
+          <Member Name="BattutaVrt" Datatype="Bool" />
+          <Member Name="PareggLong" Datatype="Bool" />
+        </Member>
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Par&quot;" />
+      <Member Name="Ax_Pers" Datatype="&quot;Positioning_DOL_Machine_Pers_Data&quot;" />
+      <Member Name="Enc" Datatype="&quot;PosFbk_RTN&quot;" />
+      <Member Name="Ax_Aut" Datatype="&quot;A0301_Mach_Speed_Par&quot;" />
+      <Member Name="Bloccaggio_Sens" Datatype="Struct">
+        <Member Name="2191B1" Datatype="&quot;Analogic_SensorManagement_Par&quot;" />
+        <Member Name="SogliaWork" Datatype="Real" />
+      </Member>
+      <Member Name="CarroPareggCoda" Datatype="Struct">
+        <Member Name="Delay_StartMove" Datatype="Time" />
+        <Member Name="Preset" Datatype="LReal" />
+      </Member>
+      <Member Name="Cremaliera" Datatype="Struct">
+        <Member Name="Modulo" Datatype="LReal" />
+        <Member Name="Passo" Datatype="LReal" />
+      </Member>
+    </Member>
+    <Member Name="Par_Sens" Datatype="Struct">
+      <Member Name="AI" Datatype="&quot;Analogic_SensorManagement_Par&quot;" />
+    </Member>
+    <Member Name="Data_Sens" Datatype="&quot;Analogic_SensorManagement_Data&quot;" />
+    <Member Name="Par_MachSens" Datatype="&quot;A0301_Mach_Sens_Par&quot;" />
+    <Member Name="IEC_SP" Datatype="Struct">
+      <Member Name="FTC_Input" Datatype="Struct">
+        <Member Name="TON_PT" Datatype="Time" />
+        <Member Name="TOF_PT" Datatype="Time" />
+      </Member>
+      <Member Name="FTC_Output" Datatype="Struct">
+        <Member Name="TON_PT" Datatype="Time" />
+        <Member Name="TOF_PT" Datatype="Time" />
+      </Member>
+      <Member Name="FTC_PresentMat" Datatype="Struct">
+        <Member Name="TON_PT" Datatype="Time" />
+        <Member Name="TOF_PT" Datatype="Time" />
+      </Member>
+      <Member Name="Check_2119B1" Datatype="Struct">
+        <Member Name="TON_PT" Datatype="Time" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Alr&quot;" />
+      <Member Name="Enc" Datatype="&quot;PosFbk_Encoder_Alr&quot;" />
+      <Member Name="Bloccaggio" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="BattutaVerticale" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="PareggiatoreLong" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="PareggLong_AnalSens_Issue" Datatype="Bool" />
+      <Member Name="SensFC_Aticoll_Spalla" Datatype="Bool" />
+      <Member Name="Bloccaggio_AnalSens_Issue" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Wng&quot;" />
+      <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="BattutaVerticale" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="PareggiatoreLongitudinale" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="PosPareggiatoreLong" Datatype="&quot;Analogic_SensorManagement_Warning&quot;" />
+      <Member Name="MissingCnd" Datatype="Struct">
+        <Member Name="OP_REST_BattutaVrt" Datatype="Bool" />
+        <Member Name="OP_WORK_BattutaVrt" Datatype="Bool" />
+        <Member Name="OP_REST_PareggLong" Datatype="Bool" />
+        <Member Name="OP_WORK_PareggLong" Datatype="Bool" />
+        <Member Name="OP_REST_Bloccaggio" Datatype="Bool" />
+        <Member Name="OP_WORK_Bloccaggio" Datatype="Bool" />
+      </Member>
+      <Member Name="SW_Limit_AntiCollision" Datatype="Bool" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="AnalogSensor" Datatype="&quot;AnalogSens_HmiData&quot;" />
+      <Member Name="Ax" Datatype="Struct">
+        <Member Name="PbPreset" Datatype="Bool" />
+        <Member Name="B_Preset_UM2" Datatype="Bool" />
+        <Member Name="PresetValue" Datatype="LReal" />
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="ReadyForMove" Datatype="Bool" />
+      <Member Name="OP_PCoda_CanMoveFreely" Datatype="Bool" />
+      <Member Name="OP_Ax_CanMoveFreely" Datatype="Bool" />
+      <Member Name="Op_MoveToPos_Cnd" Datatype="Bool" />
+      <Member Name="BattutaVrt" Datatype="Struct">
+        <Member Name="OP_Rest_Cnd" Datatype="Bool" />
+        <Member Name="Op_Work_Cnd" Datatype="Bool" />
+      </Member>
+      <Member Name="PareggLong" Datatype="Struct">
+        <Member Name="OP_Rest_Cnd" Datatype="Bool" />
+        <Member Name="Op_Work_Cnd" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="BattutaVrt" Datatype="Struct">
+        <Member Name="OP_Rest_Man" Datatype="Bool" />
+        <Member Name="OP_Work_Man" Datatype="Bool" />
+        <Member Name="OP_Rest_Aut" Datatype="Bool" />
+        <Member Name="OP_Work_Aut" Datatype="Bool" />
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+      <Member Name="PareggLong" Datatype="Struct">
+        <Member Name="CheckMesure" Datatype="Bool" />
+        <Member Name="OP_Rest_Aut" Datatype="Bool" />
+        <Member Name="OP_Work_Aut" Datatype="Bool" />
+        <Member Name="OP_Rest_Man" Datatype="Bool" />
+        <Member Name="OP_Work_Man" Datatype="Bool" />
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+      <Member Name="Ax" Datatype="Struct">
+        <Member Name="OP_MoveToPos_Man" Datatype="Bool" />
+        <Member Name="OP_MoveToPos_Aut" Datatype="Bool" />
+        <Member Name="OP_MoveToPos" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="OP_MoveToPos" Datatype="Bool" />
+      <Member Name="BattutaVrt" Datatype="Struct">
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+      <Member Name="PareggLong" Datatype="Struct">
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Enc" Datatype="&quot;PosFbk_SickAFM60&quot;" />
+    <Member Name="Enc_ITF" Datatype="&quot;PosFbk_ITF&quot;" />
+    <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="BattutaVerticale" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="PareggiatoreLong" Datatype="&quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="PosPareggLong" Datatype="&quot;Analogic_SensorManagement&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_PareggLong" Datatype="Struct">
+      <Member Name="OP_REST_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="OP_WORK_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="TON_BattutaVrt" Datatype="Struct">
+      <Member Name="OP_REST_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="OP_WORK_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="TON_Bloccaggio" Datatype="Struct">
+      <Member Name="OP_REST_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="OP_WORK_MissingCnd" Datatype="TON_TIME" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="IEC_FTC_Input" Datatype="Struct">
+      <Member Name="TON_Delay" Datatype="IEC_TIMER" Version="1.0" />
+      <Member Name="TOF_Delay" Datatype="IEC_TIMER" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="FTC_On" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="IEC_FTC_Output" Datatype="Struct">
+      <Member Name="TON_Delay" Datatype="IEC_TIMER" Version="1.0" />
+      <Member Name="TOF_Delay" Datatype="IEC_TIMER" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="FTC_On" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="IEC_FTC_PresentMat" Datatype="Struct">
+      <Member Name="TON_Delay" Datatype="IEC_TIMER" Version="1.0" />
+      <Member Name="TOF_Delay" Datatype="IEC_TIMER" Version="1.0">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="FTC_On" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="IEC_DelayCheck_2119B1" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="Bloccaggio_AnalSens" Datatype="&quot;AnalogThreshold&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CarroCoda" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="RimanenzaPos" Datatype="LReal" />
+      <Member Name="PassoReq" Datatype="LReal" />
+      <Member Name="PosBattutePz" Datatype="LReal" />
+      <Member Name="SemiBeamLen" Datatype="LReal" />
+      <Member Name="NrPassiReq" Datatype="LReal" />
+      <Member Name="Pos" Datatype="LReal" />
+    </Member>
+    <Member Name="TON_DistanzaOK" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_Anticipi" Datatype="Struct">
+      <Member Name="Rest" Datatype="Struct">
+        <Member Name="BattutaVrt" Datatype="IEC_TIMER" Version="1.0">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="PareggLong" Datatype="IEC_TIMER" Version="1.0" />
+      </Member>
+      <Member Name="Work" Datatype="Struct">
+        <Member Name="PareggLong" Datatype="IEC_TIMER" Version="1.0" />
+        <Member Name="BattutaVrt" Datatype="IEC_TIMER" Version="1.0">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>A0302_PareggiatoreCoda</Name>
+      <Namespace />
+      <Number>152</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

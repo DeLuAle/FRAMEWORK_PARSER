@@ -1,0 +1,151 @@
+﻿FUNCTION "Prod_item_GetData" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      O_ID : DInt;
+      MES_IDP : String;
+   END_VAR
+
+   VAR_OUTPUT 
+      Item : "Prod_Item";   // Dati dell'ordone di produzione
+      indx : Int;   // Se trovato tra i TODO / ENDING / OUT questo è l'indice dove sono stati prelevati i dati
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      Use_O_ID : Bool;
+      Use_MES_IDP : Bool;
+   END_VAR
+
+
+BEGIN
+	// Restituisce l'item di produzione richiesto con corrispondenza dell'ID_Prod (assegnato dal PLC)
+	// 
+	
+	REGION INIT
+	    
+	    #Prod_item_GetData := "PROD_ERR_ORDER_NOT_FOUND";
+	    
+	    
+	    #Use_O_ID := FALSE;
+	    #Use_MES_IDP := FALSE;
+	    
+	    IF #O_ID > 0 THEN
+	        #Use_O_ID := TRUE;
+	        
+	    ELSIF #MES_IDP <> '' THEN
+	        #Use_MES_IDP := TRUE;
+	        
+	    END_IF;
+	    
+	    #Item := "Production".O_Empty;
+	    #indx := 1; // Default impostato a 1 per non fare indicizzazioni su array fuori dei limiti
+	END_REGION
+	
+	
+	REGION Ricerca usando O_ID
+	    
+	    IF #Use_O_ID THEN
+	        
+	        // Ricerca su Ordine attualmente in produzione
+	        // 
+	        IF "Production".O_ACT.O_ID = #O_ID THEN
+	            #Item := "Production".O_ACT;
+	            #Prod_item_GetData := "PROD_ORDER_IS_AT_O_ACT";
+	            RETURN;
+	        END_IF;
+	        
+	        // Ricerca su Ordini non iniziato / interrotto
+	        //
+	        FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	            IF "Production".O_TODO[#i].O_ID = #O_ID THEN
+	                #Item := "Production".O_TODO[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_TODO";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        // ricerca su Ordini in via di completameno = finiti al taglio ma non ancora scaricati
+	        // 
+	        FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	            IF "Production".O_ENDING[#i].O_ID = #O_ID THEN
+	                #Item := "Production".O_ENDING[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_ENDING";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	        
+	        // ricerca sui Ordini conclusi = Tutti i pezzi sonon usciti dalla linea
+	        // 
+	        FOR #i := 1 TO "PROD_OUT_ITEMS" DO
+	            IF "Production".O_OUT[#i].O_ID = #O_ID THEN
+	                #Item := "Production".O_OUT[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_OUT";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	        
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION Ricerca usando MES_IDP
+	    
+	    IF #Use_MES_IDP THEN
+	        
+	        // Ricerca su ordine attualmente in produzione
+	        // 
+	        IF "Production".O_ACT.MES_IDP = #MES_IDP THEN
+	            #Item := "Production".O_ACT;
+	            #Prod_item_GetData := "PROD_ORDER_IS_AT_O_ACT";
+	            RETURN;
+	        END_IF;
+	        
+	        // Ricerca su ordini non iniziato / interrotto
+	        //
+	        FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	            IF "Production".O_TODO[#i].MES_IDP = #MES_IDP THEN
+	                #Item := "Production".O_TODO[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_TODO";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        // ricerca su ordini in via di completameno = finiti al taglio ma non ancora scaricati
+	        // 
+	        FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	            IF "Production".O_ENDING[#i].MES_IDP = #MES_IDP THEN
+	                #Item := "Production".O_ENDING[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_ENDING";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	        
+	        // ricerca su ordini conclusi = Tutti i pezzi sonon usciti dalla linea
+	        // 
+	        FOR #i := 1 TO "PROD_OUT_ITEMS" DO
+	            IF "Production".O_OUT[#i].MES_IDP = #MES_IDP THEN
+	                #Item := "Production".O_OUT[#i];
+	                #indx := #i;
+	                #Prod_item_GetData := "PROD_ORDER_IS_AT_O_OUT";
+	                RETURN;
+	            END_IF;
+	        END_FOR;
+	    END_IF;
+	END_REGION
+	
+	
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,1613 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp">
+    <Member Name="PAC3220_Ret" Datatype="DWord" />
+    <Member Name="Len" Datatype="Int" />
+    <Member Name="Time_ret" Datatype="Int" />
+  </Section>
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <Name>PAC3220</Name>
+      <Namespace />
+      <Number>258</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22">Voltage</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="GETIO_PAC3220" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="28">
+    <Instruction UId="29">
+      <Token Text="(" UId="30" />
+      <Parameter Name="ID" UId="31">
+        <Blank UId="32" />
+        <Token Text=":=" UId="33" />
+        <Blank UId="34" />
+        <Access Scope="GlobalVariable" UId="35">
+          <Symbol UId="36">
+            <Component Name="HW_Const_Values" UId="37">
+              <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="39" />
+            <Component Name="HW_100A1_Voltage_L1_N_1" UId="40" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="41" />
+      <NewLine UId="42" />
+      <Blank Num="16" UId="43" />
+      <Parameter Name="STATUS" UId="44">
+        <Blank UId="45" />
+        <Token Text="=&gt;" UId="46" />
+        <Blank UId="47" />
+        <Access Scope="LocalVariable" UId="48">
+          <Symbol UId="49">
+            <Component Name="PAC3220_Ret" UId="50" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="51" />
+      <NewLine UId="52" />
+      <Blank Num="16" UId="53" />
+      <Parameter Name="LEN" UId="54">
+        <Blank UId="55" />
+        <Token Text="=&gt;" UId="56" />
+        <Blank UId="57" />
+        <Access Scope="LocalVariable" UId="58">
+          <Symbol UId="59">
+            <Component Name="Len" UId="60" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="61" />
+      <NewLine UId="62" />
+      <Blank Num="16" UId="63" />
+      <Parameter Name="INPUTS" UId="64">
+        <Blank UId="65" />
+        <Token Text=":=" UId="66" />
+        <Blank UId="67" />
+        <Access Scope="GlobalVariable" UId="68">
+          <Symbol UId="69">
+            <Component Name="PAC_320_Data" UId="70">
+              <BooleanAttribute Name="HasQuotes" UId="71">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="72" />
+            <Component Name="ActualData" UId="73" />
+            <Token Text="." UId="74" />
+            <Component Name="Voltage_L1" UId="75" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="76" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="77" />
+  <NewLine Num="2" UId="78" />
+  <Access Scope="GlobalVariable" UId="79">
+    <Symbol UId="80">
+      <Component Name="GETIO_PAC3220" UId="81">
+        <BooleanAttribute Name="HasQuotes" UId="82">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="83">
+    <Instruction UId="84">
+      <Token Text="(" UId="85" />
+      <Parameter Name="ID" UId="86">
+        <Blank UId="87" />
+        <Token Text=":=" UId="88" />
+        <Blank UId="89" />
+        <Access Scope="GlobalVariable" UId="90">
+          <Symbol UId="91">
+            <Component Name="HW_Const_Values" UId="92">
+              <BooleanAttribute Name="HasQuotes" UId="93">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="94" />
+            <Component Name="HW_100A1_Voltage_L2_N_1" UId="95" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="96" />
+      <NewLine UId="97" />
+      <Blank Num="16" UId="98" />
+      <Parameter Name="STATUS" UId="99">
+        <Blank UId="100" />
+        <Token Text="=&gt;" UId="101" />
+        <Blank UId="102" />
+        <Access Scope="LocalVariable" UId="103">
+          <Symbol UId="104">
+            <Component Name="PAC3220_Ret" UId="105" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="106" />
+      <NewLine UId="107" />
+      <Blank Num="16" UId="108" />
+      <Parameter Name="LEN" UId="109">
+        <Blank UId="110" />
+        <Token Text="=&gt;" UId="111" />
+        <Blank UId="112" />
+        <Access Scope="LocalVariable" UId="113">
+          <Symbol UId="114">
+            <Component Name="Len" UId="115" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="116" />
+      <NewLine UId="117" />
+      <Blank Num="16" UId="118" />
+      <Parameter Name="INPUTS" UId="119">
+        <Blank UId="120" />
+        <Token Text=":=" UId="121" />
+        <Blank UId="122" />
+        <Access Scope="GlobalVariable" UId="123">
+          <Symbol UId="124">
+            <Component Name="PAC_320_Data" UId="125">
+              <BooleanAttribute Name="HasQuotes" UId="126">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="127" />
+            <Component Name="ActualData" UId="128" />
+            <Token Text="." UId="129" />
+            <Component Name="Voltage_L2" UId="130" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="131" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="132" />
+  <NewLine Num="2" UId="133" />
+  <Access Scope="GlobalVariable" UId="134">
+    <Symbol UId="135">
+      <Component Name="GETIO_PAC3220" UId="136">
+        <BooleanAttribute Name="HasQuotes" UId="137">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="138">
+    <Instruction UId="139">
+      <Token Text="(" UId="140" />
+      <Parameter Name="ID" UId="141">
+        <Blank UId="142" />
+        <Token Text=":=" UId="143" />
+        <Blank UId="144" />
+        <Access Scope="GlobalVariable" UId="145">
+          <Symbol UId="146">
+            <Component Name="HW_Const_Values" UId="147">
+              <BooleanAttribute Name="HasQuotes" UId="148">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="149" />
+            <Component Name="HW_100A1_Voltage_L3_N_1" UId="150" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="151" />
+      <NewLine UId="152" />
+      <Blank Num="16" UId="153" />
+      <Parameter Name="STATUS" UId="154">
+        <Blank UId="155" />
+        <Token Text="=&gt;" UId="156" />
+        <Blank UId="157" />
+        <Access Scope="LocalVariable" UId="158">
+          <Symbol UId="159">
+            <Component Name="PAC3220_Ret" UId="160" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="161" />
+      <NewLine UId="162" />
+      <Blank Num="16" UId="163" />
+      <Parameter Name="LEN" UId="164">
+        <Blank UId="165" />
+        <Token Text="=&gt;" UId="166" />
+        <Blank UId="167" />
+        <Access Scope="LocalVariable" UId="168">
+          <Symbol UId="169">
+            <Component Name="Len" UId="170" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="171" />
+      <NewLine UId="172" />
+      <Blank Num="16" UId="173" />
+      <Parameter Name="INPUTS" UId="174">
+        <Blank UId="175" />
+        <Token Text=":=" UId="176" />
+        <Blank UId="177" />
+        <Access Scope="GlobalVariable" UId="178">
+          <Symbol UId="179">
+            <Component Name="PAC_320_Data" UId="180">
+              <BooleanAttribute Name="HasQuotes" UId="181">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="182" />
+            <Component Name="ActualData" UId="183" />
+            <Token Text="." UId="184" />
+            <Component Name="Voltage_L3" UId="185" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="186" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="187" />
+  <NewLine Num="2" UId="188" />
+  <Access Scope="GlobalVariable" UId="189">
+    <Symbol UId="190">
+      <Component Name="GETIO_PAC3220" UId="191">
+        <BooleanAttribute Name="HasQuotes" UId="192">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="193">
+    <Instruction UId="194">
+      <Token Text="(" UId="195" />
+      <Parameter Name="ID" UId="196">
+        <Blank UId="197" />
+        <Token Text=":=" UId="198" />
+        <Blank UId="199" />
+        <Access Scope="GlobalVariable" UId="200">
+          <Symbol UId="201">
+            <Component Name="HW_Const_Values" UId="202">
+              <BooleanAttribute Name="HasQuotes" UId="203">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="204" />
+            <Component Name="HW_100A1_3_Ph_Average_Volt_L_L_1" UId="205" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="206" />
+      <NewLine UId="207" />
+      <Blank Num="16" UId="208" />
+      <Parameter Name="STATUS" UId="209">
+        <Blank UId="210" />
+        <Token Text="=&gt;" UId="211" />
+        <Blank UId="212" />
+        <Access Scope="LocalVariable" UId="213">
+          <Symbol UId="214">
+            <Component Name="PAC3220_Ret" UId="215" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="216" />
+      <NewLine UId="217" />
+      <Blank Num="16" UId="218" />
+      <Parameter Name="LEN" UId="219">
+        <Blank UId="220" />
+        <Token Text="=&gt;" UId="221" />
+        <Blank UId="222" />
+        <Access Scope="LocalVariable" UId="223">
+          <Symbol UId="224">
+            <Component Name="Len" UId="225" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="226" />
+      <NewLine UId="227" />
+      <Blank Num="16" UId="228" />
+      <Parameter Name="INPUTS" UId="229">
+        <Blank UId="230" />
+        <Token Text=":=" UId="231" />
+        <Blank UId="232" />
+        <Access Scope="GlobalVariable" UId="233">
+          <Symbol UId="234">
+            <Component Name="PAC_320_Data" UId="235">
+              <BooleanAttribute Name="HasQuotes" UId="236">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="237" />
+            <Component Name="ActualData" UId="238" />
+            <Token Text="." UId="239" />
+            <Component Name="AverageVoltageUL-L" UId="240" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="241" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="242" />
+  <NewLine Num="2" UId="243" />
+  <LineComment UId="244">
+    <Text UId="245">Current</Text>
+  </LineComment>
+  <NewLine UId="246" />
+  <Access Scope="GlobalVariable" UId="247">
+    <Symbol UId="248">
+      <Component Name="GETIO_PAC3220" UId="249">
+        <BooleanAttribute Name="HasQuotes" UId="250">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="251">
+    <Instruction UId="252">
+      <Token Text="(" UId="253" />
+      <Parameter Name="ID" UId="254">
+        <Blank UId="255" />
+        <Token Text=":=" UId="256" />
+        <Blank UId="257" />
+        <Access Scope="GlobalVariable" UId="258">
+          <Symbol UId="259">
+            <Component Name="HW_Const_Values" UId="260">
+              <BooleanAttribute Name="HasQuotes" UId="261">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="262" />
+            <Component Name="HW_100A1_Current_L1_1" UId="263" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="264" />
+      <NewLine UId="265" />
+      <Blank Num="16" UId="266" />
+      <Parameter Name="STATUS" UId="267">
+        <Blank UId="268" />
+        <Token Text="=&gt;" UId="269" />
+        <Blank UId="270" />
+        <Access Scope="LocalVariable" UId="271">
+          <Symbol UId="272">
+            <Component Name="PAC3220_Ret" UId="273" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="274" />
+      <NewLine UId="275" />
+      <Blank Num="16" UId="276" />
+      <Parameter Name="LEN" UId="277">
+        <Blank UId="278" />
+        <Token Text="=&gt;" UId="279" />
+        <Blank UId="280" />
+        <Access Scope="LocalVariable" UId="281">
+          <Symbol UId="282">
+            <Component Name="Len" UId="283" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="284" />
+      <NewLine UId="285" />
+      <Blank Num="16" UId="286" />
+      <Parameter Name="INPUTS" UId="287">
+        <Blank UId="288" />
+        <Token Text=":=" UId="289" />
+        <Blank UId="290" />
+        <Access Scope="GlobalVariable" UId="291">
+          <Symbol UId="292">
+            <Component Name="PAC_320_Data" UId="293">
+              <BooleanAttribute Name="HasQuotes" UId="294">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="295" />
+            <Component Name="ActualData" UId="296" />
+            <Token Text="." UId="297" />
+            <Component Name="Current_L1" UId="298" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="299" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="300" />
+  <NewLine Num="2" UId="301" />
+  <Access Scope="GlobalVariable" UId="302">
+    <Symbol UId="303">
+      <Component Name="GETIO_PAC3220" UId="304">
+        <BooleanAttribute Name="HasQuotes" UId="305">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="306">
+    <Instruction UId="307">
+      <Token Text="(" UId="308" />
+      <Parameter Name="ID" UId="309">
+        <Blank UId="310" />
+        <Token Text=":=" UId="311" />
+        <Blank UId="312" />
+        <Access Scope="GlobalVariable" UId="313">
+          <Symbol UId="314">
+            <Component Name="HW_Const_Values" UId="315">
+              <BooleanAttribute Name="HasQuotes" UId="316">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="317" />
+            <Component Name="HW_100A1_Current_L2_1" UId="318" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="319" />
+      <NewLine UId="320" />
+      <Blank Num="16" UId="321" />
+      <Parameter Name="STATUS" UId="322">
+        <Blank UId="323" />
+        <Token Text="=&gt;" UId="324" />
+        <Blank UId="325" />
+        <Access Scope="LocalVariable" UId="326">
+          <Symbol UId="327">
+            <Component Name="PAC3220_Ret" UId="328" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="329" />
+      <NewLine UId="330" />
+      <Blank Num="16" UId="331" />
+      <Parameter Name="LEN" UId="332">
+        <Blank UId="333" />
+        <Token Text="=&gt;" UId="334" />
+        <Blank UId="335" />
+        <Access Scope="LocalVariable" UId="336">
+          <Symbol UId="337">
+            <Component Name="Len" UId="338" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="339" />
+      <NewLine UId="340" />
+      <Blank Num="16" UId="341" />
+      <Parameter Name="INPUTS" UId="342">
+        <Blank UId="343" />
+        <Token Text=":=" UId="344" />
+        <Blank UId="345" />
+        <Access Scope="GlobalVariable" UId="346">
+          <Symbol UId="347">
+            <Component Name="PAC_320_Data" UId="348">
+              <BooleanAttribute Name="HasQuotes" UId="349">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="350" />
+            <Component Name="ActualData" UId="351" />
+            <Token Text="." UId="352" />
+            <Component Name="Current_L2" UId="353" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="354" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="355" />
+  <NewLine Num="2" UId="356" />
+  <Access Scope="GlobalVariable" UId="357">
+    <Symbol UId="358">
+      <Component Name="GETIO_PAC3220" UId="359">
+        <BooleanAttribute Name="HasQuotes" UId="360">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="361">
+    <Instruction UId="362">
+      <Token Text="(" UId="363" />
+      <Parameter Name="ID" UId="364">
+        <Blank UId="365" />
+        <Token Text=":=" UId="366" />
+        <Blank UId="367" />
+        <Access Scope="GlobalVariable" UId="368">
+          <Symbol UId="369">
+            <Component Name="HW_Const_Values" UId="370">
+              <BooleanAttribute Name="HasQuotes" UId="371">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="372" />
+            <Component Name="HW_100A1_Current_L3_1" UId="373" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="374" />
+      <NewLine UId="375" />
+      <Blank Num="16" UId="376" />
+      <Parameter Name="STATUS" UId="377">
+        <Blank UId="378" />
+        <Token Text="=&gt;" UId="379" />
+        <Blank UId="380" />
+        <Access Scope="LocalVariable" UId="381">
+          <Symbol UId="382">
+            <Component Name="PAC3220_Ret" UId="383" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="384" />
+      <NewLine UId="385" />
+      <Blank Num="16" UId="386" />
+      <Parameter Name="LEN" UId="387">
+        <Blank UId="388" />
+        <Token Text="=&gt;" UId="389" />
+        <Blank UId="390" />
+        <Access Scope="LocalVariable" UId="391">
+          <Symbol UId="392">
+            <Component Name="Len" UId="393" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="394" />
+      <NewLine UId="395" />
+      <Blank Num="16" UId="396" />
+      <Parameter Name="INPUTS" UId="397">
+        <Blank UId="398" />
+        <Token Text=":=" UId="399" />
+        <Blank UId="400" />
+        <Access Scope="GlobalVariable" UId="401">
+          <Symbol UId="402">
+            <Component Name="PAC_320_Data" UId="403">
+              <BooleanAttribute Name="HasQuotes" UId="404">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="405" />
+            <Component Name="ActualData" UId="406" />
+            <Token Text="." UId="407" />
+            <Component Name="Current_L3" UId="408" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="409" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="410" />
+  <NewLine Num="2" UId="411" />
+  <Access Scope="GlobalVariable" UId="412">
+    <Symbol UId="413">
+      <Component Name="GETIO_PAC3220" UId="414">
+        <BooleanAttribute Name="HasQuotes" UId="415">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="416">
+    <Instruction UId="417">
+      <Token Text="(" UId="418" />
+      <Parameter Name="ID" UId="419">
+        <Blank UId="420" />
+        <Token Text=":=" UId="421" />
+        <Blank UId="422" />
+        <Access Scope="GlobalVariable" UId="423">
+          <Symbol UId="424">
+            <Component Name="HW_Const_Values" UId="425">
+              <BooleanAttribute Name="HasQuotes" UId="426">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="427" />
+            <Component Name="HW_100A1_3_Ph_Average_Curr_1" UId="428" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="429" />
+      <NewLine UId="430" />
+      <Blank Num="16" UId="431" />
+      <Parameter Name="STATUS" UId="432">
+        <Blank UId="433" />
+        <Token Text="=&gt;" UId="434" />
+        <Blank UId="435" />
+        <Access Scope="LocalVariable" UId="436">
+          <Symbol UId="437">
+            <Component Name="PAC3220_Ret" UId="438" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="439" />
+      <NewLine UId="440" />
+      <Blank Num="16" UId="441" />
+      <Parameter Name="LEN" UId="442">
+        <Blank UId="443" />
+        <Token Text="=&gt;" UId="444" />
+        <Blank UId="445" />
+        <Access Scope="LocalVariable" UId="446">
+          <Symbol UId="447">
+            <Component Name="Len" UId="448" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="449" />
+      <NewLine UId="450" />
+      <Blank Num="16" UId="451" />
+      <Parameter Name="INPUTS" UId="452">
+        <Blank UId="453" />
+        <Token Text=":=" UId="454" />
+        <Blank UId="455" />
+        <Access Scope="GlobalVariable" UId="456">
+          <Symbol UId="457">
+            <Component Name="PAC_320_Data" UId="458">
+              <BooleanAttribute Name="HasQuotes" UId="459">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="460" />
+            <Component Name="ActualData" UId="461" />
+            <Token Text="." UId="462" />
+            <Component Name="AverageCurrent" UId="463" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="464" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="465" />
+  <NewLine Num="2" UId="466" />
+  <LineComment UId="467">
+    <Text UId="468">Power</Text>
+  </LineComment>
+  <NewLine UId="469" />
+  <Access Scope="GlobalVariable" UId="470">
+    <Symbol UId="471">
+      <Component Name="GETIO_PAC3220" UId="472">
+        <BooleanAttribute Name="HasQuotes" UId="473">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="474">
+    <Instruction UId="475">
+      <Token Text="(" UId="476" />
+      <Parameter Name="ID" UId="477">
+        <Blank UId="478" />
+        <Token Text=":=" UId="479" />
+        <Blank UId="480" />
+        <Access Scope="GlobalVariable" UId="481">
+          <Symbol UId="482">
+            <Component Name="HW_Const_Values" UId="483">
+              <BooleanAttribute Name="HasQuotes" UId="484">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="485" />
+            <Component Name="HW_100A1_Total_Active_Power_1" UId="486" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="487" />
+      <NewLine UId="488" />
+      <Blank Num="16" UId="489" />
+      <Parameter Name="STATUS" UId="490">
+        <Blank UId="491" />
+        <Token Text="=&gt;" UId="492" />
+        <Blank UId="493" />
+        <Access Scope="LocalVariable" UId="494">
+          <Symbol UId="495">
+            <Component Name="PAC3220_Ret" UId="496" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="497" />
+      <NewLine UId="498" />
+      <Blank Num="16" UId="499" />
+      <Parameter Name="LEN" UId="500">
+        <Blank UId="501" />
+        <Token Text="=&gt;" UId="502" />
+        <Blank UId="503" />
+        <Access Scope="LocalVariable" UId="504">
+          <Symbol UId="505">
+            <Component Name="Len" UId="506" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="507" />
+      <NewLine UId="508" />
+      <Blank Num="16" UId="509" />
+      <Parameter Name="INPUTS" UId="510">
+        <Blank UId="511" />
+        <Token Text=":=" UId="512" />
+        <Blank UId="513" />
+        <Access Scope="GlobalVariable" UId="514">
+          <Symbol UId="515">
+            <Component Name="PAC_320_Data" UId="516">
+              <BooleanAttribute Name="HasQuotes" UId="517">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="518" />
+            <Component Name="ActualData" UId="519" />
+            <Token Text="." UId="520" />
+            <Component Name="TotalActivePower" UId="521" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="522" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="523" />
+  <NewLine Num="2" UId="524" />
+  <Access Scope="GlobalVariable" UId="525">
+    <Symbol UId="526">
+      <Component Name="GETIO_PAC3220" UId="527">
+        <BooleanAttribute Name="HasQuotes" UId="528">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="529">
+    <Instruction UId="530">
+      <Token Text="(" UId="531" />
+      <Parameter Name="ID" UId="532">
+        <Blank UId="533" />
+        <Token Text=":=" UId="534" />
+        <Blank UId="535" />
+        <Access Scope="GlobalVariable" UId="536">
+          <Symbol UId="537">
+            <Component Name="HW_Const_Values" UId="538">
+              <BooleanAttribute Name="HasQuotes" UId="539">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="540" />
+            <Component Name="HW_100A1_Total_Reac_Power_1" UId="541" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="542" />
+      <NewLine UId="543" />
+      <Blank Num="16" UId="544" />
+      <Parameter Name="STATUS" UId="545">
+        <Blank UId="546" />
+        <Token Text="=&gt;" UId="547" />
+        <Blank UId="548" />
+        <Access Scope="LocalVariable" UId="549">
+          <Symbol UId="550">
+            <Component Name="PAC3220_Ret" UId="551" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="552" />
+      <NewLine UId="553" />
+      <Blank Num="16" UId="554" />
+      <Parameter Name="LEN" UId="555">
+        <Blank UId="556" />
+        <Token Text="=&gt;" UId="557" />
+        <Blank UId="558" />
+        <Access Scope="LocalVariable" UId="559">
+          <Symbol UId="560">
+            <Component Name="Len" UId="561" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="562" />
+      <NewLine UId="563" />
+      <Blank Num="16" UId="564" />
+      <Parameter Name="INPUTS" UId="565">
+        <Blank UId="566" />
+        <Token Text=":=" UId="567" />
+        <Blank UId="568" />
+        <Access Scope="GlobalVariable" UId="569">
+          <Symbol UId="570">
+            <Component Name="PAC_320_Data" UId="571">
+              <BooleanAttribute Name="HasQuotes" UId="572">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="573" />
+            <Component Name="ActualData" UId="574" />
+            <Token Text="." UId="575" />
+            <Component Name="TotalReactivePower" UId="576" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="577" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="578" />
+  <NewLine Num="2" UId="579" />
+  <LineComment UId="580">
+    <Text UId="581">Energy</Text>
+  </LineComment>
+  <NewLine UId="582" />
+  <Access Scope="GlobalVariable" UId="583">
+    <Symbol UId="584">
+      <Component Name="GETIO_PAC3220" UId="585">
+        <BooleanAttribute Name="HasQuotes" UId="586">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="587">
+    <Instruction UId="588">
+      <Token Text="(" UId="589" />
+      <Parameter Name="ID" UId="590">
+        <Blank UId="591" />
+        <Token Text=":=" UId="592" />
+        <Blank UId="593" />
+        <Access Scope="GlobalVariable" UId="594">
+          <Symbol UId="595">
+            <Component Name="HW_Const_Values" UId="596">
+              <BooleanAttribute Name="HasQuotes" UId="597">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="598" />
+            <Component Name="HW_100A1_Act_Energy_Imp_Tar_1_D_1" UId="599" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="600" />
+      <NewLine UId="601" />
+      <Blank Num="16" UId="602" />
+      <Parameter Name="STATUS" UId="603">
+        <Blank UId="604" />
+        <Token Text="=&gt;" UId="605" />
+        <Blank UId="606" />
+        <Access Scope="LocalVariable" UId="607">
+          <Symbol UId="608">
+            <Component Name="PAC3220_Ret" UId="609" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="610" />
+      <NewLine UId="611" />
+      <Blank Num="16" UId="612" />
+      <Parameter Name="LEN" UId="613">
+        <Blank UId="614" />
+        <Token Text="=&gt;" UId="615" />
+        <Blank UId="616" />
+        <Access Scope="LocalVariable" UId="617">
+          <Symbol UId="618">
+            <Component Name="Len" UId="619" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="620" />
+      <NewLine UId="621" />
+      <Blank Num="16" UId="622" />
+      <Parameter Name="INPUTS" UId="623">
+        <Blank UId="624" />
+        <Token Text=":=" UId="625" />
+        <Blank UId="626" />
+        <Access Scope="GlobalVariable" UId="627">
+          <Symbol UId="628">
+            <Component Name="PAC_320_Data" UId="629">
+              <BooleanAttribute Name="HasQuotes" UId="630">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="631" />
+            <Component Name="ActualData" UId="632" />
+            <Token Text="." UId="633" />
+            <Component Name="TotalActiveEnergy" UId="634" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="635" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="636" />
+  <NewLine Num="2" UId="637" />
+  <Access Scope="GlobalVariable" UId="638">
+    <Symbol UId="639">
+      <Component Name="GETIO_PAC3220" UId="640">
+        <BooleanAttribute Name="HasQuotes" UId="641">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Access Scope="Call" UId="642">
+    <Instruction UId="643">
+      <Token Text="(" UId="644" />
+      <Parameter Name="ID" UId="645">
+        <Blank UId="646" />
+        <Token Text=":=" UId="647" />
+        <Blank UId="648" />
+        <Access Scope="GlobalVariable" UId="649">
+          <Symbol UId="650">
+            <Component Name="HW_Const_Values" UId="651">
+              <BooleanAttribute Name="HasQuotes" UId="652">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="653" />
+            <Component Name="HW_100A1_Reac_En_Imp_Tar_1_D_1" UId="654" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="655" />
+      <NewLine UId="656" />
+      <Blank Num="16" UId="657" />
+      <Parameter Name="STATUS" UId="658">
+        <Blank UId="659" />
+        <Token Text="=&gt;" UId="660" />
+        <Blank UId="661" />
+        <Access Scope="LocalVariable" UId="662">
+          <Symbol UId="663">
+            <Component Name="PAC3220_Ret" UId="664" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="665" />
+      <NewLine UId="666" />
+      <Blank Num="16" UId="667" />
+      <Parameter Name="LEN" UId="668">
+        <Blank UId="669" />
+        <Token Text="=&gt;" UId="670" />
+        <Blank UId="671" />
+        <Access Scope="LocalVariable" UId="672">
+          <Symbol UId="673">
+            <Component Name="Len" UId="674" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="675" />
+      <NewLine UId="676" />
+      <Blank Num="16" UId="677" />
+      <Parameter Name="INPUTS" UId="678">
+        <Blank UId="679" />
+        <Token Text=":=" UId="680" />
+        <Blank UId="681" />
+        <Access Scope="GlobalVariable" UId="682">
+          <Symbol UId="683">
+            <Component Name="PAC_320_Data" UId="684">
+              <BooleanAttribute Name="HasQuotes" UId="685">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="686" />
+            <Component Name="ActualData" UId="687" />
+            <Token Text="." UId="688" />
+            <Component Name="TotalApparentEnergy" UId="689" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="690" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="691" />
+  <NewLine Num="2" UId="692" />
+  <Access Scope="GlobalVariable" UId="693">
+    <Symbol UId="694">
+      <Component Name="PAC_320_Data" UId="695">
+        <BooleanAttribute Name="HasQuotes" UId="696">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="697" />
+      <Component Name="ActualData" UId="698" />
+      <Token Text="." UId="699" />
+      <Component Name="TotalActivePower" UId="700" />
+    </Symbol>
+  </Access>
+  <Blank UId="701" />
+  <Token Text=":=" UId="702" />
+  <Blank UId="703" />
+  <Access Scope="GlobalVariable" UId="704">
+    <Symbol UId="705">
+      <Component Name="PAC_320_Data" UId="706">
+        <BooleanAttribute Name="HasQuotes" UId="707">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="708" />
+      <Component Name="ActualData" UId="709" />
+      <Token Text="." UId="710" />
+      <Component Name="TotalActivePower" UId="711" />
+    </Symbol>
+  </Access>
+  <Blank UId="712" />
+  <Token Text="/" UId="713" />
+  <Blank UId="714" />
+  <Access Scope="LiteralConstant" UId="715">
+    <Constant UId="716">
+      <ConstantValue UId="718">1000</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="719" />
+  <NewLine UId="720" />
+  <Access Scope="GlobalVariable" UId="721">
+    <Symbol UId="722">
+      <Component Name="PAC_320_Data" UId="723">
+        <BooleanAttribute Name="HasQuotes" UId="724">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="725" />
+      <Component Name="ActualData" UId="726" />
+      <Token Text="." UId="727" />
+      <Component Name="TotalReactivePower" UId="728" />
+    </Symbol>
+  </Access>
+  <Blank UId="729" />
+  <Token Text=":=" UId="730" />
+  <Blank UId="731" />
+  <Access Scope="GlobalVariable" UId="732">
+    <Symbol UId="733">
+      <Component Name="PAC_320_Data" UId="734">
+        <BooleanAttribute Name="HasQuotes" UId="735">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="736" />
+      <Component Name="ActualData" UId="737" />
+      <Token Text="." UId="738" />
+      <Component Name="TotalReactivePower" UId="739" />
+    </Symbol>
+  </Access>
+  <Blank UId="740" />
+  <Token Text="/" UId="741" />
+  <Blank UId="742" />
+  <Access Scope="LiteralConstant" UId="743">
+    <Constant UId="744">
+      <ConstantValue UId="746">1000</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="747" />
+  <NewLine UId="748" />
+  <Access Scope="GlobalVariable" UId="749">
+    <Symbol UId="750">
+      <Component Name="PAC_320_Data" UId="751">
+        <BooleanAttribute Name="HasQuotes" UId="752">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="753" />
+      <Component Name="ActualData" UId="754" />
+      <Token Text="." UId="755" />
+      <Component Name="TotalActiveEnergy" UId="756" />
+    </Symbol>
+  </Access>
+  <Blank UId="757" />
+  <Token Text=":=" UId="758" />
+  <Blank UId="759" />
+  <Access Scope="GlobalVariable" UId="760">
+    <Symbol UId="761">
+      <Component Name="PAC_320_Data" UId="762">
+        <BooleanAttribute Name="HasQuotes" UId="763">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="764" />
+      <Component Name="ActualData" UId="765" />
+      <Token Text="." UId="766" />
+      <Component Name="TotalActiveEnergy" UId="767" />
+    </Symbol>
+  </Access>
+  <Blank UId="768" />
+  <Token Text="/" UId="769" />
+  <Blank UId="770" />
+  <Access Scope="LiteralConstant" UId="771">
+    <Constant UId="772">
+      <ConstantValue UId="774">1000</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="775" />
+  <NewLine UId="776" />
+  <Access Scope="GlobalVariable" UId="777">
+    <Symbol UId="778">
+      <Component Name="PAC_320_Data" UId="779">
+        <BooleanAttribute Name="HasQuotes" UId="780">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="781" />
+      <Component Name="ActualData" UId="782" />
+      <Token Text="." UId="783" />
+      <Component Name="TotalApparentEnergy" UId="784" />
+    </Symbol>
+  </Access>
+  <Blank UId="785" />
+  <Token Text=":=" UId="786" />
+  <Blank UId="787" />
+  <Access Scope="GlobalVariable" UId="788">
+    <Symbol UId="789">
+      <Component Name="PAC_320_Data" UId="790">
+        <BooleanAttribute Name="HasQuotes" UId="791">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="792" />
+      <Component Name="ActualData" UId="793" />
+      <Token Text="." UId="794" />
+      <Component Name="TotalApparentEnergy" UId="795" />
+    </Symbol>
+  </Access>
+  <Blank UId="796" />
+  <Token Text="/" UId="797" />
+  <Blank UId="798" />
+  <Access Scope="LiteralConstant" UId="799">
+    <Constant UId="800">
+      <ConstantValue UId="802">1000</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="803" />
+  <NewLine UId="804" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>>  PAC3220</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> Avvio timer da 60 secondi</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="PAC_320_Data" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="Aux" UId="29" />
+      <Token Text="." UId="30" />
+      <Component Name="MinTimer" UId="31" />
+    </Symbol>
+  </Access>
+  <Token Text="." UId="32" />
+  <Access Scope="Call" UId="33">
+    <Instruction Name="TON" UId="34">
+      <Token Text="(" UId="35" />
+      <Parameter Name="IN" UId="36">
+        <Blank UId="37" />
+        <Token Text=":=" UId="38" />
+        <Blank UId="39" />
+        <Token Text="NOT" UId="40" />
+        <Blank UId="41" />
+        <Access Scope="GlobalVariable" UId="42">
+          <Symbol UId="43">
+            <Component Name="PAC_320_Data" UId="44">
+              <BooleanAttribute Name="HasQuotes" UId="45">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="46" />
+            <Component Name="Aux" UId="47" />
+            <Token Text="." UId="48" />
+            <Component Name="MinutePulse" UId="49" />
+          </Symbol>
+        </Access>
+        <Blank UId="50" />
+        <Token Text="AND" UId="51" />
+        <Blank UId="52" />
+        <Token Text="NOT" UId="53" />
+        <Blank UId="54" />
+        <Access Scope="GlobalVariable" UId="55">
+          <Symbol UId="56">
+            <Component Name="Sys" UId="57">
+              <BooleanAttribute Name="HasQuotes" UId="58">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="59" />
+            <Component Name="AuxFirstPLCCycle" UId="60" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="61" />
+      <NewLine UId="62" />
+      <Blank Num="32" UId="63" />
+      <Parameter Name="PT" UId="64">
+        <Blank UId="65" />
+        <Token Text=":=" UId="66" />
+        <Blank UId="67" />
+        <Access Scope="TypedConstant" UId="68">
+          <Constant UId="69">
+            <ConstantValue UId="70">T#60s</ConstantValue>
+          </Constant>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="71" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="72" />
+  <NewLine UId="73" />
+  <LineComment UId="74">
+    <Text UId="75"> Genera impulso di 1 scan al termine del timer</Text>
+  </LineComment>
+  <NewLine UId="76" />
+  <Token Text="IF" UId="77" />
+  <Access Scope="GlobalVariable" UId="78">
+    <Symbol UId="79">
+      <Component Name="PAC_320_Data" UId="80">
+        <BooleanAttribute Name="HasQuotes" UId="81">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="82" />
+      <Component Name="Aux" UId="83" />
+      <Token Text="." UId="84" />
+      <Component Name="MinTimer" UId="85" />
+      <Token Text="." UId="86" />
+      <Component Name="Q" UId="87" />
+    </Symbol>
+  </Access>
+  <Blank UId="88" />
+  <Token Text="THEN" UId="89" />
+  <NewLine UId="90" />
+  <Blank Num="4" UId="91" />
+  <Access Scope="GlobalVariable" UId="92">
+    <Symbol UId="93">
+      <Component Name="PAC_320_Data" UId="94">
+        <BooleanAttribute Name="HasQuotes" UId="95">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="96" />
+      <Component Name="Aux" UId="97" />
+      <Token Text="." UId="98" />
+      <Component Name="MinutePulse" UId="99" />
+    </Symbol>
+  </Access>
+  <Blank UId="100" />
+  <Token Text=":=" UId="101" />
+  <Blank UId="102" />
+  <Access Scope="LiteralConstant" UId="103">
+    <Constant UId="104">
+      <ConstantValue UId="106">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="107" />
+  <NewLine UId="108" />
+  <Token Text="ELSE" UId="109" />
+  <NewLine UId="110" />
+  <Blank Num="4" UId="111" />
+  <Access Scope="GlobalVariable" UId="112">
+    <Symbol UId="113">
+      <Component Name="PAC_320_Data" UId="114">
+        <BooleanAttribute Name="HasQuotes" UId="115">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="116" />
+      <Component Name="Aux" UId="117" />
+      <Token Text="." UId="118" />
+      <Component Name="MinutePulse" UId="119" />
+    </Symbol>
+  </Access>
+  <Blank UId="120" />
+  <Token Text=":=" UId="121" />
+  <Blank UId="122" />
+  <Access Scope="LiteralConstant" UId="123">
+    <Constant UId="124">
+      <ConstantValue UId="126">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="127" />
+  <NewLine UId="128" />
+  <Token Text="END_IF" UId="129" />
+  <Token Text=";" UId="130" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Clock 60 sec</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="GlobalVariable" UId="21">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="Aux" />
+        <Component Name="MinutePulse" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="ActualData" />
+        <Component Name="TotalActiveEnergy" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="23">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="MES_TotalActiveEnergy" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="24">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="MES_60sActiveEnergy" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="25">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="ActualData" />
+        <Component Name="TotalActiveEnergy" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="26">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="MES_TotalActiveEnergy" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="27">
+      <Symbol>
+        <Component Name="Time_ret" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="28">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="TimeStamp" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="29">
+      <Constant>
+        <ConstantType>DInt</ConstantType>
+        <ConstantValue>1</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="GlobalVariable" UId="30">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="MES_MeasuringItem" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="31">
+      <Symbol>
+        <Component Name="PAC_320_Data" />
+        <Component Name="MES_MeasuringItem" />
+      </Symbol>
+    </Access>
+    <Part Name="Contact" UId="32" />
+    <Part Name="Sub" UId="33" DisabledENO="true">
+      <AutomaticTyped Name="SrcType" />
+    </Part>
+    <Part Name="Move" UId="34" DisabledENO="true">
+      <TemplateValue Name="Card" Type="Cardinality">1</TemplateValue>
+    </Part>
+    <Part Name="RD_SYS_T" Version="1.0" UId="35">
+      <TemplateValue Name="date_type" Type="Type">DTL</TemplateValue>
+    </Part>
+    <Part Name="Add" UId="36" DisabledENO="true">
+      <TemplateValue Name="Card" Type="Cardinality">2</TemplateValue>
+      <AutomaticTyped Name="SrcType" />
+    </Part>
+  </Parts>
+  <Wires>
+    <Wire UId="37">
+      <Powerrail />
+      <NameCon UId="32" Name="in" />
+    </Wire>
+    <Wire UId="38">
+      <IdentCon UId="21" />
+      <NameCon UId="32" Name="operand" />
+    </Wire>
+    <Wire UId="39">
+      <NameCon UId="32" Name="out" />
+      <NameCon UId="33" Name="en" />
+      <NameCon UId="36" Name="en" />
+    </Wire>
+    <Wire UId="40">
+      <IdentCon UId="22" />
+      <NameCon UId="33" Name="in1" />
+    </Wire>
+    <Wire UId="41">
+      <IdentCon UId="23" />
+      <NameCon UId="33" Name="in2" />
+    </Wire>
+    <Wire UId="42">
+      <NameCon UId="33" Name="eno" />
+      <NameCon UId="34" Name="en" />
+    </Wire>
+    <Wire UId="43">
+      <NameCon UId="33" Name="out" />
+      <IdentCon UId="24" />
+    </Wire>
+    <Wire UId="44">
+      <IdentCon UId="25" />
+      <NameCon UId="34" Name="in" />
+    </Wire>
+    <Wire UId="45">
+      <NameCon UId="34" Name="eno" />
+      <NameCon UId="35" Name="en" />
+    </Wire>
+    <Wire UId="46">
+      <NameCon UId="34" Name="out1" />
+      <IdentCon UId="26" />
+    </Wire>
+    <Wire UId="47">
+      <NameCon UId="35" Name="RET_VAL" />
+      <IdentCon UId="27" />
+    </Wire>
+    <Wire UId="48">
+      <NameCon UId="35" Name="OUT" />
+      <IdentCon UId="28" />
+    </Wire>
+    <Wire UId="49">
+      <IdentCon UId="29" />
+      <NameCon UId="36" Name="in1" />
+    </Wire>
+    <Wire UId="50">
+      <IdentCon UId="30" />
+      <NameCon UId="36" Name="in2" />
+    </Wire>
+    <Wire UId="51">
+      <NameCon UId="36" Name="out" />
+      <IdentCon UId="31" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Total Active Energy Exposed to MES</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource />
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="29" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="2A" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2B" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2C" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

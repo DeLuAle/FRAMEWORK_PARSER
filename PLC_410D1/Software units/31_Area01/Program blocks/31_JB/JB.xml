@@ -1,0 +1,254 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>JB_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="Struct">
+      <Member Name="Torch" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="CutHead" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="PinchRoll_Feed" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="PinchRoll_Lift" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    </Member>
+    <Member Name="Drive" Datatype="Struct">
+      <Member Name="Torch" Datatype="&quot;TAx_DriveInterface&quot;" />
+      <Member Name="Picnhroll_Feed" Datatype="&quot;TAx_DriveInterface&quot;" />
+    </Member>
+    <Member Name="HWID" Datatype="Struct">
+      <Member Name="Torch_TEL1" Datatype="HW_SUBMODULE" />
+      <Member Name="TorchEnc_IO" Datatype="HW_SUBMODULE" />
+      <Member Name="Pinchroll_Feed_TEL1" Datatype="HW_SUBMODULE" />
+    </Member>
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="WeldingCycle_AI_Potentiometer" Datatype="Int" />
+      <Member Name="WeldingCycle_Pb_Stop" Datatype="Bool" />
+      <Member Name="WeldingCycle_Pb_Start" Datatype="Bool" />
+      <Member Name="WeldingCycle_Pb_StartStop" Datatype="Bool" />
+      <Member Name="Welder_Pb_Man" Datatype="Bool" />
+      <Member Name="CutHead_PbCycle" Datatype="Bool" />
+      <Member Name="SAFETY_DeadMan_PB" Datatype="Bool" />
+      <Member Name="Torch" Datatype="&quot;Positioning_DOL_Machine_DataIn&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="PinchRoll_Feed" Datatype="&quot;SpeedMachine_DataIn&quot;" />
+      <Member Name="PinchRoll_Lift" Datatype="&quot;ValveMachine_DataIn&quot;" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Manager" Datatype="&quot;JB_Manager&quot;" />
+      <Member Name="PressureRunning" Datatype="Bool" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="MeasurePasslineReference" Datatype="Real" />
+      <Member Name="MaxMaterialWidth" Datatype="Real" />
+      <Member Name="Torch" Datatype="&quot;Positioning_DOL_Machine_Config&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="Pinchroll_Feed" Datatype="&quot;SpeedMachine_Config&quot;" />
+      <Member Name="Pinchroll_Lift" Datatype="&quot;ValveMachine_Config&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="LpWeldingCycle_1" Datatype="Bool" />
+      <Member Name="LpWeldingCycle_2" Datatype="Bool" />
+      <Member Name="WelderON" Datatype="Bool" />
+      <Member Name="AspiratoreON" Datatype="Bool" />
+      <Member Name="Torch" Datatype="&quot;Positioning_DOL_Machine_DataOut&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="Pinchroll_Feed" Datatype="&quot;SpeedMachine_DataOut&quot;" />
+      <Member Name="Pinchroll_Lift" Datatype="&quot;ValveMachine_DataOut&quot;" />
+    </Member>
+    <Member Name="COut" Datatype="&quot;JB_Status&quot;" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="Struct">
+      <Member Name="Data" Datatype="Struct">
+        <Member Name="WeldingSetUp" Datatype="&quot;JB_WeldingSetUp&quot;" />
+        <Member Name="ClampEntryClosed" Datatype="Bool" />
+        <Member Name="ClampExitClosed" Datatype="Bool" />
+      </Member>
+      <Member Name="Torch" Datatype="Struct">
+        <Member Name="MeasureTorchHolder" Datatype="LReal" />
+        <Member Name="InhibitWeld_Pos" Datatype="LReal" />
+        <Member Name="InhibitWeld_Window" Datatype="LReal" />
+        <Member Name="Parking_Pos" Datatype="LReal" />
+        <Member Name="WeldingUseLocalData" Datatype="Bool" />
+        <Member Name="Cycle_HighSpeed" Datatype="LReal" />
+        <Member Name="Cycle_LowSpeed" Datatype="LReal" />
+      </Member>
+      <Member Name="TorchAx" Datatype="&quot;Positioning_DOL_Machine_Par&quot;" />
+      <Member Name="TorchAx_Pers" Datatype="&quot;Positioning_DOL_Machine_Pers_Data&quot;" />
+      <Member Name="TorchEnc" Datatype="&quot;PosFbk_RTN&quot;" />
+      <Member Name="PinchRoll_Feed" Datatype="&quot;SpeedMachine_Par&quot;" />
+      <Member Name="Aspiratore_TimeOff" Datatype="Time" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="TorchAx" Datatype="&quot;Positioning_DOL_Machine_Alr&quot;" />
+      <Member Name="TorchEnc" Datatype="&quot;PosFbk_Encoder_Alr&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="CutHead" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="Pinchroll_Feed" Datatype="&quot;SpeedMachine_Alr&quot;" />
+      <Member Name="Pinchroll_Lift" Datatype="&quot;ValveAlr&quot;" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="TorchAx" Datatype="&quot;Positioning_DOL_Machine_Wng&quot;" />
+      <Member Name="ClampEntry" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="ClampExit" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="Pinchroll_Feed" Datatype="&quot;SpeedMachine_Wng&quot;" />
+      <Member Name="Pinchroll_Lift" Datatype="&quot;ValveMachine_Wng&quot;" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Torch_B_Preset" Datatype="Bool" />
+      <Member Name="Torch_PresetValue" Datatype="LReal" />
+      <Member Name="Torch_FdbkPreset" Datatype="LReal" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="Torch" Datatype="Struct">
+        <Member Name="InParkPosition" Datatype="Bool" />
+        <Member Name="InOutEdgeOfWeldStart" Datatype="Bool" />
+        <Member Name="InWeldStart" Datatype="Bool" />
+        <Member Name="inWeldStop" Datatype="Bool" />
+        <Member Name="InPotentimeterON" Datatype="Bool" />
+        <Member Name="InWeldON" Datatype="Bool" />
+        <Member Name="InWeldInhibit" Datatype="Bool" />
+      </Member>
+      <Member Name="WeldCycle" Datatype="Struct">
+        <Member Name="Phase" Datatype="Int" />
+        <Member Name="Cnd" Datatype="Bool" />
+        <Member Name="ON1" Datatype="Bool" />
+        <Member Name="ON2" Datatype="Bool" />
+        <Member Name="PercentagePotentiometer" Datatype="Real" />
+        <Member Name="PosOutStripEdgeSideWeldStart" Datatype="LReal" />
+        <Member Name="PosOutStripEdgeSideWeldStop" Datatype="LReal" />
+        <Member Name="PosStripEdgeSideWeldStart" Datatype="LReal" />
+        <Member Name="PosStripEdgeSideWeldStop" Datatype="LReal" />
+        <Member Name="PosWeldStart" Datatype="LReal" />
+        <Member Name="PosWeldStop" Datatype="LReal" />
+        <Member Name="PosMinusInhibit" Datatype="LReal" />
+        <Member Name="PosPlusInhibit" Datatype="LReal" />
+        <Member Name="TON_Pause" Datatype="TON_TIME" Version="1.0">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+      <Member Name="CutCycle" Datatype="Struct">
+        <Member Name="ON" Datatype="Bool" />
+        <Member Name="OK_Rest" Datatype="Bool" />
+        <Member Name="OK_Work" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="WeldCycle" Datatype="Struct">
+        <Member Name="Clamps_Close" Datatype="Bool" />
+        <Member Name="Clamps_Open" Datatype="Bool" />
+        <Member Name="Welder_ON" Datatype="Bool" />
+        <Member Name="Torch_MoveToPos_Park" Datatype="Bool" />
+        <Member Name="Torch_MoveToPos_Start" Datatype="Bool" />
+        <Member Name="Torch_MoveToPos_StartBack" Datatype="Bool" />
+        <Member Name="Torch_VelBwd_WeldON" Datatype="Bool" />
+        <Member Name="Torch_VelFwd_WeldON" Datatype="Bool" />
+      </Member>
+      <Member Name="Welder" Datatype="Struct">
+        <Member Name="Man_ON" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Torch" Datatype="&quot;Positioning_DOL_Machine_FB&quot;" />
+    <Member Name="TorchEnc" Datatype="&quot;PosFbk_SickANM58&quot;" />
+    <Member Name="TorchEncITF" Datatype="&quot;PosFbk_ITF&quot;" />
+    <Member Name="ClampEntry" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="ClampExit" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="CutHead" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="PinchRoll_Feed" Datatype="&quot;SpeedMachine_FB&quot;" />
+    <Member Name="PinchRoll_Lift" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="TON_LiftPbUp" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TOF_Aspiratore" Datatype="TOF_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="PbStartStop" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="PbStart2" Datatype="Bool" />
+      <Member Name="Welder_Pb_Man" Datatype="Bool" />
+      <Member Name="UseDataPPrf" Datatype="Bool" />
+      <Member Name="Weld_PbCycle" Datatype="Bool" />
+      <Member Name="Cut_PbCycle" Datatype="Bool" />
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>JB</Name>
+      <Namespace />
+      <Number>52</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

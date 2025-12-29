@@ -1,0 +1,391 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>CoilHandling_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PbMaterialBkw" Datatype="Bool" />
+      <Member Name="PbMaterialFwd" Datatype="Bool" />
+      <Member Name="PbExtraLowSpeed" Datatype="Bool" />
+      <Member Name="SensorMatPresence_Decoiler" Datatype="Bool" />
+      <Member Name="SensorMatPresence_StraightEntry" Datatype="Bool" />
+      <Member Name="SensorMatPresence_StraightExit" Datatype="Bool" />
+      <Member Name="SensorMatPresence_JBPinchExit" Datatype="Bool" />
+      <Member Name="PbCoilReady" Datatype="Bool" />
+      <Member Name="PbProvino" Datatype="Bool" />
+      <Member Name="Decoiler2_PosizioneRazza" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="DecoilersHRot" Datatype="&quot;DecoilersHRot_Status&quot;" />
+      <Member Name="Decoiler1" Datatype="&quot;Decoiler_Status&quot;" />
+      <Member Name="Decoiler2" Datatype="&quot;Decoiler_Status&quot;" />
+      <Member Name="Peeler" Datatype="&quot;Peeler_Status&quot;" />
+      <Member Name="Straigtener" Datatype="&quot;Straightener_Status&quot;" />
+      <Member Name="JB" Datatype="&quot;JB_Status&quot;" />
+      <Member Name="MaterialCounter" Datatype="Struct">
+        <Member Name="AlrPresence" Datatype="Bool" />
+        <Member Name="WngPresence" Datatype="Bool" />
+        <Member Name="Data" Datatype="&quot;MatCountData&quot;" />
+      </Member>
+      <Member Name="Loop" Datatype="Struct">
+        <Member Name="SystemOn" Datatype="Bool" />
+        <Member Name="Enable_FWD" Datatype="Bool" />
+        <Member Name="Enable_BWD" Datatype="Bool" />
+        <Member Name="SynchroRunning" Datatype="Bool" />
+        <Member Name="MaxLength_Reeached" Datatype="Bool" />
+        <Member Name="VelocityOverride" Datatype="Real" />
+      </Member>
+      <Member Name="Downstream" Datatype="Struct">
+        <Member Name="Aut" Datatype="Bool" />
+        <Member Name="MaterialPresence_Entry" Datatype="Bool" />
+        <Member Name="MaterialPresence" Datatype="Bool" />
+        <Member Name="LineVelocity" Datatype="LReal" />
+      </Member>
+      <Member Name="MES" Datatype="&quot;Prod_Coil_Ctrl&quot;" />
+    </Member>
+    <Member Name="Config" Datatype="&quot;CoilHandling_Config&quot;" />
+    <Member Name="ThicknessCheck_HW_ID_DL-PN" Datatype="HW_SUBMODULE" />
+    <Member Name="ThicknessCheck_HW_ID_IL1000" Datatype="HW_SUBMODULE" />
+    <Member Name="ThicknessCheck_HW_ID_IL1050" Datatype="HW_SUBMODULE" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Gen" Datatype="Struct">
+        <Member Name="Material_STS" Datatype="Int" />
+        <Member Name="MaterialPresence" Datatype="Bool" />
+        <Member Name="MaterialMissing" Datatype="Bool" />
+        <Member Name="NextEndOfMaterial" Datatype="Bool" />
+        <Member Name="EmptyingConfirmed" Datatype="Bool" />
+        <Member Name="ExtraLowSpeedSelection" Datatype="Bool" />
+        <Member Name="SemiAutomatic" Datatype="Bool" />
+        <Member Name="Production_Running" Datatype="Bool" />
+        <Member Name="DecoilerInLineNumber" Datatype="Int" />
+        <Member Name="CoilDiameter" Datatype="Real" />
+      </Member>
+      <Member Name="DecoilersHRot" Datatype="&quot;DecoilersHRot_Manager&quot;" />
+      <Member Name="DecoilerInLine" Datatype="&quot;Decoiler_Manager&quot;" />
+      <Member Name="DecoilerOutLine" Datatype="&quot;Decoiler_Manager&quot;" />
+      <Member Name="Decoiler1" Datatype="&quot;Decoiler_Manager&quot;" />
+      <Member Name="Decoiler2" Datatype="&quot;Decoiler_Manager&quot;" />
+      <Member Name="Peeler" Datatype="&quot;Peeler_Manager&quot;" />
+      <Member Name="Straightener" Datatype="&quot;Straightener_Manager&quot;" />
+      <Member Name="JB" Datatype="&quot;JB_Manager&quot;" />
+      <Member Name="Loop" Datatype="Struct">
+        <Member Name="Stop" Datatype="Bool" />
+        <Member Name="Synchro_Request" Datatype="Bool" />
+        <Member Name="MaterialMiddlePos_Request" Datatype="Bool" />
+      </Member>
+      <Member Name="MES" Datatype="Struct">
+        <Member Name="Deroga_Spessore_Errato" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Spessore_Lamiera_Errato" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Spessore_Lamiera_Sensore_Valore" Datatype="Real" />
+        <Member Name="Spessore_Lamiera_Errore_Valore" Datatype="Real">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Provino_Eseguito" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="Lamp_CoilReady" Datatype="Bool" />
+      <Member Name="Lamp_ExtraLowSpeed" Datatype="Bool" />
+      <Member Name="Lamp_Provino" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Pers" Datatype="&quot;CoilHandling_Persistent&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="MaterialMissing" Datatype="Bool" />
+      <Member Name="S_MatPresence_StraightExit_NotOFF" Datatype="Bool" />
+      <Member Name="MatCounterAlrPresence" Datatype="Bool" />
+      <Member Name="EndOfMaterial" Datatype="Bool" />
+      <Member Name="TichnessCheck" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="Err_Sensor_Get_PN_IO" Datatype="Bool" />
+        <Member Name="Err_Sensor_Rack" Datatype="Bool" />
+        <Member Name="Err_Sensor_Value" Datatype="Bool" />
+        <Member Name="ThicknessOutOfRange" Datatype="Bool" />
+      </Member>
+      <Member Name="MES" Datatype="Struct">
+        <Member Name="STOP_Provino" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="STOP_Taglio_Fine_Ordini" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="STOP_Manca_Dati_AspoInLinea" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="STOP_FineTurno" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="STOP_ControlloQualita" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+      </Member>
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="NotAutReady" Datatype="Bool" />
+      <Member Name="MatCounterWngPresence" Datatype="Bool" />
+      <Member Name="EmptyingIsON" Datatype="Bool" />
+      <Member Name="EndOfMaterial_StraightenetEntry" Datatype="Bool" />
+      <Member Name="EndOfMaterial_StraightenetExit" Datatype="Bool" />
+      <Member Name="EndOfCoilSequenceRunning" Datatype="Bool" />
+      <Member Name="ExtraLowSpeedIsON" Datatype="Bool" />
+      <Member Name="Decoiler2_RazzaNonInPosizione" Datatype="Bool" />
+      <Member Name="StopInactivity" Datatype="Bool" />
+      <Member Name="ThicnessCheck" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="SensorDisable" Datatype="Bool" />
+        <Member Name="ThicknessOutOfRange" Datatype="Bool" />
+        <Member Name="Err_Bypass" Datatype="Bool" />
+      </Member>
+      <Member Name="MES" Datatype="Struct">
+        <Member Name="STOP_Manca_Dati_AspoInCarico" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="B_ConfirmEmptying" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="B_ConfirmEmptyingShow" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="B_ConfirmEmptyingStatus" Datatype="Bool" />
+      <Member Name="ThicknessControl" Datatype="Struct">
+        <Member Name="Button_Exception" Datatype="Bool" />
+        <Member Name="Button_Init" Datatype="Bool" />
+        <Member Name="STATUS" Datatype="Int" />
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Pause" Datatype="Bool" />
+      <Member Name="Stop" Datatype="Bool" />
+      <Member Name="Semiautomatic_MaterialFwd" Datatype="Bool" />
+      <Member Name="Semiautomatic_MaterialBkw" Datatype="Bool" />
+      <Member Name="EndOfCoil" Datatype="Struct">
+        <Member Name="StraightRollEntry_Open" Datatype="Bool" />
+        <Member Name="StraightRollExit_Open" Datatype="Bool" />
+        <Member Name="StraightRollEntry_Close" Datatype="Bool" />
+        <Member Name="StraightRollExit_Close" Datatype="Bool" />
+        <Member Name="Straightener_Bwd" Datatype="Bool" />
+        <Member Name="Straightener_Fwd" Datatype="Bool" />
+        <Member Name="JB_Pinch_Open" Datatype="Bool" />
+        <Member Name="JB_Pinch_Close" Datatype="Bool" />
+        <Member Name="JB_Pinch_Fwd" Datatype="Bool" />
+        <Member Name="JB_Cut_Rest" Datatype="Bool" />
+        <Member Name="JB_Cut_Work" Datatype="Bool" />
+        <Member Name="JB_Welder_Open" Datatype="Bool" />
+        <Member Name="TargetPosMat_StraightEmpty" Datatype="LReal" />
+        <Member Name="TargetPosMat_TailCutExe" Datatype="LReal" />
+        <Member Name="TargetPosMat_JunctionExe" Datatype="LReal" />
+        <Member Name="ChangeCoilExe" Datatype="Bool" />
+        <Member Name="Decoiler_Fwd" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="FeedStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="EnableCycleStopProgrammed" Datatype="Bool" />
+      <Member Name="MaterialFwdEnable" Datatype="Bool" />
+      <Member Name="MaterialBkwEnable" Datatype="Bool" />
+      <Member Name="CumulativeMaterialFwdRequest" Datatype="Bool" />
+      <Member Name="Semiautomatic" Datatype="Bool" />
+      <Member Name="ExtraLowSpeedSelectionPB" Datatype="Bool" />
+      <Member Name="ExtraLowSpeedSelection" Datatype="Bool" />
+      <Member Name="STOP_Feed_by_MES" Datatype="Bool" />
+      <Member Name="STOP_CoilChange_By_MES" Datatype="Bool" />
+      <Member Name="STOP_Inactivity" Datatype="Bool" />
+      <Member Name="DecoilerInLine" Datatype="&quot;Decoiler_Status&quot;" />
+      <Member Name="DecoilerOutOfLine" Datatype="&quot;Decoiler_Status&quot;" />
+      <Member Name="EndOfCoil" Datatype="Struct">
+        <Member Name="Status" Datatype="Int" />
+        <Member Name="Cnd" Datatype="Bool" />
+        <Member Name="Idle" Datatype="Bool" />
+        <Member Name="EndOfSequence" Datatype="Bool" />
+        <Member Name="PinchRoll_SpaceToStop" Datatype="LReal" />
+        <Member Name="PosMat_AtEndMatPresence_StraightEnty" Datatype="LReal" />
+        <Member Name="PosMat_AtEndMatPresence_StraightExit" Datatype="LReal" />
+        <Member Name="MissingTargetPosMat_StraightEmpty" Datatype="LReal" />
+        <Member Name="MissingToTargetPosMat_TailCutExe" Datatype="LReal" />
+        <Member Name="StopPinchRoll_TargetPosMat_TailCutExe" Datatype="Bool" />
+        <Member Name="Reached_TargetPosMat_TailCutExe" Datatype="Bool" />
+        <Member Name="MissingToTargetPosMat_JunctionExe" Datatype="LReal" />
+        <Member Name="StopPinchRoll_TargetPosMat_JunctionExe" Datatype="Bool" />
+        <Member Name="Reached_TargetPosMat_JunctionExe" Datatype="Bool" />
+      </Member>
+      <Member Name="LoopSynchro" Datatype="Struct">
+        <Member Name="Phase1_A" Datatype="Bool" />
+        <Member Name="Phase2_A" Datatype="Bool" />
+        <Member Name="Phase1_B" Datatype="Bool" />
+        <Member Name="Phase2_B" Datatype="Bool" />
+      </Member>
+      <Member Name="MaterialMoveSemiAut" Datatype="Struct">
+        <Member Name="Bwd_Phase1" Datatype="Bool" />
+        <Member Name="Bwd_Phase1Cnd" Datatype="Bool" />
+        <Member Name="Bwd_Phase2" Datatype="Bool" />
+        <Member Name="Bwd_Phase2Cnd" Datatype="Bool" />
+        <Member Name="Bwd_Phase3" Datatype="Bool" />
+        <Member Name="Fwd_Phase1" Datatype="Bool" />
+        <Member Name="Fwd_Phase1Cnd" Datatype="Bool" />
+        <Member Name="Fwd_Phase2" Datatype="Bool" />
+        <Member Name="Fwd_Phase2Cnd" Datatype="Bool" />
+        <Member Name="Fwd_Phase3" Datatype="Bool" />
+      </Member>
+      <Member Name="MaterialMoveAut" Datatype="Struct">
+        <Member Name="Fwd_Phase1" Datatype="Bool" />
+        <Member Name="Fwd_Phase1Cnd" Datatype="Bool" />
+        <Member Name="Fwd_Phase2" Datatype="Bool" />
+        <Member Name="Fwd_Phase2Cnd" Datatype="Bool" />
+        <Member Name="Fwd_Phase3" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="MatPresence_Decoiler" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_StraightEntry" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_StraightExit" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_JBPinchExit" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="Coil_LooseWrap" Datatype="&quot;CoilCheckLooseWrap&quot;" />
+    <Member Name="ThicknessCheck" Datatype="&quot;ThicknessCheck_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CoilHandling_MES" Datatype="&quot;CoilHandling_MES_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_Emptying" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_DecoilerNotMovingBkw" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_PinchrollFwd" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_StraightnerBwd" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_StraightnerFwd" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_SemiautoOFF" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_AutDisableAxes" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_StopInactivity" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="S_MatPresence_StraightEntry" Datatype="Bool" />
+      <Member Name="S_MatPresence_StraightExit" Datatype="Bool" />
+      <Member Name="PbMaterialFwd" Datatype="Bool" />
+      <Member Name="PbMaterialBkw" Datatype="Bool" />
+      <Member Name="PbExtraLowSpeed" Datatype="Bool" />
+      <Member Name="ButtonForceLoopMiddle" Datatype="Bool" />
+      <Member Name="PbCoilLoaded" Datatype="Bool" />
+      <Member Name="StopLoop" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>CoilHandling</Name>
+      <Namespace />
+      <Number>42</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

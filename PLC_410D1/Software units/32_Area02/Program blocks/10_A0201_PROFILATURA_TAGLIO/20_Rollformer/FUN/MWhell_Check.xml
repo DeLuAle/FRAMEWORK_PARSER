@@ -1,0 +1,1006 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="MWheel_Sensor" Datatype="Int">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="MaterialPresence" Datatype="Bool" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="CheckOK" Datatype="Bool" Remanence="Retain" />
+    <Member Name="ParameterError" Datatype="Bool" />
+    <Member Name="GearRatioError" Datatype="Bool" />
+    <Member Name="WheelMoving" Datatype="Bool" />
+    <Member Name="LeadScrewErr" Datatype="LReal">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CalculatedLeadScrew" Datatype="LReal">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="TO_Ax" Datatype="TO_PositioningAxis" Version="8.0" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="tCheck" Datatype="IEC_TIMER" Version="1.0" />
+  </Section>
+  <Section Name="Temp" />
+  <Section Name="Constant" />
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>MWhell_Check</Name>
+      <Namespace />
+      <Number>134</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="ParameterError" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank Num="2" UId="26" />
+  <Token Text="(" UId="27" />
+  <Access Scope="LocalVariable" UId="28">
+    <Symbol UId="29">
+      <Component Name="TO_Ax" UId="30" />
+      <Token Text="." UId="31" />
+      <Component Name="LoadGear" UId="32" />
+      <Token Text="." UId="33" />
+      <Component Name="Numerator" UId="34" />
+    </Symbol>
+  </Access>
+  <Blank UId="35" />
+  <Token Text="=" UId="36" />
+  <Blank UId="37" />
+  <Access Scope="LiteralConstant" UId="38">
+    <Constant UId="39">
+      <ConstantValue UId="41">0.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="42" />
+  <Token Text=")" UId="43" />
+  <NewLine UId="44" />
+  <Blank Num="16" UId="45" />
+  <Token Text="OR" UId="46" />
+  <Blank UId="47" />
+  <Token Text="(" UId="48" />
+  <Access Scope="LocalVariable" UId="49">
+    <Symbol UId="50">
+      <Component Name="TO_Ax" UId="51" />
+      <Token Text="." UId="52" />
+      <Component Name="LoadGear" UId="53" />
+      <Token Text="." UId="54" />
+      <Component Name="Denominator" UId="55" />
+    </Symbol>
+  </Access>
+  <Blank UId="56" />
+  <Token Text="=" UId="57" />
+  <Blank UId="58" />
+  <Access Scope="LiteralConstant" UId="59">
+    <Constant UId="60">
+      <ConstantValue UId="62">0.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="63" />
+  <NewLine UId="64" />
+  <Blank Num="16" UId="65" />
+  <Token Text="OR" UId="66" />
+  <Blank UId="67" />
+  <Token Text="(" UId="68" />
+  <Access Scope="LocalVariable" UId="69">
+    <Symbol UId="70">
+      <Component Name="TO_Ax" UId="71" />
+      <Token Text="." UId="72" />
+      <Component Name="Mechanics" UId="73" />
+      <Token Text="." UId="74" />
+      <Component Name="LeadScrew" UId="75" />
+    </Symbol>
+  </Access>
+  <Blank UId="76" />
+  <Token Text="=" UId="77" />
+  <Blank UId="78" />
+  <Access Scope="LiteralConstant" UId="79">
+    <Constant UId="80">
+      <ConstantValue UId="82">0.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="83" />
+  <Token Text=";" UId="84" />
+  <NewLine Num="2" UId="85" />
+  <Token Text="IF" UId="86" />
+  <Blank UId="87" />
+  <Access Scope="LocalVariable" UId="88">
+    <Symbol UId="89">
+      <Component Name="ParameterError" UId="90" />
+    </Symbol>
+  </Access>
+  <Blank UId="91" />
+  <Token Text="THEN" UId="92" />
+  <NewLine UId="93" />
+  <Blank Num="4" UId="94" />
+  <Access Scope="PredefinedVariable" UId="95">
+    <PredefinedVariable Name="ENO" UId="96" />
+  </Access>
+  <Blank UId="97" />
+  <Token Text=":=" UId="98" />
+  <Blank UId="99" />
+  <Access Scope="LocalVariable" UId="100">
+    <Symbol UId="101">
+      <Component Name="CheckOK" UId="102" />
+    </Symbol>
+  </Access>
+  <Blank UId="103" />
+  <Token Text=":=" UId="104" />
+  <Blank UId="105" />
+  <Access Scope="LiteralConstant" UId="106">
+    <Constant UId="107">
+      <ConstantValue UId="109">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="110" />
+  <NewLine UId="111" />
+  <Blank Num="4" UId="112" />
+  <Token Text="RETURN" UId="113" />
+  <Token Text=";" UId="114" />
+  <NewLine UId="115" />
+  <Token Text="END_IF" UId="116" />
+  <Token Text=";" UId="117" />
+  <NewLine UId="118" />
+  <Blank Num="20" UId="119" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="TO_Ax" UId="25" />
+      <Token Text="." UId="26" />
+      <Component Name="Velocity" UId="27" />
+    </Symbol>
+  </Access>
+  <Blank UId="28" />
+  <Token Text="&lt;" UId="29" />
+  <Blank UId="30" />
+  <Access Scope="LocalVariable" UId="31">
+    <Symbol UId="32">
+      <Component Name="TO_Ax" UId="33" />
+      <Token Text="." UId="34" />
+      <Component Name="StandstillSignal" UId="35" />
+      <Token Text="." UId="36" />
+      <Component Name="VelocityThreshold" UId="37" />
+    </Symbol>
+  </Access>
+  <Blank UId="38" />
+  <Token Text="THEN" UId="39" />
+  <NewLine UId="40" />
+  <Blank Num="4" UId="41" />
+  <Access Scope="LocalVariable" UId="42">
+    <Symbol UId="43">
+      <Component Name="WheelMoving" UId="44" />
+    </Symbol>
+  </Access>
+  <Blank Num="4" UId="45" />
+  <Token Text=":=" UId="46" />
+  <Blank UId="47" />
+  <Access Scope="LiteralConstant" UId="48">
+    <Constant UId="49">
+      <ConstantValue UId="51">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="52" />
+  <NewLine UId="53" />
+  <Blank Num="4" UId="54" />
+  <Access Scope="PredefinedVariable" UId="55">
+    <PredefinedVariable Name="ENO" UId="56" />
+  </Access>
+  <Blank UId="57" />
+  <Token Text=":=" UId="58" />
+  <Blank UId="59" />
+  <Access Scope="LocalVariable" UId="60">
+    <Symbol UId="61">
+      <Component Name="CheckOK" UId="62" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="63" />
+  <NewLine UId="64" />
+  <Blank Num="4" UId="65" />
+  <Token Text="RETURN" UId="66" />
+  <Token Text=";" UId="67" />
+  <NewLine UId="68" />
+  <Token Text="END_IF" UId="69" />
+  <Token Text=";" UId="70" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Velocity too low for calculation</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="CalculatedLeadScrew" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Token Text="(" UId="27" />
+  <Access Scope="LocalVariable" UId="28">
+    <Symbol UId="29">
+      <Component Name="TO_Ax" UId="30" />
+      <Token Text="." UId="31" />
+      <Component Name="StatusSensor" UId="32">
+        <Token Text="[" UId="33" />
+        <Access Scope="LocalVariable" UId="34">
+          <Symbol UId="35">
+            <Component Name="MWheel_Sensor" UId="36" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="37" />
+      </Component>
+      <Token Text="." UId="38" />
+      <Component Name="Velocity" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text="*" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="Call" UId="43">
+    <Instruction Name="UDINT_TO_LREAL" UId="44">
+      <Token Text="(" UId="45" />
+      <NamelessParameter UId="46">
+        <Access Scope="LocalVariable" UId="47">
+          <Symbol UId="48">
+            <Component Name="TO_Ax" UId="49" />
+            <Token Text="." UId="50" />
+            <Component Name="LoadGear" UId="51" />
+            <Token Text="." UId="52" />
+            <Component Name="Numerator" UId="53" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="55" />
+    </Instruction>
+  </Access>
+  <Token Text=")" UId="56" />
+  <NewLine UId="57" />
+  <Blank Num="22" UId="58" />
+  <Token Text="/" UId="59" />
+  <Blank UId="60" />
+  <Token Text="(" UId="61" />
+  <Access Scope="LocalVariable" UId="62">
+    <Symbol UId="63">
+      <Component Name="TO_Ax" UId="64" />
+      <Token Text="." UId="65" />
+      <Component Name="ActualSpeed" UId="66" />
+    </Symbol>
+  </Access>
+  <Blank UId="67" />
+  <Token Text="*" UId="68" />
+  <Blank UId="69" />
+  <Access Scope="Call" UId="70">
+    <Instruction Name="UDINT_TO_LREAL" UId="71">
+      <Token Text="(" UId="72" />
+      <NamelessParameter UId="73">
+        <Access Scope="LocalVariable" UId="74">
+          <Symbol UId="75">
+            <Component Name="TO_Ax" UId="76" />
+            <Token Text="." UId="77" />
+            <Component Name="LoadGear" UId="78" />
+            <Token Text="." UId="79" />
+            <Component Name="Denominator" UId="80" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="82" />
+    </Instruction>
+  </Access>
+  <Token Text=")" UId="83" />
+  <Token Text=";" UId="84" />
+  <NewLine Num="4" UId="85" />
+  <Token Text="CASE" UId="86" />
+  <Blank UId="87" />
+  <Access Scope="LocalVariable" UId="88">
+    <Symbol UId="89">
+      <Component Name="TO_Ax" UId="90" />
+      <Token Text="." UId="91" />
+      <Component Name="Units" UId="92" />
+      <Token Text="." UId="93" />
+      <Component Name="VelocityUnit" UId="94" />
+    </Symbol>
+  </Access>
+  <Blank UId="95" />
+  <Token Text="OF" UId="96" />
+  <NewLine UId="97" />
+  <Blank Num="4" UId="98" />
+  <Access Scope="LiteralConstant" UId="99">
+    <Constant UId="100">
+      <ConstantValue UId="102">1061</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=":" UId="103" />
+  <Blank UId="104" />
+  <LineComment Inserted="true" UId="105">
+    <Text UId="106"> m/s </Text>
+  </LineComment>
+  <Blank Num="5" UId="107" />
+  <Access Scope="LocalVariable" UId="108">
+    <Symbol UId="109">
+      <Component Name="CalculatedLeadScrew" UId="110" />
+    </Symbol>
+  </Access>
+  <Blank UId="111" />
+  <Token Text=":=" UId="112" />
+  <Blank UId="113" />
+  <Access Scope="LocalVariable" UId="114">
+    <Symbol UId="115">
+      <Component Name="CalculatedLeadScrew" UId="116" />
+    </Symbol>
+  </Access>
+  <Blank UId="117" />
+  <Token Text="*" UId="118" />
+  <Blank UId="119" />
+  <Access Scope="LiteralConstant" UId="120">
+    <Constant UId="121">
+      <ConstantValue UId="123">60000.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="124" />
+  <Blank Num="12" UId="125" />
+  <NewLine UId="126" />
+  <Blank Num="4" UId="127" />
+  <Access Scope="LiteralConstant" UId="128">
+    <Constant UId="129">
+      <ConstantValue UId="131">1524</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=":" UId="132" />
+  <Blank UId="133" />
+  <LineComment Inserted="true" UId="134">
+    <Text UId="135"> mm/min </Text>
+  </LineComment>
+  <Blank UId="136" />
+  <Token Text=";" UId="137" />
+  <Blank Num="5" UId="138" />
+  <NewLine UId="139" />
+  <Blank Num="4" UId="140" />
+  <Access Scope="LiteralConstant" UId="141">
+    <Constant UId="142">
+      <ConstantValue UId="144">1525</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=":" UId="145" />
+  <Blank UId="146" />
+  <LineComment Inserted="true" UId="147">
+    <Text UId="148"> m/min </Text>
+  </LineComment>
+  <Blank Num="3" UId="149" />
+  <Access Scope="LocalVariable" UId="150">
+    <Symbol UId="151">
+      <Component Name="CalculatedLeadScrew" UId="152" />
+    </Symbol>
+  </Access>
+  <Blank UId="153" />
+  <Token Text=":=" UId="154" />
+  <Blank UId="155" />
+  <Access Scope="LocalVariable" UId="156">
+    <Symbol UId="157">
+      <Component Name="CalculatedLeadScrew" UId="158" />
+    </Symbol>
+  </Access>
+  <Blank UId="159" />
+  <Token Text="*" UId="160" />
+  <Blank UId="161" />
+  <Access Scope="LiteralConstant" UId="162">
+    <Constant UId="163">
+      <ConstantValue UId="165">1000.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="166" />
+  <NewLine UId="167" />
+  <Token Text="END_CASE" UId="168" />
+  <Token Text=";" UId="169" />
+  <NewLine UId="170" />
+  <Blank Num="8" UId="171" />
+  <NewLine UId="172" />
+  <Access Scope="LocalVariable" UId="173">
+    <Symbol UId="174">
+      <Component Name="LeadScrewErr" UId="175" />
+    </Symbol>
+  </Access>
+  <Blank Num="3" UId="176" />
+  <Token Text=":=" UId="177" />
+  <Blank UId="178" />
+  <Access Scope="LiteralConstant" UId="179">
+    <Constant UId="180">
+      <ConstantValue UId="182">100.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="183" />
+  <Token Text="*" UId="184" />
+  <Blank UId="185" />
+  <Token Text="(" UId="186" />
+  <Access Scope="LocalVariable" UId="187">
+    <Symbol UId="188">
+      <Component Name="TO_Ax" UId="189" />
+      <Token Text="." UId="190" />
+      <Component Name="Mechanics" UId="191" />
+      <Token Text="." UId="192" />
+      <Component Name="LeadScrew" UId="193" />
+    </Symbol>
+  </Access>
+  <Blank UId="194" />
+  <Token Text="-" UId="195" />
+  <Blank UId="196" />
+  <Access Scope="LocalVariable" UId="197">
+    <Symbol UId="198">
+      <Component Name="CalculatedLeadScrew" UId="199" />
+    </Symbol>
+  </Access>
+  <Token Text=")" UId="200" />
+  <Blank UId="201" />
+  <Token Text="/" UId="202" />
+  <Blank UId="203" />
+  <Access Scope="LocalVariable" UId="204">
+    <Symbol UId="205">
+      <Component Name="TO_Ax" UId="206" />
+      <Token Text="." UId="207" />
+      <Component Name="Mechanics" UId="208" />
+      <Token Text="." UId="209" />
+      <Component Name="LeadScrew" UId="210" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="211" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>LeadScrew calculated and error</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="WheelMoving" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank Num="4" UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Access Scope="LocalVariable" UId="27">
+    <Symbol UId="28">
+      <Component Name="TO_Ax" UId="29" />
+      <Token Text="." UId="30" />
+      <Component Name="StatusSensor" UId="31">
+        <Token Text="[" UId="32" />
+        <Access Scope="LocalVariable" UId="33">
+          <Symbol UId="34">
+            <Component Name="MWheel_Sensor" UId="35" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="36" />
+      </Component>
+      <Token Text="." UId="37" />
+      <Component Name="Velocity" UId="38" />
+    </Symbol>
+  </Access>
+  <Blank UId="39" />
+  <Token Text="&gt;" UId="40" />
+  <Blank UId="41" />
+  <Access Scope="LocalVariable" UId="42">
+    <Symbol UId="43">
+      <Component Name="TO_Ax" UId="44" />
+      <Token Text="." UId="45" />
+      <Component Name="StandstillSignal" UId="46" />
+      <Token Text="." UId="47" />
+      <Component Name="VelocityThreshold" UId="48" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="49" />
+  <NewLine UId="50" />
+  <Access Scope="LocalVariable" UId="51">
+    <Symbol UId="52">
+      <Component Name="GearRatioError" UId="53" />
+    </Symbol>
+  </Access>
+  <Blank UId="54" />
+  <Token Text=":=" UId="55" />
+  <Blank UId="56" />
+  <Access Scope="Call" UId="57">
+    <Instruction Name="ABS" UId="58">
+      <Token Text="(" UId="59" />
+      <NamelessParameter UId="60">
+        <Access Scope="LocalVariable" UId="61">
+          <Symbol UId="62">
+            <Component Name="LeadScrewErr" UId="63" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="65" />
+    </Instruction>
+  </Access>
+  <Blank UId="66" />
+  <Token Text="&gt;" UId="67" />
+  <Blank UId="68" />
+  <Access Scope="LiteralConstant" UId="69">
+    <Constant UId="70">
+      <ConstantValue UId="72">10.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="73" />
+  <Token Text="AND" UId="74" />
+  <Blank UId="75" />
+  <Access Scope="LocalVariable" UId="76">
+    <Symbol UId="77">
+      <Component Name="WheelMoving" UId="78" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="79" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Wheel moving / Gear ratio Error</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="29" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="WheelMoving" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="GearRatioError" />
+      </Symbol>
+    </Access>
+    <Access Scope="TypedConstant" UId="23">
+      <Constant>
+        <ConstantValue>T#500MS</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="MaterialPresence" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="CheckOK" />
+      </Symbol>
+    </Access>
+    <Part Name="Contact" UId="26" />
+    <Part Name="Contact" UId="27">
+      <Negated Name="operand" />
+    </Part>
+    <Part Name="TON" Version="1.0" UId="28">
+      <Instance Scope="LocalVariable" UId="29">
+        <Component Name="tCheck" />
+      </Instance>
+      <TemplateValue Name="time_type" Type="Type">Time</TemplateValue>
+    </Part>
+    <Part Name="Contact" UId="30">
+      <Negated Name="operand" />
+    </Part>
+    <Part Name="Sr" UId="31" />
+  </Parts>
+  <Wires>
+    <Wire UId="33">
+      <Powerrail />
+      <NameCon UId="26" Name="in" />
+      <NameCon UId="30" Name="in" />
+    </Wire>
+    <Wire UId="34">
+      <IdentCon UId="21" />
+      <NameCon UId="26" Name="operand" />
+    </Wire>
+    <Wire UId="35">
+      <NameCon UId="26" Name="out" />
+      <NameCon UId="27" Name="in" />
+    </Wire>
+    <Wire UId="36">
+      <IdentCon UId="22" />
+      <NameCon UId="27" Name="operand" />
+    </Wire>
+    <Wire UId="37">
+      <NameCon UId="27" Name="out" />
+      <NameCon UId="28" Name="IN" />
+    </Wire>
+    <Wire UId="38">
+      <IdentCon UId="23" />
+      <NameCon UId="28" Name="PT" />
+    </Wire>
+    <Wire UId="39">
+      <NameCon UId="28" Name="Q" />
+      <NameCon UId="31" Name="s" />
+    </Wire>
+    <Wire UId="40">
+      <NameCon UId="28" Name="ET" />
+      <OpenCon UId="32" />
+    </Wire>
+    <Wire UId="41">
+      <IdentCon UId="24" />
+      <NameCon UId="30" Name="operand" />
+    </Wire>
+    <Wire UId="42">
+      <NameCon UId="30" Name="out" />
+      <NameCon UId="31" Name="r1" />
+    </Wire>
+    <Wire UId="43">
+      <IdentCon UId="25" />
+      <NameCon UId="31" Name="operand" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2E" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="PredefinedVariable" UId="21">
+    <PredefinedVariable Name="ENO" UId="22" />
+  </Access>
+  <Blank UId="23" />
+  <Token Text=":=" UId="24" />
+  <Blank UId="25" />
+  <Access Scope="LocalVariable" UId="26">
+    <Symbol UId="27">
+      <Component Name="CheckOK" UId="28" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="29" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="37" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="38" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>ENO</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="3B" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="3C" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3D" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3E" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

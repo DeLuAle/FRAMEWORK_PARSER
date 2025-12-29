@@ -1,0 +1,144 @@
+{
+    "category": "Triggers and Edge Detection",
+    "description": "Function blocks per rilevamento fronti di salita e discesa su segnali digitali",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions / IEC 61131-3 Standard",
+    "functions": [
+        {
+            "name": "R_TRIG",
+            "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+            "parameters": [
+                {
+                    "name": "CLK",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale da monitorare",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE per un ciclo sul fronte di salita (0→1)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q"
+            },
+            "description": "Rileva il fronte di salita (transizione 0→1) del segnale CLK. Q è TRUE per esattamente un ciclo di scansione PLC quando viene rilevato il fronte.",
+            "example": "// Dichiarazione in VAR_STAT o DB istanza:\n// risingEdge : R_TRIG;\n\n#risingEdge(CLK := startButton);\nIF #risingEdge.Q THEN\n    // Azione eseguita una sola volta sul fronte\n    counter := counter + 1;\nEND_IF;",
+            "anti_pattern": "// NON FARE:\nIF NOT #prevSignal AND signal THEN\n    // azione\nEND_IF;\n#prevSignal := signal;",
+            "why_native": "Gestione stato interno automatica tramite instance DB. Nessun rischio di dimenticare l'aggiornamento della variabile di stato. Codice più leggibile e manutenibile.",
+            "mandatory": true,
+            "notes": "Richiede istanza statica (VAR_STAT o campo di FB). L'instance DB memorizza lo stato precedente del segnale. Output Q è TRUE per un solo ciclo.",
+            "see_also": [
+                "F_TRIG",
+                "P_TRIG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "F_TRIG",
+            "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+            "parameters": [
+                {
+                    "name": "CLK",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale da monitorare",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE per un ciclo sul fronte di discesa (1→0)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q"
+            },
+            "description": "Rileva il fronte di discesa (transizione 1→0) del segnale CLK. Q è TRUE per esattamente un ciclo di scansione PLC quando viene rilevato il fronte.",
+            "example": "// Dichiarazione in VAR_STAT o DB istanza:\n// fallingEdge : F_TRIG;\n\n#fallingEdge(CLK := motorRunning);\nIF #fallingEdge.Q THEN\n    // Azione quando motore si ferma\n    logStopTime();\nEND_IF;",
+            "anti_pattern": "// NON FARE:\nIF #prevSignal AND NOT signal THEN\n    // azione\nEND_IF;\n#prevSignal := signal;",
+            "why_native": "Gestione stato interno automatica. Codice più leggibile e manutenibile. Previene errori di logica.",
+            "mandatory": true,
+            "notes": "Richiede istanza statica (VAR_STAT o campo di FB). Output Q è TRUE per un solo ciclo.",
+            "see_also": [
+                "R_TRIG",
+                "N_TRIG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "P_TRIG",
+            "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+            "parameters": [
+                {
+                    "name": "CLK",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale da monitorare",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE per un ciclo sul fronte di salita",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q"
+            },
+            "description": "Equivalente a R_TRIG. Rileva fronte di salita (positive edge).",
+            "example": "#posEdge(CLK := trigger);\nIF #posEdge.Q THEN\n    // Azione sul fronte positivo\nEND_IF;",
+            "mandatory": true,
+            "notes": "Funzionalmente identico a R_TRIG. Preferire R_TRIG per coerenza con standard IEC.",
+            "see_also": [
+                "R_TRIG",
+                "N_TRIG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "N_TRIG",
+            "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+            "parameters": [
+                {
+                    "name": "CLK",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale da monitorare",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE per un ciclo sul fronte di discesa",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q"
+            },
+            "description": "Equivalente a F_TRIG. Rileva fronte di discesa (negative edge).",
+            "example": "#negEdge(CLK := signal);\nIF #negEdge.Q THEN\n    // Azione sul fronte negativo\nEND_IF;",
+            "mandatory": true,
+            "notes": "Funzionalmente identico a F_TRIG. Preferire F_TRIG per coerenza con standard IEC.",
+            "see_also": [
+                "F_TRIG",
+                "P_TRIG"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

@@ -1,0 +1,60 @@
+﻿FUNCTION "Prod_Item_Check_CanGoinProduction" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item : "Prod_Item";
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+	#RETVAL := "Prod_item_Check_DataValid"(#Item);
+	
+	IF #RETVAL < 0 THEN
+	    #Prod_Item_Check_CanGoinProduction := #RETVAL;
+	    RETURN;
+	END_IF;
+	
+	
+	
+	// Se set up linea può essere eseguito ..
+	// = qualsiasi ordine può andare a lavoro
+	// 
+	IF "ProductionMng_PERS".Pers.Data.SET_UP.Status < "PROD_SETUP_WAIT_THREADING_BEGIN"
+	THEN
+	    #Prod_Item_Check_CanGoinProduction := "PROD_FUN_RESULT_OK";
+	    RETURN;
+	END_IF;
+	
+	
+	IF "ProductionMng_PERS".Pers.Data.SET_UP.Prepapration_Aut_Done_PPrf_Number > 0 THEN
+	    
+	    IF "PPrf_MAIN".ON_WORK.Header.PrgNo <> "ProductionMng_PERS".Pers.Data.SET_UP.Prepapration_Aut_Done_PPrf_Number THEN
+	        
+	        
+	        #Prod_Item_Check_CanGoinProduction := "PROD_ERR_PPrf_MISMATCH_PPrf_LINE_SETUP";
+	        
+	        RETURN;
+	    END_IF;
+	    
+	    
+	ELSIF "PPrf_MAIN".ON_WORK.Header.PrgNo > 0 THEN
+	    
+	    IF "PPrf_MAIN".ON_WORK.Header.PrgNo <> "PPrf_MAIN".ON_WORK.Header.PrgNo THEN
+	        
+	        #Prod_Item_Check_CanGoinProduction := "PROD_ERR_PPrf_MIISMATCH_PPrf_ON_WORK";
+	        RETURN;
+	    END_IF;
+	    
+	END_IF;
+	    
+	#Prod_Item_Check_CanGoinProduction := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+END_FUNCTION
+

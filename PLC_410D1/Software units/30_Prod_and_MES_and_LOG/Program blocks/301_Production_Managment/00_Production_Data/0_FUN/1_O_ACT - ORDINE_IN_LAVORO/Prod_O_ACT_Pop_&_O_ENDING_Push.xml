@@ -1,0 +1,377 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp">
+    <Member Name="RETVAL" Datatype="DInt" />
+  </Section>
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="DInt" />
+  </Section>
+</Sections></Interface>
+      <Name>Prod_O_ACT_Pop_&amp;_O_ENDING_Push</Name>
+      <Namespace />
+      <Number>69</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <NewLine UId="21" />
+  <LineComment UId="22">
+    <Text UId="23">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine UId="24" />
+  <LineComment UId="25">
+    <Text UId="26" />
+  </LineComment>
+  <NewLine UId="27" />
+  <LineComment UId="28">
+    <Text UId="29"> PUSH O_ENDING</Text>
+  </LineComment>
+  <NewLine UId="30" />
+  <LineComment UId="31">
+    <Text UId="32"> </Text>
+  </LineComment>
+  <NewLine UId="33" />
+  <LineComment UId="34">
+    <Text UId="35">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine Num="4" UId="36" />
+  <Access Scope="LocalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="RETVAL" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="Call" UId="43">
+    <CallInfo UId="44" BlockType="FC">
+      <Instance Scope="GlobalVariable" UId="46">
+        <Component Name="PROD_item_Push_to_Top" UId="45" />
+      </Instance>
+      <Token Text="(" UId="47" />
+      <Parameter Name="item" UId="48">
+        <Blank UId="49" />
+        <Token Text=":=" UId="50" />
+        <Blank UId="51" />
+        <Access Scope="GlobalVariable" UId="52">
+          <Symbol UId="53">
+            <Component Name="Production" UId="54">
+              <BooleanAttribute Name="HasQuotes" UId="55">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="56" />
+            <Component Name="O_ACT" UId="57" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="58" />
+      <Blank UId="59" />
+      <Parameter Name="Evaluate_FULL" UId="60">
+        <Blank UId="61" />
+        <Token Text=":=" UId="62" />
+        <Blank UId="63" />
+        <Access Scope="LiteralConstant" UId="64">
+          <Constant UId="65">
+            <ConstantValue UId="67">TRUE</ConstantValue>
+          </Constant>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="68" />
+      <Blank UId="69" />
+      <Parameter Name="Buffer" UId="70">
+        <Blank UId="71" />
+        <Token Text=":=" UId="72" />
+        <Blank UId="73" />
+        <Access Scope="GlobalVariable" UId="74">
+          <Symbol UId="75">
+            <Component Name="Production" UId="76">
+              <BooleanAttribute Name="HasQuotes" UId="77">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="78" />
+            <Component Name="O_ENDING" UId="79" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="81" />
+    </CallInfo>
+  </Access>
+  <Token Text=";" UId="82" />
+  <NewLine Num="4" UId="83" />
+  <LineComment UId="84">
+    <Text UId="85"> Uscita per errore PUSH</Text>
+  </LineComment>
+  <NewLine UId="86" />
+  <LineComment UId="87">
+    <Text UId="88"> </Text>
+  </LineComment>
+  <NewLine UId="89" />
+  <Token Text="IF" UId="90" />
+  <Blank UId="91" />
+  <Access Scope="LocalVariable" UId="92">
+    <Symbol UId="93">
+      <Component Name="RETVAL" UId="94" />
+    </Symbol>
+  </Access>
+  <Blank UId="95" />
+  <Token Text="&lt;" UId="96" />
+  <Blank UId="97" />
+  <Access Scope="LiteralConstant" UId="98">
+    <Constant UId="99">
+      <ConstantValue UId="101">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="102" />
+  <Token Text="THEN" UId="103" />
+  <NewLine UId="104" />
+  <Blank Num="4" UId="105" />
+  <NewLine UId="106" />
+  <Blank Num="4" UId="107" />
+  <Access Scope="LocalVariable" UId="108">
+    <Symbol UId="109">
+      <Component Name="Prod_O_ACT_Pop_&amp;_O_ENDING_Push" UId="110" />
+    </Symbol>
+  </Access>
+  <Blank UId="111" />
+  <Token Text=":=" UId="112" />
+  <Blank UId="113" />
+  <Access Scope="LocalVariable" UId="114">
+    <Symbol UId="115">
+      <Component Name="RETVAL" UId="116" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="117" />
+  <NewLine UId="118" />
+  <Blank Num="4" UId="119" />
+  <NewLine UId="120" />
+  <Token Text="END_IF" UId="121" />
+  <Token Text=";" UId="122" />
+  <NewLine Num="3" UId="123" />
+  <LineComment UId="124">
+    <Text UId="125">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine UId="126" />
+  <LineComment UId="127">
+    <Text UId="128" />
+  </LineComment>
+  <NewLine UId="129" />
+  <LineComment UId="130">
+    <Text UId="131"> POP_O_ACT</Text>
+  </LineComment>
+  <NewLine UId="132" />
+  <LineComment UId="133">
+    <Text UId="134"> </Text>
+  </LineComment>
+  <NewLine UId="135" />
+  <LineComment UId="136">
+    <Text UId="137">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine Num="3" UId="138" />
+  <Access Scope="LocalVariable" UId="139">
+    <Symbol UId="140">
+      <Component Name="RETVAL" UId="141" />
+    </Symbol>
+  </Access>
+  <Blank UId="142" />
+  <Token Text=":=" UId="143" />
+  <Blank UId="144" />
+  <Access Scope="Call" UId="145">
+    <CallInfo UId="146" BlockType="FC">
+      <Instance Scope="GlobalVariable" UId="148">
+        <Component Name="Prod_O_ACT_Pop" UId="147" />
+      </Instance>
+      <Token Text="(" UId="149" />
+      <Token Text=")" UId="151" />
+    </CallInfo>
+  </Access>
+  <Token Text=";" UId="152" />
+  <NewLine Num="3" UId="153" />
+  <LineComment UId="154">
+    <Text UId="155"> Uscita per errore OP</Text>
+  </LineComment>
+  <NewLine UId="156" />
+  <LineComment UId="157">
+    <Text UId="158"> </Text>
+  </LineComment>
+  <NewLine UId="159" />
+  <Token Text="IF" UId="160" />
+  <Blank UId="161" />
+  <Access Scope="LocalVariable" UId="162">
+    <Symbol UId="163">
+      <Component Name="RETVAL" UId="164" />
+    </Symbol>
+  </Access>
+  <Blank UId="165" />
+  <Token Text="&lt;" UId="166" />
+  <Blank UId="167" />
+  <Access Scope="LiteralConstant" UId="168">
+    <Constant UId="169">
+      <ConstantValue UId="171">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="172" />
+  <Token Text="THEN" UId="173" />
+  <NewLine UId="174" />
+  <Blank Num="4" UId="175" />
+  <NewLine UId="176" />
+  <Blank Num="4" UId="177" />
+  <Access Scope="LocalVariable" UId="178">
+    <Symbol UId="179">
+      <Component Name="Prod_O_ACT_Pop_&amp;_O_ENDING_Push" UId="180" />
+    </Symbol>
+  </Access>
+  <Blank UId="181" />
+  <Token Text=":=" UId="182" />
+  <Blank UId="183" />
+  <Access Scope="LocalVariable" UId="184">
+    <Symbol UId="185">
+      <Component Name="RETVAL" UId="186" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="187" />
+  <NewLine UId="188" />
+  <Blank Num="4" UId="189" />
+  <NewLine UId="190" />
+  <Token Text="END_IF" UId="191" />
+  <Token Text=";" UId="192" />
+  <NewLine Num="4" UId="193" />
+  <LineComment UId="194">
+    <Text UId="195">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine UId="196" />
+  <LineComment UId="197">
+    <Text UId="198" />
+  </LineComment>
+  <NewLine UId="199" />
+  <LineComment UId="200">
+    <Text UId="201"> OK</Text>
+  </LineComment>
+  <NewLine UId="202" />
+  <LineComment UId="203">
+    <Text UId="204"> </Text>
+  </LineComment>
+  <NewLine UId="205" />
+  <LineComment UId="206">
+    <Text UId="207">@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@</Text>
+  </LineComment>
+  <NewLine Num="3" UId="208" />
+  <Access Scope="LocalVariable" UId="209">
+    <Symbol UId="210">
+      <Component Name="Prod_O_ACT_Pop_&amp;_O_ENDING_Push" UId="211" />
+    </Symbol>
+  </Access>
+  <Blank UId="212" />
+  <Token Text=":=" UId="213" />
+  <Blank UId="214" />
+  <Access Scope="GlobalConstant" UId="215">
+    <Constant Name="PROD_FUN_RESULT_OK" UId="216" />
+  </Access>
+  <Token Text=";" UId="219" />
+  <Token Text=";" UId="220" />
+  <NewLine Num="7" UId="221" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>SPOSTA ACT TO ENDING</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="E" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>POP ORDINE IN LAVORO (ACT) SU ARRAY ORDINI IN VIA DI COMPLETAMENTO (ENDING)</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="10" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="11" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

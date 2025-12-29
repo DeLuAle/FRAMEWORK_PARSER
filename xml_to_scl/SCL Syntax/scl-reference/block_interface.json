@@ -1,0 +1,292 @@
+{
+    "category": "SCL Block Interface & Declaration Rules",
+    "description": "Regole per dichiarazione interfacce blocchi e variabili in SCL",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Programming / IEC 61131-3 Standard",
+    "block_interface": {
+        "description": "L'interfaccia di un blocco definisce i parametri di input/output e le variabili locali",
+        "sections": {
+            "VAR_INPUT": {
+                "description": "Parametri di input. Valori passati AL blocco quando viene chiamato.",
+                "direction": "IN (verso il blocco)",
+                "scope": "Accessibili in lettura nel blocco",
+                "retention": "No (valori passati ad ogni chiamata)",
+                "syntax": "VAR_INPUT\n    Start : BOOL;\n    Setpoint : REAL;\n    Mode : INT := 1;  // Valore default\nEND_VAR",
+                "notes": [
+                    "Possono avere valori default (con :=)",
+                    "Passati per valore (copia) o per riferimento (dipende dal tipo)",
+                    "Non modificabili nel blocco (read-only)",
+                    "Tipi complessi (ARRAY, STRUCT) passati per riferimento"
+                ]
+            },
+            "VAR_OUTPUT": {
+                "description": "Parametri di output. Valori ritornati DAL blocco.",
+                "direction": "OUT (dal blocco)",
+                "scope": "Accessibili in scrittura nel blocco",
+                "retention": "No (valori ritornati ad ogni chiamata)",
+                "syntax": "VAR_OUTPUT\n    Running : BOOL;\n    ActualValue : REAL;\n    Status : WORD;\nEND_VAR",
+                "notes": [
+                    "Scritti dal blocco, letti dal chiamante",
+                    "Inizializzati a 0/FALSE all'inizio di ogni chiamata (FC)",
+                    "In FB mantengono valore tra chiamate se non sovrascritti"
+                ]
+            },
+            "VAR_IN_OUT": {
+                "description": "Parametri in/out. Passati per riferimento, modificabili dal blocco.",
+                "direction": "IN_OUT (bidirezionale)",
+                "scope": "Accessibili in lettura e scrittura",
+                "retention": "Sì (passati per riferimento)",
+                "syntax": "VAR_IN_OUT\n    DataBuffer : ARRAY[0..99] OF INT;\n    RecipeData : \"Recipe_Type\";\nEND_VAR",
+                "notes": [
+                    "SEMPRE passati per riferimento (puntatore)",
+                    "Modifiche visibili al chiamante",
+                    "Usati per grandi strutture dati (evita copia)",
+                    "Obbligatori alla chiamata (non possono essere omessi)"
+                ]
+            },
+            "VAR_TEMP": {
+                "description": "Variabili temporanee. Esistono solo durante l'esecuzione del blocco.",
+                "direction": "Locale",
+                "scope": "Solo all'interno del blocco",
+                "retention": "No (azzerate ad ogni chiamata)",
+                "syntax": "VAR_TEMP\n    i : INT;\n    sum : REAL;\n    tempFlag : BOOL;\nEND_VAR",
+                "notes": [
+                    "Allocate nello stack (memoria temporanea)",
+                    "Azzerate all'inizio di ogni chiamata",
+                    "Non usare per timer, contatori (usare VAR in FB)",
+                    "Più efficienti in memoria rispetto a VAR"
+                ]
+            },
+            "VAR (solo FB)": {
+                "description": "Variabili statiche. Mantengono valore tra chiamate (solo Function Block).",
+                "direction": "Locale persistente",
+                "scope": "Solo all'interno del FB",
+                "retention": "Sì (memorizzate in instance DB)",
+                "syntax": "VAR\n    State : INT;\n    Timer1 : TON;\n    ErrorCount : DINT;\n    LastValue : REAL;\nEND_VAR",
+                "notes": [
+                    "Solo in FB (non in FC)",
+                    "Memorizzate in instance DB",
+                    "Mantengono valore tra chiamate",
+                    "Usare per timer, contatori, stati macchina",
+                    "Possono essere retentive (sopravvivono a power-off)"
+                ]
+            },
+            "VAR_CONSTANT": {
+                "description": "Costanti locali al blocco.",
+                "direction": "Locale read-only",
+                "scope": "Solo all'interno del blocco",
+                "retention": "Sì (valore fisso)",
+                "syntax": "VAR_CONSTANT\n    MAX_SPEED : REAL := 3000.0;\n    TIMEOUT : TIME := T#5s;\n    PI : REAL := 3.14159265;\nEND_VAR",
+                "notes": [
+                    "Valore fisso, non modificabile",
+                    "Devono essere inizializzate",
+                    "Migliorano leggibilità codice",
+                    "Compilatore può ottimizzare"
+                ]
+            }
+        }
+    },
+    "declaration_rules": {
+        "order": {
+            "description": "Ordine obbligatorio delle sezioni di dichiarazione",
+            "sequence": [
+                "1. VAR_INPUT",
+                "2. VAR_OUTPUT",
+                "3. VAR_IN_OUT",
+                "4. VAR_TEMP",
+                "5. VAR (solo FB)",
+                "6. VAR_CONSTANT",
+                "7. BEGIN",
+                "8. <codice>",
+                "9. END_FUNCTION / END_FUNCTION_BLOCK"
+            ],
+            "example": "FUNCTION_BLOCK \"Example_FB\"\nVAR_INPUT\n    Enable : BOOL;\nEND_VAR\nVAR_OUTPUT\n    Done : BOOL;\nEND_VAR\nVAR_IN_OUT\n    Data : ARRAY[0..9] OF INT;\nEND_VAR\nVAR_TEMP\n    i : INT;\nEND_VAR\nVAR\n    Counter : INT;\nEND_VAR\nVAR_CONSTANT\n    MAX_COUNT : INT := 100;\nEND_VAR\nBEGIN\n    // Codice qui\nEND_FUNCTION_BLOCK"
+        },
+        "naming": {
+            "description": "Regole per nomi di variabili",
+            "rules": [
+                "Iniziare con lettera o underscore",
+                "Contenere solo lettere, numeri, underscore",
+                "Max 24 caratteri (raccomandato)",
+                "Case-insensitive (Start = START = start)",
+                "Non usare parole chiave SCL (IF, THEN, FOR, ecc.)",
+                "Non usare caratteri speciali (spazi, -, +, ecc.)"
+            ],
+            "conventions": [
+                "CamelCase per variabili: motorSpeed, tempSetpoint",
+                "UPPERCASE per costanti: MAX_SPEED, PI",
+                "Prefissi descrittivi: bEnable (bool), iCounter (int), rValue (real)",
+                "Nomi descrittivi: temperature (non temp, t, x)"
+            ],
+            "valid_examples": [
+                "motorSpeed",
+                "Temperature_Setpoint",
+                "counter_1",
+                "_internalFlag",
+                "MAX_PRESSURE"
+            ],
+            "invalid_examples": [
+                "1counter (inizia con numero)",
+                "motor-speed (contiene -)",
+                "temp value (contiene spazio)",
+                "IF (parola chiave)"
+            ]
+        },
+        "initialization": {
+            "description": "Regole per inizializzazione variabili",
+            "var_input": {
+                "allowed": "Sì (valore default)",
+                "syntax": "Enable : BOOL := FALSE;",
+                "note": "Usato se chiamante non specifica valore"
+            },
+            "var_output": {
+                "allowed": "Sì (valore iniziale)",
+                "syntax": "Status : INT := 0;",
+                "note": "Valore all'inizio di ogni chiamata (FC) o iniziale (FB)"
+            },
+            "var_in_out": {
+                "allowed": "No",
+                "syntax": "N/A",
+                "note": "Sempre passati dal chiamante"
+            },
+            "var_temp": {
+                "allowed": "No",
+                "syntax": "N/A",
+                "note": "Sempre azzerati automaticamente"
+            },
+            "var": {
+                "allowed": "Sì (valore iniziale FB)",
+                "syntax": "Counter : INT := 0;",
+                "note": "Valore alla creazione instance DB"
+            },
+            "var_constant": {
+                "allowed": "Obbligatorio",
+                "syntax": "PI : REAL := 3.14159;",
+                "note": "Costanti devono essere inizializzate"
+            }
+        },
+        "data_type_rules": {
+            "description": "Regole per tipi di dati nelle dichiarazioni",
+            "elementary_types": "Tutti supportati (BOOL, INT, REAL, STRING, TIME, ecc.)",
+            "complex_types": "ARRAY, STRUCT, UDT supportati",
+            "function_blocks": "Solo in VAR (FB), non in VAR_TEMP",
+            "timers_counters": "Solo in VAR (FB), richiedono memoria persistente",
+            "any_variant": "Solo in VAR_INPUT, VAR_OUTPUT, VAR_IN_OUT (parametri formali)",
+            "examples": {
+                "valid": [
+                    "temperature : REAL;",
+                    "values : ARRAY[0..9] OF INT;",
+                    "recipe : \"Recipe_Type\";",
+                    "timer : TON;  // Solo in VAR (FB)",
+                    "data : ANY;  // Solo in parametri"
+                ],
+                "invalid": [
+                    "timer : TON;  // In VAR_TEMP (errore!)",
+                    "counter : CTU;  // In VAR_TEMP (errore!)"
+                ]
+            }
+        }
+    },
+    "parameter_passing": {
+        "description": "Come vengono passati i parametri tra blocchi",
+        "by_value": {
+            "description": "Copia del valore passata al blocco",
+            "types": "Tipi elementari piccoli (BOOL, INT, DINT, REAL)",
+            "direction": "VAR_INPUT",
+            "performance": "Veloce per tipi piccoli",
+            "modification": "Modifiche nel blocco non visibili al chiamante",
+            "example": "FC_Calc(value := 100);  // 100 copiato"
+        },
+        "by_reference": {
+            "description": "Puntatore/indirizzo passato al blocco",
+            "types": "Tipi complessi (ARRAY, STRUCT, STRING), VAR_IN_OUT",
+            "direction": "VAR_IN_OUT, tipi complessi in VAR_INPUT",
+            "performance": "Efficiente per grandi strutture (no copia)",
+            "modification": "Modifiche visibili al chiamante (VAR_IN_OUT)",
+            "example": "FC_Process(buffer := dataArray);  // Puntatore passato"
+        },
+        "calling_syntax": {
+            "input_parameters": {
+                "operator": ":=",
+                "description": "Assegnazione valore a parametro input",
+                "example": "FB_Motor(Start := TRUE, Speed := 1500.0);"
+            },
+            "output_parameters": {
+                "operator": "=>",
+                "description": "Assegnazione output a variabile",
+                "example": "FB_Motor(Running => motorStatus, Alarm => motorAlarm);"
+            },
+            "in_out_parameters": {
+                "operator": ":=",
+                "description": "Passaggio variabile per riferimento",
+                "example": "FC_Sort(DataArray := myArray);"
+            }
+        }
+    },
+    "access_modifiers": {
+        "description": "Visibilità e accesso a variabili e parametri",
+        "block_interface": {
+            "var_input": "Pubblico (visibile al chiamante)",
+            "var_output": "Pubblico (visibile al chiamante)",
+            "var_in_out": "Pubblico (visibile al chiamante)",
+            "var_temp": "Privato (solo interno blocco)",
+            "var": "Privato (solo interno FB, ma accessibile via instance DB)",
+            "var_constant": "Privato (solo interno blocco)"
+        },
+        "instance_access": {
+            "description": "Accesso a variabili interne FB tramite istanza",
+            "syntax": "#InstanceName.VariableName",
+            "example": "#Motor1.State := 0;  // Accesso a VAR interna",
+            "note": "Possibile ma sconsigliato (rompe incapsulamento). Preferire parametri OUT."
+        }
+    },
+    "best_practices": [
+        "Usare VAR_INPUT per tutti i parametri di ingresso",
+        "Usare VAR_OUTPUT per tutti i risultati da ritornare",
+        "Usare VAR_IN_OUT solo per grandi strutture dati (performance)",
+        "Usare VAR_TEMP per variabili di lavoro temporanee",
+        "Usare VAR (FB) per stato persistente, timer, contatori",
+        "Usare VAR_CONSTANT per valori magici e configurazioni",
+        "Inizializzare sempre VAR_INPUT con valori default sensati",
+        "Documentare ogni parametro con commenti",
+        "Limitare numero di parametri (max 10-15 raccomandato)",
+        "Raggruppare parametri correlati in STRUCT/UDT",
+        "Non accedere direttamente a VAR interne FB (usare OUT)",
+        "Nominare parametri in modo descrittivo"
+    ],
+    "common_mistakes": [
+        {
+            "mistake": "Timer in VAR_TEMP",
+            "wrong": "VAR_TEMP\n    myTimer : TON;\nEND_VAR",
+            "right": "VAR\n    myTimer : TON;\nEND_VAR",
+            "reason": "Timer richiede memoria persistente"
+        },
+        {
+            "mistake": "Modificare VAR_INPUT",
+            "wrong": "Enable := FALSE;  // Parametro input",
+            "right": "localFlag := FALSE;  // Variabile locale",
+            "reason": "VAR_INPUT sono read-only"
+        },
+        {
+            "mistake": "Dimenticare inizializzazione costanti",
+            "wrong": "VAR_CONSTANT\n    MAX_SPEED : REAL;\nEND_VAR",
+            "right": "VAR_CONSTANT\n    MAX_SPEED : REAL := 3000.0;\nEND_VAR",
+            "reason": "Costanti devono essere inizializzate"
+        },
+        {
+            "mistake": "Usare VAR in FC",
+            "wrong": "FUNCTION FC1\nVAR\n    counter : INT;\nEND_VAR",
+            "right": "FUNCTION_BLOCK FB1\nVAR\n    counter : INT;\nEND_VAR",
+            "reason": "VAR solo in FB, FC usa VAR_TEMP"
+        }
+    ],
+    "scl_specific_syntax": {
+        "block_declaration": "FUNCTION / FUNCTION_BLOCK \"BlockName\"",
+        "section_delimiter": "VAR_INPUT / END_VAR",
+        "code_section": "BEGIN ... END_FUNCTION / END_FUNCTION_BLOCK",
+        "assignment": ":= (assegnazione), => (output)",
+        "comments": "// singola linea, (* multi linea *)",
+        "access_operator": ". (punto per accesso membri)",
+        "array_access": "[ ] (parentesi quadre per indici)"
+    }
+}

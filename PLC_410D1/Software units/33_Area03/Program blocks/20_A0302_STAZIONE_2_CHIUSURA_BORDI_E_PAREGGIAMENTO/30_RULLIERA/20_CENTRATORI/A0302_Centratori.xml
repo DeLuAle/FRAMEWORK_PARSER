@@ -1,0 +1,270 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0302_Centratori_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="OP" Datatype="&quot;OP_PB&quot;" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="Sollevamento" Datatype="&quot;ValveMachine_Manager&quot;" />
+        <Member Name="Centraggio" Datatype="&quot;ValveMachine_Manager&quot;" />
+      </Member>
+      <Member Name="SemiAut_Pb" Datatype="Bool" />
+      <Member Name="Rulliera" Datatype="Struct">
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Sens" Datatype="Struct">
+            <Member Name="FTC_Rall" Datatype="Bool" />
+            <Member Name="FTC_Prox_Ing" Datatype="Bool" />
+          </Member>
+        </Member>
+        <Member Name="Centro" Datatype="Struct">
+          <Member Name="Sens" Datatype="Struct">
+            <Member Name="FTC_Centrale" Datatype="Bool" />
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="CarroPareggCoda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="BattutaVerticale" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="PareggiatoreLong" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Sens" Datatype="Struct">
+          <Member Name="FTC_Ingombro_In" Datatype="Bool" />
+          <Member Name="FTC_Ingombro_Out" Datatype="Bool" />
+          <Member Name="PresenzaMat" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="CarroPareggTesta" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        <Member Name="Bloccaggio" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Centraggio" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Sollevatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Sens" Datatype="Struct">
+          <Member Name="FTC1_Rall" Datatype="Bool" />
+          <Member Name="FTC2_Prox_Ls" Datatype="Bool" />
+          <Member Name="PresenzaMat" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="BTrk" Datatype="Struct">
+        <Member Name="ZoneA0302Entry_Empty" Datatype="Bool" />
+        <Member Name="ZoneA0302Exit_Empty" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Centraggio" Datatype="Array[1..3] of &quot;ValveMachine_Config&quot;" />
+      <Member Name="Sollevamento" Datatype="Array[1..3] of &quot;ValveMachine_Config&quot;" />
+      <Member Name="DelayMissingCondition" Datatype="Time" />
+      <Member Name="WorkWindows" Datatype="Struct">
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Min" Datatype="LReal" />
+          <Member Name="Max" Datatype="LReal" />
+        </Member>
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Min" Datatype="LReal" />
+          <Member Name="Max" Datatype="LReal" />
+        </Member>
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Centratori" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Centraggio" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Sollevamento" Datatype="&quot;ValveMachine_COut&quot;" />
+    </Member>
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Centraggio" Datatype="Array[1..3] of &quot;ValveAlr&quot;" />
+      <Member Name="Sollevamento" Datatype="Array[1..3] of &quot;ValveAlr&quot;" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Centratore" Datatype="Array[1..3] of &quot;ValveMachine_Wng&quot;" />
+      <Member Name="Sollevamento" Datatype="Array[1..3] of &quot;ValveMachine_Wng&quot;" />
+      <Member Name="OP_REST_Centr_MissingCnd" Datatype="Bool" />
+      <Member Name="OP_WORK_Centr_MissingCnd" Datatype="Bool" />
+      <Member Name="OP_REST_Sollev_MissingCnd" Datatype="Bool" />
+      <Member Name="OP_WORK_Sollev_MissingCnd" Datatype="Bool" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Selection" Datatype="Struct">
+        <Member Name="Centraggio" Datatype="Array[1..3] of Bool">
+          <Subelement Path="1">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+          <Subelement Path="2">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+          <Subelement Path="3">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+        </Member>
+        <Member Name="Sollevamento" Datatype="Array[1..3] of Bool">
+          <Subelement Path="1">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+          <Subelement Path="2">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+          <Subelement Path="3">
+            <StartValue>TRUE</StartValue>
+          </Subelement>
+        </Member>
+      </Member>
+      <Member Name="Centratori_Sts" Datatype="&quot;UDT_HMI-Sts_ValvePosA0301&quot;" />
+      <Member Name="Centraggio_Sts" Datatype="&quot;UDT_HMI-Sts_ValvePosA0301&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Sollevamento_Sts" Datatype="&quot;UDT_HMI-Sts_ValvePosA0301&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Centraggio" Datatype="Array[1..3] of &quot;ValveMachine_FB&quot;" />
+    <Member Name="Sollevamento" Datatype="Array[1..3] of &quot;ValveMachine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="Centraggio" Datatype="Struct">
+        <Member Name="OP_Rest_Cnd" Datatype="Bool" />
+        <Member Name="Op_Work_Cnd" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="OP_Rest_Cnd" Datatype="Bool" />
+        <Member Name="Op_Work_Cnd" Datatype="Bool" />
+      </Member>
+      <Member Name="Centratori_Alarm" Datatype="Bool" />
+      <Member Name="Centraggio_AlarmPresence" Datatype="Bool" />
+      <Member Name="Sollevamento_AlarmPresence" Datatype="Bool" />
+      <Member Name="OP_CanMoveFreely" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Centraggio" Datatype="Struct">
+        <Member Name="OP_Rest_Man" Datatype="Bool" />
+        <Member Name="OP_Work_Man" Datatype="Bool" />
+        <Member Name="OP_Rest_Aut" Datatype="Bool" />
+        <Member Name="OP_Work_Aut" Datatype="Bool" />
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="OP_Rest_Man" Datatype="Bool" />
+        <Member Name="OP_Work_Man" Datatype="Bool" />
+        <Member Name="OP_Rest_Aut" Datatype="Bool" />
+        <Member Name="OP_Work_Aut" Datatype="Bool" />
+        <Member Name="OP_Rest" Datatype="Bool" />
+        <Member Name="OP_Work" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="Centraggio" Datatype="Struct">
+        <Member Name="OP_Rest_PB" Datatype="Bool" />
+        <Member Name="OP_Work_PB" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="OP_Rest_PB" Datatype="Bool" />
+        <Member Name="OP_Work_PB" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="TON_OP_REST_Centr_MissingCnd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_OP_WORK_Centr_MissingCnd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_OP_REST_Sollev_MissingCnd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_OP_WORK_Sollev_MissingCnd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="DelayMissingCondition" Datatype="Time" />
+    <Member Name="TON_Anticipi" Datatype="Struct">
+      <Member Name="Work" Datatype="Struct">
+        <Member Name="Sollevamento" Datatype="Array[1..3] of IEC_TIMER" Version="1.0" />
+        <Member Name="Centraggio" Datatype="Array[1..3] of IEC_TIMER" Version="1.0" />
+      </Member>
+      <Member Name="Rest" Datatype="Struct">
+        <Member Name="Sollevamento" Datatype="Array[1..3] of IEC_TIMER" Version="1.0" />
+        <Member Name="Centraggio" Datatype="Array[1..3] of IEC_TIMER" Version="1.0" />
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>A0302_Centratori</Name>
+      <Namespace />
+      <Number>110</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

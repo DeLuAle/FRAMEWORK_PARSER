@@ -1,0 +1,208 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0304_Manager_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PbScaricaPacco" Datatype="Bool" />
+      <Member Name="PbReggiaturaConclusa" Datatype="Bool" />
+      <Member Name="LsMatPres1Load" Datatype="Bool" />
+      <Member Name="LsMatPres2Load" Datatype="Bool" />
+      <Member Name="LsMatPres1UnLoad" Datatype="Bool" />
+      <Member Name="LsMatPres2UnLoad" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Navetta" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+        <Member Name="Cumulativo" Datatype="Struct">
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="ReadyToDrop" Datatype="Bool" />
+      </Member>
+      <Member Name="Antiribaltamento" Datatype="Struct">
+        <Member Name="Work" Datatype="Bool" />
+        <Member Name="Rest" Datatype="Bool" />
+        <Member Name="PalettoPos0" Datatype="Bool" />
+      </Member>
+      <Member Name="Manager03" Datatype="Struct">
+        <Member Name="IsWaiting_NoPiecesBefore" Datatype="Bool" />
+      </Member>
+      <Member Name="ProdManager" Datatype="&quot;Prod_Beam_Ctrl&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="COut" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Navetta" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+        <Member Name="Control_ON" Datatype="Bool" />
+        <Member Name="CanMoveFreely" Datatype="Bool" />
+        <Member Name="OP" Datatype="Struct">
+          <Member Name="VAI_A_PRELIEVO" Datatype="Bool" />
+          <Member Name="PRELIEVO" Datatype="Bool" />
+          <Member Name="VAI_A_DEPOSITO" Datatype="Bool" />
+          <Member Name="DEPOSITO" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="Sollevatore" Datatype="Struct">
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par_Navetta" Datatype="Struct">
+      <Member Name="PosPrePrelievo" Datatype="LReal" />
+      <Member Name="PosPrelievo" Datatype="LReal" />
+      <Member Name="PosDeposito" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="ShuttleNotEmpty" Datatype="Bool" />
+      <Member Name="STOP_FineTurno" Datatype="Bool" />
+      <Member Name="STOP_ControlloQualita" Datatype="Bool" />
+      <Member Name="STOP_End_Of_Proroduction" Datatype="Bool" />
+      <Member Name="TimeoutRimozionePaccoMES" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="UnloadNotPossible" Datatype="Bool" />
+      <Member Name="TimeoutRimozionePaccoMES" Datatype="Bool" />
+    </Member>
+    <Member Name="OP_CND" Datatype="Struct">
+      <Member Name="VaiAPrelievo" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+      <Member Name="Prelievo" Datatype="Array[0..15] of &quot;OpCnd&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="VaiADeposito" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+      <Member Name="Deposito" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="SemiAut" Datatype="Struct">
+        <Member Name="ON" Datatype="Bool" />
+        <Member Name="PbMaterialFwd" Datatype="Bool" />
+        <Member Name="Request" Datatype="Bool" />
+      </Member>
+      <Member Name="InPosDeposito" Datatype="Bool" />
+      <Member Name="InPosPrePrelievo" Datatype="Bool" />
+      <Member Name="InPosPrelievo" Datatype="Bool" />
+      <Member Name="RichiestaVaiDeposito" Datatype="Bool" />
+      <Member Name="RichiestaVaiPrelievo" Datatype="Bool" />
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Cycle" Datatype="Struct">
+        <Member Name="VaiAPrelievo" Datatype="Bool" />
+        <Member Name="Prelievo" Datatype="Bool" />
+        <Member Name="VaiADeposito" Datatype="Bool" />
+        <Member Name="Deposito" Datatype="Bool" />
+      </Member>
+      <Member Name="ReggiaturaConclusa" Datatype="Bool" />
+      <Member Name="ConfermaPaccoScaricato" Datatype="Bool" />
+      <Member Name="Stop" Datatype="Bool" />
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="SemiAut_Pb" Datatype="Bool" />
+      <Member Name="PbScaricaPacco" Datatype="Bool" />
+      <Member Name="PbReggiaturaConclusa" Datatype="Bool" />
+    </Member>
+    <Member Name="TON_MatPres" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_Stop" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_ForceConfermaPaccoScraicato" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_TimeoutRimozionePaccoMES" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_WngTimeoutRimozionePaccoMES" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CycleWithShortPiece" Datatype="Bool" />
+  </Section>
+</Sections></Interface>
+      <Name>A0304_Manager</Name>
+      <Namespace />
+      <Number>99</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

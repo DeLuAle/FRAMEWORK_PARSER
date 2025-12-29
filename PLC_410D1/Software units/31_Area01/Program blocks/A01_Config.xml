@@ -1,0 +1,1792 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="Area01_Main" Datatype="&quot;AreaConfig&quot;" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="TimeOutStopImmediate" Datatype="Time">
+            <StartValue>T#2S</StartValue>
+          </Member>
+          <Member Name="TimeOutStopInPhase" Datatype="Time">
+            <StartValue>T#5S</StartValue>
+          </Member>
+          <Member Name="TimeOutStopProgrammed" Datatype="Time">
+            <StartValue>T#5M</StartValue>
+          </Member>
+          <Member Name="TimeOutResetAlarms" Datatype="Time">
+            <StartValue>T#1S</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="CoilHandlingMatCounter" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Default_FAK" Datatype="LReal">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <StartValue>1.00109822</StartValue>
+      </Member>
+    </Member>
+    <Member Name="CoilHandling" Datatype="&quot;CoilHandling_Config&quot;" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="SensorsDelayOn" Datatype="Time">
+            <StartValue>T#250MS</StartValue>
+          </Member>
+          <Member Name="SensorsDelayOff" Datatype="Time">
+            <StartValue>T#250MS</StartValue>
+          </Member>
+          <Member Name="CoilDiameterSetLoopSynchro" Datatype="Real">
+            <StartValue>510.0</StartValue>
+          </Member>
+          <Member Name="CoilDiameterRstLoopSynchro" Datatype="Real">
+            <StartValue>600.0</StartValue>
+          </Member>
+          <Member Name="MatCounter_Exist" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="Coilcar" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="LsStopDelayON" Datatype="Time">
+        <StartValue>T#100MS</StartValue>
+      </Member>
+      <Member Name="LsStopDelayOFF" Datatype="Time">
+        <StartValue>T#100MS</StartValue>
+      </Member>
+      <Member Name="Move" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>490.088453</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>198.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>1.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#5S</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#200MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Lift1" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#5S</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Lift2" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#5S</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Area01_HU" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Pump" Datatype="&quot;HU_Pump_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="SafetyCutOffValveExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="StandbyValveExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="OilPumpContactotFeedbackTimeOut" Datatype="Time">
+              <StartValue>T#250MS</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Tank" Datatype="&quot;HU_Tank_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="RecirculationPumpExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="HeatExchangerFanExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="HeatingUnitExistNum" Datatype="Int">
+              <StartValue>0</StartValue>
+            </Member>
+            <Member Name="ChillerExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="OilMaxTemperature" Datatype="Real">
+              <StartValue>70.0</StartValue>
+            </Member>
+            <Member Name="WaterMaxTemperature" Datatype="Real">
+              <StartValue>60.0</StartValue>
+            </Member>
+            <Member Name="TemperatureStartCheckFilters" Datatype="Real">
+              <StartValue>35.0</StartValue>
+            </Member>
+            <Member Name="HeatingHysteresys" Datatype="Real">
+              <StartValue>1.0</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_LowLimit" Datatype="Real">
+              <StartValue>0.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_LowLimit" Datatype="Real">
+              <StartValue>-10.0</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Decoiler_HU" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Pump" Datatype="&quot;HU_Pump_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="SafetyCutOffValveExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="StandbyValveExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="OilPumpContactotFeedbackTimeOut" Datatype="Time">
+              <StartValue>T#250MS</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Tank" Datatype="&quot;HU_Tank_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="RecirculationPumpExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="HeatExchangerFanExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="HeatingUnitExistNum" Datatype="Int">
+              <StartValue>0</StartValue>
+            </Member>
+            <Member Name="ChillerExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="OilMaxTemperature" Datatype="Real">
+              <StartValue>70.0</StartValue>
+            </Member>
+            <Member Name="WaterMaxTemperature" Datatype="Real">
+              <StartValue>60.0</StartValue>
+            </Member>
+            <Member Name="TemperatureStartCheckFilters" Datatype="Real">
+              <StartValue>35.0</StartValue>
+            </Member>
+            <Member Name="HeatingHysteresys" Datatype="Real">
+              <StartValue>1.0</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_LowLimit" Datatype="Real">
+              <StartValue>0.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_LowLimit" Datatype="Real">
+              <StartValue>-10.0</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="DecoilersHRot" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Rotation" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Pivot" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Traslation" Datatype="&quot;Positioning_DOL_Machine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="CyclicOBTime_ms" Datatype="LReal">
+              <StartValue>0.0</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="&quot;OOAx_Config&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="limitMinus" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="limitPlus" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="Backlash" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="BacklashActivation" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="ToleranceWindow" Datatype="LReal">
+                    <StartValue>0.1</StartValue>
+                  </Member>
+                  <Member Name="ToleranceWindowDelay" Datatype="Time">
+                    <StartValue>T#100MS</StartValue>
+                  </Member>
+                  <Member Name="PreCutOff" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="PreEndLowSpeed" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="PreEndMedSpeed" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="ChangeDirectionDelay" Datatype="Time">
+                    <StartValue>T#0MS</StartValue>
+                  </Member>
+                  <Member Name="StandstillVelocity" Datatype="LReal">
+                    <StartValue>0.5</StartValue>
+                  </Member>
+                  <Member Name="StandStillDelay" Datatype="Time">
+                    <StartValue>T#100MS</StartValue>
+                  </Member>
+                  <Member Name="HomingDirection" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RecallTime" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="VelocityFilter_T" Datatype="LReal">
+                    <StartValue>10.0</StartValue>
+                  </Member>
+                  <Member Name="VelocityMeasUnit" Datatype="Int">
+                    <StartValue>2</StartValue>
+                  </Member>
+                  <Member Name="PosFbkDisabled" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="FbkCtrlDisabled" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="Ax_UM2" Datatype="&quot;udt_LinTranformation&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="m" Datatype="Real">
+                    <StartValue>1.0</StartValue>
+                  </Member>
+                  <Member Name="q" Datatype="Real">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="S120" Datatype="Struct">
+              <Member Name="SpeedMotor" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#5S</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="AccTime" Datatype="LReal">
+                <StartValue>0.25</StartValue>
+              </Member>
+              <Member Name="DecTime" Datatype="LReal">
+                <StartValue>0.25</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#10M</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Decoiler_1_2" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Loop" Datatype="Struct">
+        <Member Name="Exist_S_MinHigh" Datatype="Bool">
+          <StartValue>FALSE</StartValue>
+        </Member>
+        <Member Name="Exist_S_SpeedAdjust" Datatype="Bool">
+          <StartValue>TRUE</StartValue>
+        </Member>
+      </Member>
+      <Member Name="Feed" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>0.0</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>10125.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>100.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#5S</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#200MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>TRUE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#1M</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Jaws" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Coupling" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="SnubberLift" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="SnubberRoll" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Enable_End_Of_Coil_Using_Loop" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+    </Member>
+    <Member Name="Peeler" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Lift" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Extension" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#500MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Straightener" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>6000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="OptionON_EncoderSelection" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="OptionON_ParameterChange" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="OptionON_AutoReloadPosition" Datatype="Bool">
+                <StartValue>TRUE</StartValue>
+              </Member>
+              <Member Name="OptionON_ManPreset" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="HomeMode" Datatype="Int">
+                <StartValue>0</StartValue>
+              </Member>
+              <Member Name="PosAxis" Datatype="&quot;TAx_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="Simulation" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                    <Member Name="PowerOffDelay" Datatype="Time">
+                      <StartValue>T#10S</StartValue>
+                    </Member>
+                    <Member Name="PowerStartMode" Datatype="Int">
+                      <StartValue>1</StartValue>
+                    </Member>
+                    <Member Name="PowerStopMode" Datatype="Int">
+                      <StartValue>2</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>TRUE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#1M</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Lift_Entry" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#10S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#250MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Lift_Exit" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#10S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#2S</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#2S</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Lift_Entry_Exist" Datatype="Bool">
+        <StartValue>TRUE</StartValue>
+      </Member>
+      <Member Name="Lift_Exit_Exist" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+    </Member>
+    <Member Name="JB" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="MeasurePasslineReference" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Distance of sheet passline from reference </MultiLanguageText>
+        </Comment>
+        <StartValue>404.5</StartValue>
+      </Member>
+      <Member Name="MaxMaterialWidth" Datatype="Real">
+        <StartValue>400.0</StartValue>
+      </Member>
+      <Member Name="Torch" Datatype="&quot;Positioning_DOL_Machine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="CyclicOBTime_ms" Datatype="LReal">
+              <StartValue>10.0</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="&quot;OOAx_Config&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="limitMinus" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="limitPlus" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="Backlash" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="BacklashActivation" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="ToleranceWindow" Datatype="LReal">
+                    <StartValue>0.1</StartValue>
+                  </Member>
+                  <Member Name="ToleranceWindowDelay" Datatype="Time">
+                    <StartValue>T#100MS</StartValue>
+                  </Member>
+                  <Member Name="PreCutOff" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="PreEndLowSpeed" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="PreEndMedSpeed" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="ChangeDirectionDelay" Datatype="Time">
+                    <StartValue>T#0MS</StartValue>
+                  </Member>
+                  <Member Name="StandstillVelocity" Datatype="LReal">
+                    <StartValue>0.5</StartValue>
+                  </Member>
+                  <Member Name="StandStillDelay" Datatype="Time">
+                    <StartValue>T#100MS</StartValue>
+                  </Member>
+                  <Member Name="HomingDirection" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RecallTime" Datatype="LReal">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                  <Member Name="VelocityFilter_T" Datatype="LReal">
+                    <StartValue>10.0</StartValue>
+                  </Member>
+                  <Member Name="VelocityMeasUnit" Datatype="Int">
+                    <StartValue>2</StartValue>
+                  </Member>
+                  <Member Name="PosFbkDisabled" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="FbkCtrlDisabled" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="Ax_UM2" Datatype="&quot;udt_LinTranformation&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="m" Datatype="Real">
+                    <StartValue>1.0</StartValue>
+                  </Member>
+                  <Member Name="q" Datatype="Real">
+                    <StartValue>0.0</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="S120" Datatype="Struct">
+              <Member Name="SpeedMotor" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#5S</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="AccTime" Datatype="LReal">
+                <StartValue>0.25</StartValue>
+              </Member>
+              <Member Name="DecTime" Datatype="LReal">
+                <StartValue>0.25</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#10M</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="ClampEntry" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#250MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="ClampExit" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#250MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Pinchroll_Feed" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>314.159265</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>795.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>10.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#100MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Pinchroll_Lift" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#250MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1H</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Loop1" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="PitTables_Exist" Datatype="Bool">
+        <StartValue>TRUE</StartValue>
+      </Member>
+      <Member Name="Entry_PercentagePosError" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">% Max Delta Counter position Vs Positions calculated from velocity</MultiLanguageText>
+        </Comment>
+        <StartValue>95.0</StartValue>
+      </Member>
+      <Member Name="Exit_PercentagePosError" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">% Max Delta Counter position Vs Positions calculated from velocity</MultiLanguageText>
+        </Comment>
+        <StartValue>95.0</StartValue>
+      </Member>
+      <Member Name="Delay_CheckNoEntryBkwEnable" Datatype="Time">
+        <StartValue>T#6S</StartValue>
+      </Member>
+      <Member Name="Delay_CheckNoEntryFwdEnable" Datatype="Time">
+        <StartValue>T#6S</StartValue>
+      </Member>
+      <Member Name="Delay_CheckNoExitBkwEnable" Datatype="Time">
+        <StartValue>T#6S</StartValue>
+      </Member>
+      <Member Name="Delay_CheckNoExitFwdEnable" Datatype="Time">
+        <StartValue>T#6S</StartValue>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>A01_Config</Name>
+      <Namespace />
+      <Number>17</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

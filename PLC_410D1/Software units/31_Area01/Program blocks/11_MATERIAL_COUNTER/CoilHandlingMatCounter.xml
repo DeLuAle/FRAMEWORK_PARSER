@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <DBAccessibleFromOPCUA>false</DBAccessibleFromOPCUA>
+      <InstanceOfName>MatCounter</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="CIn" Datatype="&quot;MatCountCIn&quot;" />
+    <Member Name="StandstillVelocityThreshold" Datatype="LReal" />
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Default_FAK" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="StopFeeding" Datatype="Bool" />
+      <Member Name="CounterValid" Datatype="Bool" />
+      <Member Name="Standstill" Datatype="Bool" />
+      <Member Name="PresetDone" Datatype="Bool" />
+      <Member Name="ActualVelocity" Datatype="LReal" />
+    </Member>
+    <Member Name="Alr" Datatype="Struct">
+      <Member Name="CounterNotInOperation" Datatype="Bool" />
+    </Member>
+    <Member Name="Wng" Datatype="Struct">
+      <Member Name="EncoderNotValid" Datatype="Bool" />
+      <Member Name="EncoderPosNotValid" Datatype="Bool" />
+      <Member Name="PresetRunning" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="&quot;MatCountPersistent&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Status" Datatype="Int" />
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="PLCStartUpDone" Datatype="Bool" />
+      <Member Name="Initialization" Datatype="Bool" />
+      <Member Name="InOperation" Datatype="Bool" />
+      <Member Name="PresetDone" Datatype="Bool" />
+      <Member Name="FAKCalcDoneAndApply" Datatype="Bool" />
+      <Member Name="RestorePreviousFAKDone" Datatype="Bool" />
+      <Member Name="FAKManChangeApply" Datatype="Bool" />
+      <Member Name="SetDefaultFAKDone" Datatype="Bool" />
+      <Member Name="FAKManChange" Datatype="Bool" />
+      <Member Name="HMIOperationDone" Datatype="Bool" />
+      <Member Name="NewPositionToForce" Datatype="LReal" />
+      <Member Name="NewFAK" Datatype="LReal" />
+      <Member Name="VelocityLessThanThreshold" Datatype="Bool" />
+    </Member>
+    <Member Name="tonInOperation" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="tonOpDone" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="PbFAKCalculation" Datatype="Bool" />
+      <Member Name="PbFAKDefault" Datatype="Bool" />
+      <Member Name="PbFAKPrevious" Datatype="Bool" />
+      <Member Name="FAKSetDefaultDone" Datatype="Bool" />
+      <Member Name="FAKCalcDone" Datatype="Bool" />
+      <Member Name="FAKSetPrevDone" Datatype="Bool" />
+      <Member Name="LenghtDesired" Datatype="LReal" />
+      <Member Name="LenghtMeasured" Datatype="LReal" />
+      <Member Name="FAKPrevious" Datatype="LReal" />
+      <Member Name="FAKDefault" Datatype="LReal" />
+    </Member>
+    <Member Name="Aux" Datatype="Struct">
+      <Member Name="PbFAKCalculation" Datatype="Bool" />
+      <Member Name="PbFAKDefault" Datatype="Bool" />
+      <Member Name="PbFAKPrevious" Datatype="Bool" />
+    </Member>
+    <Member Name="Check_Velocity" Datatype="&quot;Check_Axis_Velocity&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>CoilHandlingMatCounter</Name>
+      <Namespace />
+      <Number>205</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

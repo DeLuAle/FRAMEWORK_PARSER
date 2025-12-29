@@ -1,0 +1,193 @@
+﻿FUNCTION "Prod_Item_Check_MES_Order_ValueLimit" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item : "Prod_Item";
+   END_VAR
+
+   VAR_TEMP 
+      PackLayout_X_Dimension : Real;
+      PackLayout_Z_Dimension : Real;
+   END_VAR
+
+   VAR CONSTANT 
+      OK : Int := 0;
+      FAIL : Int := -1;
+   END_VAR
+
+
+BEGIN
+	#Prod_Item_Check_MES_Order_ValueLimit := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	REGION Codice profilo sconosciuto
+	    
+	    
+	    IF (#Item.MES_Profile_Code <> "PROFILE_TYPE_SEMIGUSCIO")
+	        AND
+	        (#Item.MES_Profile_Code <> "PROFILE_TYPE_ACCOPPIATO")
+	    THEN
+	        
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Type_UNKNOW";
+	        RETURN;
+	        
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	
+	REGION W_A
+	    
+	    // Dimensine base pezzo (W) = Altezza in impilamento (A)
+	    // Valore < minimo / Valore > massimo 
+	    
+	    IF #Item.Beams_W_A < "BEAM_W_MIN" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_W_A_Min";
+	        RETURN;
+	    END_IF;
+	    
+	    IF #Item.Beams_W_A > "BEAM_W_MAX" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_W_A_Max";
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION H_B
+	    
+	    // Dimensine altezza pezzo (H) = Base in impilamento (B)
+	    // Valore < minimo / Valore > massimo 
+	    
+	    IF #Item.Beams_H_B < "BEAM_H_MIN" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_H_B_Min";
+	        RETURN;
+	    END_IF;
+	    
+	    IF #Item.Beams_H_B > "BEAM_H_MAX" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_H_B_Max";
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION THICKNESS
+	    
+	    // (< Min) Spessore lamiera del profilo
+	    // (> Max) Spessore lamiera del profilo
+	    
+	    
+	    
+	    IF #Item.Beams_Thickness < "BEAM_TK_MIN" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_Tickness_Min";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    IF #Item.Beams_Thickness > "BEAM_TK_MAX" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Beam_Tickness_Max";
+	        RETURN;
+	   END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION BEAM LENGTH
+	    // (< Min) Lunghezza pezzi richiesta
+	    // (> Max) Lunghezza pezzi richiesta
+	    
+	    IF #Item.Beams_Len < "BEAM_LEN_MIN" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Len_min";
+	        RETURN;
+	    END_IF;
+	    
+	    IF #Item.Beams_Len > "BEAM_LEN_MAX" THEN
+	        #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_Len_max";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	REGION Check Pack Layout
+	    
+	    // controlla se il layout del pacco da comporre inviato dal MES è eseguibile 
+	    // ovvero deve essere essere entro i limiti di massimo Z e X che lo scarico può gestire
+	    // 
+	    
+	    
+	    // Check max X & Y dimension OF the resulting pack
+	    // 
+	    
+	    #PackLayout_X_Dimension := INT_TO_REAL(#Item.PackLayout_BeamsPerLayer) * #Item.Beams_H_B;
+	    
+	    #PackLayout_Z_Dimension := INT_TO_REAL(#Item.PackLayout_Layers_Qty) * #Item.Beams_W_A;
+	    
+	    // Entrambi <= 0 -> valori non controllati
+	    // 
+	    IF (#Item.PackLayout_BeamsPerLayer > 0) OR (#Item.PackLayout_Layers_Qty > 0) THEN // almeno uno dei 2 valori > 0
+	        
+	        // Valore Pezzi per starto errato
+	        // 
+	        IF #Item.PackLayout_BeamsPerLayer <= 0 THEN
+	            #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_CALC_PACK_DIM_X";
+	            RETURN;
+	        END_IF;
+	        
+	        // Valore numero strati errato
+	        // 
+	        IF #Item.PackLayout_Layers_Qty <= 0 THEN
+	            #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_CALC_PACK_DIM_Z";
+	            RETURN;
+	        END_IF;
+	        
+	        // Controllo combinazione dei 2 valori
+	        // 
+	        
+	        
+	        // Errore larghezza pacco va fuori misura
+	        // 
+	        IF #PackLayout_X_Dimension > "STACK_LAYERS_X_MAX" THEN
+	            #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_CALC_PACK_DIM_X";
+	            RETURN;
+	        END_IF;
+	        
+	        // Errore altezza pacco va fuori misura
+	        // 
+	        IF #PackLayout_Z_Dimension > "STACK_LAYERS_Z_MAX" THEN
+	            #Prod_Item_Check_MES_Order_ValueLimit := "PROD_ERR_CALC_PACK_DIM_Z";
+	            RETURN;
+	        END_IF;
+	        
+	        
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

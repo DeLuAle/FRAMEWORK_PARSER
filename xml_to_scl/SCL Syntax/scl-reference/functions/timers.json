@@ -1,0 +1,204 @@
+{
+    "category": "IEC Timers",
+    "description": "Timer function blocks standard IEC 61131-3 per S7-1500/S7-1200",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - IEC Timers / IEC 61131-3 Standard",
+    "functions": [
+        {
+            "name": "TON",
+            "signature": "#instanceName(IN := <enable>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di abilitazione timer",
+                    "optional": false
+                },
+                {
+                    "name": "PT",
+                    "type": "TIME/LTIME",
+                    "direction": "IN",
+                    "description": "Tempo di ritardo (preset time)",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Output ritardato (TRUE dopo PT)",
+                    "optional": false
+                },
+                {
+                    "name": "ET",
+                    "type": "TIME/LTIME",
+                    "direction": "OUT",
+                    "description": "Tempo trascorso (elapsed time)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e ET"
+            },
+            "description": "Timer On-Delay: Q diventa TRUE dopo che IN è stato TRUE per almeno PT. Se IN torna FALSE prima del timeout, il timer si resetta immediatamente.",
+            "example": "// Dichiarazione in VAR_STAT:\n// delayTimer : TON;\n\n#delayTimer(IN := startSignal, PT := T#5s);\nIF #delayTimer.Q THEN\n    // Azione eseguita dopo 5 secondi\n    motorStart := TRUE;\nEND_IF;",
+            "mandatory": true,
+            "notes": "Richiede istanza statica (VAR_STAT o DB). Reset immediato quando IN=FALSE. Tempo PT può essere TIME (ms) o LTIME (ns). Applicazione tipica: ritardo all'avvio motore.",
+            "see_also": [
+                "TOF",
+                "TP",
+                "TONR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TOF",
+            "signature": "#instanceName(IN := <enable>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di abilitazione",
+                    "optional": false
+                },
+                {
+                    "name": "PT",
+                    "type": "TIME/LTIME",
+                    "direction": "IN",
+                    "description": "Tempo di ritardo off",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Output con ritardo allo spegnimento",
+                    "optional": false
+                },
+                {
+                    "name": "ET",
+                    "type": "TIME/LTIME",
+                    "direction": "OUT",
+                    "description": "Tempo trascorso",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e ET"
+            },
+            "description": "Timer Off-Delay: Q diventa TRUE immediatamente quando IN=TRUE. Q resta TRUE per PT dopo che IN è diventato FALSE.",
+            "example": "// Dichiarazione in VAR_STAT:\n// offDelayTimer : TOF;\n\n#offDelayTimer(IN := motorRunning, PT := T#3s);\n// Q resta TRUE per 3 secondi dopo che motorRunning diventa FALSE",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. Q segue immediatamente IN quando IN=TRUE. Ritardo solo sullo spegnimento. Applicazione tipica: ventilazione post-funzionamento.",
+            "see_also": [
+                "TON",
+                "TP"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TP",
+            "signature": "#instanceName(IN := <trigger>, PT := <pulse_time>, Q => <output>, ET => <elapsed_time>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale trigger (fronte di salita)",
+                    "optional": false
+                },
+                {
+                    "name": "PT",
+                    "type": "TIME/LTIME",
+                    "direction": "IN",
+                    "description": "Durata impulso",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Impulso output",
+                    "optional": false
+                },
+                {
+                    "name": "ET",
+                    "type": "TIME/LTIME",
+                    "direction": "OUT",
+                    "description": "Tempo trascorso",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e ET"
+            },
+            "description": "Pulse Timer: genera un impulso di durata PT sul fronte di salita di IN. Q è TRUE per esattamente PT, indipendentemente da IN.",
+            "example": "// Dichiarazione in VAR_STAT:\n// pulseTimer : TP;\n\n#pulseTimer(IN := trigger, PT := T#500ms);\n// Q è TRUE per 500ms dopo il fronte di salita di trigger",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. Non retriggerable durante l'impulso (se IN torna TRUE durante PT, viene ignorato). Applicazione tipica: impulsi di comando, lampeggio LED.",
+            "see_also": [
+                "TON",
+                "TOF"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TONR",
+            "signature": "#instanceName(IN := <enable>, R := <reset>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di abilitazione accumulo",
+                    "optional": false
+                },
+                {
+                    "name": "R",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Reset timer (azzera ET e Q)",
+                    "optional": false
+                },
+                {
+                    "name": "PT",
+                    "type": "TIME/LTIME",
+                    "direction": "IN",
+                    "description": "Tempo preset",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE quando ET >= PT",
+                    "optional": false
+                },
+                {
+                    "name": "ET",
+                    "type": "TIME/LTIME",
+                    "direction": "OUT",
+                    "description": "Tempo accumulato",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e ET"
+            },
+            "description": "Time Accumulator (Retentive On-Delay): accumula il tempo in cui IN=TRUE. ET continua a crescere anche se IN torna FALSE. Q diventa TRUE quando ET >= PT e resta TRUE finché non viene resettato con R.",
+            "example": "// Dichiarazione in VAR_STAT:\n// accTimer : TONR;\n\n#accTimer(IN := machineRunning, R := resetButton, PT := T#1h);\nIF #accTimer.Q THEN\n    // Manutenzione richiesta dopo 1 ora cumulativa\n    maintenanceAlarm := TRUE;\nEND_IF;",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. ET accumula tempo solo quando IN=TRUE. Q e ET restano attivi finché R non diventa TRUE. Applicazione tipica: contatori ore macchina, manutenzione programmata. Supportato solo su S7-1200/S7-1500.",
+            "see_also": [
+                "TON",
+                "CTU"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

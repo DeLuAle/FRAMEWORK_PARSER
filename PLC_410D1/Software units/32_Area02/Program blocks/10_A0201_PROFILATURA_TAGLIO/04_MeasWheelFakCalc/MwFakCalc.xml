@@ -1,0 +1,308 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>MwFakCalc_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="EStop" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Man" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="Aut" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Cycle" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="StopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="RstAlarms" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="ManOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AutOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CycleOneShot" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="CheckAutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+      <Member Name="Gripper" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    </Member>
+    <Member Name="Drive" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;TAx_DriveInterface&quot;" />
+    </Member>
+    <Member Name="HWID" Datatype="Struct">
+      <Member Name="PushAx_TEL1" Datatype="HW_SUBMODULE" />
+    </Member>
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="MaterialPresenceEntry" Datatype="Bool" />
+      <Member Name="MaterialPresenceExit" Datatype="Bool" />
+      <Member Name="MaterialJam" Datatype="Bool" />
+      <Member Name="PushAx_Ls_HomeFwd" Datatype="Bool" />
+      <Member Name="PushAx_Ls_RestBwd" Datatype="Bool" />
+      <Member Name="PushAx_Ls_LowSpeedHome" Datatype="Bool" />
+      <Member Name="PushAx_Ls_LowSpeedRest" Datatype="Bool" />
+      <Member Name="PushAx_Ls_Touch" Datatype="Bool" />
+      <Member Name="Gripper_Ls_ForceOpen" Datatype="Bool" />
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_DataIn&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_DataIn&quot;" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Manager" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+      </Member>
+      <Member Name="Rollformer_Standstill" Datatype="Bool" />
+      <Member Name="Rollformer_CheckNextFwd" Datatype="Bool" />
+      <Member Name="Rollformer_CheckNextBwd" Datatype="Bool" />
+      <Member Name="MW_ActualFAK" Datatype="LReal" />
+      <Member Name="SemiAut_And_ButtonPressed" Datatype="Bool" />
+      <Member Name="PostServo_MeasuredValueG" Datatype="LReal" />
+      <Member Name="PostServo_MeasuredValueW" Datatype="LReal" />
+      <Member Name="PostServo_MeasuredID" Datatype="UInt" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_Config&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="MaterialPresenceDly" Datatype="Time" />
+      <Member Name="MaterialAbsenceDly" Datatype="Time" />
+      <Member Name="PushAx_FwdTimeout" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="PushAx_BwdTimeout" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Default_FAK" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="AutReady" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="Aborting" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopInPhase" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="AckStopProgrammed" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="MotionsStandStill" Datatype="Bool">
+            <StartValue>TRUE</StartValue>
+          </Member>
+          <Member Name="AlarmsPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+          <Member Name="WarningPresence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_DataOut&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="MeasInput_ExeReg" Datatype="Bool" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_COut&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="StopMaterialFeeding" Datatype="Bool" />
+      <Member Name="MW_FAK_ChangeIsRequest" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="&quot;udt_MwFacCalc_Pers&quot;" />
+    <Member Name="TO_Gripper_Encoder" Datatype="TO_ExternalEncoder" Version="8.0" />
+    <Member Name="TO_Gripper_MeasInput" Datatype="TO_MeasuringInput" Version="8.0" />
+    <Member Name="TO_Wheel_MeasInput" Datatype="TO_MeasuringInput" Version="8.0" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="PushAx" Datatype="Struct">
+        <Member Name="LowSpeedRest" Datatype="Bool" />
+        <Member Name="LowSpeedHome" Datatype="Bool" />
+      </Member>
+      <Member Name="Gripper" Datatype="Struct">
+        <Member Name="OffsetPos" Datatype="LReal" />
+        <Member Name="PosRel" Datatype="LReal" />
+      </Member>
+      <Member Name="AlarmPresence" Datatype="Bool" />
+      <Member Name="Status" Datatype="Int" />
+      <Member Name="MW_FAK_ChangeIsRequest" Datatype="Bool" />
+      <Member Name="AverageFAKIsValid" Datatype="Bool" />
+      <Member Name="WheelMeasInp_SaveIdLastPosEdge" Datatype="UInt" />
+      <Member Name="GripperMeasInp_SaveIdLastPosEdge" Datatype="UInt" />
+      <Member Name="GripperMeasInp_LastID" Datatype="UInt" />
+      <Member Name="WheelMeasInp_LastID" Datatype="UInt" />
+      <Member Name="PostServo_LastID" Datatype="UInt" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="StopInPhase" Datatype="Bool" />
+      <Member Name="StopProgrammed" Datatype="Bool" />
+      <Member Name="MeasuringStart" Datatype="Bool" />
+      <Member Name="MeasInp_Enable" Datatype="Bool" />
+      <Member Name="Meas1_Exe" Datatype="Bool" />
+      <Member Name="Meas2_Exe" Datatype="Bool" />
+      <Member Name="Gripper_RollformerForceOpen" Datatype="Bool" />
+      <Member Name="Gripper_AutOpen" Datatype="Bool" />
+      <Member Name="Gripper_AutClose" Datatype="Bool" />
+      <Member Name="PushAx_AutFwd" Datatype="Bool" />
+      <Member Name="PushAx_AutBwd" Datatype="Bool" />
+      <Member Name="Rollformer_FwdEnable" Datatype="Bool" />
+      <Member Name="Rollformer_BkwWnable" Datatype="Bool" />
+      <Member Name="Rollformer_FastStop" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="PushAx_UnvalidStateLsZeroRest" Datatype="Bool" />
+      <Member Name="PushAx_UnvalidStateLsLow" Datatype="Bool" />
+      <Member Name="PushAx_LowSpeedHome_NotEngaged" Datatype="Bool" />
+      <Member Name="PushAx_LowSpeedRest_NotEngaged" Datatype="Bool" />
+      <Member Name="PushAx_TimeoutFwd" Datatype="Bool" />
+      <Member Name="PushAx_TimeoutBwd" Datatype="Bool" />
+      <Member Name="MaterialNoPresence" Datatype="Bool" />
+      <Member Name="MaterialJamEntry" Datatype="Bool" />
+      <Member Name="Meas1RegNotGet" Datatype="Bool" />
+      <Member Name="Meas2RegNotGet" Datatype="Bool" />
+      <Member Name="Gripper_MaxPosExceed" Datatype="Bool" />
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_Alr&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="Gripper_Encoder" Datatype="&quot;TExtEncoder_Alarms&quot;" />
+      <Member Name="Gripper_MeasInput" Datatype="&quot;TMeasuring_Alarms&quot;" />
+      <Member Name="Wheel_MeasInput" Datatype="&quot;TMeasuring_Alarms&quot;" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_Wng&quot;" />
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="MaterialNoPrresence" Datatype="Bool" />
+    </Member>
+    <Member Name="Diag" Datatype="Struct">
+      <Member Name="Gripper_Encoder" Datatype="&quot;TO_Diagnostic&quot;" />
+      <Member Name="Gripper_MeasInput" Datatype="&quot;TO_Diagnostic&quot;" />
+      <Member Name="Wheel_MeasInput" Datatype="&quot;TO_Diagnostic&quot;" />
+    </Member>
+    <Member Name="PushAx" Datatype="&quot;SpeedMachine_FB&quot;" />
+    <Member Name="Gripper" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="Gripper_MeasInp" Datatype="&quot;MeasuringInput&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Wheel_MeasInp" Datatype="&quot;MeasuringInput&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="MeasRegIEmpty" Datatype="&quot;udt_MwFacCalc_RegItem&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonMaterialPresence" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="tonMaterialAbsence" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="tonPushAxFwd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonPushAxBwd" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonRollformer_BwdCheckNext" Datatype="TON_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>MwFakCalc</Name>
+      <Namespace />
+      <Number>133</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

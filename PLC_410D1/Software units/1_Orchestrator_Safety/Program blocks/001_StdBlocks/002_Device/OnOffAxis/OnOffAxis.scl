@@ -1,0 +1,580 @@
+﻿FUNCTION_BLOCK "OnOffAxis"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+AUTHOR : ZM
+FAMILY : Devices
+VERSION : 0.3
+   VAR_INPUT 
+      AxisCtrl : "OOAx_Ctrl";
+      Config { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "OOAx_Config" := ((), (), (), (), 0.1, T#100MS, (), (), (), T#500MS, 0.5, T#100MS, (), (), (), (), (), ());
+      HwLsMinus : Bool;
+      HwLsPlus : Bool;
+      HwLsZero : Bool;   // Used with Homing Mode=1
+   END_VAR
+
+   VAR_OUTPUT 
+      AxisSts : "OOAx_Sts";
+      ActorCtrl : Struct   // Output commands
+         CmdMinus : Bool;
+         CmdPlus : Bool;
+         CmdLowSpeed : Bool;
+         CmdMediumSpeed : Bool;
+         CmdHighSpeed : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT 
+      Interface : "PosFbk_ITF";   // Interface with Positions Feedback
+      Alarm : "OOAx_Alr";
+      Warning : "OOAx_Wng";
+      AxisHomed : Bool;
+   END_VAR
+
+   VAR 
+      Init : Bool;
+      Ctrl : Struct
+         CmdMinus : Bool;
+         CmdPlus : Bool;
+         CmdLowSpeed : Bool;
+         CmdMediumSpeed : Bool;
+         CmdHighSpeed : Bool;
+      END_STRUCT;
+      Sts : Struct
+         Standstill : Bool;
+         ActualDirMinus : Bool;
+         ActualDirPlus : Bool;
+         InPosition : Bool;
+         ActualPosition : LReal;
+         ActualSpeed : LReal;
+         ActualVelocity : LReal;
+      END_STRUCT;
+      Local : Struct
+         AlrTargetPosIncorrect : Bool;
+         AlrPosOutTolerance : Bool;
+         AlrWrongDirection : Bool;
+         AlrWrongNotIncrease : Bool;
+         AlrHwLimitMinus : Bool;
+         AlrHwLimitPlus : Bool;
+         AlrTimeoutPreset : Bool;
+         WngSwLimitMinus : Bool;
+         WngSwLimitPlus : Bool;
+      END_STRUCT;
+      Homing : Struct
+         Permitted : Bool;
+         Request : Bool;
+         CmdMinus : Bool;
+         CmdPlus : Bool;
+         SyncDone : Bool;
+         Done : Bool;
+         Status : Int;
+      END_STRUCT;
+      MoveMinus : Struct
+         AlarmsPresence : Bool;
+         Permitted : Bool;
+         Request : Bool;
+         Cmd : Bool;
+         InLowSpeedWindow : Bool;
+      END_STRUCT;
+      MovePlus : Struct
+         AlarmsPresence : Bool;
+         Permitted : Bool;
+         Request : Bool;
+         Cmd : Bool;
+         InLowSpeedWindow : Bool;
+      END_STRUCT;
+      MoveAbs : Struct
+         AlarmsPresence : Bool;
+         Permitted : Bool;
+         Request : Bool;
+         CmdMinus : Bool;
+         CmdPlus : Bool;
+         OldTarget : LReal;
+         Target : LReal;
+         BacklashRecoveryDone : Bool;
+         InStopWindow : Bool;
+         Done : Bool;
+         InLowSpeedWindow : Bool;
+         InMedSpeedWindow : Bool;
+      END_STRUCT;
+      tonAxNotIncrease {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonStopInWindow {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonChangeDirection {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonStandstill {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonTimeoutPreset {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP 
+      actualSpeedWithSign : LReal;
+      axisIsWaitingCommands : Bool;
+      LinearMissingSpace : LReal;
+      decayFct : LReal;
+   END_VAR
+
+   VAR CONSTANT 
+      "MM/MS_TO_MM/S" : LReal := 1000.0;
+      "MM/MS_TO_M/MIN" : LReal := 60.0;
+   END_VAR
+
+
+BEGIN
+	
+	REGION Info
+	    //=============================================================================
+	    //PM FORMING
+	    //-----------------------------------------------------------------------------
+	    // Library: StandardBlocks
+	    // Tested with: S7-1518TF
+	    // Engineering: TIA Portal V18
+	    // Restrictions: -
+	    // Requirements: S7-1500
+	    // Functionality: On/Off Axis Device
+	    //
+	    // v0.0.1  31/08/2022  New version
+	    // v0.0.2  06/09/2022  General improvment
+	    // v0.0.3  14/09/2022  General improvment, repositioning added
+	    // v0.0.4  11/11/2022  Bypass removed
+	    // v1.0.0  28/12/2022  New version V18
+	    // v1.0.1  10/01/2023  Add PosFbk disable config
+	    // v1.1.0  07/03/2023  Added Velocity Measure Unit Config, Removed alarm worng speed
+	    // v1.1.1  07/04/2023  Added Timeout homing request , and homing function 
+	    // v1.2.0  23/05/2023  Added velocity filter
+	    // v1.2.1  14/06/2023  Added config Feedback speed control disabled
+	    // v1.2.3  30/10/2023  backslash compensation fixed
+	    //=============================================================================
+	    
+	END_REGION
+	
+	REGION Axis Status   
+	    
+	    IF #Config.RecallTime > 0.0 THEN
+	        IF #Config.VelocityMeasUnit = 1 THEN
+	            #actualSpeedWithSign := (#Interface.Sts.Position - #Sts.ActualPosition) / #Config.RecallTime;
+	        ELSIF #Config.VelocityMeasUnit = 2 THEN
+	            #actualSpeedWithSign := ((#Interface.Sts.Position - #Sts.ActualPosition) / #Config.RecallTime) * #"MM/MS_TO_MM/S";
+	        ELSE
+	            #actualSpeedWithSign := (#Interface.Sts.Position - #Sts.ActualPosition) / (#Config.RecallTime * #"MM/MS_TO_M/MIN");
+	        END_IF;
+	        
+	        #decayFct := #Config.RecallTime / MAX(IN1 := #Config.VelocityFilter_T, IN2 := #Config.RecallTime);
+	        #Sts.ActualVelocity += #decayFct * (#actualSpeedWithSign - #Sts.ActualVelocity);
+	        #Sts.ActualSpeed := ABS(#Sts.ActualVelocity);
+	    ELSE
+	        #Sts.ActualSpeed := 0.0;
+	    END_IF;
+	    
+	    // axis standstill
+	    #tonStandstill.TON(IN := #Sts.ActualSpeed < #Config.StandstillVelocity,
+	                       PT := #Config.StandStillDelay,
+	                       Q => #Sts.Standstill);
+	    
+	    #Sts.ActualDirPlus := #Sts.ActualVelocity > 0.0 AND NOT #Sts.Standstill;
+	    #Sts.ActualDirMinus := #Sts.ActualVelocity < 0.0 AND NOT #Sts.Standstill;
+	    
+	    // axis actual position
+	    #Sts.ActualPosition := #Interface.Sts.Position;
+	    
+	END_REGION
+	
+	REGION Alarms       
+	    
+	    //=============================================================
+	    // Reset
+	    //=============================================================
+	    
+	    #Interface.Ctrl.Rst := #AxisCtrl.Rst;
+	    
+	    IF #AxisCtrl.Rst THEN
+	        #Local.AlrPosOutTolerance := FALSE;
+	        #Local.AlrHwLimitMinus := FALSE;
+	        #Local.AlrHwLimitPlus := FALSE;
+	        #Local.AlrTargetPosIncorrect := FALSE;
+	        #Local.AlrWrongDirection := FALSE;
+	        #Local.AlrWrongNotIncrease := FALSE;
+	        #Local.AlrTimeoutPreset := FALSE;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Alarm
+	    //=============================================================
+	    
+	    // Axis in postion window
+	    #tonStopInWindow.TON(IN := #MoveAbs.InStopWindow,
+	                         PT := #Config.ToleranceWindowDelay);
+	    IF #tonStopInWindow.Q AND NOT #Sts.InPosition AND NOT #Config.PosFbkDisabled THEN
+	        #Local.AlrPosOutTolerance := TRUE;
+	    END_IF;
+	    
+	    // alarm hardware negative/plus limit switches engaged
+	    IF #HwLsMinus AND NOT (#Homing.Request AND #AxisCtrl.HomeMode = 1) THEN
+	        #Local.AlrHwLimitMinus := TRUE;
+	    END_IF;
+	    IF #HwLsPlus AND NOT (#Homing.Request AND #AxisCtrl.HomeMode = 1) THEN
+	        #Local.AlrHwLimitPlus := TRUE;
+	    END_IF;
+	    
+	    // alarm target position out of limits
+	    IF ((#AxisCtrl.MoveAbsTarget < #Config.limitMinus) OR
+	        (#AxisCtrl.MoveAbsTarget > #Config.limitPlus))
+	        AND #AxisCtrl.MoveAbsolute
+	    THEN
+	        #Local.AlrTargetPosIncorrect := TRUE;
+	    END_IF;
+	    
+	    // alarm axis wrong movement direction                           
+	    IF NOT (#Config.PosFbkDisabled  OR #Config.FbkCtrlDisabled) AND
+	        ((#Ctrl.CmdMinus AND #Sts.ActualDirPlus) OR
+	        (#Ctrl.CmdPlus AND #Sts.ActualDirMinus))
+	    THEN
+	        #Local.AlrWrongDirection := TRUE;
+	    END_IF;
+	    
+	    // alarm axis commanded but stationary  
+	    #tonAxNotIncrease.TON(IN := (#Ctrl.CmdMinus OR #Ctrl.CmdPlus) AND #Sts.Standstill,
+	                          PT := T#500ms);
+	    IF #tonAxNotIncrease.Q AND
+	        NOT (#Config.PosFbkDisabled OR #Config.FbkCtrlDisabled)
+	    THEN
+	        #Local.AlrWrongNotIncrease := TRUE;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Warning
+	    //=============================================================
+	    
+	    #Local.WngSwLimitMinus := (#Interface.Sts.Position < (#Config.limitMinus + #Config.ToleranceWindow)) AND #AxisHomed AND NOT #Homing.Request AND NOT #Config.PosFbkDisabled;
+	    #Local.WngSwLimitPlus := (#Interface.Sts.Position > (#Config.limitPlus - #Config.ToleranceWindow)) AND #AxisHomed AND NOT #Homing.Request AND NOT #Config.PosFbkDisabled;
+	    
+	    //=============================================================
+	    // Alarm And Warning Out
+	    //=============================================================
+	    #Alarm.TargetPosIncorrect := #Local.AlrTargetPosIncorrect;
+	    #Alarm.PosOutTolerance := #Local.AlrPosOutTolerance;
+	    #Alarm.WrongDirection := #Local.AlrWrongDirection;
+	    #Alarm.WrongNotIncrease := #Local.AlrWrongNotIncrease;
+	    #Alarm.HwLimitMinus := #Local.AlrHwLimitMinus;
+	    #Alarm.HwLimitPlus := #Local.AlrHwLimitPlus;
+	    #Alarm.TimeoutPreset := #Local.AlrTimeoutPreset;
+	    #Warning.SwLimitMinus := #Local.WngSwLimitMinus;
+	    #Warning.SwLimitPlus := #Local.WngSwLimitPlus;
+	    
+	END_REGION
+	
+	#axisIsWaitingCommands := NOT #Homing.Request AND NOT #MoveMinus.Request AND NOT #MovePlus.Request AND NOT #MoveAbs.Request;
+	    
+	REGION Homing      
+	    
+	    //Reset status homed on alrm synched
+	    IF #Interface.Sts.ErrorNotSynched OR (NOT #Init AND NOT #Interface.Sts.EncIsAbsolute) THEN
+	        #AxisHomed := FALSE;
+	    END_IF;
+	    #Init := TRUE;
+	 
+	    // preset command is permited
+	    #Homing.Permitted := NOT #Interface.Sts.Error
+	    AND NOT (#MoveMinus.Request OR #MovePlus.Request OR #MoveAbs.Request)
+	    AND (#axisIsWaitingCommands OR #Homing.Request);
+	    
+	    // preset command request memory
+	    IF #AxisCtrl.Homing AND #Homing.Permitted THEN
+	        #Homing.Request := TRUE;
+	    END_IF;
+	    
+	    // preset command
+	    IF #Homing.Request THEN
+	        IF #AxisCtrl.HomeMode = 0 THEN
+	            #Homing.CmdMinus := FALSE;
+	            #Homing.CmdPlus := FALSE;
+	            #Interface.Ctrl.PresetCmd := TRUE;
+	            #Interface.Ctrl.PresetPosition := #AxisCtrl.HomePosition;
+	            IF #Interface.Sts.PresetAck THEN
+	                #Homing.Done := TRUE;
+	                #AxisHomed := TRUE;
+	                #Homing.Request := FALSE;
+	            END_IF;
+	        ELSIF #AxisCtrl.HomeMode = 1 THEN
+	            CASE #Homing.Status OF
+	                0:
+	                    IF #Config.HomingDirection = 0 THEN
+	                        #Homing.CmdMinus := TRUE;
+	                        #Homing.CmdPlus := FALSE;
+	                    ELSE
+	                        #Homing.CmdMinus := FALSE;
+	                        #Homing.CmdPlus := TRUE;
+	                    END_IF;
+	                    IF #HwLsZero THEN
+	                        #Homing.CmdMinus := FALSE;
+	                        #Homing.Status := 1;
+	                    ELSIF #HwLsMinus OR #HwLsPlus THEN
+	                        #Alarm.HwLimitMinus := #HwLsMinus;
+	                        #Alarm.HwLimitPlus := #HwLsPlus;
+	                    END_IF;
+	                1:
+	                    IF #Config.HomingDirection = 0 THEN
+	                        #Homing.CmdMinus := FALSE;
+	                        #Homing.CmdPlus := TRUE;
+	                    ELSE
+	                        #Homing.CmdMinus := TRUE;
+	                        #Homing.CmdPlus := FALSE;
+	                    END_IF;
+	                    IF NOT #HwLsZero THEN
+	                        #Homing.CmdPlus := FALSE;
+	                        #Homing.Status := 2;
+	                        #Interface.Ctrl.PresetCmd := TRUE;
+	                        #Interface.Ctrl.PresetPosition := #AxisCtrl.HomePosition;
+	                    END_IF;
+	                2:
+	                    IF #Interface.Sts.PresetAck THEN
+	                        #Homing.Done := TRUE;
+	                        #AxisHomed := TRUE;
+	                        #Homing.Request := FALSE;
+	                    END_IF;
+	                    
+	            END_CASE;
+	        END_IF;
+	    ELSE
+	        #Homing.Status := 0;
+	        #Homing.CmdMinus := FALSE;
+	        #Homing.CmdPlus := FALSE;
+	        #Homing.Done := FALSE;
+	        #Interface.Ctrl.PresetCmd := FALSE;
+	    END_IF;
+	    
+	    //Timeout preset request
+	    #tonTimeoutPreset.TON(IN := #Homing.Request,
+	                          PT := T#1S);
+	    
+	    IF #tonTimeoutPreset.Q THEN
+	        #Homing.Request := FALSE;
+	        #Local.AlrTimeoutPreset := TRUE;
+	    END_IF;
+	    
+	END_REGION
+	
+	REGION Move Minus
+	    // Move Minus command alarms presence
+	    #MoveMinus.AlarmsPresence := ((#Interface.Sts.Error OR #Interface.Sts.ErrorNotSynched) AND NOT #Config.PosFbkDisabled) OR
+	                                #Local.AlrHwLimitMinus OR #Local.AlrWrongDirection OR #Local.AlrWrongNotIncrease;
+	    
+	    // Move Minus command permitted
+	    #MoveMinus.Permitted := NOT (#AxisCtrl.SafeStop OR #MoveMinus.AlarmsPresence)
+	    AND NOT (#Homing.Request OR #MovePlus.Request OR #MoveAbs.Request)
+	    AND (#axisIsWaitingCommands OR #MoveMinus.Request);
+	    
+	    // Move Backward command request memory
+	    #MoveMinus.Request := #AxisCtrl.MoveMinus AND #MoveMinus.Permitted;
+	    
+	    // Move Minus command 
+	    IF #MoveMinus.Request THEN
+	        #MoveMinus.Cmd := (#Interface.Sts.Position > (#Config.limitMinus + #Config.ToleranceWindow + #Config.PreCutOff)) OR NOT #AxisHomed OR #Config.PosFbkDisabled;
+	        #MoveMinus.InLowSpeedWindow := ((#Interface.Sts.Position - #Config.limitMinus) < #Config.PreEndMedSpeed) OR NOT #AxisHomed OR #Config.PosFbkDisabled;
+	    ELSE
+	        #MoveMinus.Cmd := FALSE;
+	        #MoveMinus.InLowSpeedWindow := FALSE;
+	    END_IF;
+	    
+	END_REGION
+	
+	REGION Move Plus
+	    // Move Forward command alarms presence
+	    #MovePlus.AlarmsPresence := ((#Interface.Sts.Error OR #Interface.Sts.ErrorNotSynched) AND NOT #Config.PosFbkDisabled) OR
+	                                #Local.AlrHwLimitPlus OR #Local.AlrWrongDirection OR #Local.AlrWrongNotIncrease;
+	    
+	    // Move Forward command permitted
+	    #MovePlus.Permitted := NOT (#AxisCtrl.SafeStop OR #MovePlus.AlarmsPresence)
+	    AND NOT (#Homing.Request OR #MoveMinus.Request OR #MoveAbs.Request)
+	    AND (#axisIsWaitingCommands OR #MovePlus.Request);
+	 
+	    // Move Forward command request memory
+	    #MovePlus.Request := #AxisCtrl.MovePlus AND #MovePlus.Permitted;
+	
+	    // Move Forward command start
+	    IF #MovePlus.Request THEN
+	        #MovePlus.Cmd := (#Interface.Sts.Position < (#Config.limitPlus - #Config.ToleranceWindow - #Config.PreCutOff)) OR NOT #AxisHomed OR #Config.PosFbkDisabled;
+	        #MovePlus.InLowSpeedWindow := ((#Config.limitPlus - #Interface.Sts.Position) < #Config.PreEndMedSpeed) OR NOT #AxisHomed OR #Config.PosFbkDisabled;
+	    ELSE
+	        #MovePlus.Cmd := FALSE;
+	        #MovePlus.InLowSpeedWindow := FALSE;
+	    END_IF;
+	    
+	END_REGION
+	
+	REGION Move Absolute
+	    // positioning command alarm presence
+	    #MoveAbs.AlarmsPresence := #Interface.Sts.Error OR #Interface.Sts.ErrorNotSynched OR #Local.AlrPosOutTolerance OR
+	                                #Local.AlrTargetPosIncorrect OR #Local.AlrHwLimitMinus OR #Local.AlrHwLimitPlus OR
+	                                #Local.AlrWrongDirection OR #Local.AlrWrongNotIncrease;
+	                                
+	    // positioning command permitted
+	    #MoveAbs.Permitted := NOT (#AxisCtrl.SafeStop OR #MoveAbs.AlarmsPresence)
+	    AND NOT (#Homing.Request OR #MoveMinus.Request OR #MovePlus.Request)
+	    AND (#axisIsWaitingCommands OR #MoveAbs.Request)
+	    AND NOT #Config.PosFbkDisabled
+	    AND #AxisHomed;
+	    
+	    // reset move req for change move abs position
+	    IF ABS(#AxisCtrl.MoveAbsTarget - #MoveAbs.OldTarget) > #Config.ToleranceWindow THEN
+	        #MoveAbs.Request := FALSE;
+	        #MoveAbs.InStopWindow := FALSE;
+	        #MoveAbs.OldTarget := #AxisCtrl.MoveAbsTarget;
+	    END_IF;
+	    
+	    // reset backslash compensation done flag
+	    IF ABS(#AxisCtrl.MoveAbsTarget - #Interface.Sts.Position) > #Config.ToleranceWindow
+	        AND #AxisCtrl.MoveAbsolute
+	        AND NOT #MoveAbs.Request
+	    THEN
+	        // calculation of position for backlash compensation
+	        IF #Config.BacklashActivation
+	        THEN
+	            #MoveAbs.Target := #AxisCtrl.MoveAbsTarget + #Config.Backlash;
+	            #MoveAbs.BacklashRecoveryDone := FALSE;
+	        ELSE
+	            #MoveAbs.Target := #AxisCtrl.MoveAbsTarget;
+	            #MoveAbs.BacklashRecoveryDone := TRUE;
+	        END_IF;
+	    END_IF;
+	    
+	    // backslash compensation done flag
+	    IF ((#Config.Backlash > 0.0 AND (#Interface.Sts.Position >= #MoveAbs.Target))
+	        OR (#Config.Backlash <= 0.0 AND (#Interface.Sts.Position <= #MoveAbs.Target)))
+	    THEN
+	        #MoveAbs.BacklashRecoveryDone := TRUE;
+	        #MoveAbs.Target := #AxisCtrl.MoveAbsTarget;
+	    END_IF;
+	    
+	    // check limits Of position FOR backlash compensation    
+	    IF #MoveAbs.Target <= #Config.limitMinus THEN
+	        #MoveAbs.Target := #Config.limitMinus + #Config.ToleranceWindow;
+	        #MoveAbs.BacklashRecoveryDone := TRUE;
+	    END_IF;
+	    IF #MoveAbs.Target >= #Config.limitPlus THEN
+	        #MoveAbs.Target := #Config.limitPlus - #Config.ToleranceWindow;
+	        #MoveAbs.BacklashRecoveryDone := TRUE;
+	    END_IF;
+	    
+	    // force absolute value to missing space
+	    #LinearMissingSpace := ABS(#MoveAbs.Target - #Interface.Sts.Position);
+	    // axis is inside low speed position window
+	    #MoveAbs.InLowSpeedWindow := #LinearMissingSpace <= #Config.PreEndLowSpeed;
+	    // axis is inside medium speed position window
+	    #MoveAbs.InMedSpeedWindow := #LinearMissingSpace <= #Config.PreEndMedSpeed;
+	    
+	    // positioning command request
+	    #MoveAbs.Request := #AxisCtrl.MoveAbsolute AND #MoveAbs.Permitted;
+	    
+	    // positioning command start
+	    IF #MoveAbs.Request THEN
+	        IF NOT #MoveAbs.BacklashRecoveryDone AND 
+	            #Config.BacklashActivation              
+	        THEN
+	            #MoveAbs.CmdPlus := FALSE;
+	            #MoveAbs.CmdMinus:= FALSE;
+	            IF (#MoveAbs.Target - #Interface.Sts.Position) > 0.0 THEN
+	                #MoveAbs.CmdPlus := #Interface.Sts.Position < #MoveAbs.Target;
+	            ELSE
+	                #MoveAbs.CmdMinus := #Interface.Sts.Position > #MoveAbs.Target;
+	            END_IF;
+	        ELSE
+	            #MoveAbs.CmdPlus := FALSE;
+	            #MoveAbs.CmdMinus := FALSE;
+	            IF (#MoveAbs.Target - #Interface.Sts.Position) > 0.0 THEN
+	                #MoveAbs.CmdPlus := #Interface.Sts.Position < (#MoveAbs.Target - #Config.PreCutOff);
+	            ELSE
+	                #MoveAbs.CmdMinus := #Interface.Sts.Position > (#MoveAbs.Target + #Config.PreCutOff);
+	            END_IF;
+	            IF (ABS(#AxisCtrl.MoveAbsTarget - #Interface.Sts.Position) <= #Config.PreCutOff) OR #MoveAbs.InStopWindow THEN
+	                #MoveAbs.CmdMinus := FALSE;
+	                #MoveAbs.CmdPlus := FALSE;
+	                #MoveAbs.InStopWindow := TRUE;
+	            END_IF;
+	        END_IF;
+	    ELSE
+	        #MoveAbs.CmdPlus := FALSE;
+	        #MoveAbs.CmdMinus := FALSE;
+	        #MoveAbs.InStopWindow := FALSE;
+	    END_IF;
+	    
+	    #Sts.InPosition := (ABS(#AxisCtrl.MoveAbsTarget - #Interface.Sts.Position) <= #Config.ToleranceWindow) AND #AxisHomed;
+	    
+	    #MoveAbs.Done := #tonStopInWindow.Q AND NOT #Local.AlrPosOutTolerance;
+	    
+	END_REGION
+	    
+	    
+	REGION Actor Command
+	
+	    // Enable change of direction
+	    #tonChangeDirection.TON(IN := NOT (#Ctrl.CmdPlus OR #Ctrl.CmdMinus),
+	                            PT := #Config.ChangeDirectionDelay);
+	    
+	    #Ctrl.CmdMinus :=  NOT #AxisCtrl.SafeStop
+	                                AND (
+	                                    (#MoveMinus.Request AND #MoveMinus.Cmd)
+	                                    OR (#MoveAbs.Request AND #MoveAbs.CmdMinus)
+	                                    OR (#Homing.Request AND #Homing.CmdMinus)
+	                                     )
+	                                     AND (#tonChangeDirection.Q OR #Ctrl.CmdMinus)
+	                                AND NOT #Ctrl.CmdPlus ;
+	                                
+	    #Ctrl.CmdPlus := NOT #AxisCtrl.SafeStop
+	                                AND (
+	                                (#MovePlus.Request AND #MovePlus.Cmd)
+	                                OR (#MoveAbs.Request AND #MoveAbs.CmdPlus)
+	                                OR (#Homing.Request AND #Homing.CmdPlus)
+	                                )
+	                                AND (#tonChangeDirection.Q OR #Ctrl.CmdPlus)
+	                                AND NOT #Ctrl.CmdMinus;
+	    
+	    // select reference speed = low to frequency converter
+	    #Ctrl.CmdLowSpeed := ((#MoveAbs.CmdMinus OR #MoveAbs.CmdPlus) AND #MoveAbs.InLowSpeedWindow)
+	                                OR (#MoveMinus.Cmd AND #MoveMinus.InLowSpeedWindow)  
+	                                OR (#MovePlus.Cmd AND #MovePlus.InLowSpeedWindow)
+	                                OR (#Homing.CmdMinus OR #Homing.CmdPlus) ;
+	    // select reference speed = medium to frequency converter                                
+	    #Ctrl.CmdMediumSpeed := (((#MoveAbs.CmdMinus OR #MoveAbs.CmdPlus) AND #MoveAbs.InMedSpeedWindow)
+	                                    OR #MoveMinus.Cmd
+	                                    OR #MovePlus.Cmd) AND NOT #Ctrl.CmdLowSpeed;
+	    // select reference speed = high to frequency converter
+	    #Ctrl.CmdHighSpeed := (#MoveAbs.CmdMinus OR #MoveAbs.CmdPlus) AND NOT (#Ctrl.CmdLowSpeed OR #Ctrl.CmdMediumSpeed);
+	    
+	    //Actor Out
+	    #ActorCtrl.CmdMinus := #Ctrl.CmdMinus;
+	    #ActorCtrl.CmdPlus := #Ctrl.CmdPlus;
+	    #ActorCtrl.CmdLowSpeed := #Ctrl.CmdLowSpeed;
+	    #ActorCtrl.CmdMediumSpeed := #Ctrl.CmdMediumSpeed;
+	    #ActorCtrl.CmdHighSpeed := #Ctrl.CmdHighSpeed;
+	    
+	END_REGION
+	
+	REGION Coordination Out
+	  
+	    #AxisSts.AlarmPresence := ((#Interface.Sts.Error OR #Interface.Sts.ErrorNotSynched) AND NOT #Config.PosFbkDisabled) OR
+	                            #Local.AlrTargetPosIncorrect OR
+	                            #Local.AlrPosOutTolerance OR
+	                            #Local.AlrWrongDirection OR
+	                            #Local.AlrWrongNotIncrease OR
+	                            #Local.AlrHwLimitMinus OR
+	                            #Local.AlrHwLimitPlus OR
+	                            #Local.AlrTimeoutPreset;
+	    
+	    #AxisSts.WarningPresence := #Local.WngSwLimitMinus OR
+	                        #Local.WngSwLimitPlus;
+	  
+	    #AxisSts.StandStill := #Sts.Standstill;
+	    #AxisSts.IsAtMinusLimit := #Local.WngSwLimitMinus OR #Local.AlrHwLimitMinus;
+	    #AxisSts.IsAtPlusLimit := #Local.WngSwLimitPlus OR #Local.AlrHwLimitPlus;
+	    #AxisSts.Homed := #AxisHomed;
+	    #AxisSts.HomingPermitted := #Homing.Permitted;
+	    #AxisSts.HomingDone := #Homing.Done;
+	    #AxisSts.MoveMinusPermitted := #MoveMinus.Permitted;
+	    #AxisSts.MovePlusPermitted := #MovePlus.Permitted;
+	    #AxisSts.MoveAbsPermitted := #MoveAbs.Permitted;
+	    #AxisSts.Positioned := #MoveAbs.Done;
+	    #AxisSts.InPosition := #Sts.InPosition;
+	    #AxisSts.ActualPosition := #Sts.ActualPosition;
+	    #AxisSts.ActualSpeed := #Sts.ActualSpeed;
+	    
+	END_REGION
+	
+	
+END_FUNCTION_BLOCK
+

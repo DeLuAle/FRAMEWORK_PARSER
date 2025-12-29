@@ -1,0 +1,71 @@
+﻿FUNCTION "PieceToCheck_QtyClear" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Trk_B : Array[1.."BTRK_A03_EXIT_TOCHECK_ITEMS"] of "BTrk_item";
+   END_VAR
+
+   VAR_IN_OUT 
+      Beam_Qty : Int;
+      EnableClearList_ToCheck : Bool;   // Bit di abilitazione cancellazione lista
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      j : Int;
+      ListClear_Qty : Int;
+      ListChech_Req : Int;
+      EnableClear : Bool;
+   END_VAR
+
+
+BEGIN
+	// Funzione che controlla se nel Banco di accumulo Beam da controllare c'è almeno un pezzo da controllare o ricondizionato
+	
+	//#EnableClearList_ToCheck := FALSE;
+	//
+	// Controllo se tutti i pezzi sul banco sono staati controllati e dichiarati ( Conformi o non )
+	FOR #j := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    IF #Trk_B[#j].O_ID > 0 THEN
+	        
+	        IF (#Trk_B[#j].Quality = "TO_CHECK" OR #Trk_B[#j].Quality = "TO_CHECK_LEN") THEN
+	            #ListChech_Req :=  #ListChech_Req + 1;
+	            
+	        END_IF;
+	        
+	    ELSE
+	        #ListChech_Req := 0;
+	    END_IF;
+	END_FOR;
+	
+	// Controllo se tutti i pezzi sul banco sono dichiarati ( NON Conformi )
+	FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    IF #Trk_B[#i].O_ID > 0 THEN
+	        
+	        IF (#Trk_B[#i].Quality = "RECOND_NG" OR #Trk_B[#i].Quality = "NG_R") AND #Beam_Qty = 0 THEN
+	            #EnableClear := TRUE;
+	            #ListClear_Qty := #ListClear_Qty + 1;
+	        END_IF;
+	        
+	    ELSE
+	        #ListClear_Qty := 0;
+	    END_IF;
+	END_FOR;
+	
+	
+	//
+	#Beam_Qty := #ListChech_Req;
+	//
+	IF #Beam_Qty = 0 THEN
+	    #EnableClearList_ToCheck := #EnableClear;
+	END_IF;
+	    
+	#PieceToCheck_QtyClear := #EnableClearList_ToCheck;
+	
+	(* IF #Beam_Qty <> #ListClear_Qty THEN
+	    #EnableClear := FALSE;
+	END_IF; *)
+END_FUNCTION
+

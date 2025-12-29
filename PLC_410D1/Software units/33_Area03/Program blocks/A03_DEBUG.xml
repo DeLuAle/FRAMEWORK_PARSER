@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="Force_Sinamics_Infeed_ON" Datatype="Bool" />
+    <Member Name="Force_Sinamics_Drives_CtrlSafe" Datatype="Bool" />
+    <Member Name="Forse_Contactors_CtrlSafe" Datatype="Bool" />
+    <Member Name="LsStratoDepositato" Datatype="Bool" />
+    <Member Name="CIn_Manager_DEBUG" Datatype="Struct">
+      <Member Name="PareggiatoreTesta" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+      </Member>
+      <Member Name="PareggiatoreCoda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+      </Member>
+      <Member Name="Spalle" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        </Member>
+      </Member>
+      <Member Name="Spintore" Datatype="Struct">
+        <Member Name="Vrt" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Orz" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="TraslazioneStrato" Datatype="Struct">
+        <Member Name="Ax_Testa" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Ax_Coda" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="Ax_Testa" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        <Member Name="Ax_Coda" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+      </Member>
+      <Member Name="Sostegno" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="Paletto" Datatype="Struct">
+            <Member Name="CtrlSafe" Datatype="Bool" />
+            <Member Name="Standstill" Datatype="Bool" />
+            <Member Name="Rest_CheckNext" Datatype="Bool" />
+            <Member Name="Work_CheckNext" Datatype="Bool" />
+            <Member Name="Pos" Datatype="Int" />
+            <Member Name="RestPosition" Datatype="Bool" />
+          </Member>
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="Paletto" Datatype="Struct">
+            <Member Name="CtrlSafe" Datatype="Bool" />
+            <Member Name="Standstill" Datatype="Bool" />
+            <Member Name="Rest_CheckNext" Datatype="Bool" />
+            <Member Name="Work_CheckNext" Datatype="Bool" />
+            <Member Name="Pos" Datatype="Int" />
+            <Member Name="RestPosition" Datatype="Bool" />
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="Navetta" Datatype="Struct">
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+        <Member Name="InPosizioneDiDeposito" Datatype="Bool" />
+        <Member Name="RequestDeposito" Datatype="Bool" />
+      </Member>
+      <Member Name="RegolazBord" Datatype="Struct">
+        <Member Name="CassettaOP" Datatype="Real">
+          <StartValue>65.0</StartValue>
+        </Member>
+        <Member Name="LineSetupExe" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="CIn_Manager04_Debug" Datatype="Struct">
+      <Member Name="Navetta" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+        <Member Name="Cumulativo" Datatype="Struct">
+          <Member Name="PalettiEsterni" Datatype="&quot;ValveMachine_COut&quot;" />
+          <Member Name="PalettiInterni" Datatype="&quot;ValveMachine_COut&quot;" />
+        </Member>
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="ReadyToDrop" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">In posizione di deposito e pacco completato</MultiLanguageText>
+          </Comment>
+        </Member>
+      </Member>
+      <Member Name="Antiribaltamento" Datatype="Struct">
+        <Member Name="Work" Datatype="Bool" />
+        <Member Name="Rest" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HU_Test" Datatype="Struct" Remanence="Retain">
+      <Member Name="Enable" Datatype="Bool" />
+      <Member Name="EnableDrive" Datatype="Bool" />
+      <Member Name="Req_Par-Bloccaggio" Datatype="Bool" />
+      <Member Name="Req_Par-Paregg" Datatype="Bool" />
+      <Member Name="Ctrl_Safe" Datatype="Bool" />
+    </Member>
+    <Member Name="test_bitA" Datatype="Bool" />
+    <Member Name="test_bitB" Datatype="Bool" />
+    <Member Name="A0301_Manager" Datatype="Struct" Remanence="Retain">
+      <Member Name="BeamCode" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">0=Solo Part / 1 = Accoppiamento Part</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Case" Datatype="Int" />
+      <Member Name="P1-P3_Init" Datatype="Bool" />
+      <Member Name="P1-P2_Init" Datatype="Bool" />
+      <Member Name="TrasportoStart" Datatype="Bool" />
+      <Member Name="PTrk_Pos1_Write" Datatype="Bool" />
+    </Member>
+    <Member Name="A0302_Manager" Datatype="Struct" Remanence="Retain">
+      <Member Name="BeamCode" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">0=Solo Part / 1 = Accoppiamento Part</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="JMP" Datatype="Bool">
+        <StartValue>TRUE</StartValue>
+      </Member>
+      <Member Name="A0303_ReadyToRecive" Datatype="Bool" />
+      <Member Name="PareggiaRead" Datatype="Bool" />
+      <Member Name="AttrezzamentoBordatrice" Datatype="Bool" />
+      <Member Name="BTrk_EXIT_Clear" Datatype="Bool" />
+    </Member>
+    <Member Name="A301_PTrk" Datatype="&quot;PTrk_Item&quot;">
+      <Sections>
+        <Section Name="None">
+          <Member Name="O_ID" Datatype="DInt">
+            <StartValue>1</StartValue>
+          </Member>
+          <Member Name="C_ID" Datatype="DInt">
+            <StartValue>0</StartValue>
+          </Member>
+          <Member Name="Quality" Datatype="Int">
+            <StartValue>0</StartValue>
+          </Member>
+          <Member Name="Beam_Code" Datatype="Int">
+            <StartValue>1</StartValue>
+          </Member>
+          <Member Name="PLen_Meas" Datatype="Real">
+            <StartValue>2700.0</StartValue>
+          </Member>
+          <Member Name="W_A" Datatype="Real">
+            <StartValue>140.0</StartValue>
+          </Member>
+          <Member Name="H_B" Datatype="Real">
+            <StartValue>4.5</StartValue>
+          </Member>
+          <Member Name="ShiftDone" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>A03_DEBUG</Name>
+      <Namespace />
+      <Number>165</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

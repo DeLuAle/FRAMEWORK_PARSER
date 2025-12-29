@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0303_Spalla_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="OP_Pos" Datatype="Bool" />
+      <Member Name="FC_Aticoll_Paregg" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="Manager" Datatype="&quot;Positioning_DOL_Machine_Manager&quot;" />
+      <Member Name="Antiribaltamento" Datatype="Struct">
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+      </Member>
+      <Member Name="Pareggiatore" Datatype="Struct">
+        <Member Name="ActualPosition" Datatype="LReal" />
+      </Member>
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Config&quot;" />
+      <Member Name="DelayMissingCondition" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="HWID" Datatype="Struct">
+      <Member Name="Ax_TEL1" Datatype="HW_SUBMODULE" />
+      <Member Name="Enc_IO" Datatype="HW_SUBMODULE" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Par&quot;" />
+      <Member Name="Ax_Pers" Datatype="&quot;Positioning_DOL_Machine_Pers_Data&quot;" />
+      <Member Name="Enc" Datatype="&quot;PosFbk_RTN&quot;" />
+    </Member>
+    <Member Name="Par_Mach" Datatype="Struct">
+      <Member Name="MinDistanzaConParegg" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Alr&quot;" />
+      <Member Name="Enc" Datatype="&quot;PosFbk_Encoder_Alr&quot;" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_Wng&quot;" />
+      <Member Name="SW_Limit_AntiCollision" Datatype="Bool" />
+      <Member Name="OP_POS_MissingCnd" Datatype="Bool" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="PbPreset" Datatype="Bool" />
+      <Member Name="B_Preset_UM2" Datatype="Bool" />
+      <Member Name="PresetValue" Datatype="LReal" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="OP_CanMoveFreely" Datatype="Bool" />
+      <Member Name="OP_Pos_Cnd" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="OP_Pos_Aut" Datatype="Bool" />
+      <Member Name="OP_Pos_Run" Datatype="Bool" />
+      <Member Name="OP_Pos_Man" Datatype="Bool" />
+      <Member Name="OP_Pos" Datatype="Bool" />
+    </Member>
+    <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_FB&quot;" />
+    <Member Name="Enc" Datatype="&quot;PosFbk_SickAFM60&quot;" />
+    <Member Name="Enc_ITF" Datatype="&quot;PosFbk_ITF&quot;" />
+    <Member Name="AUX" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="OP_Pos_PB" Datatype="Bool" />
+    </Member>
+    <Member Name="TON_OP_POS_MissingCnd" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_DistanzaOK" Datatype="IEC_TIMER" Version="1.0" />
+  </Section>
+</Sections></Interface>
+      <Name>A0303_Spalla_Testa</Name>
+      <Namespace />
+      <Number>164</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

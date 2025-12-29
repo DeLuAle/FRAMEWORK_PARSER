@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="CoilHandling_MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Infeed_REQ_ON" Datatype="Bool">
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="PB" Datatype="Struct">
+      <Member Name="MB1_PB_Reset" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="LB114_Interlock_PB_FeedA02" Datatype="Bool" />
+      <Member Name="Area_DataOut_LampCycle" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_SuperUser" Datatype="Struct">
+      <Member Name="PbSafetyReset" Datatype="Bool" />
+      <Member Name="SgnSafetyReset" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_EntryEnable" Datatype="Struct">
+      <Member Name="Z01" Datatype="Bool" />
+      <Member Name="Z02" Datatype="Bool" />
+      <Member Name="Z03" Datatype="Bool" />
+      <Member Name="Z05" Datatype="Bool" />
+      <Member Name="Z10" Datatype="Bool" />
+    </Member>
+    <Member Name="Safety_CtrlSafe" Datatype="Struct">
+      <Member Name="HU_Decoilers_Motor" Datatype="Bool" />
+      <Member Name="HU_Decoilers_StandbyValve" Datatype="Bool" />
+      <Member Name="HU_Decoilers_SafetyValve_HorizRot" Datatype="Bool" />
+      <Member Name="HU_Decoilers_SafetyValve_Decoiler1" Datatype="Bool" />
+      <Member Name="HU_Decoilers_SafetyValve_Decoiler2" Datatype="Bool" />
+      <Member Name="HU_A01_Motor" Datatype="Bool" />
+      <Member Name="HU_A01_StandbyValve" Datatype="Bool" />
+      <Member Name="HU_A01_DegasValve" Datatype="Bool" />
+      <Member Name="HU_A01_SafetyValve_CoilCar" Datatype="Bool" />
+      <Member Name="HU_A01_SafetyValve_Peeler" Datatype="Bool" />
+      <Member Name="HU_A01_SafetyValve_JB_CutRest" Datatype="Bool" />
+      <Member Name="HU_A01_SafetyValve_JB_CutWork" Datatype="Bool" />
+      <Member Name="Sinamics_CoilCar" Datatype="Bool" />
+      <Member Name="Sinamics_DecoilersTranslation" Datatype="Bool" />
+      <Member Name="Sinamics_Decoiler1" Datatype="Bool" />
+      <Member Name="Sinamics_Decoiler2" Datatype="Bool" />
+      <Member Name="Sinamics_Straightener" Datatype="Bool" />
+      <Member Name="Sinamics_JB_Torch" Datatype="Bool" />
+      <Member Name="Sinamics_JB_PinchR" Datatype="Bool" />
+    </Member>
+    <Member Name="Doors_Closed" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Production_Running" Datatype="Bool" />
+    <Member Name="Production_Halted" Datatype="Struct">
+      <Member Name="Code" Datatype="Int" />
+      <Member Name="Message_N" Datatype="Int">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="MaterialCounter" Datatype="&quot;MatCountData&quot;">
+      <Comment>
+        <MultiLanguageText Lang="en-US">= "CoilHandlingMatCounter_PERS".PersistentValues.Data.CounterValue</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MaterialPresence" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MaterialPresence_StraightenerEntry" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MaterialPresence_StraightenerExit" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="MaterialPresence_JBPinchExit" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <StartValue>TRUE</StartValue>
+    </Member>
+    <Member Name="Material_STS" Datatype="Int" />
+    <Member Name="Decoiler_InLine" Datatype="Int" />
+    <Member Name="Coil_Diameter" Datatype="Real" />
+    <Member Name="WeldDone" Datatype="Bool" />
+    <Member Name="Deroga_Spessore_Errato" Datatype="Bool" />
+    <Member Name="Spessore_Lamiera_Errato" Datatype="Bool" />
+    <Member Name="Spessore_Lamiera_Errore_Valore" Datatype="Real" />
+    <Member Name="Spessore_Lamiera_Sensore_Valore" Datatype="Real" />
+    <Member Name="Provino_Eseguito" Datatype="Bool" />
+    <Member Name="Loop1_COut" Datatype="&quot;SmartLoopControl_COut&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Loop1_Lamp" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Loop1_MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="NxtEndOfMaterial" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="EmptyingConfirmed" Datatype="Bool" />
+    <Member Name="StraightnerPowerOn" Datatype="Bool" />
+    <Member Name="FreeBool" Datatype="Array[1..16] of Bool" />
+    <Member Name="FreeLReal" Datatype="Array[1..16] of LReal" />
+    <Member Name="FreeDINT" Datatype="Array[1..16] of DInt" />
+  </Section>
+</Sections></Interface>
+      <Name>ITF_A01</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

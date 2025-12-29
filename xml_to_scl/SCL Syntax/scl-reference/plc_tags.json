@@ -1,0 +1,330 @@
+{
+    "category": "PLC Tags",
+    "description": "Sistema di tag (variabili) in TIA Portal per S7-1500/S7-1200",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - PLC Tags",
+    "plc_tags": {
+        "description": "I PLC Tags sono variabili globali accessibili da tutto il programma. Alternativa moderna ai DB globali.",
+        "location": "PLC tags folder nel project tree",
+        "types": {
+            "Default_Tag_Table": {
+                "description": "Tabella tag predefinita creata automaticamente",
+                "use": "Tag generici, variabili di processo",
+                "organization": "Singola tabella, può diventare grande"
+            },
+            "Custom_Tag_Tables": {
+                "description": "Tabelle tag personalizzate create dall'utente",
+                "use": "Organizzazione logica per area/funzione",
+                "organization": "Multiple tabelle (es: Motors, Valves, Sensors)",
+                "benefit": "Migliore organizzazione, più facile manutenzione"
+            }
+        }
+    },
+    "tag_structure": {
+        "name": {
+            "description": "Nome simbolico del tag",
+            "rules": [
+                "Univoco all'interno della tabella",
+                "Max 24 caratteri raccomandato",
+                "Case-insensitive",
+                "Inizia con lettera o underscore",
+                "Solo lettere, numeri, underscore"
+            ],
+            "conventions": [
+                "Descrittivo: Motor1_Speed (non M1S)",
+                "Prefissi per tipo: bStart, iCounter, rTemperature",
+                "Gerarchico: Line1_Motor1_Speed"
+            ],
+            "examples": [
+                "Motor1_Running",
+                "Tank_Level_Sensor",
+                "Conveyor_Speed_Setpoint"
+            ]
+        },
+        "data_type": {
+            "description": "Tipo di dato del tag",
+            "supported_types": [
+                "Elementary: BOOL, INT, DINT, REAL, STRING, TIME, ecc.",
+                "Complex: ARRAY, STRUCT",
+                "UDT: User Defined Types",
+                "FB instances: Istanze di Function Block"
+            ],
+            "examples": {
+                "simple": "Motor1_Running : BOOL",
+                "array": "Temperatures : ARRAY[0..9] OF REAL",
+                "struct": "Recipe1 : \"Recipe_Type\"",
+                "fb_instance": "Motor1_Control : \"Motor_FB\""
+            }
+        },
+        "address": {
+            "description": "Indirizzo fisico opzionale (I/O mapping)",
+            "types": {
+                "absolute": {
+                    "description": "Indirizzo fisico diretto",
+                    "syntax": "%I0.0, %Q1.2, %M10.5, %DB1.DBX2.3",
+                    "prefixes": {
+                        "%I": "Input (ingressi digitali/analogici)",
+                        "%Q": "Output (uscite digitali/analogiche)",
+                        "%M": "Memory (memoria interna)",
+                        "%DB": "Data Block"
+                    },
+                    "examples": [
+                        "%I0.0 - Input bit 0.0",
+                        "%IW64 - Input Word 64",
+                        "%QW100 - Output Word 100",
+                        "%MD20 - Memory Double Word 20"
+                    ]
+                },
+                "symbolic": {
+                    "description": "Solo nome simbolico, senza indirizzo fisico",
+                    "use": "Variabili interne, calcoli, non I/O",
+                    "benefit": "TIA Portal alloca automaticamente memoria"
+                }
+            },
+            "io_mapping": {
+                "description": "Collegamento tag a ingressi/uscite fisiche",
+                "digital_input": "%I0.0 - Pulsante start",
+                "digital_output": "%Q0.0 - Motore ON/OFF",
+                "analog_input": "%IW64 - Sensore temperatura (WORD/INT)",
+                "analog_output": "%QW100 - Valvola proporzionale (WORD/INT)"
+            }
+        },
+        "retain": {
+            "description": "Retentive: mantiene valore dopo power-off",
+            "options": {
+                "non_retain": "Valore perso a power-off (default)",
+                "retain": "Valore mantenuto in memoria retentive",
+                "set_in_IDB": "Valore ripristinato da valore iniziale"
+            },
+            "use_cases": [
+                "Retain: contatori produzione, totalizzatori",
+                "Non-retain: stati temporanei, flag di ciclo",
+                "Set in IDB: configurazioni, setpoint"
+            ],
+            "note": "Memoria retentive limitata, usare con parsimonia"
+        },
+        "accessible_from": {
+            "description": "Visibilità del tag",
+            "options": {
+                "this_PLC_only": "Solo CPU locale (default)",
+                "HMI": "Accessibile da HMI",
+                "OPC_UA": "Accessibile via OPC UA",
+                "S7_communication": "Accessibile da altre CPU S7"
+            }
+        },
+        "monitoring": {
+            "description": "Supervisione e diagnostica",
+            "watch_table": "Aggiungibile a watch table per debug",
+            "force_table": "Forzabile per test",
+            "online_monitoring": "Valore visibile online in TIA Portal"
+        }
+    },
+    "tag_tables_organization": {
+        "description": "Best practices per organizzazione tag tables",
+        "strategies": {
+            "by_function": {
+                "description": "Tabelle per funzione/area",
+                "examples": [
+                    "Motors_Tags - Tutti i motori",
+                    "Valves_Tags - Tutte le valvole",
+                    "Sensors_Tags - Tutti i sensori",
+                    "HMI_Tags - Interfaccia HMI"
+                ],
+                "benefit": "Facile trovare tag correlati"
+            },
+            "by_location": {
+                "description": "Tabelle per zona fisica",
+                "examples": [
+                    "Line1_Tags",
+                    "Line2_Tags",
+                    "Warehouse_Tags"
+                ],
+                "benefit": "Organizzazione per area impianto"
+            },
+            "by_type": {
+                "description": "Tabelle per tipo di dato",
+                "examples": [
+                    "Digital_IO_Tags",
+                    "Analog_IO_Tags",
+                    "Internal_Tags"
+                ],
+                "benefit": "Separazione I/O da variabili interne"
+            }
+        }
+    },
+    "tags_vs_db": {
+        "description": "Confronto tra PLC Tags e Data Blocks globali",
+        "plc_tags": {
+            "pros": [
+                "Più moderni e user-friendly",
+                "Organizzazione in tabelle multiple",
+                "Facile accesso simbolico",
+                "Integrazione migliore con HMI",
+                "Più intuitivi per principianti"
+            ],
+            "cons": [
+                "Meno controllo su allocazione memoria",
+                "Possibile frammentazione memoria",
+                "Meno flessibili per strutture complesse"
+            ],
+            "when_to_use": [
+                "I/O fisici (ingressi/uscite)",
+                "Variabili di processo semplici",
+                "Interfaccia HMI",
+                "Progetti piccoli-medi"
+            ]
+        },
+        "global_db": {
+            "pros": [
+                "Controllo completo struttura dati",
+                "Ottimizzazione memoria",
+                "Strutture dati complesse",
+                "Migliore per grandi progetti"
+            ],
+            "cons": [
+                "Sintassi più verbosa (\"DB_Name\".Variable)",
+                "Meno intuitivo",
+                "Richiede più pianificazione"
+            ],
+            "when_to_use": [
+                "Strutture dati complesse (ricette, allarmi)",
+                "Grandi quantità di dati correlati",
+                "Progetti grandi con molti dati",
+                "Quando serve ottimizzazione memoria"
+            ]
+        }
+    },
+    "scl_usage": {
+        "direct_access": {
+            "description": "Accesso diretto a tag per nome",
+            "syntax": "TagName",
+            "example": "Motor1_Running := TRUE;\ntemp := Tank_Level_Sensor;"
+        },
+        "array_tags": {
+            "description": "Tag di tipo array",
+            "declaration": "Temperatures : ARRAY[0..9] OF REAL",
+            "access": "Temperatures[5] := 25.5;\navg := (Temperatures[0] + Temperatures[1]) / 2.0;"
+        },
+        "struct_tags": {
+            "description": "Tag di tipo struttura",
+            "declaration": "Motor1_Data : \"Motor_Type\"",
+            "access": "Motor1_Data.Speed := 1500.0;\nMotor1_Data.Running := TRUE;"
+        },
+        "fb_instance_tags": {
+            "description": "Tag che sono istanze di FB",
+            "declaration": "Motor1_Control : \"Motor_FB\"",
+            "call": "#Motor1_Control(\n    Start := startButton,\n    Stop := stopButton,\n    Running => Motor1_Running\n);"
+        }
+    },
+    "common_use_cases": {
+        "digital_io": {
+            "description": "Ingressi/uscite digitali",
+            "input_example": {
+                "name": "Start_Button",
+                "type": "BOOL",
+                "address": "%I0.0",
+                "comment": "Pulsante start linea 1"
+            },
+            "output_example": {
+                "name": "Motor1_Contactor",
+                "type": "BOOL",
+                "address": "%Q0.0",
+                "comment": "Contattore motore 1"
+            }
+        },
+        "analog_io": {
+            "description": "Ingressi/uscite analogici",
+            "input_example": {
+                "name": "Temperature_Sensor_1",
+                "type": "INT",
+                "address": "%IW64",
+                "comment": "Sensore temperatura (0-27648 = 0-100°C)",
+                "scaling": "Usare SCALE_X per convertire in REAL"
+            },
+            "output_example": {
+                "name": "Valve_Position_Setpoint",
+                "type": "INT",
+                "address": "%QW100",
+                "comment": "Setpoint valvola proporzionale"
+            }
+        },
+        "internal_variables": {
+            "description": "Variabili interne (no I/O)",
+            "examples": [
+                {
+                    "name": "Production_Counter",
+                    "type": "DINT",
+                    "retain": "TRUE",
+                    "comment": "Contatore pezzi prodotti"
+                },
+                {
+                    "name": "System_State",
+                    "type": "INT",
+                    "comment": "Stato macchina (0=Idle, 1=Running, 2=Error)"
+                },
+                {
+                    "name": "Recipe_Active",
+                    "type": "\"Recipe_Type\"",
+                    "comment": "Ricetta attualmente attiva"
+                }
+            ]
+        },
+        "hmi_interface": {
+            "description": "Tag per interfaccia HMI",
+            "examples": [
+                {
+                    "name": "HMI_Start_Command",
+                    "type": "BOOL",
+                    "accessible_from": "HMI",
+                    "comment": "Comando start da HMI"
+                },
+                {
+                    "name": "HMI_Speed_Setpoint",
+                    "type": "REAL",
+                    "accessible_from": "HMI",
+                    "comment": "Setpoint velocità da HMI"
+                },
+                {
+                    "name": "HMI_Alarm_Active",
+                    "type": "BOOL",
+                    "accessible_from": "HMI",
+                    "comment": "Stato allarme verso HMI"
+                }
+            ]
+        }
+    },
+    "best_practices": [
+        "Usare nomi descrittivi e consistenti",
+        "Organizzare in tabelle logiche (per funzione/area)",
+        "Documentare ogni tag con commento",
+        "Usare prefissi per tipo (b, i, r) se utile",
+        "Limitare tag retentive (memoria limitata)",
+        "Separare I/O fisici da variabili interne",
+        "Usare UDT per strutture ripetute",
+        "Marcare 'Accessible from HMI' solo se necessario",
+        "Evitare tag globali eccessivi (preferire parametri FB)",
+        "Pianificare struttura tag prima di iniziare programmazione"
+    ],
+    "common_mistakes": [
+        {
+            "mistake": "Troppi tag globali",
+            "problem": "Namespace inquinato, difficile manutenzione",
+            "solution": "Usare parametri FB, limitare tag globali a I/O e dati condivisi"
+        },
+        {
+            "mistake": "Nomi non descrittivi",
+            "problem": "M1, T2, V5 - impossibile capire cosa sono",
+            "solution": "Motor1_Running, Tank2_Level, Valve5_Position"
+        },
+        {
+            "mistake": "Tutto retentive",
+            "problem": "Memoria retentive esaurita, comportamento imprevisto",
+            "solution": "Solo contatori produzione e dati critici retentive"
+        },
+        {
+            "mistake": "Nessuna organizzazione",
+            "problem": "Tutti i tag in Default_Tag_Table",
+            "solution": "Creare tabelle separate per funzione/area"
+        }
+    ]
+}

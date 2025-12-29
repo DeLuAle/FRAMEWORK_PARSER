@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="TimeOut_ACK" Datatype="Bool">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Flag timeout comunicazione IPC - nessuna risposta entro PT_TIMEOUT</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="BufferShift" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione errori durante compattazione buffer con MOVE_BLK_VARIANT</MultiLanguageText>
+      </Comment>
+      <Member Name="Error" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">TRUE = errore durante spostamento, buffer potenzialmente inconsistente</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="ErrCode" Datatype="Int">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Codice errore specifico restituito da MOVE_BLK_VARIANT per diagnostica Gestione messaggi rifiutati dall'IPC (ACK negativo) con meccanismo retry</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+    <Member Name="Msg_NotAccepted" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione messaggi rifiutati dall'IPC (ACK negativo) con meccanismo retry</MultiLanguageText>
+      </Comment>
+      <Member Name="Presence" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">TRUE = messaggio in attesa di retry dopo rifiuto</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Code_ACK" Datatype="DInt">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Codice errore IPC (es: -1=malformato, -2=topic invalid, ecc.)</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Msg" Datatype="&quot;IPC_Msg_Generico&quot;">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Copia del messaggio rifiutato per analisi e retry</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>IPC_Msg_Send_Err</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

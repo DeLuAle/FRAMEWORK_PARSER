@@ -1,0 +1,208 @@
+﻿FUNCTION "Find_O_ID" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      NumStazione : Int;
+   END_VAR
+
+   VAR_OUTPUT 
+      O_ID : DInt;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      Found : Bool;
+      IDFound_Station303_Preparation : DInt;
+      IDFound_Station302_Exit : DInt;
+      IDFound_Station302_Entry : DInt;
+      IDFound_Station301B : DInt;
+      IDFound_Station301P : DInt;
+      IDFound_Station202 : DInt;
+      IDFound_O_ACT : DInt;
+   END_VAR
+
+
+BEGIN
+	// Questa funzione cerca a ritroso prima nei BTrk poi nel PTrk un Order ID (O_ID) per preparare la macchina al prossimo pezzo in arrivo 
+	
+	
+	// Inizializza flag e variabili per ricerca Order ID
+	#Found := FALSE;
+	#IDFound_Station302_Exit := 0;
+	#IDFound_Station302_Entry := 0;
+	#IDFound_Station301B := 0;
+	#IDFound_Station301P := 0;
+	#IDFound_Station202 := 0;
+	#IDFound_O_ACT := 0;
+	
+	
+	
+	IF #NumStazione <> 0 THEN
+	    
+	    //Station 302 Exit BTrk    
+	    FOR #i := "BTRK_A0302_EXIT_ITEMS" TO 1 BY -1 DO
+	        IF "BTrk".A0302_EXIT.B[#i].O_ID > 0 THEN
+	            #Found := TRUE;
+	            #IDFound_Station302_Exit := "BTrk".A0302_EXIT.B[#i].O_ID;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //Station 302 Entry BTrk
+	    FOR #i := "BTRK_A0302_ENTRY_ITEMS" TO 1 BY -1 DO
+	        IF "BTrk".A0302_ENTRY.B[#i].O_ID > 0 THEN
+	            #Found := TRUE;
+	            #IDFound_Station302_Entry := "BTrk".A0302_ENTRY.B[#i].O_ID;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //Station 301 BTrk
+	    FOR #i := "BTRK_A0301_ITEMS" TO 1 BY -1 DO
+	        IF "BTrk".A0301.B[#i].O_ID > 0 THEN
+	            #Found := TRUE;
+	            #IDFound_Station301B := "BTrk".A0301.B[#i].O_ID;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //Station 301 PTrk
+	    FOR #i := "PTRK_A0301_ITEMS" TO 1 BY -1 DO
+	        IF "PTrk".A0301.P[#i].O_ID > 0 THEN
+	            #Found := TRUE;
+	            #IDFound_Station301P := "PTrk".A0301.P[#i].O_ID;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    //Station 202 PTrk
+	    FOR #i := "PTRK_A0202_ITEMS" TO 1 BY -1 DO
+	        IF "PTrk".A0202.P[#i].O_ID > 0 THEN
+	            #Found := TRUE;
+	            #IDFound_Station202 := "PTrk".A0202.P[#i].O_ID;
+	            EXIT;
+	        END_IF;
+	    END_FOR;
+	    
+	    #IDFound_O_ACT := "Areas_ITF".Prod.A03_A04.Beams_Data.O_ACT.O_ID;
+	   
+	    
+	END_IF;
+	
+	// Assegna #O_ID in base alla priorità degli Order ID trovati per la stazione corrente
+	IF #Found OR  #IDFound_O_ACT > 0 THEN
+	    
+	    CASE #NumStazione OF
+	            
+	        "STATION_A0301_P":
+	            
+	            IF  #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	            
+	        "STATION_A0301_B":
+	            
+	            IF #IDFound_Station301B > 0 THEN
+	                #O_ID := #IDFound_Station301B;
+	            ELSIF #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	           
+	            
+	        "STATION_A0302_ENTRY":
+	            
+	            IF #IDFound_Station302_Entry > 0 THEN
+	                #O_ID := #IDFound_Station302_Entry;
+	            ELSIF #IDFound_Station301B > 0 THEN
+	                #O_ID := #IDFound_Station301B;
+	            ELSIF #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	            
+	        "STATION_A0302_EXIT":
+	            
+	            IF #IDFound_Station302_Exit > 0 THEN
+	                #O_ID := #IDFound_Station302_Exit;
+	            ELSIF #IDFound_Station302_Entry > 0 THEN
+	                #O_ID := #IDFound_Station302_Entry;
+	            ELSIF #IDFound_Station301B > 0 THEN
+	                #O_ID := #IDFound_Station301B;
+	            ELSIF #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	            
+	        "STATION_A0303_PREPARATION":
+	            IF #IDFound_Station303_Preparation > 0 THEN
+	                #O_ID := #IDFound_Station303_Preparation;
+	            ELSIF #IDFound_Station302_Exit > 0 THEN
+	                #O_ID := #IDFound_Station302_Exit;
+	            ELSIF #IDFound_Station302_Entry > 0 THEN
+	                #O_ID := #IDFound_Station302_Entry;
+	            ELSIF #IDFound_Station301B > 0 THEN
+	                #O_ID := #IDFound_Station301B;
+	            ELSIF #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	            
+	        "STATION_A0303_STACKER":
+	            IF #IDFound_Station303_Preparation > 0 THEN
+	                #O_ID := #IDFound_Station303_Preparation;
+	            ELSIF #IDFound_Station302_Exit > 0 THEN
+	                #O_ID := #IDFound_Station302_Exit;
+	            ELSIF #IDFound_Station302_Entry > 0 THEN
+	                #O_ID := #IDFound_Station302_Entry;
+	            ELSIF #IDFound_Station301B > 0 THEN
+	                #O_ID := #IDFound_Station301B;
+	            ELSIF #IDFound_Station301P > 0 THEN
+	                #O_ID := #IDFound_Station301P;
+	            ELSIF #IDFound_Station202 > 0 THEN
+	                #O_ID := #IDFound_Station202;
+	            ELSIF #IDFound_O_ACT > 0 THEN
+	                #O_ID := #IDFound_O_ACT;
+	            ELSE
+	                #O_ID := 0;
+	            END_IF;
+	            
+	    END_CASE;
+	    
+	ELSE
+	    // Nessun Order ID trovato, azzero #O_ID
+	    #O_ID := 0;
+	    
+	END_IF;
+	
+	
+	
+	
+END_FUNCTION
+

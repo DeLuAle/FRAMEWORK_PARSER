@@ -1,0 +1,289 @@
+{
+    "category": "SCL Code Blocks",
+    "description": "Blocchi di codice disponibili in TIA Portal per programmazione SCL",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Program Blocks / IEC 61131-3 Standard",
+    "code_blocks": [
+        {
+            "name": "OB (Organization Block)",
+            "type": "System Block",
+            "description": "Blocco organizzativo chiamato dal sistema operativo della CPU. Interfaccia tra sistema operativo e programma utente.",
+            "characteristics": [
+                "Chiamato automaticamente dal sistema operativo",
+                "Non può essere chiamato dal programma utente",
+                "Ha priorità di esecuzione definita",
+                "Può avere parametri temporali (OB di interrupt)"
+            ],
+            "common_types": {
+                "OB1": {
+                    "name": "Main Program Cycle",
+                    "description": "Ciclo principale del programma. Eseguito ciclicamente.",
+                    "priority": "1 (più bassa)",
+                    "typical_use": "Logica principale di controllo, chiamate a FC/FB"
+                },
+                "OB10-OB17": {
+                    "name": "Time-of-Day Interrupts",
+                    "description": "Interrupt a orario programmato (es. ogni giorno alle 08:00).",
+                    "priority": "2-9",
+                    "typical_use": "Operazioni pianificate, report giornalieri"
+                },
+                "OB20-OB23": {
+                    "name": "Time-Delay Interrupts",
+                    "description": "Interrupt con ritardo programmabile.",
+                    "priority": "3-10",
+                    "typical_use": "Azioni ritardate, timeout"
+                },
+                "OB30-OB38": {
+                    "name": "Cyclic Interrupts",
+                    "description": "Interrupt ciclici (es. ogni 100ms).",
+                    "priority": "7-15",
+                    "typical_use": "Controlli veloci, regolazioni PID, acquisizione dati ad alta frequenza"
+                },
+                "OB40-OB47": {
+                    "name": "Hardware Interrupts",
+                    "description": "Interrupt da moduli hardware (I/O digitali/analogici).",
+                    "priority": "16-23",
+                    "typical_use": "Risposta immediata a eventi hardware"
+                },
+                "OB80-OB87": {
+                    "name": "Error OBs",
+                    "description": "Gestione errori (time error, I/O error, rack error, ecc.).",
+                    "priority": "Varia",
+                    "typical_use": "Diagnostica, logging errori, fail-safe"
+                },
+                "OB100": {
+                    "name": "Warm Restart",
+                    "description": "Eseguito una volta all'avvio (warm restart).",
+                    "priority": "27",
+                    "typical_use": "Inizializzazione variabili, setup comunicazioni"
+                },
+                "OB101": {
+                    "name": "Hot Restart",
+                    "description": "Eseguito dopo hot restart (mantenimento valori).",
+                    "priority": "27",
+                    "typical_use": "Verifica stato dopo restart"
+                },
+                "OB102": {
+                    "name": "Cold Restart",
+                    "description": "Eseguito dopo cold restart (reset completo).",
+                    "priority": "27",
+                    "typical_use": "Inizializzazione completa sistema"
+                }
+            },
+            "scl_example": "// OB1 - Main Cycle\n// Chiamato automaticamente ogni ciclo\n\n// Chiamata a Function Block\n\"Motor1_Control\"();  // Istanza FB\n\n// Chiamata a Function\nresult := \"Calculate_Average\"(values := sensorArray);",
+            "notes": [
+                "Numero OB determina priorità di esecuzione",
+                "OB con priorità alta interrompono OB con priorità bassa",
+                "OB1 è sempre presente (ciclo principale)",
+                "OB di errore sono opzionali ma raccomandati"
+            ]
+        },
+        {
+            "name": "FC (Function)",
+            "type": "User Block",
+            "description": "Funzione senza memoria. Esegue operazioni e ritorna un valore. Non ha memoria tra chiamate.",
+            "characteristics": [
+                "Nessuna memoria persistente (no instance DB)",
+                "Può ritornare un valore (tipo funzione)",
+                "Parametri IN, OUT, IN_OUT, RETURN",
+                "Riutilizzabile, senza stato",
+                "Più efficiente in termini di memoria"
+            ],
+            "when_to_use": [
+                "Calcoli matematici puri",
+                "Conversioni di dati",
+                "Operazioni senza stato",
+                "Funzioni utility generiche"
+            ],
+            "scl_declaration": "FUNCTION \"Calculate_Average\" : REAL\nVAR_INPUT\n    values : ARRAY[0..9] OF REAL;\n    count : INT;\nEND_VAR\nVAR_TEMP\n    sum : REAL;\n    i : INT;\nEND_VAR\nBEGIN\n    sum := 0.0;\n    FOR i := 0 TO count - 1 DO\n        sum := sum + values[i];\n    END_FOR;\n    \"Calculate_Average\" := sum / count;  // Valore di ritorno\nEND_FUNCTION",
+            "scl_call": "// Chiamata FC\naverage := \"Calculate_Average\"(values := temperatures, count := 10);",
+            "parameters": {
+                "VAR_INPUT": "Parametri di input (passati per valore o riferimento)",
+                "VAR_OUTPUT": "Parametri di output",
+                "VAR_IN_OUT": "Parametri in/out (passati per riferimento)",
+                "VAR_TEMP": "Variabili temporanee (esistono solo durante esecuzione)",
+                "VAR_CONSTANT": "Costanti locali",
+                "RETURN": "Valore di ritorno (nome funzione)"
+            },
+            "notes": [
+                "FC non ha memoria tra chiamate",
+                "Usare VAR_TEMP per variabili locali temporanee",
+                "Il valore di ritorno si assegna al nome della funzione",
+                "Più leggera di FB (no instance DB)"
+            ]
+        },
+        {
+            "name": "FB (Function Block)",
+            "type": "User Block",
+            "description": "Blocco funzionale con memoria. Ha un instance data block associato che mantiene lo stato tra chiamate.",
+            "characteristics": [
+                "Ha memoria persistente (instance DB)",
+                "Mantiene stato tra chiamate",
+                "Parametri IN, OUT, IN_OUT",
+                "Variabili statiche (VAR_STAT)",
+                "Può contenere timer, contatori, altri FB"
+            ],
+            "when_to_use": [
+                "Controllo motori, valvole, attuatori",
+                "Macchine a stati",
+                "Regolatori PID",
+                "Sequenze con memoria",
+                "Qualsiasi logica che richiede stato persistente"
+            ],
+            "scl_declaration": "FUNCTION_BLOCK \"Motor_Control\"\nVAR_INPUT\n    Start : BOOL;          // Comando start\n    Stop : BOOL;           // Comando stop\n    SpeedSetpoint : REAL;  // Setpoint velocità\nEND_VAR\nVAR_OUTPUT\n    Running : BOOL;        // Stato motore\n    ActualSpeed : REAL;    // Velocità attuale\n    Alarm : BOOL;          // Allarme\nEND_VAR\nVAR\n    State : INT;           // Stato macchina (memoria)\n    StartTimer : TON;      // Timer (memoria)\n    ErrorCount : INT;      // Contatore errori (memoria)\nEND_VAR\nVAR_TEMP\n    tempValue : REAL;      // Variabile temporanea\nEND_VAR\nBEGIN\n    // Logica controllo motore\n    CASE State OF\n        0: // Idle\n            IF Start AND NOT Stop THEN\n                State := 1;\n            END_IF;\n        1: // Starting\n            #StartTimer(IN := TRUE, PT := T#2s);\n            IF #StartTimer.Q THEN\n                State := 2;\n                Running := TRUE;\n            END_IF;\n        2: // Running\n            IF Stop THEN\n                State := 0;\n                Running := FALSE;\n            END_IF;\n    END_CASE;\nEND_FUNCTION_BLOCK",
+            "scl_call": "// Dichiarazione istanza (in DB o VAR_STAT)\nVAR\n    Motor1 : \"Motor_Control\";  // Instance DB creato automaticamente\nEND_VAR\n\n// Chiamata FB\n#Motor1(\n    Start := startButton,\n    Stop := stopButton,\n    SpeedSetpoint := 1500.0,\n    Running => motorRunning,\n    ActualSpeed => currentSpeed,\n    Alarm => motorAlarm\n);",
+            "parameters": {
+                "VAR_INPUT": "Parametri di input",
+                "VAR_OUTPUT": "Parametri di output",
+                "VAR_IN_OUT": "Parametri in/out",
+                "VAR": "Variabili statiche (memoria persistente)",
+                "VAR_TEMP": "Variabili temporanee",
+                "VAR_CONSTANT": "Costanti locali"
+            },
+            "instance_types": {
+                "Single Instance": {
+                    "description": "Ogni istanza ha il proprio instance DB",
+                    "declaration": "VAR\n    Motor1 : \"Motor_Control\";  // DB separato\n    Motor2 : \"Motor_Control\";  // DB separato\nEND_VAR",
+                    "use": "Quando ogni istanza è indipendente"
+                },
+                "Multi-Instance": {
+                    "description": "Istanze annidate dentro un FB padre, condividono il suo DB",
+                    "declaration": "FUNCTION_BLOCK \"Line_Control\"\nVAR\n    Motor1 : \"Motor_Control\";  // Multi-instance\n    Motor2 : \"Motor_Control\";  // Multi-instance\nEND_VAR",
+                    "use": "Risparmio memoria, istanze correlate"
+                },
+                "Array of Instances": {
+                    "description": "Array di istanze FB",
+                    "declaration": "VAR\n    Motors : ARRAY[1..10] OF \"Motor_Control\";\nEND_VAR",
+                    "use": "Gestione multipla di elementi identici"
+                }
+            },
+            "notes": [
+                "FB richiede instance DB (memoria)",
+                "VAR mantiene valori tra chiamate",
+                "VAR_TEMP viene azzerato ad ogni chiamata",
+                "Timer e contatori devono essere in VAR (non VAR_TEMP)",
+                "Multi-instance risparmia memoria"
+            ]
+        },
+        {
+            "name": "DB (Data Block)",
+            "type": "Data Storage",
+            "description": "Blocco dati per memorizzazione variabili globali o dati di istanza.",
+            "types": {
+                "Global DB": {
+                    "description": "Data block globale accessibile da tutto il programma",
+                    "declaration": "DATA_BLOCK \"Global_Data\"\nSTRUCT\n    ProductionCount : DINT;\n    Temperature : ARRAY[1..10] OF REAL;\n    RecipeActive : INT;\n    AlarmFlags : WORD;\nEND_STRUCT\nBEGIN\n    ProductionCount := 0;\n    RecipeActive := 1;\nEND_DATA_BLOCK",
+                    "access": "\"Global_Data\".ProductionCount := 100;\ntemp := \"Global_Data\".Temperature[5];",
+                    "use": "Dati condivisi, configurazioni, ricette, dati di processo"
+                },
+                "Instance DB": {
+                    "description": "Data block associato a istanza FB (creato automaticamente)",
+                    "creation": "Automatico quando si dichiara istanza FB",
+                    "access": "Tramite istanza FB o accesso diretto al DB",
+                    "use": "Memoria per FB, stato persistente"
+                },
+                "Array DB": {
+                    "description": "DB contenente array di dati",
+                    "declaration": "DATA_BLOCK \"Sensor_Values\"\nARRAY[1..100] OF REAL\nBEGIN\nEND_DATA_BLOCK",
+                    "use": "Grandi quantità di dati omogenei"
+                }
+            },
+            "characteristics": [
+                "Memoria persistente (retentive opzionale)",
+                "Accessibile globalmente",
+                "Può essere ottimizzato o non ottimizzato",
+                "Supporta accesso simbolico e assoluto"
+            ],
+            "retentive": {
+                "description": "Dati retentive mantengono valore dopo power-off",
+                "declaration": "Checkbox 'Retain' in proprietà variabile",
+                "use": "Contatori produzione, totalizzatori, configurazioni"
+            },
+            "scl_access": "// Accesso a Global DB\n\"Global_Data\".ProductionCount := \"Global_Data\".ProductionCount + 1;\n\n// Accesso a Instance DB tramite istanza\n#Motor1.State := 0;  // Accesso a variabile interna FB\n\n// Accesso diretto a Instance DB (sconsigliato)\n\"Motor1_DB\".State := 0;",
+            "notes": [
+                "Global DB per dati condivisi",
+                "Instance DB creati automaticamente per FB",
+                "Retentive per dati da preservare",
+                "Ottimizzato per performance, non ottimizzato per accesso assoluto"
+            ]
+        },
+        {
+            "name": "UDT (User Defined Type)",
+            "type": "Data Type Definition",
+            "description": "Tipo di dato personalizzato riutilizzabile. Definisce strutture dati complesse.",
+            "declaration": "TYPE \"Recipe_Type\"\nSTRUCT\n    RecipeNumber : INT;\n    RecipeName : STRING[50];\n    Temperature : REAL;\n    Pressure : REAL;\n    MixingTime : TIME;\n    Ingredients : ARRAY[1..5] OF REAL;\nEND_STRUCT\nEND_TYPE",
+            "usage": "VAR\n    ActiveRecipe : \"Recipe_Type\";\n    RecipeLibrary : ARRAY[1..20] OF \"Recipe_Type\";\nEND_VAR\n\n// Accesso\nActiveRecipe.Temperature := 85.5;\nActiveRecipe.RecipeName := 'Recipe_001';",
+            "benefits": [
+                "Riutilizzabilità del tipo in tutto il progetto",
+                "Migliore organizzazione del codice",
+                "Facilita manutenzione",
+                "Tipo-safe (controllo tipo a compile-time)"
+            ],
+            "when_to_use": [
+                "Strutture dati ripetute (ricette, allarmi, assi)",
+                "Dati complessi con molti campi",
+                "Interfacce standardizzate",
+                "Scambio dati tra blocchi"
+            ],
+            "notes": [
+                "Definito in sezione 'PLC data types'",
+                "Può contenere altri UDT (nesting)",
+                "Può contenere ARRAY, STRUCT",
+                "Modifiche al UDT si propagano a tutte le istanze"
+            ]
+        }
+    ],
+    "block_comparison": {
+        "memory": {
+            "OB": "No memoria propria (usa DB globali o temp)",
+            "FC": "No memoria (solo VAR_TEMP durante esecuzione)",
+            "FB": "Sì (instance DB con VAR)",
+            "DB": "Sì (memoria persistente)"
+        },
+        "reusability": {
+            "OB": "No (uno per tipo/numero)",
+            "FC": "Sì (chiamabile infinite volte)",
+            "FB": "Sì (istanze multiple con DB separati)",
+            "DB": "Sì (accessibile da ovunque)"
+        },
+        "return_value": {
+            "OB": "No",
+            "FC": "Sì (tipo funzione)",
+            "FB": "No (usa OUT parameters)",
+            "DB": "N/A"
+        },
+        "typical_size": {
+            "OB": "Piccolo-medio (logica organizzativa)",
+            "FC": "Piccolo (calcoli, utility)",
+            "FB": "Medio-grande (controllo complesso)",
+            "DB": "Variabile (da pochi byte a MB)"
+        }
+    },
+    "best_practices": [
+        "Usare FC per calcoli puri senza stato",
+        "Usare FB per controlli con memoria (motori, valvole, sequenze)",
+        "Usare Global DB per dati condivisi e configurazioni",
+        "Usare UDT per strutture dati ripetute",
+        "Limitare dimensione OB1 (chiamare FC/FB invece di codice inline)",
+        "Documentare interfacce (commenti su parametri)",
+        "Nominare blocchi in modo descrittivo",
+        "Raggruppare blocchi correlati in cartelle",
+        "Usare multi-instance per risparmiare memoria",
+        "Marcare retentive solo dati necessari"
+    ],
+    "naming_conventions": {
+        "OB": "OB1, OB30, OB100 (numero fisso)",
+        "FC": "\"Calculate_Average\", \"Convert_Temperature\" (verbo + sostantivo)",
+        "FB": "\"Motor_Control\", \"Valve_Sequencer\" (sostantivo + funzione)",
+        "DB": "\"Global_Data\", \"Recipe_DB\", \"Alarm_History\"",
+        "UDT": "\"Recipe_Type\", \"Axis_Data\", \"Alarm_Info\" (sostantivo + _Type)"
+    },
+    "scl_specific_notes": [
+        "SCL usa BEGIN...END invece di Network come in LAD/FBD",
+        "Dichiarazioni VAR sempre prima di BEGIN",
+        "Accesso a DB con notazione punto: \"DB_Name\".Variable",
+        "Chiamata FB con sintassi: #Instance(IN := ..., OUT => ...)",
+        "Parametri IN usano :=, parametri OUT usano =>",
+        "Commenti: // singola linea, (* multi linea *)"
+    ]
+}

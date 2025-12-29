@@ -1,0 +1,88 @@
+﻿FUNCTION "Prod_O_ACT_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item : "Prod_Item";
+      Check_PPrf_ON_WORK_Matching : Bool;   // Controlla che il PPrf sia coerente con il PPrf ON_WORK
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// CONTROLLI
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+	// Uscita perchè ACT non è vuoto
+	// 
+	IF "Production".O_ACT.O_ID > 0 THEN
+	    #Prod_O_ACT_Push := "PROD_ERR_O_ACT_FULL";
+	    RETURN;
+	END_IF;
+	
+	
+	
+	
+	// Se è richiesto il controllo di uguaglianza del programma profilo in lavoro con quello che si preleva da O_TODO
+	// ...
+	IF #Check_PPrf_ON_WORK_Matching THEN
+	    
+	    
+	    // Controllo se ordine che si vuole trasferire su ACT è eseguibile
+	    // 
+	    #RETVAL := "Prod_Item_Check_CanGoinProduction"(#Item);
+	    
+	ELSE
+	    
+	    // Controllo se ordine che si vuole trasferire su ACT è valido
+	    // 
+	    #RETVAL := "Prod_item_Check_DataValid"(#Item);
+	END_IF;
+	
+	
+	// Ordine non eseguibile o non valido
+	// 
+	IF #RETVAL < 0 THEN
+	    #Prod_O_ACT_Push := #RETVAL;
+	    RETURN;
+	END_IF;
+	
+	
+	
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// INSERIMENTO
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 
+	
+	
+	
+	
+	"Production".O_ACT := #Item;
+	
+	
+	
+	
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// OK
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	#Prod_O_ACT_Push := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+	
+END_FUNCTION
+

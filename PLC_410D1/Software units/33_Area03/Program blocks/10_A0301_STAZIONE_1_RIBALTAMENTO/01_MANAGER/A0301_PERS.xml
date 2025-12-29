@@ -1,0 +1,252 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="Par" Datatype="Struct" Remanence="Retain">
+      <Member Name="Maint_FreeMove" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Manutenzione: movimento libero</MultiLanguageText>
+        </Comment>
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="CaseA_PLen_Lim" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Caso A : Lunghezza SG limite (da 900 a..) </MultiLanguageText>
+        </Comment>
+        <StartValue>700.0</StartValue>
+      </Member>
+      <Member Name="CaseA_StopperSensor" Datatype="USInt">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Caso A : Sensori da usare su stopper</MultiLanguageText>
+        </Comment>
+        <StartValue>1</StartValue>
+      </Member>
+      <Member Name="CaseB_PLen_Lim" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Caso B : Lunghezza SG limite (da 900 a..) </MultiLanguageText>
+        </Comment>
+        <StartValue>1990.0</StartValue>
+      </Member>
+      <Member Name="CaseB_StopperSensor" Datatype="USInt">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Caso B : Sensori da usare su stopper</MultiLanguageText>
+        </Comment>
+        <StartValue>3</StartValue>
+      </Member>
+      <Member Name="CaseC_PLen_Lim" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Caso C : Lunghezza SG limite (da 900 a..) </MultiLanguageText>
+        </Comment>
+        <StartValue>2000.0</StartValue>
+      </Member>
+      <Member Name="CaseC_StopperSensor" Datatype="USInt">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Caso C : Sensori da usare su stopper</MultiLanguageText>
+        </Comment>
+        <StartValue>3</StartValue>
+      </Member>
+      <Member Name="CaseD_PLen_Lim" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Caso D : Lunghezza SG limite A (da 900 a..) </MultiLanguageText>
+        </Comment>
+        <StartValue>2100.0</StartValue>
+      </Member>
+      <Member Name="CaseD_StopperSensor" Datatype="USInt">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Caso D : Sensori da usare su stopper</MultiLanguageText>
+        </Comment>
+        <StartValue>3</StartValue>
+      </Member>
+      <Member Name="DlySensorsON" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">[ms] Ritrado ON sensori prima e dopo fermi </MultiLanguageText>
+        </Comment>
+        <StartValue>T#1S</StartValue>
+      </Member>
+      <Member Name="DlySensorsOFF" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">[ms] Ritrado OFF sensori prima e dopo fermi </MultiLanguageText>
+        </Comment>
+        <StartValue>T#1S</StartValue>
+      </Member>
+      <Member Name="TolReachNextStopper" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Tolleranza movimento SG su stopper (Almeno un sensore in uso ON)</MultiLanguageText>
+        </Comment>
+        <StartValue>70.0</StartValue>
+      </Member>
+      <Member Name="TolReachAllSensorsON" Datatype="Real">
+        <Comment>
+          <MultiLanguageText Lang="en-US">[mm] Tolleranza posizione raggiunta (Sensori in uso ON)</MultiLanguageText>
+        </Comment>
+        <StartValue>50.0</StartValue>
+      </Member>
+    </Member>
+    <Member Name="Par_Mng" Datatype="Struct" Remanence="Retain">
+      <Member Name="DlySensorsON" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">[ms] Ritrado ON sensori prima e dopo fermi </MultiLanguageText>
+        </Comment>
+        <StartValue>T#1S</StartValue>
+      </Member>
+      <Member Name="DlySensorsOFF" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Comment>
+          <MultiLanguageText Lang="en-US">[ms] Ritrado OFF sensori prima e dopo fermi </MultiLanguageText>
+        </Comment>
+        <StartValue>T#1S</StartValue>
+      </Member>
+      <Member Name="TRK" Datatype="Struct">
+        <Member Name="BTrk_MoveP4Exit" Datatype="Time">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+          <StartValue>T#500MS</StartValue>
+        </Member>
+        <Member Name="BTrk_MoveToP5" Datatype="Time">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+          <StartValue>T#500MS</StartValue>
+        </Member>
+      </Member>
+    </Member>
+    <Member Name="Data_Mng" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="LastCounter_PartMove_P2toP4" Datatype="LReal">
+        <StartValue>999999.999999998</StartValue>
+      </Member>
+      <Member Name="LastCounter_PartMove_P1toP2" Datatype="LReal">
+        <StartValue>999999.999999998</StartValue>
+      </Member>
+      <Member Name="LastCounter_PartMove_P1toP3" Datatype="LReal">
+        <StartValue>2.50784669856199</StartValue>
+      </Member>
+    </Member>
+    <Member Name="FC_Sensor" Datatype="Struct">
+      <Member Name="Case" Datatype="Int">
+        <StartValue>1</StartValue>
+      </Member>
+    </Member>
+    <Member Name="SensTime" Datatype="Struct" Remanence="Retain">
+      <Member Name="P1" Datatype="Struct">
+        <Member Name="Sens_Ing" Datatype="Struct">
+          <Member Name="DelayOn" Datatype="Time">
+            <StartValue>T#500MS</StartValue>
+          </Member>
+        </Member>
+        <Member Name="Sens_Out" Datatype="Struct">
+          <Member Name="DelayOff" Datatype="Time">
+            <StartValue>T#300MS</StartValue>
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="P2" Datatype="Struct">
+        <Member Name="Sens_Ing" Datatype="Struct">
+          <Member Name="DelayOn" Datatype="Time">
+            <StartValue>T#100MS</StartValue>
+          </Member>
+        </Member>
+        <Member Name="Sens_Out" Datatype="Struct">
+          <Member Name="DelayOff" Datatype="Time">
+            <StartValue>T#500MS</StartValue>
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="P3" Datatype="Struct">
+        <Member Name="Sens_Ing" Datatype="Struct">
+          <Member Name="DelayOn" Datatype="Time">
+            <StartValue>T#100MS</StartValue>
+          </Member>
+        </Member>
+        <Member Name="Sens_Out" Datatype="Struct">
+          <Member Name="DelayOff" Datatype="Time">
+            <StartValue>T#100MS</StartValue>
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="P4" Datatype="Struct">
+        <Member Name="Sens_Ing" Datatype="Struct">
+          <Member Name="DelayOn" Datatype="Time">
+            <StartValue>T#100MS</StartValue>
+          </Member>
+        </Member>
+        <Member Name="Sens_Out" Datatype="Struct">
+          <Member Name="DelayOff" Datatype="Time">
+            <StartValue>T#100MS</StartValue>
+          </Member>
+        </Member>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>A0301_PERS</Name>
+      <Namespace />
+      <Number>41</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

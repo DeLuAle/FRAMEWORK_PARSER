@@ -1,0 +1,347 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <DBAccessibleFromOPCUA>false</DBAccessibleFromOPCUA>
+      <InstanceOfName>RollformingMng_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI_Area" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PbMaterialFwd" Datatype="Bool" />
+      <Member Name="PbCutRest" Datatype="Bool" />
+      <Member Name="PbCutWork" Datatype="Bool" />
+      <Member Name="SensorMatPresence_Entry" Datatype="Bool" />
+      <Member Name="SensorMatPresence_BeforeMW" Datatype="Bool" />
+      <Member Name="SensorMatPresence_AfterMW" Datatype="Bool" />
+      <Member Name="SensorMatPresence_ConveyorEntry" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="PitTable" Datatype="Struct">
+        <Member Name="IsAtRest" Datatype="Bool" />
+        <Member Name="IsAtWork" Datatype="Bool" />
+      </Member>
+      <Member Name="Upstream" Datatype="Struct">
+        <Member Name="EnableMove" Datatype="Bool" />
+        <Member Name="InCycleOrEmptying" Datatype="Bool" />
+        <Member Name="NextEndOfMaterial" Datatype="Bool" />
+      </Member>
+      <Member Name="PPrf" Datatype="&quot;PPrf_Data&quot;" />
+      <Member Name="ProdManager" Datatype="&quot;Prod_Part_Ctrl&quot;" />
+      <Member Name="Rollformer" Datatype="Struct">
+        <Member Name="IsStandstill" Datatype="Bool" />
+        <Member Name="InTargetPosition" Datatype="Bool" />
+        <Member Name="TargetPosAx" Datatype="LReal" />
+        <Member Name="ActualPosition" Datatype="LReal" />
+        <Member Name="ActualVelocity" Datatype="LReal" />
+      </Member>
+      <Member Name="MwFakCalc" Datatype="Struct">
+        <Member Name="ChangeRequest" Datatype="Bool" />
+      </Member>
+      <Member Name="FinalCut" Datatype="Struct">
+        <Member Name="IsStandstill" Datatype="Bool" />
+        <Member Name="AlarmsPresence" Datatype="Bool" />
+        <Member Name="AllHeadAtRest" Datatype="Bool" />
+        <Member Name="Avg_R_to_W_Time" Datatype="Time" />
+        <Member Name="Avg_W_to_R_Time" Datatype="Time" />
+        <Member Name="CutHead" Datatype="Struct">
+          <Member Name="IsAtRest" Datatype="Bool" />
+          <Member Name="IsAtWork" Datatype="Bool" />
+        </Member>
+        <Member Name="DrawHead" Datatype="Struct">
+          <Member Name="IsAtRest" Datatype="Bool" />
+          <Member Name="IsAtWork" Datatype="Bool" />
+        </Member>
+        <Member Name="MarkHead" Datatype="Struct">
+          <Member Name="IsAtRest" Datatype="Bool" />
+          <Member Name="IsAtWork" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="MaterialCounter" Datatype="Struct">
+        <Member Name="AlrPresence" Datatype="Bool" />
+        <Member Name="WngPresence" Datatype="Bool" />
+        <Member Name="Data" Datatype="&quot;MatCountData&quot;" />
+      </Member>
+      <Member Name="WeldReg" Datatype="Struct">
+        <Member Name="ActTarget_P_ID" Datatype="DInt" />
+        <Member Name="ActTarget_WeldPresence" Datatype="Bool" />
+        <Member Name="ActTarget_WeldEndPos" Datatype="LReal" />
+        <Member Name="NextTarget_P_ID" Datatype="DInt" />
+        <Member Name="NextTarget_WeldPresence" Datatype="Bool" />
+        <Member Name="NextTarget_WeldEndPos" Datatype="LReal" />
+        <Member Name="WeldMIssingToFinalCut" Datatype="LReal" />
+        <Member Name="WeldPresence" Datatype="Bool" />
+      </Member>
+      <Member Name="AccDecRollway" Datatype="&quot;udt_AccRollConveyor_COut_Manager&quot;" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="SensorsDelayOn" Datatype="Time" />
+      <Member Name="SensorsDelayOff" Datatype="Time" />
+      <Member Name="SensorExtractor_DelayOn" Datatype="Time" />
+      <Member Name="SensorExtractor_DelayOff" Datatype="Time" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="LampInPosition" Datatype="Bool" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="PitTable" Datatype="&quot;ValveMachine_Manager&quot;" />
+      <Member Name="Rollformer" Datatype="Struct">
+        <Member Name="Feed" Datatype="&quot;PositioningMachine_Manager&quot;" />
+      </Member>
+      <Member Name="RegolazioneFormato" Datatype="Struct">
+        <Member Name="LineSetup_Exe" Datatype="Bool" />
+      </Member>
+      <Member Name="ProdManager" Datatype="Struct">
+        <Member Name="TargetDone" Datatype="Bool" />
+        <Member Name="Heading" Datatype="Bool" />
+        <Member Name="PartDone" Datatype="&quot;Prod_Part_Done&quot;" />
+      </Member>
+      <Member Name="FlyingCarriage" Datatype="&quot;udt_FlyingCarriage_CIn&quot;" />
+      <Member Name="FinalCut" Datatype="Struct">
+        <Member Name="CutHead" Datatype="&quot;ValveMachine_Manager&quot;" />
+        <Member Name="DrawHead" Datatype="&quot;ValveMachine_Manager&quot;" />
+        <Member Name="MarkHead" Datatype="&quot;ValveMachine_Manager&quot;" />
+        <Member Name="CutHead_Enable" Datatype="Bool" />
+        <Member Name="DrawHead_Enable" Datatype="Bool" />
+        <Member Name="MarkHead_Enable" Datatype="Bool" />
+      </Member>
+      <Member Name="AccRollConveyor" Datatype="Struct">
+        <Member Name="Roll_FwdReq" Datatype="Bool" />
+        <Member Name="PosCoda" Datatype="LReal" />
+      </Member>
+      <Member Name="FAK_UpdatePPrf" Datatype="Struct">
+        <Member Name="FAK_Apply" Datatype="Bool" />
+        <Member Name="FAK_Calculate" Datatype="LReal" />
+      </Member>
+      <Member Name="UpstreamLine" Datatype="Struct">
+        <Member Name="LineVelocity" Datatype="LReal" />
+      </Member>
+      <Member Name="WeldReg" Datatype="Struct">
+        <Member Name="ActTarget_P_ID" Datatype="DInt" />
+        <Member Name="ActTarget_XStart" Datatype="LReal" />
+        <Member Name="ActTarget_XEnd" Datatype="LReal" />
+        <Member Name="NextTarget_P_ID" Datatype="DInt" />
+        <Member Name="NextTarget_XStart" Datatype="LReal" />
+        <Member Name="NextTarget_XEnd" Datatype="LReal" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Pers" Datatype="&quot;udt_RollformingMng_Pers&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="MaterialMissing" Datatype="Bool" />
+      <Member Name="MatCounterAlrPresence" Datatype="Bool" />
+      <Member Name="NoTargetReady" Datatype="Bool" />
+      <Member Name="ThreadingNotComplete" Datatype="Bool" />
+      <Member Name="TooMuchNegativeMovRequired" Datatype="Bool" />
+      <Member Name="PartCuttedManualTest" Datatype="Bool" />
+      <Member Name="PartCuttedTooShort" Datatype="Bool" />
+      <Member Name="DestinationLost" Datatype="Bool" />
+      <Member Name="HeadingCutDone" Datatype="Bool" />
+      <Member Name="STOP_Part_Recondition" Datatype="Bool" />
+      <Member Name="STOP_Order_Complete" Datatype="Bool" />
+      <Member Name="STOP_O_ACT_Empty" Datatype="Bool" />
+      <Member Name="STOP_FineTurno" Datatype="Bool" />
+      <Member Name="STOP_End_Of_Proroduction" Datatype="Bool" />
+      <Member Name="STOP_ControlloQualita" Datatype="Bool" />
+      <Member Name="STOP_Matrice_Colata_Coil" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="NotAutReady" Datatype="Bool" />
+      <Member Name="MatCounterWngPresence" Datatype="Bool" />
+      <Member Name="RollformerLimitToPushMin" Datatype="Bool" />
+      <Member Name="RollformerStopAwaitJobPerform" Datatype="Bool" />
+      <Member Name="HeadingNotDone" Datatype="Bool" />
+      <Member Name="StopInactivity" Datatype="Bool" />
+      <Member Name="FlyingShear" Datatype="Struct">
+        <Member Name="NotReachable" Datatype="Bool" />
+        <Member Name="NotSynched" Datatype="Bool" />
+        <Member Name="WorkByTimeout" Datatype="Bool" />
+      </Member>
+      <Member Name="SlowDownFromMes" Datatype="Struct">
+        <Member Name="SLOW_Part_Recondition" Datatype="Bool" />
+        <Member Name="SLOW_Order_Approach_To_Complete" Datatype="Bool" />
+        <Member Name="SLOW_End_Of_Production" Datatype="Bool" />
+      </Member>
+      <Member Name="StopFromMes" Datatype="Struct">
+        <Member Name="STOP_Part_Recondition" Datatype="Bool" />
+        <Member Name="STOP_Order_Complete" Datatype="Bool" />
+        <Member Name="STOP_O_ACT_Empty" Datatype="Bool" />
+        <Member Name="STOP_End_Of_Proroduction" Datatype="Bool" />
+        <Member Name="STOP_FineTurno" Datatype="Bool" />
+        <Member Name="STOP_ControlloQualita" Datatype="Bool" />
+        <Member Name="STOP_Matrice_Colata_Coil" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="ProductionRateRequired" Datatype="LReal" />
+      <Member Name="ProductionRateTargetReal" Datatype="LReal" />
+      <Member Name="BufferCut" Datatype="Struct">
+        <Member Name="Index" Datatype="Int" />
+        <Member Name="ButtonDelete" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Stop_M1" Datatype="Bool" />
+      <Member Name="Stop_M2" Datatype="Bool" />
+      <Member Name="Stop" Datatype="Bool" />
+      <Member Name="Rollformer" Datatype="Struct">
+        <Member Name="SemiAut_PosAbs" Datatype="Bool" />
+        <Member Name="SemiAut_Fwd" Datatype="Bool" />
+        <Member Name="Aut_PosAbs" Datatype="Bool" />
+        <Member Name="Aut_Fwd" Datatype="Bool" />
+        <Member Name="Target_Vel" Datatype="LReal" />
+        <Member Name="Target_Final" Datatype="LReal" />
+        <Member Name="Target_Push" Datatype="LReal" />
+        <Member Name="Target_Selected" Datatype="LReal" />
+      </Member>
+      <Member Name="FinalCut" Datatype="Struct">
+        <Member Name="SemiAut_Rest" Datatype="Bool" />
+        <Member Name="SemiAut_Work" Datatype="Bool" />
+        <Member Name="Aut_Rest" Datatype="Bool" />
+        <Member Name="Aut_Work" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="Semiautomatic" Datatype="Bool" />
+      <Member Name="SemiAut_Request" Datatype="Bool" />
+      <Member Name="PbCutSemiAutoWork" Datatype="Bool" />
+      <Member Name="LowSpeedPartsStart" Datatype="Bool" />
+      <Member Name="FirstPartDone" Datatype="Bool" />
+      <Member Name="ExtractionReq" Datatype="Bool" />
+      <Member Name="CheckNewTarget" Datatype="Bool" />
+      <Member Name="WeldSlowDown" Datatype="Bool" />
+      <Member Name="MesSlowDown" Datatype="Bool" />
+      <Member Name="Vel_FactorRateStep" Datatype="LReal" />
+      <Member Name="Vel_Factor_New" Datatype="LReal" />
+      <Member Name="StopInactivity" Datatype="Bool" />
+      <Member Name="Rollformer" Datatype="Struct">
+        <Member Name="IsStandstill" Datatype="Bool" />
+        <Member Name="StopFeed" Datatype="Struct">
+          <Member Name="Alarm" Datatype="Bool" />
+          <Member Name="Safety" Datatype="Bool" />
+          <Member Name="Cycle" Datatype="Bool" />
+          <Member Name="Stations" Datatype="Bool" />
+          <Member Name="Target" Datatype="Bool" />
+          <Member Name="Presence" Datatype="Bool" />
+          <Member Name="ProgramData" Datatype="Bool" />
+          <Member Name="Upstream" Datatype="Bool" />
+          <Member Name="Downstream" Datatype="Bool" />
+          <Member Name="Limit" Datatype="Bool" />
+          <Member Name="StillCutPerform" Datatype="Bool" />
+        </Member>
+        <Member Name="PosAbsEnable" Datatype="Bool" />
+        <Member Name="FwdEnable" Datatype="Bool" />
+        <Member Name="ExtraLow" Datatype="Bool" />
+        <Member Name="PartsMissingToHighVel" Datatype="Int" />
+        <Member Name="ActualTargetPosMatCountPos" Datatype="LReal" />
+        <Member Name="Target_Valid" Datatype="Bool" />
+        <Member Name="Target_Final_Valid" Datatype="Bool" />
+        <Member Name="Target_Final_Reached" Datatype="Bool" />
+        <Member Name="Target_Push_Valid" Datatype="Bool" />
+        <Member Name="Target_Push_Reached" Datatype="Bool" />
+        <Member Name="Target_SelectionCode" Datatype="Int" />
+      </Member>
+      <Member Name="Feeding" Datatype="Struct">
+        <Member Name="StoppedForWork" Datatype="Bool" />
+      </Member>
+      <Member Name="FinalCut" Datatype="Struct">
+        <Member Name="IsStandstill" Datatype="Bool" />
+        <Member Name="WorkRequired" Datatype="Bool" />
+        <Member Name="RestEnable" Datatype="Bool" />
+        <Member Name="HeadingEnable" Datatype="Bool" />
+        <Member Name="UseDrawHead" Datatype="Bool" />
+        <Member Name="UseMarkHead" Datatype="Bool" />
+        <Member Name="CutHead_WorkEnable" Datatype="Bool" />
+        <Member Name="DrawHead_WorkEnable" Datatype="Bool" />
+        <Member Name="MarkHead_WorkEnable" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="FlyingCutoff" Datatype="&quot;FlyingStation_Manager&quot;" />
+    <Member Name="CutLength" Datatype="&quot;CutLength&quot;" />
+    <Member Name="FeedLimit" Datatype="&quot;FeedLimiting&quot;" />
+    <Member Name="MatPresence_Entry1" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_Exit1" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_Exit2" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_Extr_IN" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="MatPresence_Extr_OUT" Datatype="&quot;DelayOnOff_R&quot;" />
+    <Member Name="TON_Stop" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TOF_ProdRun" Datatype="TOF_TIME" Version="1.0" />
+    <Member Name="TON_NoTargetReady" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="TON_StopInactivity" Datatype="TON_TIME" Version="1.0" />
+    <Member Name="AuxPE" Datatype="Struct">
+      <Member Name="P_SemiAut_Request" Datatype="Bool" />
+      <Member Name="P_PbCutRest" Datatype="Bool" />
+      <Member Name="P_PbCutWork" Datatype="Bool" />
+      <Member Name="P_SaveResult" Datatype="Bool" />
+      <Member Name="N_FinalCut_AtRest1" Datatype="Bool" />
+      <Member Name="N_FinalCut_AtRest2" Datatype="Bool" />
+      <Member Name="P_FinalCut_AtWork" Datatype="Bool" />
+    </Member>
+    <Member Name="EmptyTarget" Datatype="&quot;udt_RollformingMng_Target&quot;" />
+  </Section>
+</Sections></Interface>
+      <Name>RollformingMng</Name>
+      <Namespace />
+      <Number>157</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

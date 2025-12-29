@@ -1,0 +1,314 @@
+{
+    "category": "Program Control Structures",
+    "description": "Costrutti di controllo del flusso di programma SCL con sintassi completa",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Programming / IEC 61131-3 Standard",
+    "functions": [
+        {
+            "name": "IF_STATEMENT",
+            "signature": "IF <condition> THEN\n    <statements>\n[ELSIF <condition2> THEN\n    <statements2>]\n[ELSE\n    <statements_default>]\nEND_IF;",
+            "category": "Conditional",
+            "description": "Esegue blocchi di codice basandosi su condizioni booleane.",
+            "syntax_variants": [
+                {
+                    "variant": "IF...THEN...END_IF",
+                    "syntax": "IF <condition> THEN\n    <statements>\nEND_IF;",
+                    "example": "IF temperature > 100.0 THEN\n    alarm := TRUE;\nEND_IF;"
+                },
+                {
+                    "variant": "IF...THEN...ELSE...END_IF",
+                    "syntax": "IF <condition> THEN\n    <statements_true>\nELSE\n    <statements_false>\nEND_IF;",
+                    "example": "IF valve_open THEN\n    flow := TRUE;\nELSE\n    flow := FALSE;\nEND_IF;"
+                },
+                {
+                    "variant": "IF...THEN...ELSIF...END_IF",
+                    "syntax": "IF <condition1> THEN\n    <statements1>\nELSIF <condition2> THEN\n    <statements2>\nELSIF <condition3> THEN\n    <statements3>\n[ELSE\n    <statements_default>]\nEND_IF;",
+                    "example": "IF temp < 0.0 THEN\n    state := 'FROZEN';\nELSIF temp < 100.0 THEN\n    state := 'LIQUID';\nELSIF temp >= 100.0 THEN\n    state := 'VAPOR';\nELSE\n    state := 'UNKNOWN';\nEND_IF;"
+                }
+            ],
+            "notes": [
+                "ELSIF (non ELSEIF) è la parola chiave corretta in SCL",
+                "ELSE è opzionale",
+                "Possono esserci multipli ELSIF",
+                "Le condizioni sono valutate in ordine, la prima TRUE viene eseguita",
+                "SCL non è case-sensitive"
+            ],
+            "common_mistakes": [
+                {
+                    "wrong": "IF condition THEN statement; END_IF;",
+                    "right": "IF condition THEN\n    statement;\nEND_IF;",
+                    "reason": "Meglio usare sempre il formato multi-linea per leggibilità"
+                }
+            ],
+            "see_also": [
+                "CASE",
+                "SEL"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CASE_STATEMENT",
+            "signature": "CASE <selector> OF\n    <value1>: <statements1>;\n    <value2>: <statements2>;\n    [ELSE <default_statements>;]\nEND_CASE;",
+            "category": "Conditional",
+            "description": "Seleziona ed esegue un blocco di istruzioni basato sul valore di un selettore.",
+            "syntax_variants": [
+                {
+                    "variant": "CASE with single values",
+                    "syntax": "CASE <selector> OF\n    <value1>: <statements1>;\n    <value2>: <statements2>;\nEND_CASE;",
+                    "example": "CASE mode OF\n    1: output := 'Manual';\n    2: output := 'Auto';\n    3: output := 'Service';\nEND_CASE;"
+                },
+                {
+                    "variant": "CASE with ELSE",
+                    "syntax": "CASE <selector> OF\n    <value1>: <statements1>;\n    <value2>: <statements2>;\n    ELSE <default_statements>;\nEND_CASE;",
+                    "example": "CASE state OF\n    0: status := 'Idle';\n    1: status := 'Running';\n    2: status := 'Error';\n    ELSE status := 'Unknown';\nEND_CASE;"
+                },
+                {
+                    "variant": "CASE with ranges",
+                    "syntax": "CASE <selector> OF\n    <min1>..<max1>: <statements1>;\n    <min2>..<max2>: <statements2>;\nEND_CASE;",
+                    "example": "CASE temperature OF\n    -50..0: zone := 'Freezing';\n    1..25: zone := 'Cold';\n    26..50: zone := 'Warm';\n    51..100: zone := 'Hot';\nEND_CASE;"
+                },
+                {
+                    "variant": "CASE with multiple values",
+                    "syntax": "CASE <selector> OF\n    <val1>, <val2>, <val3>: <statements>;\nEND_CASE;",
+                    "example": "CASE dayOfWeek OF\n    1, 7: workday := FALSE;  // Sabato e Domenica\n    2, 3, 4, 5, 6: workday := TRUE;\nEND_CASE;"
+                },
+                {
+                    "variant": "CASE with mixed syntax",
+                    "syntax": "CASE <selector> OF\n    <value1>: <statements1>;\n    <min>..<max>: <statements2>;\n    <val2>, <val3>: <statements3>;\n    ELSE <default>;\nEND_CASE;",
+                    "example": "CASE errorCode OF\n    0: severity := 'None';\n    1..10: severity := 'Warning';\n    11, 12, 13: severity := 'Critical';\n    100..999: severity := 'System Error';\n    ELSE severity := 'Unknown';\nEND_CASE;"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "selector",
+                    "type": "INT/DINT/WORD/DWORD/BYTE",
+                    "description": "Espressione da valutare (deve essere tipo ordinale)"
+                }
+            ],
+            "notes": [
+                "Il selettore deve essere un tipo ordinale (INT, DINT, BYTE, WORD, ecc.)",
+                "ELSE è opzionale ma raccomandato per gestire valori imprevisti",
+                "I range usano la sintassi min..max (due punti)",
+                "Valori multipli si separano con virgola",
+                "Se nessun case corrisponde e non c'è ELSE, non viene eseguito nulla"
+            ],
+            "see_also": [
+                "IF",
+                "MUX"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "FOR_LOOP",
+            "signature": "FOR <counter> := <start> TO <end> [BY <step>] DO\n    <statements>\nEND_FOR;",
+            "category": "Loop",
+            "description": "Esegue un blocco di istruzioni un numero determinato di volte.",
+            "syntax_variants": [
+                {
+                    "variant": "FOR...TO (increment by 1)",
+                    "syntax": "FOR <counter> := <start> TO <end> DO\n    <statements>\nEND_FOR;",
+                    "example": "FOR i := 0 TO 9 DO\n    array[i] := 0;\nEND_FOR;"
+                },
+                {
+                    "variant": "FOR...TO...BY (custom step)",
+                    "syntax": "FOR <counter> := <start> TO <end> BY <step> DO\n    <statements>\nEND_FOR;",
+                    "example": "FOR i := 0 TO 100 BY 10 DO\n    values[i] := i * 2;\nEND_FOR;"
+                },
+                {
+                    "variant": "FOR...DOWNTO (decrement by 1)",
+                    "syntax": "FOR <counter> := <start> DOWNTO <end> DO\n    <statements>\nEND_FOR;",
+                    "example": "FOR i := 10 DOWNTO 0 DO\n    countdown[i] := i;\nEND_FOR;"
+                },
+                {
+                    "variant": "FOR...DOWNTO...BY (custom negative step)",
+                    "syntax": "FOR <counter> := <start> DOWNTO <end> BY <step> DO\n    <statements>\nEND_FOR;",
+                    "example": "FOR i := 100 DOWNTO 0 BY 5 DO\n    process(i);\nEND_FOR;"
+                }
+            ],
+            "parameters": [
+                {
+                    "name": "counter",
+                    "type": "INT/DINT",
+                    "description": "Variabile contatore (deve essere dichiarata)"
+                },
+                {
+                    "name": "start",
+                    "type": "INT/DINT",
+                    "description": "Valore iniziale"
+                },
+                {
+                    "name": "end",
+                    "type": "INT/DINT",
+                    "description": "Valore finale (inclusivo)"
+                },
+                {
+                    "name": "step",
+                    "type": "INT/DINT",
+                    "description": "Incremento/decremento (opzionale, default 1)"
+                }
+            ],
+            "notes": [
+                "Il contatore deve essere una variabile, non una costante",
+                "Il valore finale è INCLUSIVO (viene eseguito anche quando counter = end)",
+                "Non modificare il contatore all'interno del loop",
+                "Per uscire anticipatamente usare EXIT",
+                "Per saltare all'iterazione successiva usare CONTINUE"
+            ],
+            "common_mistakes": [
+                {
+                    "wrong": "FOR i := 1 TO 10 BY -1 DO",
+                    "right": "FOR i := 10 DOWNTO 1 DO",
+                    "reason": "Usare DOWNTO per decrementi, non BY negativo"
+                },
+                {
+                    "wrong": "FOR i := 0 TO 9 DO\n    i := i + 2;\nEND_FOR;",
+                    "right": "FOR i := 0 TO 9 BY 2 DO\n    // non modificare i\nEND_FOR;",
+                    "reason": "Non modificare il contatore manualmente"
+                }
+            ],
+            "see_also": [
+                "WHILE",
+                "REPEAT",
+                "EXIT",
+                "CONTINUE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WHILE_LOOP",
+            "signature": "WHILE <condition> DO\n    <statements>\nEND_WHILE;",
+            "category": "Loop",
+            "description": "Esegue un blocco di istruzioni finché la condizione rimane TRUE. Pre-test loop (condizione verificata prima dell'esecuzione).",
+            "syntax_variants": [
+                {
+                    "variant": "Standard WHILE",
+                    "syntax": "WHILE <condition> DO\n    <statements>\nEND_WHILE;",
+                    "example": "WHILE counter < 100 DO\n    counter := counter + 1;\n    process(counter);\nEND_WHILE;"
+                }
+            ],
+            "notes": [
+                "La condizione è valutata PRIMA di ogni iterazione",
+                "Se la condizione è FALSE all'inizio, il loop non viene mai eseguito",
+                "Assicurarsi che la condizione diventi FALSE, altrimenti loop infinito",
+                "Usare EXIT per uscire anticipatamente",
+                "Usare CONTINUE per saltare alla prossima iterazione"
+            ],
+            "common_mistakes": [
+                {
+                    "wrong": "WHILE TRUE DO\n    // nessuna condizione di uscita\nEND_WHILE;",
+                    "right": "WHILE counter < max DO\n    counter := counter + 1;\n    IF error THEN EXIT; END_IF;\nEND_WHILE;",
+                    "reason": "Evitare loop infiniti, prevedere sempre condizioni di uscita"
+                }
+            ],
+            "see_also": [
+                "REPEAT",
+                "FOR",
+                "EXIT",
+                "CONTINUE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REPEAT_LOOP",
+            "signature": "REPEAT\n    <statements>\nUNTIL <condition>\nEND_REPEAT;",
+            "category": "Loop",
+            "description": "Esegue un blocco di istruzioni finché la condizione diventa TRUE. Post-test loop (condizione verificata dopo l'esecuzione).",
+            "syntax_variants": [
+                {
+                    "variant": "Standard REPEAT",
+                    "syntax": "REPEAT\n    <statements>\nUNTIL <condition>\nEND_REPEAT;",
+                    "example": "REPEAT\n    counter := counter + 1;\n    value := readSensor();\nUNTIL (value > threshold) OR (counter >= maxRetries)\nEND_REPEAT;"
+                }
+            ],
+            "notes": [
+                "La condizione è valutata DOPO ogni iterazione",
+                "Il loop viene eseguito ALMENO UNA VOLTA",
+                "Il loop continua FINCHÉ la condizione è FALSE",
+                "Il loop termina quando la condizione diventa TRUE",
+                "Differenza con WHILE: WHILE continua se TRUE, REPEAT termina se TRUE"
+            ],
+            "common_mistakes": [
+                {
+                    "wrong": "REPEAT\n    x := x + 1;\nUNTIL x < 10  // logica invertita\nEND_REPEAT;",
+                    "right": "REPEAT\n    x := x + 1;\nUNTIL x >= 10  // termina quando x >= 10\nEND_REPEAT;",
+                    "reason": "REPEAT termina quando la condizione è TRUE (opposto di WHILE)"
+                }
+            ],
+            "see_also": [
+                "WHILE",
+                "FOR",
+                "EXIT",
+                "CONTINUE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "EXIT",
+            "signature": "EXIT;",
+            "category": "Flow Control",
+            "description": "Esce immediatamente dal loop corrente (FOR, WHILE, REPEAT). L'esecuzione continua dopo END_FOR, END_WHILE o END_REPEAT.",
+            "example": "FOR i := 0 TO 100 DO\n    IF array[i] = searchValue THEN\n        found := TRUE;\n        EXIT;  // Esce dal loop\n    END_IF;\nEND_FOR;",
+            "notes": [
+                "Esce solo dal loop più interno in caso di loop annidati",
+                "Utile per uscire anticipatamente quando una condizione è soddisfatta"
+            ],
+            "see_also": [
+                "CONTINUE",
+                "RETURN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CONTINUE",
+            "signature": "CONTINUE;",
+            "category": "Flow Control",
+            "description": "Salta alla prossima iterazione del loop corrente, ignorando le istruzioni rimanenti nell'iterazione corrente.",
+            "example": "FOR i := 0 TO 100 DO\n    IF array[i] < 0 THEN\n        CONTINUE;  // Salta valori negativi\n    END_IF;\n    sum := sum + array[i];\nEND_FOR;",
+            "notes": [
+                "Funziona con FOR, WHILE, REPEAT",
+                "Salta solo nell'iterazione corrente del loop più interno"
+            ],
+            "see_also": [
+                "EXIT",
+                "FOR",
+                "WHILE",
+                "REPEAT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "RETURN",
+            "signature": "RETURN;",
+            "category": "Flow Control",
+            "description": "Esce immediatamente dalla funzione (FC) o function block (FB) corrente. Per le funzioni, ritorna il valore assegnato al nome della funzione.",
+            "example": "// In una funzione:\nIF error THEN\n    functionName := -1;  // Valore di errore\n    RETURN;  // Esce dalla funzione\nEND_IF;\n// Continua elaborazione normale",
+            "notes": [
+                "In FC: assegnare il valore di ritorno al nome della funzione prima di RETURN",
+                "In FB: RETURN esce semplicemente dal blocco",
+                "Utile per gestione errori e uscite anticipate"
+            ],
+            "see_also": [
+                "EXIT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GOTO_LABEL",
+            "signature": "GOTO <label_name>;\n...\n<label_name>: <statement>;",
+            "category": "Flow Control",
+            "description": "Salta incondizionatamente a un'etichetta (label) nel codice. SCONSIGLIATO: rende il codice difficile da leggere e mantenere.",
+            "example": "IF criticalError THEN\n    GOTO error_handler;\nEND_IF;\n// Codice normale\nerror_handler: alarm := TRUE;",
+            "notes": [
+                "SCONSIGLIATO: usare solo in casi eccezionali",
+                "Preferire strutture di controllo strutturate (IF, CASE, EXIT, RETURN)",
+                "Le label devono essere univoche nel blocco",
+                "Non può saltare fuori dal blocco corrente"
+            ],
+            "see_also": [
+                "RETURN",
+                "EXIT"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

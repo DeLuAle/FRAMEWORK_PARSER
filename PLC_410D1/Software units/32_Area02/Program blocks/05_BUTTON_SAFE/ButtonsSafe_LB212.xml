@@ -1,0 +1,3155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Reset_OthersPBs_Activation_IN" Datatype="Bool">
+      <StartValue>FALSE</StartValue>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="Reset_OthersPBs_Activation_OUT" Datatype="Bool" />
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="i" Datatype="Int" />
+    <Member Name="iOperation" Datatype="Int" />
+    <Member Name="iConcurrentOperation" Datatype="Int" />
+    <Member Name="SettingWriteDone" Datatype="Bool" />
+    <Member Name="PbPanel" Datatype="&quot;Buttons2Hands&quot;" />
+    <Member Name="PB" Datatype="Struct">
+      <Member Name="ResetAlarms" Datatype="Bool" />
+      <Member Name="DieClamp_Rest" Datatype="Bool" />
+      <Member Name="DieClamp_Work" Datatype="Bool" />
+      <Member Name="DieT1CutHead_Rest" Datatype="Bool" />
+      <Member Name="DieT1CutHead_Work" Datatype="Bool" />
+      <Member Name="DieT2MarkHead_Rest" Datatype="Bool" />
+      <Member Name="DieT2MarkHead_Work" Datatype="Bool" />
+      <Member Name="DieT3MarkHead_Rest" Datatype="Bool" />
+      <Member Name="DieT3MarkHead_Work" Datatype="Bool" />
+      <Member Name="Carriage_Bwd" Datatype="Bool" />
+      <Member Name="Carriage_Fwd" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="Temp" />
+  <Section Name="Constant">
+    <Member Name="ITEMS" Datatype="Int">
+      <StartValue>10</StartValue>
+    </Member>
+    <Member Name="DIE_CLAMP_REST" Datatype="Int">
+      <StartValue>1</StartValue>
+    </Member>
+    <Member Name="DIE_CLAMP_WORK" Datatype="Int">
+      <StartValue>2</StartValue>
+    </Member>
+    <Member Name="DIE_T1_CUTHEAD_REST" Datatype="Int">
+      <StartValue>3</StartValue>
+    </Member>
+    <Member Name="DIE_T1_CUTHEAD_WORK" Datatype="Int">
+      <StartValue>4</StartValue>
+    </Member>
+    <Member Name="DIE_T2_MARKHEAD_REST" Datatype="Int">
+      <StartValue>5</StartValue>
+    </Member>
+    <Member Name="DIE_T2_MARKHEAD_WORK" Datatype="Int">
+      <StartValue>6</StartValue>
+    </Member>
+    <Member Name="DIE_T3_DRAWHEAD_REST" Datatype="Int">
+      <StartValue>7</StartValue>
+    </Member>
+    <Member Name="DIE_T3_DRAWHEAD_WORK" Datatype="Int">
+      <StartValue>8</StartValue>
+    </Member>
+    <Member Name="CARRIAGE_BWD" Datatype="Int">
+      <StartValue>9</StartValue>
+    </Member>
+    <Member Name="CARRIAGE_FWD" Datatype="Int">
+      <StartValue>10</StartValue>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>ButtonsSafe_LB212</Name>
+      <Namespace />
+      <Number>159</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="GlobalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="Area02" UId="25">
+        <BooleanAttribute Name="HasQuotes" UId="26">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="27" />
+      <Component Name="AreaInterface" UId="28" />
+      <Token Text="." UId="29" />
+      <Component Name="ManOneShot" UId="30" />
+    </Symbol>
+  </Access>
+  <Blank UId="31" />
+  <Token Text="THEN" UId="32" />
+  <NewLine UId="33" />
+  <Blank Num="4" UId="34" />
+  <Access Scope="LocalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="SettingWriteDone" UId="37" />
+    </Symbol>
+  </Access>
+  <Blank UId="38" />
+  <Token Text=":=" UId="39" />
+  <Blank UId="40" />
+  <Access Scope="LiteralConstant" UId="41">
+    <Constant UId="42">
+      <ConstantValue UId="44">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="45" />
+  <NewLine UId="46" />
+  <Token Text="END_IF" UId="47" />
+  <Token Text=";" UId="48" />
+  <NewLine Num="2" UId="49" />
+  <LineComment UId="50">
+    <Text UId="51"> Interblocco tra operazioni</Text>
+  </LineComment>
+  <NewLine UId="52" />
+  <LineComment UId="53">
+    <Text UId="54"> </Text>
+  </LineComment>
+  <NewLine UId="55" />
+  <Token Text="IF" UId="56" />
+  <Blank UId="57" />
+  <Token Text="NOT" UId="58" />
+  <Blank UId="59" />
+  <Access Scope="LocalVariable" UId="60">
+    <Symbol UId="61">
+      <Component Name="SettingWriteDone" UId="62" />
+    </Symbol>
+  </Access>
+  <Blank UId="63" />
+  <Token Text="THEN" UId="64" />
+  <NewLine UId="65" />
+  <Blank Num="4" UId="66" />
+  <Access Scope="LocalVariable" UId="67">
+    <Symbol UId="68">
+      <Component Name="SettingWriteDone" UId="69" />
+    </Symbol>
+  </Access>
+  <Blank UId="70" />
+  <Token Text=":=" UId="71" />
+  <Blank UId="72" />
+  <Access Scope="LiteralConstant" UId="73">
+    <Constant UId="74">
+      <ConstantValue UId="76">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="77" />
+  <NewLine UId="78" />
+  <Blank Num="4" UId="79" />
+  <NewLine UId="80" />
+  <Blank Num="4" UId="81" />
+  <Token Text="FOR" UId="82" />
+  <Blank UId="83" />
+  <Access Scope="LocalVariable" UId="84">
+    <Symbol UId="85">
+      <Component Name="iOperation" UId="86" />
+    </Symbol>
+  </Access>
+  <Blank UId="87" />
+  <Token Text=":=" UId="88" />
+  <Blank UId="89" />
+  <Access Scope="LiteralConstant" UId="90">
+    <Constant UId="91">
+      <ConstantValue UId="93">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="94" />
+  <Token Text="TO" UId="95" />
+  <Blank UId="96" />
+  <Access Scope="LocalConstant" UId="97">
+    <Constant Name="ITEMS" UId="98" />
+  </Access>
+  <Blank UId="101" />
+  <Token Text="DO" UId="102" />
+  <NewLine UId="103" />
+  <Blank Num="8" UId="104" />
+  <Token Text="FOR" UId="105" />
+  <Blank UId="106" />
+  <Access Scope="LocalVariable" UId="107">
+    <Symbol UId="108">
+      <Component Name="iConcurrentOperation" UId="109" />
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="LiteralConstant" UId="113">
+    <Constant UId="114">
+      <ConstantValue UId="116">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="117" />
+  <Token Text="TO" UId="118" />
+  <Blank UId="119" />
+  <Access Scope="LocalConstant" UId="120">
+    <Constant Name="ITEMS" UId="121" />
+  </Access>
+  <Blank UId="124" />
+  <Token Text="DO" UId="125" />
+  <NewLine UId="126" />
+  <Blank Num="12" UId="127" />
+  <Access Scope="LocalVariable" UId="128">
+    <Symbol UId="129">
+      <Component Name="PbPanel" UId="130" />
+      <Token Text="." UId="131" />
+      <Component Name="Enables" UId="132">
+        <Token Text="[" UId="133" />
+        <Access Scope="LocalVariable" UId="134">
+          <Symbol UId="135">
+            <Component Name="iOperation" UId="136" />
+          </Symbol>
+        </Access>
+        <Token Text="," UId="137" />
+        <Blank UId="138" />
+        <Access Scope="LocalVariable" UId="139">
+          <Symbol UId="140">
+            <Component Name="iConcurrentOperation" UId="141" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="142" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="143" />
+  <Token Text=":=" UId="144" />
+  <Blank UId="145" />
+  <Access Scope="LiteralConstant" UId="146">
+    <Constant UId="147">
+      <ConstantValue UId="149">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="150" />
+  <NewLine UId="151" />
+  <Blank Num="8" UId="152" />
+  <Token Text="END_FOR" UId="153" />
+  <Token Text=";" UId="154" />
+  <NewLine UId="155" />
+  <Blank Num="4" UId="156" />
+  <Token Text="END_FOR" UId="157" />
+  <Token Text=";" UId="158" />
+  <NewLine UId="159" />
+  <Blank Num="4" UId="160" />
+  <NewLine UId="161" />
+  <Blank Num="4" UId="162" />
+  <NewLine UId="163" />
+  <Token Text="END_IF" UId="164" />
+  <Token Text=";" UId="165" />
+  <NewLine UId="166" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Interlocks between operations selected</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="PbPanel" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="Buttons" UId="25">
+        <Token Text="[" UId="26" />
+        <Access Scope="LocalConstant" UId="27">
+          <Constant UId="28">
+            <ConstantValue UId="30">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="31" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="LB212_DieClamp_Pb_Rest" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="39" />
+  <NewLine UId="40" />
+  <Access Scope="LocalVariable" UId="41">
+    <Symbol UId="42">
+      <Component Name="PbPanel" UId="43" />
+      <Token Text="." UId="44" />
+      <Component Name="Buttons" UId="45">
+        <Token Text="[" UId="46" />
+        <Access Scope="LocalConstant" UId="47">
+          <Constant UId="48">
+            <ConstantValue UId="50">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="51" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="52" />
+  <Token Text=":=" UId="53" />
+  <Blank UId="54" />
+  <Access Scope="GlobalVariable" UId="55">
+    <Symbol UId="56">
+      <Component Name="LB212_DieClamp_Pb_Work" UId="57">
+        <BooleanAttribute Name="HasQuotes" UId="58">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="59" />
+  <NewLine UId="60" />
+  <Access Scope="LocalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="PbPanel" UId="63" />
+      <Token Text="." UId="64" />
+      <Component Name="Buttons" UId="65">
+        <Token Text="[" UId="66" />
+        <Access Scope="LocalConstant" UId="67">
+          <Constant UId="68">
+            <ConstantValue UId="70">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="71" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="72" />
+  <Token Text=":=" UId="73" />
+  <Blank UId="74" />
+  <Access Scope="GlobalVariable" UId="75">
+    <Symbol UId="76">
+      <Component Name="LB212_DiesOP_T1_Pb_Rest" UId="77">
+        <BooleanAttribute Name="HasQuotes" UId="78">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="79" />
+  <NewLine UId="80" />
+  <Access Scope="LocalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="PbPanel" UId="83" />
+      <Token Text="." UId="84" />
+      <Component Name="Buttons" UId="85">
+        <Token Text="[" UId="86" />
+        <Access Scope="LocalConstant" UId="87">
+          <Constant UId="88">
+            <ConstantValue UId="90">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="91" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="92" />
+  <Token Text=":=" UId="93" />
+  <Blank UId="94" />
+  <Access Scope="GlobalVariable" UId="95">
+    <Symbol UId="96">
+      <Component Name="LB212_DiesOP_T1_Pb_Work" UId="97">
+        <BooleanAttribute Name="HasQuotes" UId="98">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="99" />
+  <NewLine UId="100" />
+  <Access Scope="LocalVariable" UId="101">
+    <Symbol UId="102">
+      <Component Name="PbPanel" UId="103" />
+      <Token Text="." UId="104" />
+      <Component Name="Buttons" UId="105">
+        <Token Text="[" UId="106" />
+        <Access Scope="LocalConstant" UId="107">
+          <Constant UId="108">
+            <ConstantValue UId="110">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="111" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="112" />
+  <Token Text=":=" UId="113" />
+  <Blank UId="114" />
+  <Access Scope="GlobalVariable" UId="115">
+    <Symbol UId="116">
+      <Component Name="LB212_DiesOP_T2_Pb_Rest" UId="117">
+        <BooleanAttribute Name="HasQuotes" UId="118">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="119" />
+  <NewLine UId="120" />
+  <Access Scope="LocalVariable" UId="121">
+    <Symbol UId="122">
+      <Component Name="PbPanel" UId="123" />
+      <Token Text="." UId="124" />
+      <Component Name="Buttons" UId="125">
+        <Token Text="[" UId="126" />
+        <Access Scope="LocalConstant" UId="127">
+          <Constant UId="128">
+            <ConstantValue UId="130">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="131" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="132" />
+  <Token Text=":=" UId="133" />
+  <Blank UId="134" />
+  <Access Scope="GlobalVariable" UId="135">
+    <Symbol UId="136">
+      <Component Name="LB212_DiesOP_T2_Pb_Work" UId="137">
+        <BooleanAttribute Name="HasQuotes" UId="138">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="139" />
+  <NewLine UId="140" />
+  <Access Scope="LocalVariable" UId="141">
+    <Symbol UId="142">
+      <Component Name="PbPanel" UId="143" />
+      <Token Text="." UId="144" />
+      <Component Name="Buttons" UId="145">
+        <Token Text="[" UId="146" />
+        <Access Scope="LocalConstant" UId="147">
+          <Constant UId="148">
+            <ConstantValue UId="150">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="151" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="152" />
+  <Token Text=":=" UId="153" />
+  <Blank UId="154" />
+  <Access Scope="GlobalVariable" UId="155">
+    <Symbol UId="156">
+      <Component Name="LB212_DiesOP_T3_Pb_Rest" UId="157">
+        <BooleanAttribute Name="HasQuotes" UId="158">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="159" />
+  <NewLine UId="160" />
+  <Access Scope="LocalVariable" UId="161">
+    <Symbol UId="162">
+      <Component Name="PbPanel" UId="163" />
+      <Token Text="." UId="164" />
+      <Component Name="Buttons" UId="165">
+        <Token Text="[" UId="166" />
+        <Access Scope="LocalConstant" UId="167">
+          <Constant UId="168">
+            <ConstantValue UId="170">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="171" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="172" />
+  <Token Text=":=" UId="173" />
+  <Blank UId="174" />
+  <Access Scope="GlobalVariable" UId="175">
+    <Symbol UId="176">
+      <Component Name="LB212_DiesOP_T3_Pb_Work" UId="177">
+        <BooleanAttribute Name="HasQuotes" UId="178">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="179" />
+  <NewLine UId="180" />
+  <Access Scope="LocalVariable" UId="181">
+    <Symbol UId="182">
+      <Component Name="PbPanel" UId="183" />
+      <Token Text="." UId="184" />
+      <Component Name="Buttons" UId="185">
+        <Token Text="[" UId="186" />
+        <Access Scope="LocalConstant" UId="187">
+          <Constant UId="188">
+            <ConstantValue UId="190">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="191" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="192" />
+  <Token Text=":=" UId="193" />
+  <Blank UId="194" />
+  <Access Scope="GlobalVariable" UId="195">
+    <Symbol UId="196">
+      <Component Name="LB212_Carriage_Pb_BWD" UId="197">
+        <BooleanAttribute Name="HasQuotes" UId="198">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="199" />
+  <NewLine UId="200" />
+  <Access Scope="LocalVariable" UId="201">
+    <Symbol UId="202">
+      <Component Name="PbPanel" UId="203" />
+      <Token Text="." UId="204" />
+      <Component Name="Buttons" UId="205">
+        <Token Text="[" UId="206" />
+        <Access Scope="LocalConstant" UId="207">
+          <Constant UId="208">
+            <ConstantValue UId="210">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="211" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="212" />
+  <Token Text=":=" UId="213" />
+  <Blank UId="214" />
+  <Access Scope="GlobalVariable" UId="215">
+    <Symbol UId="216">
+      <Component Name="LB212_Carriage_Pb_FWD" UId="217">
+        <BooleanAttribute Name="HasQuotes" UId="218">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="219" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Buttons for Op selection</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="PbPanel" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="OpEnabled" UId="25">
+        <Token Text="[" UId="26" />
+        <Access Scope="LocalConstant" UId="27">
+          <Constant UId="28">
+            <ConstantValue UId="30">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="31" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="FinalCut" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="39" />
+      <Component Name="COut" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="Locking" UId="42" />
+      <Token Text="." UId="43" />
+      <Component Name="Rest_CheckNext" UId="44" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="45" />
+  <NewLine UId="46" />
+  <Access Scope="LocalVariable" UId="47">
+    <Symbol UId="48">
+      <Component Name="PbPanel" UId="49" />
+      <Token Text="." UId="50" />
+      <Component Name="OpEnabled" UId="51">
+        <Token Text="[" UId="52" />
+        <Access Scope="LocalConstant" UId="53">
+          <Constant UId="54">
+            <ConstantValue UId="56">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="57" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="58" />
+  <Token Text=":=" UId="59" />
+  <Blank UId="60" />
+  <Access Scope="GlobalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="FinalCut" UId="63">
+        <BooleanAttribute Name="HasQuotes" UId="64">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="65" />
+      <Component Name="COut" UId="66" />
+      <Token Text="." UId="67" />
+      <Component Name="Locking" UId="68" />
+      <Token Text="." UId="69" />
+      <Component Name="Work_CheckNext" UId="70" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="71" />
+  <NewLine UId="72" />
+  <Access Scope="LocalVariable" UId="73">
+    <Symbol UId="74">
+      <Component Name="PbPanel" UId="75" />
+      <Token Text="." UId="76" />
+      <Component Name="OpEnabled" UId="77">
+        <Token Text="[" UId="78" />
+        <Access Scope="LocalConstant" UId="79">
+          <Constant UId="80">
+            <ConstantValue UId="82">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="83" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="84" />
+  <Token Text=":=" UId="85" />
+  <Blank UId="86" />
+  <Access Scope="GlobalVariable" UId="87">
+    <Symbol UId="88">
+      <Component Name="FinalCut" UId="89">
+        <BooleanAttribute Name="HasQuotes" UId="90">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="91" />
+      <Component Name="COut" UId="92" />
+      <Token Text="." UId="93" />
+      <Component Name="CutHead" UId="94" />
+      <Token Text="." UId="95" />
+      <Component Name="Rest_CheckNext" UId="96" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="97" />
+  <NewLine UId="98" />
+  <Access Scope="LocalVariable" UId="99">
+    <Symbol UId="100">
+      <Component Name="PbPanel" UId="101" />
+      <Token Text="." UId="102" />
+      <Component Name="OpEnabled" UId="103">
+        <Token Text="[" UId="104" />
+        <Access Scope="LocalConstant" UId="105">
+          <Constant UId="106">
+            <ConstantValue UId="108">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="109" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="GlobalVariable" UId="113">
+    <Symbol UId="114">
+      <Component Name="FinalCut" UId="115">
+        <BooleanAttribute Name="HasQuotes" UId="116">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="117" />
+      <Component Name="COut" UId="118" />
+      <Token Text="." UId="119" />
+      <Component Name="CutHead" UId="120" />
+      <Token Text="." UId="121" />
+      <Component Name="Work_CheckNext" UId="122" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="123" />
+  <NewLine UId="124" />
+  <Access Scope="LocalVariable" UId="125">
+    <Symbol UId="126">
+      <Component Name="PbPanel" UId="127" />
+      <Token Text="." UId="128" />
+      <Component Name="OpEnabled" UId="129">
+        <Token Text="[" UId="130" />
+        <Access Scope="LocalConstant" UId="131">
+          <Constant UId="132">
+            <ConstantValue UId="134">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="135" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="136" />
+  <Token Text=":=" UId="137" />
+  <Blank UId="138" />
+  <Access Scope="GlobalVariable" UId="139">
+    <Symbol UId="140">
+      <Component Name="FinalCut" UId="141">
+        <BooleanAttribute Name="HasQuotes" UId="142">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="143" />
+      <Component Name="COut" UId="144" />
+      <Token Text="." UId="145" />
+      <Component Name="CutHead" UId="146" />
+      <Token Text="." UId="147" />
+      <Component Name="Rest_CheckNext" UId="148" />
+    </Symbol>
+  </Access>
+  <Blank UId="149" />
+  <Token Text="OR" UId="150" />
+  <Blank UId="151" />
+  <Access Scope="GlobalVariable" UId="152">
+    <Symbol UId="153">
+      <Component Name="FinalCut" UId="154">
+        <BooleanAttribute Name="HasQuotes" UId="155">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="156" />
+      <Component Name="MarkHead" UId="157" />
+      <Token Text="." UId="158" />
+      <Component Name="COut" UId="159" />
+      <Token Text="." UId="160" />
+      <Component Name="Rest_CheckNext" UId="161" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="162" />
+  <NewLine UId="163" />
+  <Access Scope="LocalVariable" UId="164">
+    <Symbol UId="165">
+      <Component Name="PbPanel" UId="166" />
+      <Token Text="." UId="167" />
+      <Component Name="OpEnabled" UId="168">
+        <Token Text="[" UId="169" />
+        <Access Scope="LocalConstant" UId="170">
+          <Constant UId="171">
+            <ConstantValue UId="173">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="174" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="175" />
+  <Token Text=":=" UId="176" />
+  <Blank UId="177" />
+  <Access Scope="GlobalVariable" UId="178">
+    <Symbol UId="179">
+      <Component Name="FinalCut" UId="180">
+        <BooleanAttribute Name="HasQuotes" UId="181">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="182" />
+      <Component Name="COut" UId="183" />
+      <Token Text="." UId="184" />
+      <Component Name="CutHead" UId="185" />
+      <Token Text="." UId="186" />
+      <Component Name="Work_CheckNext" UId="187" />
+    </Symbol>
+  </Access>
+  <Blank UId="188" />
+  <Token Text="OR" UId="189" />
+  <Blank UId="190" />
+  <Access Scope="GlobalVariable" UId="191">
+    <Symbol UId="192">
+      <Component Name="FinalCut" UId="193">
+        <BooleanAttribute Name="HasQuotes" UId="194">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="195" />
+      <Component Name="MarkHead" UId="196" />
+      <Token Text="." UId="197" />
+      <Component Name="COut" UId="198" />
+      <Token Text="." UId="199" />
+      <Component Name="Work_CheckNext" UId="200" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="201" />
+  <NewLine UId="202" />
+  <Access Scope="LocalVariable" UId="203">
+    <Symbol UId="204">
+      <Component Name="PbPanel" UId="205" />
+      <Token Text="." UId="206" />
+      <Component Name="OpEnabled" UId="207">
+        <Token Text="[" UId="208" />
+        <Access Scope="LocalConstant" UId="209">
+          <Constant UId="210">
+            <ConstantValue UId="212">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="213" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="214" />
+  <Token Text=":=" UId="215" />
+  <Blank UId="216" />
+  <Access Scope="GlobalVariable" UId="217">
+    <Symbol UId="218">
+      <Component Name="FinalCut" UId="219">
+        <BooleanAttribute Name="HasQuotes" UId="220">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="221" />
+      <Component Name="COut" UId="222" />
+      <Token Text="." UId="223" />
+      <Component Name="CutHead" UId="224" />
+      <Token Text="." UId="225" />
+      <Component Name="Rest_CheckNext" UId="226" />
+    </Symbol>
+  </Access>
+  <Blank UId="227" />
+  <Token Text="OR" UId="228" />
+  <Blank UId="229" />
+  <Access Scope="GlobalVariable" UId="230">
+    <Symbol UId="231">
+      <Component Name="FinalCut" UId="232">
+        <BooleanAttribute Name="HasQuotes" UId="233">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="234" />
+      <Component Name="DrawHead" UId="235" />
+      <Token Text="." UId="236" />
+      <Component Name="COut" UId="237" />
+      <Token Text="." UId="238" />
+      <Component Name="Rest_CheckNext" UId="239" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="240" />
+  <NewLine UId="241" />
+  <Access Scope="LocalVariable" UId="242">
+    <Symbol UId="243">
+      <Component Name="PbPanel" UId="244" />
+      <Token Text="." UId="245" />
+      <Component Name="OpEnabled" UId="246">
+        <Token Text="[" UId="247" />
+        <Access Scope="LocalConstant" UId="248">
+          <Constant UId="249">
+            <ConstantValue UId="251">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="252" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="253" />
+  <Token Text=":=" UId="254" />
+  <Blank UId="255" />
+  <Access Scope="GlobalVariable" UId="256">
+    <Symbol UId="257">
+      <Component Name="FinalCut" UId="258">
+        <BooleanAttribute Name="HasQuotes" UId="259">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="260" />
+      <Component Name="COut" UId="261" />
+      <Token Text="." UId="262" />
+      <Component Name="CutHead" UId="263" />
+      <Token Text="." UId="264" />
+      <Component Name="Work_CheckNext" UId="265" />
+    </Symbol>
+  </Access>
+  <Blank UId="266" />
+  <Token Text="OR" UId="267" />
+  <Blank UId="268" />
+  <Access Scope="GlobalVariable" UId="269">
+    <Symbol UId="270">
+      <Component Name="FinalCut" UId="271">
+        <BooleanAttribute Name="HasQuotes" UId="272">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="273" />
+      <Component Name="DrawHead" UId="274" />
+      <Token Text="." UId="275" />
+      <Component Name="COut" UId="276" />
+      <Token Text="." UId="277" />
+      <Component Name="Work_CheckNext" UId="278" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="279" />
+  <NewLine UId="280" />
+  <Access Scope="LocalVariable" UId="281">
+    <Symbol UId="282">
+      <Component Name="PbPanel" UId="283" />
+      <Token Text="." UId="284" />
+      <Component Name="OpEnabled" UId="285">
+        <Token Text="[" UId="286" />
+        <Access Scope="LocalConstant" UId="287">
+          <Constant UId="288">
+            <ConstantValue UId="290">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="291" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="292" />
+  <Token Text=":=" UId="293" />
+  <Blank UId="294" />
+  <Access Scope="GlobalVariable" UId="295">
+    <Symbol UId="296">
+      <Component Name="FlyingCarriage" UId="297">
+        <BooleanAttribute Name="HasQuotes" UId="298">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="299" />
+      <Component Name="COut" UId="300" />
+      <Token Text="." UId="301" />
+      <Component Name="CheckNext_Minus" UId="302" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="303" />
+  <NewLine UId="304" />
+  <Access Scope="LocalVariable" UId="305">
+    <Symbol UId="306">
+      <Component Name="PbPanel" UId="307" />
+      <Token Text="." UId="308" />
+      <Component Name="OpEnabled" UId="309">
+        <Token Text="[" UId="310" />
+        <Access Scope="LocalConstant" UId="311">
+          <Constant UId="312">
+            <ConstantValue UId="314">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="315" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="316" />
+  <Token Text=":=" UId="317" />
+  <Blank UId="318" />
+  <Access Scope="GlobalVariable" UId="319">
+    <Symbol UId="320">
+      <Component Name="FlyingCarriage" UId="321">
+        <BooleanAttribute Name="HasQuotes" UId="322">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="323" />
+      <Component Name="COut" UId="324" />
+      <Token Text="." UId="325" />
+      <Component Name="CheckNext_Plus" UId="326" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="327" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Operation enable</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="PbPanel" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="OpRunning" UId="25">
+        <Token Text="[" UId="26" />
+        <Access Scope="LocalConstant" UId="27">
+          <Constant UId="28">
+            <ConstantValue UId="30">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="31" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Token Text="NOT" UId="35" />
+  <Blank UId="36" />
+  <Access Scope="GlobalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="FinalCut" UId="39">
+        <BooleanAttribute Name="HasQuotes" UId="40">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="41" />
+      <Component Name="COut" UId="42" />
+      <Token Text="." UId="43" />
+      <Component Name="Locking" UId="44" />
+      <Token Text="." UId="45" />
+      <Component Name="Standstill" UId="46" />
+    </Symbol>
+  </Access>
+  <Blank UId="47" />
+  <Token Text="AND" UId="48" />
+  <Blank UId="49" />
+  <Access Scope="GlobalVariable" UId="50">
+    <Symbol UId="51">
+      <Component Name="FinalCut" UId="52">
+        <BooleanAttribute Name="HasQuotes" UId="53">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="54" />
+      <Component Name="COut" UId="55" />
+      <Token Text="." UId="56" />
+      <Component Name="Locking" UId="57" />
+      <Token Text="." UId="58" />
+      <Component Name="Rest_CheckNext" UId="59" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="60" />
+  <NewLine UId="61" />
+  <Access Scope="LocalVariable" UId="62">
+    <Symbol UId="63">
+      <Component Name="PbPanel" UId="64" />
+      <Token Text="." UId="65" />
+      <Component Name="OpRunning" UId="66">
+        <Token Text="[" UId="67" />
+        <Access Scope="LocalConstant" UId="68">
+          <Constant UId="69">
+            <ConstantValue UId="71">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="72" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="73" />
+  <Token Text=":=" UId="74" />
+  <Blank UId="75" />
+  <Token Text="NOT" UId="76" />
+  <Blank UId="77" />
+  <Access Scope="GlobalVariable" UId="78">
+    <Symbol UId="79">
+      <Component Name="FinalCut" UId="80">
+        <BooleanAttribute Name="HasQuotes" UId="81">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="82" />
+      <Component Name="COut" UId="83" />
+      <Token Text="." UId="84" />
+      <Component Name="Locking" UId="85" />
+      <Token Text="." UId="86" />
+      <Component Name="Standstill" UId="87" />
+    </Symbol>
+  </Access>
+  <Blank UId="88" />
+  <Token Text="AND" UId="89" />
+  <Blank UId="90" />
+  <Access Scope="GlobalVariable" UId="91">
+    <Symbol UId="92">
+      <Component Name="FinalCut" UId="93">
+        <BooleanAttribute Name="HasQuotes" UId="94">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="95" />
+      <Component Name="COut" UId="96" />
+      <Token Text="." UId="97" />
+      <Component Name="Locking" UId="98" />
+      <Token Text="." UId="99" />
+      <Component Name="Work_CheckNext" UId="100" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="101" />
+  <NewLine UId="102" />
+  <Access Scope="LocalVariable" UId="103">
+    <Symbol UId="104">
+      <Component Name="PbPanel" UId="105" />
+      <Token Text="." UId="106" />
+      <Component Name="OpRunning" UId="107">
+        <Token Text="[" UId="108" />
+        <Access Scope="LocalConstant" UId="109">
+          <Constant UId="110">
+            <ConstantValue UId="112">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="113" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="114" />
+  <Token Text=":=" UId="115" />
+  <Blank UId="116" />
+  <Token Text="NOT" UId="117" />
+  <Blank UId="118" />
+  <Access Scope="GlobalVariable" UId="119">
+    <Symbol UId="120">
+      <Component Name="FinalCut" UId="121">
+        <BooleanAttribute Name="HasQuotes" UId="122">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="123" />
+      <Component Name="COut" UId="124" />
+      <Token Text="." UId="125" />
+      <Component Name="CutHead" UId="126" />
+      <Token Text="." UId="127" />
+      <Component Name="Standstill" UId="128" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="129" />
+  <NewLine UId="130" />
+  <Access Scope="LocalVariable" UId="131">
+    <Symbol UId="132">
+      <Component Name="PbPanel" UId="133" />
+      <Token Text="." UId="134" />
+      <Component Name="OpRunning" UId="135">
+        <Token Text="[" UId="136" />
+        <Access Scope="LocalConstant" UId="137">
+          <Constant UId="138">
+            <ConstantValue UId="140">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="141" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="142" />
+  <Token Text=":=" UId="143" />
+  <Blank UId="144" />
+  <Token Text="NOT" UId="145" />
+  <Blank UId="146" />
+  <Access Scope="GlobalVariable" UId="147">
+    <Symbol UId="148">
+      <Component Name="FinalCut" UId="149">
+        <BooleanAttribute Name="HasQuotes" UId="150">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="151" />
+      <Component Name="COut" UId="152" />
+      <Token Text="." UId="153" />
+      <Component Name="CutHead" UId="154" />
+      <Token Text="." UId="155" />
+      <Component Name="Standstill" UId="156" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="157" />
+  <NewLine UId="158" />
+  <Access Scope="LocalVariable" UId="159">
+    <Symbol UId="160">
+      <Component Name="PbPanel" UId="161" />
+      <Token Text="." UId="162" />
+      <Component Name="OpRunning" UId="163">
+        <Token Text="[" UId="164" />
+        <Access Scope="LocalConstant" UId="165">
+          <Constant UId="166">
+            <ConstantValue UId="168">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="169" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="170" />
+  <Token Text=":=" UId="171" />
+  <Blank UId="172" />
+  <Token Text="NOT" UId="173" />
+  <Blank UId="174" />
+  <Access Scope="GlobalVariable" UId="175">
+    <Symbol UId="176">
+      <Component Name="FinalCut" UId="177">
+        <BooleanAttribute Name="HasQuotes" UId="178">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="179" />
+      <Component Name="COut" UId="180" />
+      <Token Text="." UId="181" />
+      <Component Name="CutHead" UId="182" />
+      <Token Text="." UId="183" />
+      <Component Name="Standstill" UId="184" />
+    </Symbol>
+  </Access>
+  <Blank UId="185" />
+  <Token Text="OR" UId="186" />
+  <Blank UId="187" />
+  <Token Text="NOT" UId="188" />
+  <Blank UId="189" />
+  <Access Scope="GlobalVariable" UId="190">
+    <Symbol UId="191">
+      <Component Name="FinalCut" UId="192">
+        <BooleanAttribute Name="HasQuotes" UId="193">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="194" />
+      <Component Name="MarkHead" UId="195" />
+      <Token Text="." UId="196" />
+      <Component Name="COut" UId="197" />
+      <Token Text="." UId="198" />
+      <Component Name="Standstill" UId="199" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="200" />
+  <NewLine UId="201" />
+  <Access Scope="LocalVariable" UId="202">
+    <Symbol UId="203">
+      <Component Name="PbPanel" UId="204" />
+      <Token Text="." UId="205" />
+      <Component Name="OpRunning" UId="206">
+        <Token Text="[" UId="207" />
+        <Access Scope="LocalConstant" UId="208">
+          <Constant UId="209">
+            <ConstantValue UId="211">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="212" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="213" />
+  <Token Text=":=" UId="214" />
+  <Blank UId="215" />
+  <Token Text="NOT" UId="216" />
+  <Blank UId="217" />
+  <Access Scope="GlobalVariable" UId="218">
+    <Symbol UId="219">
+      <Component Name="FinalCut" UId="220">
+        <BooleanAttribute Name="HasQuotes" UId="221">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="222" />
+      <Component Name="COut" UId="223" />
+      <Token Text="." UId="224" />
+      <Component Name="CutHead" UId="225" />
+      <Token Text="." UId="226" />
+      <Component Name="Standstill" UId="227" />
+    </Symbol>
+  </Access>
+  <Blank UId="228" />
+  <Token Text="OR" UId="229" />
+  <Blank UId="230" />
+  <Token Text="NOT" UId="231" />
+  <Blank UId="232" />
+  <Access Scope="GlobalVariable" UId="233">
+    <Symbol UId="234">
+      <Component Name="FinalCut" UId="235">
+        <BooleanAttribute Name="HasQuotes" UId="236">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="237" />
+      <Component Name="MarkHead" UId="238" />
+      <Token Text="." UId="239" />
+      <Component Name="COut" UId="240" />
+      <Token Text="." UId="241" />
+      <Component Name="Standstill" UId="242" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="243" />
+  <NewLine UId="244" />
+  <Access Scope="LocalVariable" UId="245">
+    <Symbol UId="246">
+      <Component Name="PbPanel" UId="247" />
+      <Token Text="." UId="248" />
+      <Component Name="OpRunning" UId="249">
+        <Token Text="[" UId="250" />
+        <Access Scope="LocalConstant" UId="251">
+          <Constant UId="252">
+            <ConstantValue UId="254">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="255" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="256" />
+  <Token Text=":=" UId="257" />
+  <Blank UId="258" />
+  <Token Text="NOT" UId="259" />
+  <Blank UId="260" />
+  <Access Scope="GlobalVariable" UId="261">
+    <Symbol UId="262">
+      <Component Name="FinalCut" UId="263">
+        <BooleanAttribute Name="HasQuotes" UId="264">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="265" />
+      <Component Name="COut" UId="266" />
+      <Token Text="." UId="267" />
+      <Component Name="CutHead" UId="268" />
+      <Token Text="." UId="269" />
+      <Component Name="Standstill" UId="270" />
+    </Symbol>
+  </Access>
+  <Blank UId="271" />
+  <Token Text="OR" UId="272" />
+  <Blank UId="273" />
+  <Token Text="NOT" UId="274" />
+  <Blank UId="275" />
+  <Access Scope="GlobalVariable" UId="276">
+    <Symbol UId="277">
+      <Component Name="FinalCut" UId="278">
+        <BooleanAttribute Name="HasQuotes" UId="279">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="280" />
+      <Component Name="DrawHead" UId="281" />
+      <Token Text="." UId="282" />
+      <Component Name="COut" UId="283" />
+      <Token Text="." UId="284" />
+      <Component Name="Standstill" UId="285" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="286" />
+  <NewLine UId="287" />
+  <Access Scope="LocalVariable" UId="288">
+    <Symbol UId="289">
+      <Component Name="PbPanel" UId="290" />
+      <Token Text="." UId="291" />
+      <Component Name="OpRunning" UId="292">
+        <Token Text="[" UId="293" />
+        <Access Scope="LocalConstant" UId="294">
+          <Constant UId="295">
+            <ConstantValue UId="297">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="298" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="299" />
+  <Token Text=":=" UId="300" />
+  <Blank UId="301" />
+  <Token Text="NOT" UId="302" />
+  <Blank UId="303" />
+  <Access Scope="GlobalVariable" UId="304">
+    <Symbol UId="305">
+      <Component Name="FinalCut" UId="306">
+        <BooleanAttribute Name="HasQuotes" UId="307">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="308" />
+      <Component Name="COut" UId="309" />
+      <Token Text="." UId="310" />
+      <Component Name="CutHead" UId="311" />
+      <Token Text="." UId="312" />
+      <Component Name="Standstill" UId="313" />
+    </Symbol>
+  </Access>
+  <Blank UId="314" />
+  <Token Text="OR" UId="315" />
+  <Blank UId="316" />
+  <Token Text="NOT" UId="317" />
+  <Blank UId="318" />
+  <Access Scope="GlobalVariable" UId="319">
+    <Symbol UId="320">
+      <Component Name="FinalCut" UId="321">
+        <BooleanAttribute Name="HasQuotes" UId="322">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="323" />
+      <Component Name="DrawHead" UId="324" />
+      <Token Text="." UId="325" />
+      <Component Name="COut" UId="326" />
+      <Token Text="." UId="327" />
+      <Component Name="Standstill" UId="328" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="329" />
+  <NewLine UId="330" />
+  <Access Scope="LocalVariable" UId="331">
+    <Symbol UId="332">
+      <Component Name="PbPanel" UId="333" />
+      <Token Text="." UId="334" />
+      <Component Name="OpRunning" UId="335">
+        <Token Text="[" UId="336" />
+        <Access Scope="LocalConstant" UId="337">
+          <Constant UId="338">
+            <ConstantValue UId="340">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="341" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="342" />
+  <Token Text=":=" UId="343" />
+  <Blank UId="344" />
+  <Token Text="NOT" UId="345" />
+  <Blank UId="346" />
+  <Access Scope="GlobalVariable" UId="347">
+    <Symbol UId="348">
+      <Component Name="FlyingCarriage" UId="349">
+        <BooleanAttribute Name="HasQuotes" UId="350">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="351" />
+      <Component Name="COut" UId="352" />
+      <Token Text="." UId="353" />
+      <Component Name="Standstill" UId="354" />
+    </Symbol>
+  </Access>
+  <Blank UId="355" />
+  <Token Text="AND" UId="356" />
+  <Blank UId="357" />
+  <Access Scope="GlobalVariable" UId="358">
+    <Symbol UId="359">
+      <Component Name="FlyingCarriage" UId="360">
+        <BooleanAttribute Name="HasQuotes" UId="361">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="362" />
+      <Component Name="COut" UId="363" />
+      <Token Text="." UId="364" />
+      <Component Name="CheckNext_Minus" UId="365" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="366" />
+  <NewLine UId="367" />
+  <Access Scope="LocalVariable" UId="368">
+    <Symbol UId="369">
+      <Component Name="PbPanel" UId="370" />
+      <Token Text="." UId="371" />
+      <Component Name="OpRunning" UId="372">
+        <Token Text="[" UId="373" />
+        <Access Scope="LocalConstant" UId="374">
+          <Constant UId="375">
+            <ConstantValue UId="377">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="378" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="379" />
+  <Token Text=":=" UId="380" />
+  <Blank UId="381" />
+  <Token Text="NOT" UId="382" />
+  <Blank UId="383" />
+  <Access Scope="GlobalVariable" UId="384">
+    <Symbol UId="385">
+      <Component Name="FlyingCarriage" UId="386">
+        <BooleanAttribute Name="HasQuotes" UId="387">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="388" />
+      <Component Name="COut" UId="389" />
+      <Token Text="." UId="390" />
+      <Component Name="Standstill" UId="391" />
+    </Symbol>
+  </Access>
+  <Blank UId="392" />
+  <Token Text="AND" UId="393" />
+  <Blank UId="394" />
+  <Access Scope="GlobalVariable" UId="395">
+    <Symbol UId="396">
+      <Component Name="FlyingCarriage" UId="397">
+        <BooleanAttribute Name="HasQuotes" UId="398">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="399" />
+      <Component Name="COut" UId="400" />
+      <Token Text="." UId="401" />
+      <Component Name="CheckNext_Plus" UId="402" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="403" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Operation running</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="29" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="PbPanel" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="OpDone" UId="25">
+        <Token Text="[" UId="26" />
+        <Access Scope="LocalConstant" UId="27">
+          <Constant UId="28">
+            <ConstantValue UId="30">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="31" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="FinalCut" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="39" />
+      <Component Name="COut" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="Locking" UId="42" />
+      <Token Text="." UId="43" />
+      <Component Name="Rest" UId="44" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="45" />
+  <NewLine UId="46" />
+  <Access Scope="LocalVariable" UId="47">
+    <Symbol UId="48">
+      <Component Name="PbPanel" UId="49" />
+      <Token Text="." UId="50" />
+      <Component Name="OpDone" UId="51">
+        <Token Text="[" UId="52" />
+        <Access Scope="LocalConstant" UId="53">
+          <Constant UId="54">
+            <ConstantValue UId="56">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="57" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="58" />
+  <Token Text=":=" UId="59" />
+  <Blank UId="60" />
+  <Access Scope="GlobalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="FinalCut" UId="63">
+        <BooleanAttribute Name="HasQuotes" UId="64">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="65" />
+      <Component Name="COut" UId="66" />
+      <Token Text="." UId="67" />
+      <Component Name="Locking" UId="68" />
+      <Token Text="." UId="69" />
+      <Component Name="Work" UId="70" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="71" />
+  <NewLine UId="72" />
+  <Access Scope="LocalVariable" UId="73">
+    <Symbol UId="74">
+      <Component Name="PbPanel" UId="75" />
+      <Token Text="." UId="76" />
+      <Component Name="OpDone" UId="77">
+        <Token Text="[" UId="78" />
+        <Access Scope="LocalConstant" UId="79">
+          <Constant UId="80">
+            <ConstantValue UId="82">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="83" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="84" />
+  <Token Text=":=" UId="85" />
+  <Blank UId="86" />
+  <Access Scope="GlobalVariable" UId="87">
+    <Symbol UId="88">
+      <Component Name="FinalCut" UId="89">
+        <BooleanAttribute Name="HasQuotes" UId="90">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="91" />
+      <Component Name="COut" UId="92" />
+      <Token Text="." UId="93" />
+      <Component Name="CutHead" UId="94" />
+      <Token Text="." UId="95" />
+      <Component Name="Rest" UId="96" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="97" />
+  <NewLine UId="98" />
+  <Access Scope="LocalVariable" UId="99">
+    <Symbol UId="100">
+      <Component Name="PbPanel" UId="101" />
+      <Token Text="." UId="102" />
+      <Component Name="OpDone" UId="103">
+        <Token Text="[" UId="104" />
+        <Access Scope="LocalConstant" UId="105">
+          <Constant UId="106">
+            <ConstantValue UId="108">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="109" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="GlobalVariable" UId="113">
+    <Symbol UId="114">
+      <Component Name="FinalCut" UId="115">
+        <BooleanAttribute Name="HasQuotes" UId="116">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="117" />
+      <Component Name="COut" UId="118" />
+      <Token Text="." UId="119" />
+      <Component Name="CutHead" UId="120" />
+      <Token Text="." UId="121" />
+      <Component Name="Work" UId="122" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="123" />
+  <NewLine UId="124" />
+  <Access Scope="LocalVariable" UId="125">
+    <Symbol UId="126">
+      <Component Name="PbPanel" UId="127" />
+      <Token Text="." UId="128" />
+      <Component Name="OpDone" UId="129">
+        <Token Text="[" UId="130" />
+        <Access Scope="LocalConstant" UId="131">
+          <Constant UId="132">
+            <ConstantValue UId="134">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="135" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="136" />
+  <Token Text=":=" UId="137" />
+  <Blank UId="138" />
+  <Access Scope="GlobalVariable" UId="139">
+    <Symbol UId="140">
+      <Component Name="FinalCut" UId="141">
+        <BooleanAttribute Name="HasQuotes" UId="142">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="143" />
+      <Component Name="MarkHead" UId="144" />
+      <Token Text="." UId="145" />
+      <Component Name="COut" UId="146" />
+      <Token Text="." UId="147" />
+      <Component Name="Rest" UId="148" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="149" />
+  <NewLine UId="150" />
+  <Access Scope="LocalVariable" UId="151">
+    <Symbol UId="152">
+      <Component Name="PbPanel" UId="153" />
+      <Token Text="." UId="154" />
+      <Component Name="OpDone" UId="155">
+        <Token Text="[" UId="156" />
+        <Access Scope="LocalConstant" UId="157">
+          <Constant UId="158">
+            <ConstantValue UId="160">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="161" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="162" />
+  <Token Text=":=" UId="163" />
+  <Blank Num="2" UId="164" />
+  <Access Scope="GlobalVariable" UId="165">
+    <Symbol UId="166">
+      <Component Name="FinalCut" UId="167">
+        <BooleanAttribute Name="HasQuotes" UId="168">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="169" />
+      <Component Name="MarkHead" UId="170" />
+      <Token Text="." UId="171" />
+      <Component Name="COut" UId="172" />
+      <Token Text="." UId="173" />
+      <Component Name="Work" UId="174" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="175" />
+  <NewLine UId="176" />
+  <Access Scope="LocalVariable" UId="177">
+    <Symbol UId="178">
+      <Component Name="PbPanel" UId="179" />
+      <Token Text="." UId="180" />
+      <Component Name="OpDone" UId="181">
+        <Token Text="[" UId="182" />
+        <Access Scope="LocalConstant" UId="183">
+          <Constant UId="184">
+            <ConstantValue UId="186">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="187" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="188" />
+  <Token Text=":=" UId="189" />
+  <Blank UId="190" />
+  <Access Scope="GlobalVariable" UId="191">
+    <Symbol UId="192">
+      <Component Name="FinalCut" UId="193">
+        <BooleanAttribute Name="HasQuotes" UId="194">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="195" />
+      <Component Name="DrawHead" UId="196" />
+      <Token Text="." UId="197" />
+      <Component Name="COut" UId="198" />
+      <Token Text="." UId="199" />
+      <Component Name="Rest" UId="200" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="201" />
+  <NewLine UId="202" />
+  <Access Scope="LocalVariable" UId="203">
+    <Symbol UId="204">
+      <Component Name="PbPanel" UId="205" />
+      <Token Text="." UId="206" />
+      <Component Name="OpDone" UId="207">
+        <Token Text="[" UId="208" />
+        <Access Scope="LocalConstant" UId="209">
+          <Constant UId="210">
+            <ConstantValue UId="212">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="213" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="214" />
+  <Token Text=":=" UId="215" />
+  <Blank UId="216" />
+  <Access Scope="GlobalVariable" UId="217">
+    <Symbol UId="218">
+      <Component Name="FinalCut" UId="219">
+        <BooleanAttribute Name="HasQuotes" UId="220">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="221" />
+      <Component Name="DrawHead" UId="222" />
+      <Token Text="." UId="223" />
+      <Component Name="COut" UId="224" />
+      <Token Text="." UId="225" />
+      <Component Name="Work" UId="226" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="227" />
+  <NewLine UId="228" />
+  <Access Scope="LocalVariable" UId="229">
+    <Symbol UId="230">
+      <Component Name="PbPanel" UId="231" />
+      <Token Text="." UId="232" />
+      <Component Name="OpDone" UId="233">
+        <Token Text="[" UId="234" />
+        <Access Scope="LocalConstant" UId="235">
+          <Constant UId="236">
+            <ConstantValue UId="238">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="239" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="240" />
+  <Token Text=":=" UId="241" />
+  <Blank UId="242" />
+  <Access Scope="GlobalVariable" UId="243">
+    <Symbol UId="244">
+      <Component Name="FlyingCarriage" UId="245">
+        <BooleanAttribute Name="HasQuotes" UId="246">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="247" />
+      <Component Name="COut" UId="248" />
+      <Token Text="." UId="249" />
+      <Component Name="PositioningDone" UId="250" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="251" />
+  <NewLine UId="252" />
+  <Access Scope="LocalVariable" UId="253">
+    <Symbol UId="254">
+      <Component Name="PbPanel" UId="255" />
+      <Token Text="." UId="256" />
+      <Component Name="OpDone" UId="257">
+        <Token Text="[" UId="258" />
+        <Access Scope="LocalConstant" UId="259">
+          <Constant UId="260">
+            <ConstantValue UId="262">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="263" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="264" />
+  <Token Text=":=" UId="265" />
+  <Blank UId="266" />
+  <Access Scope="GlobalVariable" UId="267">
+    <Symbol UId="268">
+      <Component Name="FlyingCarriage" UId="269">
+        <BooleanAttribute Name="HasQuotes" UId="270">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="271" />
+      <Component Name="COut" UId="272" />
+      <Token Text="." UId="273" />
+      <Component Name="PositioningDone" UId="274" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="275" />
+  <NewLine UId="276" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2E" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Operation done</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="Reset_OthersPBs_Activation_IN" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="F_DB" />
+        <Component Name="LB212" />
+        <Component Name="Enable" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalConstant" UId="23">
+      <Constant Name="ITEMS" />
+    </Access>
+    <Access Scope="GlobalVariable" UId="24">
+      <Symbol>
+        <Component Name="F_DB" />
+        <Component Name="LB212" />
+        <Component Name="SafeMotion" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="PB" />
+        <Component Name="ResetAlarms" />
+      </Symbol>
+    </Access>
+    <Part Name="Contact" UId="26">
+      <Negated Name="operand" />
+    </Part>
+    <Part Name="Contact" UId="27" />
+    <Call UId="28">
+      <CallInfo Name="Buttons2Hands" BlockType="FB">
+        <Instance Scope="LocalVariable" UId="29">
+          <Component Name="PbPanel" />
+        </Instance>
+        <Parameter Name="Items" Section="Input" Type="Int" />
+        <Parameter Name="Activation" Section="Input" Type="Bool" />
+        <Parameter Name="TwoHandsPushed" Section="Input" Type="Bool" />
+        <Parameter Name="Buttons" Section="Input" Type="Array[1..32] of Bool" />
+        <Parameter Name="Enables" Section="Input" Type="Array[1..32, 1..32] of Bool" />
+        <Parameter Name="OpEnabled" Section="Input" Type="Array[1..32] of Bool" />
+        <Parameter Name="OpRunning" Section="Input" Type="Array[1..32] of Bool" />
+        <Parameter Name="OpDone" Section="Input" Type="Array[1..32] of Bool" />
+        <Parameter Name="ResetAlarms" Section="Output" Type="Bool" />
+        <Parameter Name="Operations" Section="Output" Type="Array[1..32] of Bool" />
+        <Parameter Name="Lamps" Section="Output" Type="Array[1..32] of Bool" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="37">
+      <Powerrail />
+      <NameCon UId="28" Name="en" />
+      <NameCon UId="26" Name="in" />
+    </Wire>
+    <Wire UId="38">
+      <IdentCon UId="21" />
+      <NameCon UId="26" Name="operand" />
+    </Wire>
+    <Wire UId="39">
+      <NameCon UId="26" Name="out" />
+      <NameCon UId="27" Name="in" />
+    </Wire>
+    <Wire UId="40">
+      <IdentCon UId="22" />
+      <NameCon UId="27" Name="operand" />
+    </Wire>
+    <Wire UId="41">
+      <NameCon UId="27" Name="out" />
+      <NameCon UId="28" Name="Activation" />
+    </Wire>
+    <Wire UId="42">
+      <IdentCon UId="23" />
+      <NameCon UId="28" Name="Items" />
+    </Wire>
+    <Wire UId="43">
+      <IdentCon UId="24" />
+      <NameCon UId="28" Name="TwoHandsPushed" />
+    </Wire>
+    <Wire UId="44">
+      <OpenCon UId="30" />
+      <NameCon UId="28" Name="Buttons" />
+    </Wire>
+    <Wire UId="45">
+      <OpenCon UId="31" />
+      <NameCon UId="28" Name="Enables" />
+    </Wire>
+    <Wire UId="46">
+      <OpenCon UId="32" />
+      <NameCon UId="28" Name="OpEnabled" />
+    </Wire>
+    <Wire UId="47">
+      <OpenCon UId="33" />
+      <NameCon UId="28" Name="OpRunning" />
+    </Wire>
+    <Wire UId="48">
+      <OpenCon UId="34" />
+      <NameCon UId="28" Name="OpDone" />
+    </Wire>
+    <Wire UId="49">
+      <NameCon UId="28" Name="ResetAlarms" />
+      <IdentCon UId="25" />
+    </Wire>
+    <Wire UId="50">
+      <NameCon UId="28" Name="Operations" />
+      <OpenCon UId="35" />
+    </Wire>
+    <Wire UId="51">
+      <NameCon UId="28" Name="Lamps" />
+      <OpenCon UId="36" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="37" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="38" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Main</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="3B" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="PB" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="DieClamp_Rest" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text=":=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LocalVariable" UId="29">
+    <Symbol UId="30">
+      <Component Name="PbPanel" UId="31" />
+      <Token Text="." UId="32" />
+      <Component Name="Operations" UId="33">
+        <Token Text="[" UId="34" />
+        <Access Scope="LocalConstant" UId="35">
+          <Constant UId="36">
+            <ConstantValue UId="38">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="39" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="40" />
+  <NewLine UId="41" />
+  <Access Scope="LocalVariable" UId="42">
+    <Symbol UId="43">
+      <Component Name="PB" UId="44" />
+      <Token Text="." UId="45" />
+      <Component Name="DieClamp_Work" UId="46" />
+    </Symbol>
+  </Access>
+  <Blank UId="47" />
+  <Token Text=":=" UId="48" />
+  <Blank UId="49" />
+  <Access Scope="LocalVariable" UId="50">
+    <Symbol UId="51">
+      <Component Name="PbPanel" UId="52" />
+      <Token Text="." UId="53" />
+      <Component Name="Operations" UId="54">
+        <Token Text="[" UId="55" />
+        <Access Scope="LocalConstant" UId="56">
+          <Constant UId="57">
+            <ConstantValue UId="59">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="60" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="61" />
+  <NewLine UId="62" />
+  <Access Scope="LocalVariable" UId="63">
+    <Symbol UId="64">
+      <Component Name="PB" UId="65" />
+      <Token Text="." UId="66" />
+      <Component Name="DieT1CutHead_Rest" UId="67" />
+    </Symbol>
+  </Access>
+  <Blank UId="68" />
+  <Token Text=":=" UId="69" />
+  <Blank UId="70" />
+  <Access Scope="LocalVariable" UId="71">
+    <Symbol UId="72">
+      <Component Name="PbPanel" UId="73" />
+      <Token Text="." UId="74" />
+      <Component Name="Operations" UId="75">
+        <Token Text="[" UId="76" />
+        <Access Scope="LocalConstant" UId="77">
+          <Constant UId="78">
+            <ConstantValue UId="80">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="81" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="82" />
+  <NewLine UId="83" />
+  <Access Scope="LocalVariable" UId="84">
+    <Symbol UId="85">
+      <Component Name="PB" UId="86" />
+      <Token Text="." UId="87" />
+      <Component Name="DieT1CutHead_Work" UId="88" />
+    </Symbol>
+  </Access>
+  <Blank UId="89" />
+  <Token Text=":=" UId="90" />
+  <Blank UId="91" />
+  <Access Scope="LocalVariable" UId="92">
+    <Symbol UId="93">
+      <Component Name="PbPanel" UId="94" />
+      <Token Text="." UId="95" />
+      <Component Name="Operations" UId="96">
+        <Token Text="[" UId="97" />
+        <Access Scope="LocalConstant" UId="98">
+          <Constant UId="99">
+            <ConstantValue UId="101">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="102" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="103" />
+  <NewLine UId="104" />
+  <Access Scope="LocalVariable" UId="105">
+    <Symbol UId="106">
+      <Component Name="PB" UId="107" />
+      <Token Text="." UId="108" />
+      <Component Name="DieT2MarkHead_Rest" UId="109" />
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="LocalVariable" UId="113">
+    <Symbol UId="114">
+      <Component Name="PbPanel" UId="115" />
+      <Token Text="." UId="116" />
+      <Component Name="Operations" UId="117">
+        <Token Text="[" UId="118" />
+        <Access Scope="LocalConstant" UId="119">
+          <Constant UId="120">
+            <ConstantValue UId="122">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="123" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="124" />
+  <NewLine UId="125" />
+  <Access Scope="LocalVariable" UId="126">
+    <Symbol UId="127">
+      <Component Name="PB" UId="128" />
+      <Token Text="." UId="129" />
+      <Component Name="DieT2MarkHead_Work" UId="130" />
+    </Symbol>
+  </Access>
+  <Blank UId="131" />
+  <Token Text=":=" UId="132" />
+  <Blank UId="133" />
+  <Access Scope="LocalVariable" UId="134">
+    <Symbol UId="135">
+      <Component Name="PbPanel" UId="136" />
+      <Token Text="." UId="137" />
+      <Component Name="Operations" UId="138">
+        <Token Text="[" UId="139" />
+        <Access Scope="LocalConstant" UId="140">
+          <Constant UId="141">
+            <ConstantValue UId="143">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="144" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="145" />
+  <NewLine UId="146" />
+  <Access Scope="LocalVariable" UId="147">
+    <Symbol UId="148">
+      <Component Name="PB" UId="149" />
+      <Token Text="." UId="150" />
+      <Component Name="DieT3MarkHead_Rest" UId="151" />
+    </Symbol>
+  </Access>
+  <Blank UId="152" />
+  <Token Text=":=" UId="153" />
+  <Blank UId="154" />
+  <Access Scope="LocalVariable" UId="155">
+    <Symbol UId="156">
+      <Component Name="PbPanel" UId="157" />
+      <Token Text="." UId="158" />
+      <Component Name="Operations" UId="159">
+        <Token Text="[" UId="160" />
+        <Access Scope="LocalConstant" UId="161">
+          <Constant UId="162">
+            <ConstantValue UId="164">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="165" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="166" />
+  <NewLine UId="167" />
+  <Access Scope="LocalVariable" UId="168">
+    <Symbol UId="169">
+      <Component Name="PB" UId="170" />
+      <Token Text="." UId="171" />
+      <Component Name="DieT3MarkHead_Work" UId="172" />
+    </Symbol>
+  </Access>
+  <Blank UId="173" />
+  <Token Text=":=" UId="174" />
+  <Blank UId="175" />
+  <Access Scope="LocalVariable" UId="176">
+    <Symbol UId="177">
+      <Component Name="PbPanel" UId="178" />
+      <Token Text="." UId="179" />
+      <Component Name="Operations" UId="180">
+        <Token Text="[" UId="181" />
+        <Access Scope="LocalConstant" UId="182">
+          <Constant UId="183">
+            <ConstantValue UId="185">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="186" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="187" />
+  <NewLine UId="188" />
+  <Access Scope="LocalVariable" UId="189">
+    <Symbol UId="190">
+      <Component Name="PB" UId="191" />
+      <Token Text="." UId="192" />
+      <Component Name="Carriage_Bwd" UId="193" />
+    </Symbol>
+  </Access>
+  <Blank UId="194" />
+  <Token Text=":=" UId="195" />
+  <Blank UId="196" />
+  <Access Scope="LocalVariable" UId="197">
+    <Symbol UId="198">
+      <Component Name="PbPanel" UId="199" />
+      <Token Text="." UId="200" />
+      <Component Name="Operations" UId="201">
+        <Token Text="[" UId="202" />
+        <Access Scope="LocalConstant" UId="203">
+          <Constant UId="204">
+            <ConstantValue UId="206">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="207" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="208" />
+  <NewLine UId="209" />
+  <Access Scope="LocalVariable" UId="210">
+    <Symbol UId="211">
+      <Component Name="PB" UId="212" />
+      <Token Text="." UId="213" />
+      <Component Name="Carriage_Fwd" UId="214" />
+    </Symbol>
+  </Access>
+  <Blank UId="215" />
+  <Token Text=":=" UId="216" />
+  <Blank UId="217" />
+  <Access Scope="LocalVariable" UId="218">
+    <Symbol UId="219">
+      <Component Name="PbPanel" UId="220" />
+      <Token Text="." UId="221" />
+      <Component Name="Operations" UId="222">
+        <Token Text="[" UId="223" />
+        <Access Scope="LocalConstant" UId="224">
+          <Constant UId="225">
+            <ConstantValue UId="227">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="228" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="229" />
+  <NewLine UId="230" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3C" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="3D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="40" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="41" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Safe Buttons</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="42" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="43" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="44" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="GlobalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="LB212_DieClamp_Lp_Rest" UId="23">
+        <BooleanAttribute Name="HasQuotes" UId="24">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="25" />
+  <Token Text=":=" UId="26" />
+  <Blank UId="27" />
+  <Access Scope="LocalVariable" UId="28">
+    <Symbol UId="29">
+      <Component Name="PbPanel" UId="30" />
+      <Token Text="." UId="31" />
+      <Component Name="Lamps" UId="32">
+        <Token Text="[" UId="33" />
+        <Access Scope="LocalConstant" UId="34">
+          <Constant UId="35">
+            <ConstantValue UId="37">DIE_CLAMP_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="38" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="39" />
+  <NewLine UId="40" />
+  <Access Scope="GlobalVariable" UId="41">
+    <Symbol UId="42">
+      <Component Name="LB212_DieClamp_Lp_Work" UId="43">
+        <BooleanAttribute Name="HasQuotes" UId="44">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="45" />
+  <Token Text=":=" UId="46" />
+  <Blank UId="47" />
+  <Access Scope="LocalVariable" UId="48">
+    <Symbol UId="49">
+      <Component Name="PbPanel" UId="50" />
+      <Token Text="." UId="51" />
+      <Component Name="Lamps" UId="52">
+        <Token Text="[" UId="53" />
+        <Access Scope="LocalConstant" UId="54">
+          <Constant UId="55">
+            <ConstantValue UId="57">DIE_CLAMP_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="58" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="59" />
+  <NewLine UId="60" />
+  <Access Scope="GlobalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="LB212_DiesOP_T1_Lp_Rest" UId="63">
+        <BooleanAttribute Name="HasQuotes" UId="64">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="65" />
+  <Token Text=":=" UId="66" />
+  <Blank UId="67" />
+  <Access Scope="LocalVariable" UId="68">
+    <Symbol UId="69">
+      <Component Name="PbPanel" UId="70" />
+      <Token Text="." UId="71" />
+      <Component Name="Lamps" UId="72">
+        <Token Text="[" UId="73" />
+        <Access Scope="LocalConstant" UId="74">
+          <Constant UId="75">
+            <ConstantValue UId="77">DIE_T1_CUTHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="78" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="79" />
+  <NewLine UId="80" />
+  <Access Scope="GlobalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="LB212_DiesOP_T1_Lp_Work" UId="83">
+        <BooleanAttribute Name="HasQuotes" UId="84">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="85" />
+  <Token Text=":=" UId="86" />
+  <Blank UId="87" />
+  <Access Scope="LocalVariable" UId="88">
+    <Symbol UId="89">
+      <Component Name="PbPanel" UId="90" />
+      <Token Text="." UId="91" />
+      <Component Name="Lamps" UId="92">
+        <Token Text="[" UId="93" />
+        <Access Scope="LocalConstant" UId="94">
+          <Constant UId="95">
+            <ConstantValue UId="97">DIE_T1_CUTHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="98" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="99" />
+  <NewLine UId="100" />
+  <Access Scope="GlobalVariable" UId="101">
+    <Symbol UId="102">
+      <Component Name="LB212_DiesOP_T2_Lp_Rest" UId="103">
+        <BooleanAttribute Name="HasQuotes" UId="104">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="105" />
+  <Token Text=":=" UId="106" />
+  <Blank UId="107" />
+  <Access Scope="LocalVariable" UId="108">
+    <Symbol UId="109">
+      <Component Name="PbPanel" UId="110" />
+      <Token Text="." UId="111" />
+      <Component Name="Lamps" UId="112">
+        <Token Text="[" UId="113" />
+        <Access Scope="LocalConstant" UId="114">
+          <Constant UId="115">
+            <ConstantValue UId="117">DIE_T2_MARKHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="118" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="119" />
+  <NewLine UId="120" />
+  <Access Scope="GlobalVariable" UId="121">
+    <Symbol UId="122">
+      <Component Name="LB212_DiesOP_T2_Lp_Work" UId="123">
+        <BooleanAttribute Name="HasQuotes" UId="124">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="125" />
+  <Token Text=":=" UId="126" />
+  <Blank UId="127" />
+  <Access Scope="LocalVariable" UId="128">
+    <Symbol UId="129">
+      <Component Name="PbPanel" UId="130" />
+      <Token Text="." UId="131" />
+      <Component Name="Lamps" UId="132">
+        <Token Text="[" UId="133" />
+        <Access Scope="LocalConstant" UId="134">
+          <Constant UId="135">
+            <ConstantValue UId="137">DIE_T2_MARKHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="138" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="139" />
+  <NewLine UId="140" />
+  <Access Scope="GlobalVariable" UId="141">
+    <Symbol UId="142">
+      <Component Name="LB212_DiesOP_T3_Lp_Rest" UId="143">
+        <BooleanAttribute Name="HasQuotes" UId="144">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="145" />
+  <Token Text=":=" UId="146" />
+  <Blank UId="147" />
+  <Access Scope="LocalVariable" UId="148">
+    <Symbol UId="149">
+      <Component Name="PbPanel" UId="150" />
+      <Token Text="." UId="151" />
+      <Component Name="Lamps" UId="152">
+        <Token Text="[" UId="153" />
+        <Access Scope="LocalConstant" UId="154">
+          <Constant UId="155">
+            <ConstantValue UId="157">DIE_T3_DRAWHEAD_REST</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="158" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="159" />
+  <NewLine UId="160" />
+  <Access Scope="GlobalVariable" UId="161">
+    <Symbol UId="162">
+      <Component Name="LB212_DiesOP_T3_Lp_Work" UId="163">
+        <BooleanAttribute Name="HasQuotes" UId="164">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="165" />
+  <Token Text=":=" UId="166" />
+  <Blank UId="167" />
+  <Access Scope="LocalVariable" UId="168">
+    <Symbol UId="169">
+      <Component Name="PbPanel" UId="170" />
+      <Token Text="." UId="171" />
+      <Component Name="Lamps" UId="172">
+        <Token Text="[" UId="173" />
+        <Access Scope="LocalConstant" UId="174">
+          <Constant UId="175">
+            <ConstantValue UId="177">DIE_T3_DRAWHEAD_WORK</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="178" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="179" />
+  <NewLine UId="180" />
+  <Access Scope="GlobalVariable" UId="181">
+    <Symbol UId="182">
+      <Component Name="LB212_Carriage_Lp_BWD" UId="183">
+        <BooleanAttribute Name="HasQuotes" UId="184">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="185" />
+  <Token Text=":=" UId="186" />
+  <Blank UId="187" />
+  <Access Scope="LocalVariable" UId="188">
+    <Symbol UId="189">
+      <Component Name="PbPanel" UId="190" />
+      <Token Text="." UId="191" />
+      <Component Name="Lamps" UId="192">
+        <Token Text="[" UId="193" />
+        <Access Scope="LocalConstant" UId="194">
+          <Constant UId="195">
+            <ConstantValue UId="197">CARRIAGE_BWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="198" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="199" />
+  <NewLine UId="200" />
+  <Access Scope="GlobalVariable" UId="201">
+    <Symbol UId="202">
+      <Component Name="LB212_Carriage_Lp_FWD" UId="203">
+        <BooleanAttribute Name="HasQuotes" UId="204">true</BooleanAttribute>
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="205" />
+  <Token Text=":=" UId="206" />
+  <Blank UId="207" />
+  <Access Scope="LocalVariable" UId="208">
+    <Symbol UId="209">
+      <Component Name="PbPanel" UId="210" />
+      <Token Text="." UId="211" />
+      <Component Name="Lamps" UId="212">
+        <Token Text="[" UId="213" />
+        <Access Scope="LocalConstant" UId="214">
+          <Constant UId="215">
+            <ConstantValue UId="217">CARRIAGE_FWD</ConstantValue>
+          </Constant>
+        </Access>
+        <Token Text="]" UId="218" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="219" />
+  <NewLine UId="220" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="45" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="46" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="47" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="48" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="49" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="4A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Lamp selection</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="4B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="4C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="4D" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="Reset_OthersPBs_Activation_OUT" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Access Scope="LiteralConstant" UId="27">
+    <Constant UId="28">
+      <ConstantValue UId="30">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="31" />
+  <NewLine Num="2" UId="32" />
+  <Token Text="FOR" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="LocalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="i" UId="37" />
+    </Symbol>
+  </Access>
+  <Blank UId="38" />
+  <Token Text=":=" UId="39" />
+  <Blank UId="40" />
+  <Access Scope="LiteralConstant" UId="41">
+    <Constant UId="42">
+      <ConstantValue UId="44">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="45" />
+  <Token Text="TO" UId="46" />
+  <Blank UId="47" />
+  <Access Scope="LocalConstant" UId="48">
+    <Constant Name="ITEMS" UId="49" />
+  </Access>
+  <Blank UId="52" />
+  <Token Text="DO" UId="53" />
+  <NewLine UId="54" />
+  <Blank Num="4" UId="55" />
+  <NewLine UId="56" />
+  <Blank Num="4" UId="57" />
+  <Token Text="IF" UId="58" />
+  <Blank UId="59" />
+  <Access Scope="LocalVariable" UId="60">
+    <Symbol UId="61">
+      <Component Name="PbPanel" UId="62" />
+      <Token Text="." UId="63" />
+      <Component Name="Buttons" UId="64">
+        <Token Text="[" UId="65" />
+        <Access Scope="LocalVariable" UId="66">
+          <Symbol UId="67">
+            <Component Name="i" UId="68" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="69" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="70" />
+  <Token Text="OR" UId="71" />
+  <Blank UId="72" />
+  <Access Scope="LocalVariable" UId="73">
+    <Symbol UId="74">
+      <Component Name="PbPanel" UId="75" />
+      <Token Text="." UId="76" />
+      <Component Name="Operations" UId="77">
+        <Token Text="[" UId="78" />
+        <Access Scope="LocalVariable" UId="79">
+          <Symbol UId="80">
+            <Component Name="i" UId="81" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="82" />
+      </Component>
+    </Symbol>
+  </Access>
+  <Blank UId="83" />
+  <Token Text="THEN" UId="84" />
+  <NewLine UId="85" />
+  <Blank Num="8" UId="86" />
+  <Access Scope="LocalVariable" UId="87">
+    <Symbol UId="88">
+      <Component Name="Reset_OthersPBs_Activation_OUT" UId="89" />
+    </Symbol>
+  </Access>
+  <Blank UId="90" />
+  <Token Text=":=" UId="91" />
+  <Blank UId="92" />
+  <Access Scope="LiteralConstant" UId="93">
+    <Constant UId="94">
+      <ConstantValue UId="96">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="97" />
+  <NewLine UId="98" />
+  <Blank Num="8" UId="99" />
+  <Token Text="EXIT" UId="100" />
+  <Token Text=";" UId="101" />
+  <NewLine UId="102" />
+  <Blank Num="4" UId="103" />
+  <Token Text="END_IF" UId="104" />
+  <Token Text=";" UId="105" />
+  <NewLine UId="106" />
+  <Blank Num="4" UId="107" />
+  <NewLine UId="108" />
+  <Token Text="END_FOR" UId="109" />
+  <Token Text=";" UId="110" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="4E" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="4F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="50" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="51" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="52" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="53" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Reset others safe push buttons activation / execution</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="54" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="55" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="56" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource />
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="57" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="58" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="59" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="5A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="5B" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="5C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>></Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="5D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="5E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="5F" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource />
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="60" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="61" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="62" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="63" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="64" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="65" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>></Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="66" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="67" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="68" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource />
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="69" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="6A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="6B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="6C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="6D" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="6E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>></Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="6F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="70" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="71" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="72" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>LB212 SAFE BUTTONS (@ Flyng Cut)</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="73" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="74" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

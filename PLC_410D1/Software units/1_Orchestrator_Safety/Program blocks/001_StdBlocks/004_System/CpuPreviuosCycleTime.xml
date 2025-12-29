@@ -1,0 +1,307 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output">
+    <Member Name="PrevCycleTime" Datatype="Int" />
+  </Section>
+  <Section Name="InOut" />
+  <Section Name="Static">
+    <Member Name="CpuDateTime" Datatype="Date_And_Time">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="PrevCpuDateTime" Datatype="Date_And_Time" />
+    <Member Name="LastCpuCycleTime" Datatype="Time" />
+  </Section>
+  <Section Name="Temp">
+    <Member Name="Ret" Datatype="Int" />
+  </Section>
+  <Section Name="Constant" />
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>CpuPreviuosCycleTime</Name>
+      <Namespace />
+      <Number>4</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="Ret" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Access Scope="Call" UId="27">
+    <Instruction Name="RD_SYS_T" UId="28">
+      <Token Text="(" UId="29" />
+      <Parameter Name="OUT" UId="30">
+        <Blank UId="31" />
+        <Token Text="=&gt;" UId="32" />
+        <Blank UId="33" />
+        <Access Scope="LocalVariable" UId="34">
+          <Symbol UId="35">
+            <Component Name="CpuDateTime" UId="36" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="38" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="39" />
+  <NewLine Num="2" UId="40" />
+  <Token Text="IF" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="GlobalVariable" UId="43">
+    <Symbol UId="44">
+      <Component Name="Sys" UId="45">
+        <BooleanAttribute Name="HasQuotes" UId="46">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="47" />
+      <Component Name="FirstPLCCycle" UId="48" />
+    </Symbol>
+  </Access>
+  <Blank UId="49" />
+  <Token Text="THEN" UId="50" />
+  <NewLine UId="51" />
+  <Blank Num="4" UId="52" />
+  <Access Scope="LocalVariable" UId="53">
+    <Symbol UId="54">
+      <Component Name="PrevCpuDateTime" UId="55" />
+    </Symbol>
+  </Access>
+  <Blank UId="56" />
+  <Token Text=":=" UId="57" />
+  <Blank UId="58" />
+  <Access Scope="LocalVariable" UId="59">
+    <Symbol UId="60">
+      <Component Name="CpuDateTime" UId="61" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="62" />
+  <NewLine UId="63" />
+  <Token Text="END_IF" UId="64" />
+  <Token Text=";" UId="65" />
+  <NewLine Num="2" UId="66" />
+  <Access Scope="LocalVariable" UId="67">
+    <Symbol UId="68">
+      <Component Name="LastCpuCycleTime" UId="69" />
+    </Symbol>
+  </Access>
+  <Blank UId="70" />
+  <Token Text=":=" UId="71" />
+  <Blank UId="72" />
+  <Access Scope="Call" UId="73">
+    <Instruction Name="T_DIFF" UId="74">
+      <Token Text="(" UId="75" />
+      <Parameter Name="IN1" UId="76">
+        <Blank UId="77" />
+        <Token Text=":=" UId="78" />
+        <Blank UId="79" />
+        <Access Scope="LocalVariable" UId="80">
+          <Symbol UId="81">
+            <Component Name="CpuDateTime" UId="82" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="83" />
+      <Blank UId="84" />
+      <Parameter Name="IN2" UId="85">
+        <Blank UId="86" />
+        <Token Text=":=" UId="87" />
+        <Blank UId="88" />
+        <Access Scope="LocalVariable" UId="89">
+          <Symbol UId="90">
+            <Component Name="PrevCpuDateTime" UId="91" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="93" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="94" />
+  <NewLine Num="2" UId="95" />
+  <Token Text="IF" UId="96" />
+  <Blank UId="97" />
+  <Access Scope="LocalVariable" UId="98">
+    <Symbol UId="99">
+      <Component Name="LastCpuCycleTime" UId="100" />
+    </Symbol>
+  </Access>
+  <Blank UId="101" />
+  <Token Text="&lt;=" UId="102" />
+  <Blank UId="103" />
+  <Access Scope="TypedConstant" UId="104">
+    <Constant UId="105">
+      <ConstantValue UId="106">T#0MS</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="107" />
+  <Token Text="THEN" UId="108" />
+  <NewLine UId="109" />
+  <Blank Num="4" UId="110" />
+  <Access Scope="LocalVariable" UId="111">
+    <Symbol UId="112">
+      <Component Name="LastCpuCycleTime" UId="113" />
+    </Symbol>
+  </Access>
+  <Blank UId="114" />
+  <Token Text=":=" UId="115" />
+  <Blank UId="116" />
+  <Access Scope="TypedConstant" UId="117">
+    <Constant UId="118">
+      <ConstantValue UId="119">T#1MS</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="120" />
+  <NewLine UId="121" />
+  <Token Text="END_IF" UId="122" />
+  <Token Text=";" UId="123" />
+  <NewLine Num="2" UId="124" />
+  <Access Scope="LocalVariable" UId="125">
+    <Symbol UId="126">
+      <Component Name="PrevCpuDateTime" UId="127" />
+    </Symbol>
+  </Access>
+  <Blank UId="128" />
+  <Token Text=":=" UId="129" />
+  <Blank UId="130" />
+  <Access Scope="LocalVariable" UId="131">
+    <Symbol UId="132">
+      <Component Name="CpuDateTime" UId="133" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="134" />
+  <NewLine UId="135" />
+  <Access Scope="LocalVariable" UId="136">
+    <Symbol UId="137">
+      <Component Name="PrevCycleTime" UId="138" />
+    </Symbol>
+  </Access>
+  <Blank UId="139" />
+  <Token Text=":=" UId="140" />
+  <Blank UId="141" />
+  <Access Scope="Call" UId="142">
+    <Instruction Name="TIME_TO_INT" UId="143">
+      <Token Text="(" UId="144" />
+      <NamelessParameter UId="145">
+        <Access Scope="LocalVariable" UId="146">
+          <Symbol UId="147">
+            <Component Name="LastCpuCycleTime" UId="148" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="150" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="151" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Previus cycle time calculated with cpu time</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text> Main</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="E" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Cpu Previus cycle time</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="10" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text>Get CPU Previous Cycle Time</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="11" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

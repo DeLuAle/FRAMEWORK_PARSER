@@ -1,0 +1,303 @@
+﻿FUNCTION "MES_Msg431_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PTrk : "PTrk_Item";
+      BTrk : "BTrk_item";
+   END_VAR
+
+   VAR_IN_OUT 
+      Err : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;   // Valore di ritorno della funzione di ricerca dati ItemProd usando ID_Prod (PLC) 
+      strPayload : String;   // Stringa Payload per formare il messaggio
+      Msg : "MES_Msg";
+      item_Prod : "Prod_Item";   // Dati Item di produzione associato
+      item_Coil : "Coil_Item";   // Item materiale associato
+      indx : Int;
+      SL_Num : Real;
+      SC_Num : Int;
+      Case_Part : Bool;
+      Case_Beam : Bool;
+      Case_Scrap_Part : Bool;
+      Case_Scrap_Beam : Bool;
+      C_ID : DInt;
+      O_ID : DInt;
+   END_VAR
+
+   VAR CONSTANT 
+      NUMERO_MESSAGGIO : UDInt := 431;
+   END_VAR
+
+
+BEGIN
+	REGION INFO
+	    
+	    
+	    (*
+	    
+	    PLC → MES – Topic = 431: Invio dati materiale scartato
+	    
+	    Il PLC invia questo messaggio per comunicare al MES le informazioni relative a ogni singolo spezzone di profi-lo scartato, specificandone lunghezza, causa e, ove possibile, l’ordine di produzione associato.
+	    
+	    Payload
+	    
+	    Chiave  Formato Descrizione
+	    [CN]    N0  Numero identificativo del rotolo
+	    [HN]    N0  Numero di colata
+	    [SL]    N0  Lunghezza del materiale scartato (in mm)
+	    [SC]    N0  Codice della causa dello scarto (vedi tabella sotto)
+	    [IDP]   C   Identificativo univoco dell’ordine di produzione lato PLC. Se lo scarto non è asso-ciabile a un ordine, questo campo è vuoto.
+	    
+	    
+	    Codici possibili per [SC] – Causa dello scarto
+	    •   0 – Causa sconosciuta
+	    •   1 – Profilo con saldatura di giunzione
+	    •   2 – Coda di materiale da vuotamento profilatrice
+	    •   3 – Semi-guscio non conforme
+	    •   4 – Pezzo finito non conforme
+	    •   10 – Semi-guscio prodotto per test macchina
+	    •   11 – Pezzo finito prodotto per test macchina
+	    ________________________________________
+	
+	    
+	    *)
+	    
+	    
+	END_REGION
+	
+	
+	
+	// RETURN value = 0 Fine esecuzione senza errori
+	// 
+	
+	#MES_Msg431_Push := "PROD_FUN_RESULT_OK";
+	#Err.Presence := FALSE;
+	
+	
+	#Case_Part := #PTrk.PLen_Meas > 0 ;
+	#Case_Beam := #BTrk.BLen_Meas > 0 ;
+	
+	
+	(*
+	
+	IF NOT #Case_Part AND NOT #Case_Beam THEN
+	    
+	    IF #PTrk.C_ID > 0 AND #PTrk.PLen_Meas > 0.0 THEN
+	        #Case_Scrap_Part := TRUE;
+	        
+	    ELSIF (#BTrk.P_L.C_ID > 0) AND #BTrk.BLen_Meas > 0.0 THEN
+	        #Case_Scrap_Beam := TRUE;
+	    END_IF;
+	END_IF;
+	*)
+	
+	#Case_Scrap_Part := "Sys".ByPass;
+	#Case_Scrap_Beam := "Sys".ByPass;
+	
+	REGION Get MatItem: Trova dati item materiale
+	    
+	    #item_Coil :="Production".Coil_Data.Empty;
+	    
+	    IF #Case_Part OR #Case_Scrap_Part OR #Case_Beam OR #Case_Scrap_Beam
+	    THEN
+	        IF #Case_Part OR #Case_Scrap_Part
+	        THEN
+	            #C_ID := #PTrk.C_ID;
+	            
+	        ELSIF #Case_Beam OR #Case_Scrap_Beam
+	        THEN
+	            #C_ID := #BTrk.P_L.C_ID;
+	        END_IF;
+	        
+	        
+	        #RETVAL := "Coil_item_GetData_By_C_ID"(C_ID := #C_ID, Item => #item_Coil);
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	
+	
+	REGION Get ProdItem: Trova dati item di produzione
+	    
+	    #item_Prod := "Production".O_Empty;
+	    
+	    IF #Case_Part OR #Case_Beam
+	    THEN
+	        IF #Case_Part THEN
+	            #O_ID := #PTrk.O_ID;
+	            
+	        ELSIF #Case_Beam THEN
+	            #O_ID := #BTrk.O_ID;
+	        END_IF;
+	        
+	        #RETVAL := "Prod_item_GetData"(O_ID := #O_ID, MES_IDP := '', Item => #item_Prod, indx => #indx);
+	        
+	    ELSIF  #Case_Scrap_Part AND #PTrk.Quality = "PART_BAD_END_OF_COIL"
+	    THEN
+	        #item_Prod.MES_IDP := "Production".Coil_Data.OUT[1].MES_IDP;
+	        
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	REGION PayLoad creation
+	    
+	    
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    //
+	    // CREAZIONE PAYLOAD
+	    // 
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+	    
+	    // Creazione payload
+	    #strPayload := '';
+	    
+	    // [CN] Numero identificativo del rotolo
+	    //
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_CN");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #item_Coil.MES_CN);
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    // [HN] Numero di colata
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_HN");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #item_Coil.MES_HN);
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [SL] Lunghezza del materiale scartato (in mm)
+	    // 
+	    
+	    IF #Case_Beam
+	    THEN
+	        #SL_Num := #BTrk.P_L.PLen_Meas + #BTrk.P_U.PLen_Meas;
+	    ELSE
+	        #SL_Num := #PTrk.PLen_Meas;
+	    END_IF;
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_SL");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #SL_Num , NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [SC] Codice della causa dello scarto (vedi tabella sotto)
+	    // 
+	    (*
+	    Codici possibili per [SC] – Causa dello scarto
+	    •   0 – Causa sconosciuta
+	    •   1 – Profilo con saldatura di giunzione
+	    •   2 – Coda di materiale da vuotamento profilatrice
+	    •   3 – Semi-guscio non conforme
+	    •   4 – Pezzo finito non conforme
+	    •   10 – Semi-guscio prodotto per test macchina
+	    •   11 – Pezzo finito prodotto per test macchina
+	    ________________________________________
+	    *)
+	    #SC_Num := 0;
+	    
+	    
+	    
+	    
+	    IF (#Case_Part OR #Case_Scrap_Part) AND #PTrk.Quality = "PART_BAD_WELD"
+	    THEN
+	        #SC_Num := 1;
+	        
+	    ELSIF (#Case_Part OR #Case_Scrap_Part) AND #PTrk.Quality = "PART_BAD_END_OF_COIL"
+	    THEN
+	        #SC_Num := 2;
+	        
+	    ELSIF (#Case_Part OR #Case_Scrap_Part) AND #PTrk.Quality = "PART_BAD_EXCEED_TOL"
+	    THEN
+	        #SC_Num := 3;
+	        
+	    ELSIF (#Case_Part OR #Case_Scrap_Part) AND #PTrk.Quality = "NG_R"
+	    THEN
+	        #SC_Num := 3;
+	        
+	    ELSIF (#Case_Beam OR #Case_Scrap_Beam) AND #BTrk.Quality = "NG_R"
+	    THEN
+	        #SC_Num := 4;
+	        
+	    ELSIF (#Case_Part OR #Case_Scrap_Part) AND #PTrk.Quality = "PART_BAD_TEST"
+	    THEN
+	        #SC_Num := 10;
+	        
+	    ELSIF (#Case_Beam OR #Case_Scrap_Beam) AND #PTrk.Quality = "BEAM_BAD_TEST"
+	    THEN
+	        #SC_Num := 11; 
+	    END_IF;
+	    
+	   
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_SC");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #SC_Num, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    
+	    // [IDP] Identificativo univoco dell’ordine di produzione lato PLC. Se lo scarto non è associabile a un ordine, questo campo è vuoto.
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IDP");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #item_Prod.MES_IDP);
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	END_REGION ;
+	
+	
+	
+	
+	REGION PUSH messaggio
+	    
+	    // Incrementa ultimo ID
+	    // 
+	    "MES_Send_Buffer_Msg_Topic4XX".lastId := "Inc_DINT_Circ"("MES_Send_Buffer_Msg_Topic4XX".lastId);
+	    
+	    
+	    // Prepararazione messaggio
+	    // 
+	    #Msg.Id := "MES_Send_Buffer_Msg_Topic4XX".lastId;
+	    #Msg.timestamp := "Conv_DT_to_STRING"("Now"());
+	    #Msg.topic := #NUMERO_MESSAGGIO;
+	    #Msg.payLoad := #strPayload;
+	    
+	    
+	    // Push messaggio
+	    // 
+	    #RETVAL := "MES_Buffer_Push"(Msg := #Msg, Evaluate_FULL := "ProductionMng_PERS".Pers.Data.MODE.MES_ON,
+	                                 Buffer_msg := "MES_Send_Buffer_Msg_Topic4XX".msg);
+	    
+	    
+	    // Push messaggio LOG
+	    // 
+	    "IPC_Push_Log_MES"(Msg := #Msg, Ack := #RETVAL);
+	    
+	    
+	    IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	        #MES_Msg431_Push := #RETVAL;
+	        #Err := "MES_Error_Set"(msg_RETVAL := #RETVAL, msg := #Msg);
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    // Return value = OK
+	    // 
+	    #MES_Msg431_Push := "PROD_FUN_RESULT_OK";
+	    RETURN;
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

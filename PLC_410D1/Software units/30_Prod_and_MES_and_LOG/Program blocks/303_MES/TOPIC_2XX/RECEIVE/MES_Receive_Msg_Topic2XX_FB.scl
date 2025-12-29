@@ -1,0 +1,941 @@
+﻿FUNCTION_BLOCK "MES_Receive_Msg_Topic2XX_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      DEBUG : Struct
+         Enable : Bool;
+         AckChangeStep : Bool;
+         ActualStep : Int;
+      END_STRUCT;
+      Err : "MES_Msg_Receive_Topic2xx_Err";
+   END_VAR
+
+   VAR 
+      Status : Int;
+      Save_Msg_ID : DInt;
+      ACK : DInt;
+      MSG200 : Struct
+         RETVAL_Decoder : DInt;
+         RETVAL_Push_MSG201 : DInt;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+      MSG210 : Struct
+         RETVAL_Decoder : DInt;
+         RETVAL_Push_MSG211 : DInt;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+      MSG212 : Struct
+         RETVAL_Decoder : DInt;
+         RETVAL_SetMemAbilitazionCancDatiPacco : DInt;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT 
+      IDLE : Int := 0;
+      WAIT_NEXT_MSG : Int := 1;
+      ACK_TO_MES : Int := 100;
+      MSG200_1 : Int := 2001;
+      MSG200_2 : Int := 2002;
+      MSG200_3 : Int := 2003;
+      MSG200_4 : Int := 2004;
+      MSG210_1 : Int := 2101;
+      MSG210_2 : Int := 2102;
+      MSG210_3 : Int := 2103;
+      MSG210_4 : Int := 2104;
+      MSG212_1 : Int := 2121;
+      MSG212_2 : Int := 2122;
+      MSG212_3 : Int := 2123;
+      MSG212_4 : Int := 2124;
+   END_VAR
+
+
+BEGIN
+	#DEBUG.ActualStep := #Status;
+	
+	
+	REGION ACK TO MES        
+	    
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// ACK TO MES
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    IF #Status = #ACK_TO_MES THEN
+	        
+	        
+	        // OK → CAMBIO PASSO
+	        // 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        // Uscita traferendo ACK alla gestione al MES
+	        //
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        "MES_Com_Channel_Topic2XX".RECEIVE.ack := #ACK;
+	        
+	        // Invio messaggio a IPC per registrazione evento ricezione messaggio
+	        // 
+	       "IPC_Push_Log_MES"(Msg := "MES_Com_Channel_Topic2XX".RECEIVE.msg,
+	                                               Ack := "MES_Com_Channel_Topic2XX".RECEIVE.ack);
+	        
+	        CASE "MES_Com_Channel_Topic2XX".RECEIVE.msg.topic OF
+	                
+	            200: // MES → PLC – Topic = 200: Interrogazione stato pacco su baia di preparazione (Solo ordini tipo C)
+	                #Err.Recive_MSG200 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic2XX".RECEIVE.msg);
+	                
+	            210: // MES → PLC – Topic = 210: Interrogazione stato pacco su baia di uscita
+	                #Err.Recive_MSG210 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic2XX".RECEIVE.msg);
+	                
+	            212: // MES → PLC – Topic = 212: Consenso cancellazione dati pacco su baia di uscita
+	                #Err.Recive_MSG212 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic2XX".RECEIVE.msg);
+	                
+	        END_CASE;
+	                
+	                
+	        #Status := #"IDLE";
+	        
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	        
+	      
+	        
+	        
+	        
+	REGION IDLE       
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// IDLE
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    IF #Status = #IDLE THEN
+	        
+	        // MES non ha ancore cambiato ID e messaggio precedente era terminato OK 
+	        // 
+	        IF "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id = "MES_Com_Channel_Topic2XX".RECEIVE.ack THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES non ha ancora cambiato ID e messaggio precedente è terminato con errore
+	        // 
+	        IF "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id = #Save_Msg_ID THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES ha inviato messaggio con ID <= 0 →  ACK immediato
+	        // 
+	        IF "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id <= 0 THEN
+	            #ACK := "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id;
+	            #Save_Msg_ID := "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id;
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // Avvio ricezione nuovo messaggio
+	        // 
+	        #Save_Msg_ID := "MES_Com_Channel_Topic2XX".RECEIVE.msg.Id;
+	        
+	        CASE "MES_Com_Channel_Topic2XX".RECEIVE.msg.topic OF
+	                
+	                
+	            200: // MES → PLC – Topic = 200: Interrogazione stato pacco su baia di preparazione (Solo ordini tipo C)
+	                #Status := #MSG200_1;
+	                RETURN;
+	                
+	                
+	            210: // MES → PLC – Topic = 210: Interrogazione stato pacco su baia di uscita
+	                #Status := #MSG210_1;
+	                RETURN;
+	                
+	            212: //MES → PLC – Topic = 212: Consenso cancellazione dati pacco su baia di uscita
+	                #Status := #MSG212_1;
+	                RETURN;
+	                
+	                
+	            ELSE
+	                // Topic del messaggio non gestita
+	                // 
+	                #ACK := "PROD_ERR_BUFFER_MSGs_UNKNOW_TOPIC";
+	                #Status := #ACK_TO_MES;
+	                RETURN;
+	        END_CASE;
+	        
+	        RETURN;
+	 
+	    END_IF;
+	END_REGION ;
+	        
+	        
+	       
+	        
+	   
+	          
+	                
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	
+	            
+	            
+	            
+	            
+	 
+	       
+	            
+	            
+	REGION MSG200 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 200: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG200_1 THEN
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        
+	        #MSG200.RETVAL_Decoder :=
+	        #MSG200.RETVAL_Push_MSG201 := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        #MSG200.Mem_Push_Done := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	            
+	            
+	            
+	            
+	REGION MSG200 STEP 2 (DECODER PAYLOAD)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 200: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG200_2 THEN
+	        
+	        #MSG200.RETVAL_Decoder := "MES_Msg200_Decoder"("MES_Com_Channel_Topic2XX".RECEIVE.msg.payLoad);
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG200.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG200.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	            
+	            
+	         
+	            
+	REGION MSG200 STEP 3 (PUSH MSG 201)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 200: STEP 3
+	    
+	    PUSH MESSAGGIO SU BUFFER SEND  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG200_3 THEN
+	        
+	        // Push messaggio 201 stato ordine richiesto dal messaggio 200 del MES  
+	        //
+	        IF NOT #MSG200.Mem_Push_Done THEN
+	            
+	            #MSG200.Mem_Push_Done := TRUE;
+	            
+	            #MSG200.RETVAL_Push_MSG201 := "MES_Msg201_Push"(MES_IDI := #Save_Msg_ID, Err := #Err.Send_MSG201_Follow_MSG200);
+	            
+	        END_IF;
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG200.RETVAL_Push_MSG201 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG200.RETVAL_Push_MSG201;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	            
+	            
+	            
+	            
+	            
+	            
+	REGION MSG200 STEP 4 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 200: STEP 4
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG200_4 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	
+	
+	REGION MSG210 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 210: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG210_1 THEN
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        
+	        #MSG210.RETVAL_Decoder :=
+	        #MSG210.RETVAL_Push_MSG211 := "PROD_FUN_RESULT_OK";
+	        
+	        #MSG210.Mem_Push_Done := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	            
+	REGION MSG210 STEP 2 (DECODER PAYLOAD)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 210: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG210_2 THEN
+	        
+	        #MSG210.RETVAL_Decoder := "MES_Msg210_Decoder"("MES_Com_Channel_Topic2XX".RECEIVE.msg.payLoad);
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG210.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG210.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	            
+	            
+	            
+	
+	REGION MSG210 STEP 3 (PUSH MSG 211)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 200: STEP 3
+	    
+	    PUSH MESSAGGIO SU BUFFER SEND  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG210_3 THEN
+	        
+	        // Push messaggio 211 stato ordine richiesto dal messaggio 210 del MES  
+	        //
+	        IF NOT #MSG210.Mem_Push_Done THEN
+	            
+	            #MSG210.Mem_Push_Done := TRUE;
+	            
+	            #MSG210.RETVAL_Push_MSG211 := "MES_Msg211_Push"(MES_IDI := #Save_Msg_ID, Err := #Err.Send_MSG211_Follow_MSG210);
+	            
+	            
+	        END_IF;
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG210.RETVAL_Push_MSG211 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG210.RETVAL_Push_MSG211;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	            
+	           
+	            
+	            
+	            
+	            
+	REGION MSG210 STEP 4 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 210: STEP 4
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG210_4 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	REGION MSG212 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 212: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG212_1 THEN
+	        
+	        #MSG212.RETVAL_Decoder :=
+	        #MSG212.RETVAL_SetMemAbilitazionCancDatiPacco := "PROD_FUN_RESULT_OK";
+	        
+	        #MSG212.Mem_Push_Done := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	               
+	                
+	END_REGION
+	            
+	            
+	            
+	
+	REGION MSG212 STEP 2 (DECODER PAYLOAD)
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 130: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG212_2 THEN
+	        
+	        #MSG212.RETVAL_Decoder :=  "MES_Msg212_Decoder"("MES_Com_Channel_Topic2XX".RECEIVE.msg.payLoad);
+	        
+	        
+	        //########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG212.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG212.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	            
+	            
+	
+	REGION MSG212 STEP 3 (SET MEMORIA ABILITAZIONE CANCELLAZIONE DATI PACCO SU NAVETTA DI SCARICO)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 212: STEP 3
+	    
+	    SET MEMORIA ABILITAZIONE + ACK CON ESITO POSITIVO  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG212_3 THEN
+	        
+	        
+	        IF "BTrk".A0304.Empty
+	        THEN
+	            #MSG212.RETVAL_SetMemAbilitazionCancDatiPacco := "PROD_ERR_BTRK_A304_EMPTY";
+	        ELSE
+	            #MSG212.RETVAL_SetMemAbilitazionCancDatiPacco := "PROD_FUN_RESULT_OK";
+	        END_IF;
+	        
+	        
+	        // Push messaggio ??? FREE 
+	        //
+	        IF NOT #MSG212.Mem_Push_Done THEN
+	            
+	          #MSG212.Mem_Push_Done := TRUE;
+	          
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //#########################
+	        //
+	        IF #MSG212.RETVAL_SetMemAbilitazionCancDatiPacco < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK :=  #MSG212.RETVAL_SetMemAbilitazionCancDatiPacco;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        "BTrk".A0304.AbilitazioneCancellazioneDatiPacco := TRUE;
+	        
+	        #Status += 1;
+	        
+	        RETURN;
+	        
+	        
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	REGION MSG212 STEP 4 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 212: STEP 4
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG212_4 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	       
+	       
+	            
+	            
+	            
+	(*    
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	Status errato
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)        
+	
+	            
+	
+	            
+	#Status := #"IDLE";
+	        
+	        
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

@@ -1,0 +1,268 @@
+{
+    "category": "String Functions",
+    "description": "Funzioni per manipolazione e elaborazione stringhe",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL String Instructions",
+    "functions": [
+        {
+            "name": "CONCAT",
+            "signature": "CONCAT(IN1 := <string1>, IN2 := <string2>, [IN3 := <string3>, ...])",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Prima stringa",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Seconda stringa",
+                    "optional": false
+                },
+                {
+                    "name": "IN3..IN32",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringhe aggiuntive (opzionali)",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Stringa concatenata"
+            },
+            "description": "Concatena (unisce) due o più stringhe in una singola stringa. Supporta fino a 32 input.",
+            "example": "fullName := CONCAT(IN1 := firstName, IN2 := ' ', IN3 := lastName);",
+            "anti_pattern": "// NON FARE (non supportato in SCL):\nresult := str1 + str2;",
+            "why_native": "Unico modo standard per concatenare stringhe in SCL. Gestisce automaticamente troncamento se risultato eccede lunghezza massima.",
+            "mandatory": true,
+            "notes": "Se risultato eccede lunghezza massima della stringa di output, viene troncato. Tutte le stringhe devono essere dello stesso tipo (STRING o WSTRING).",
+            "see_also": [
+                "LEN",
+                "LEFT",
+                "RIGHT",
+                "MID"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LEN",
+            "signature": "LEN(IN := <string>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa di cui determinare la lunghezza",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT/DINT",
+                "description": "Lunghezza corrente della stringa (numero di caratteri validi)"
+            },
+            "description": "Ritorna la lunghezza corrente (numero di caratteri) di una stringa. Una stringa vuota ha lunghezza 0.",
+            "example": "length := LEN(IN := message);\nIF length > 0 THEN\n    // Stringa non vuota\nEND_IF;",
+            "mandatory": true,
+            "notes": "Ritorna la lunghezza CORRENTE, non la lunghezza massima dichiarata. Lunghezza massima STRING è 254 caratteri se non specificato diversamente.",
+            "see_also": [
+                "MAX_LEN",
+                "CONCAT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LEFT",
+            "signature": "LEFT(IN := <string>, L := <length>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "L",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Numero di caratteri da estrarre da sinistra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Sottostringa con i primi L caratteri"
+            },
+            "description": "Estrae i primi L caratteri da sinistra di una stringa.",
+            "example": "prefix := LEFT(IN := 'Hello World', L := 5);  // risultato: 'Hello'",
+            "mandatory": true,
+            "notes": "Se L > lunghezza stringa, ritorna l'intera stringa. Se L <= 0, ritorna stringa vuota.",
+            "see_also": [
+                "RIGHT",
+                "MID",
+                "LEN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "RIGHT",
+            "signature": "RIGHT(IN := <string>, L := <length>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "L",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Numero di caratteri da estrarre da destra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Sottostringa con gli ultimi L caratteri"
+            },
+            "description": "Estrae gli ultimi L caratteri da destra di una stringa.",
+            "example": "suffix := RIGHT(IN := 'Hello World', L := 5);  // risultato: 'World'",
+            "mandatory": true,
+            "notes": "Se L > lunghezza stringa, ritorna l'intera stringa. Se L <= 0, ritorna stringa vuota.",
+            "see_also": [
+                "LEFT",
+                "MID",
+                "LEN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MID",
+            "signature": "MID(IN := <string>, L := <length>, P := <position>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "L",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Lunghezza sottostringa da estrarre",
+                    "optional": false
+                },
+                {
+                    "name": "P",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Posizione iniziale (1-based index)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Sottostringa estratta"
+            },
+            "description": "Estrae una sottostringa di lunghezza L a partire dalla posizione P (indice base 1).",
+            "example": "middle := MID(IN := 'Hello World', L := 5, P := 7);  // risultato: 'World'",
+            "mandatory": true,
+            "notes": "P è 1-based (primo carattere è posizione 1). Se P fuori range, ritorna stringa vuota. Se L eccede caratteri rimanenti, estrae fino alla fine.",
+            "see_also": [
+                "LEFT",
+                "RIGHT",
+                "LEN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "FIND",
+            "signature": "FIND(IN1 := <string>, IN2 := <search_string>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa in cui cercare",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa da cercare",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Posizione della prima occorrenza (1-based), 0 se non trovata"
+            },
+            "description": "Cerca la prima occorrenza di IN2 all'interno di IN1. Ritorna la posizione (1-based) o 0 se non trovata.",
+            "example": "pos := FIND(IN1 := 'Hello World', IN2 := 'World');  // risultato: 7",
+            "mandatory": true,
+            "notes": "Ricerca case-sensitive. Ritorna 0 se IN2 non trovata in IN1. Posizione è 1-based.",
+            "see_also": [
+                "REPLACE",
+                "MID"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REPLACE",
+            "signature": "REPLACE(IN1 := <string>, IN2 := <search>, L := <length>, P := <position>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa originale",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa sostitutiva",
+                    "optional": false
+                },
+                {
+                    "name": "L",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Lunghezza della parte da sostituire",
+                    "optional": false
+                },
+                {
+                    "name": "P",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Posizione iniziale (1-based)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Stringa con sostituzione effettuata"
+            },
+            "description": "Sostituisce L caratteri a partire dalla posizione P con la stringa IN2.",
+            "example": "result := REPLACE(IN1 := 'Hello World', IN2 := 'SCL', L := 5, P := 7);  // risultato: 'Hello SCL'",
+            "mandatory": true,
+            "notes": "P è 1-based. Se risultato eccede lunghezza massima, viene troncato.",
+            "see_also": [
+                "FIND",
+                "INSERT",
+                "DELETE"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

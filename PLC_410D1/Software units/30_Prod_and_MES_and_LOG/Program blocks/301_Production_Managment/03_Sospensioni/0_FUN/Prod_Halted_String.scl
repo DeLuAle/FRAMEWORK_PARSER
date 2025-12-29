@@ -1,0 +1,73 @@
+﻿FUNCTION "Prod_Halted_String" : String
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Halted_Status : "Prod_Halted";
+      Area_Prefix : String;   // Scrivere 'A01'; 'A02'; 'A03';
+   END_VAR
+
+
+BEGIN
+	(*
+	Valori possibili per [IC] – Codice causa della sospensione
+	•   0 - Causa sconosciuta
+	•   1 - Interruzione del ciclo automatico per pressione del pulsante di arresto ciclo.
+	•   2 - Sospensione dovuta all’interruzione del ciclo automatico per presenza di allarme.
+	•   3 - Sospensione dovuta alla pausa del ciclo automatico per presenza di warning.
+	*)
+	
+	#Prod_Halted_String := '';
+	
+	
+	CASE #Halted_Status.Code OF
+	        
+	        
+	    "IC_StopCicloOperatore":
+	        
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Ciclo automatico arrestato da operatore - ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := #Area_Prefix);
+	        
+	        
+	    "IC_PresenzaAllarme":
+	        
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Arresto ciclo automatico causa allarme - ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := #Area_Prefix);
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := ' - Numero messaggio: ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := "Conv_NUM_to_STRING"(NumericValue := #Halted_Status.Message_N, NDec := 0));
+	        
+	        
+	    "IC_WariningMancanzaCondizioni":
+	        
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Mancanza condizioni per proseguire segnalato da warning - ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := #Area_Prefix);
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := ' - Numero messaggio: ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := "Conv_NUM_to_STRING"(NumericValue := #Halted_Status.Message_N, NDec := 0));
+	        
+	        
+	    "IC_SospensioneFineTurno":
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Arresto per Fine Turno ricevuto da MES');
+	        
+	        
+	    "IC_SospensioneControlloQualita":
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Arresto per Controllo Qualita ricevuto da MES');
+	        
+	        
+	    "IC_SospensioneCausaSconoscita":
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Ciclo automatico non avviato - ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := #Area_Prefix);
+	        
+	    ELSE
+	        #Prod_Halted_String := '';
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := 'Sospensione dovuta a causa sconosciuta - ');
+	        #Prod_Halted_String := CONCAT(IN1 := #Prod_Halted_String, IN2 := #Area_Prefix);
+	        
+	END_CASE;
+	
+END_FUNCTION
+

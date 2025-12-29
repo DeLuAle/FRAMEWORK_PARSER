@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>ProgramsManager_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="ArchiveNo" Datatype="USInt" />
+    <Member Name="Enable" Datatype="Bool" />
+    <Member Name="RstAlarms" Datatype="Bool" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningPresence" Datatype="Bool" />
+      <Member Name="ProgramUpdated" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Scada_WrongPrgNo" Datatype="Bool" />
+      <Member Name="Scada_WrongPivotTable" Datatype="Bool" />
+      <Member Name="Scada_ArchiveFull" Datatype="Bool" />
+      <Member Name="Scada_ReadArchiveError" Datatype="Bool" />
+      <Member Name="Scada_WriteArchiveError" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PIVOT" Datatype="Array[*] of &quot;Prg_Pivot&quot;" />
+    <Member Name="GET_ITF" Datatype="&quot;Prg_GetITF&quot;" />
+    <Member Name="RWD_EMPTY" Datatype="Variant" />
+    <Member Name="RWD_UPDATE" Datatype="Variant" />
+    <Member Name="RWD_GET" Datatype="Variant" />
+    <Member Name="RWD_HMI" Datatype="Variant" />
+    <Member Name="RWD_SCADA" Datatype="Variant" />
+    <Member Name="RWDHeader_HMI" Datatype="&quot;Prg_Header&quot;" />
+    <Member Name="RWDHeader_SCADA" Datatype="&quot;Prg_Header&quot;" />
+    <Member Name="HMI" Datatype="&quot;Prg_HMI&quot;" />
+    <Member Name="SCADA" Datatype="&quot;Prg_SCADA&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Status" Datatype="Int" />
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="ReadDone" Datatype="Bool" />
+      <Member Name="ReadError" Datatype="Bool" />
+      <Member Name="WriteDone" Datatype="Bool" />
+      <Member Name="WriteError" Datatype="Bool" />
+      <Member Name="PivotRecordRW" Datatype="Int" />
+      <Member Name="PivotIndexRW" Datatype="Int" />
+      <Member Name="PivotRecordFirstFree" Datatype="Int" />
+      <Member Name="PivotIndexRecordFirstFree" Datatype="Int" />
+      <Member Name="RecordToWrite" Datatype="Int" />
+      <Member Name="IndexToUpdate" Datatype="Int" />
+      <Member Name="ListFirstIndex" Datatype="Int" />
+      <Member Name="ListIndexMin" Datatype="Int" />
+      <Member Name="ListIndexMax" Datatype="Int" />
+      <Member Name="ProgramNumberToManage" Datatype="DInt" />
+      <Member Name="PercentageUnitVal" Datatype="Real" />
+      <Member Name="ScadaOpBusy" Datatype="Bool" />
+      <Member Name="ProgramUpdated" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="ReadExe" Datatype="Bool" />
+      <Member Name="WriteExe" Datatype="Bool" />
+    </Member>
+    <Member Name="Get" Datatype="Struct">
+      <Member Name="Status" Datatype="Int" />
+      <Member Name="RecordNo" Datatype="Int" />
+      <Member Name="ExeRead" Datatype="Bool" />
+    </Member>
+    <Member Name="Msg" Datatype="Struct">
+      <Member Name="Scada_WrongPrgNo" Datatype="Bool" />
+      <Member Name="Scada_WrongPivotTable" Datatype="Bool" />
+      <Member Name="Scada_ArchiveFull" Datatype="Bool" />
+      <Member Name="Scada_ReadArchiveError" Datatype="Bool" />
+      <Member Name="Scada_WriteArchiveError" Datatype="Bool" />
+    </Member>
+    <Member Name="SortPivotTable" Datatype="&quot;SortPivot&quot;" />
+    <Member Name="tonDone" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonSaveDoneScada" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonDeleteDoneScada" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonReadDoneScada" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonCopyDelay" Datatype="IEC_TIMER" Version="1.0" />
+  </Section>
+</Sections></Interface>
+      <Name>ProfileMng</Name>
+      <Namespace />
+      <Number>19</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

@@ -1,0 +1,192 @@
+﻿FUNCTION_BLOCK "PAC3220_FB_Modbus(NotUse)"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT DB_SPECIFIC
+      IP {InstructionName := 'IP_V4'; LibVersion := '1.0'} : IP_V4;
+   END_VAR
+
+   VAR_OUTPUT DB_SPECIFIC
+      ErrorID : Word;
+   END_VAR
+
+   VAR_IN_OUT 
+      Device : "udt_PAC3220";
+   END_VAR
+
+   VAR DB_SPECIFIC
+      mbInterface { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "udt_MbClient" := ((), (), (), (), (), ((), (), (), (), ([192, 168, 0]), (), ()));   // Input parameter for MB_CLIENT
+   END_VAR
+   VAR 
+      MB_Conn {InstructionName := 'MB_CLIENT'; LibVersion := '6.0'; ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : MB_CLIENT;
+   END_VAR
+   VAR DB_SPECIFIC
+      Status { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      index { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : UInt;
+      DataRead { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[0..7] of Byte;
+      DataRead_LR { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      DataRead_R : Real;
+      Pos : DInt;
+      Retval : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      READ_REGISTER : USInt := 103;
+      WRITE_REGISTER : USInt := 1;
+      N_DATA : USInt := 12;
+      K : Real := 1000.0;
+   END_VAR
+
+
+BEGIN
+	IF "Sys".FirstPLCCycle THEN
+	    #Status := 0;
+	END_IF;
+	
+	
+	REGION 0: INIT
+	    IF #Status = 0 THEN
+	        #mbInterface.connect.RemoteAddress := #IP;
+	        #mbInterface.req := FALSE;
+	        #index := 0;
+	        #Status := 10;
+	    END_IF;
+	END_REGION
+	
+	REGION 10: CONNECT
+	    IF #Status = 10 THEN
+	        #mbInterface.connect.RemoteAddress := #IP;
+	        #mbInterface.req := FALSE;
+	        #mbInterface.disconnect := FALSE;
+	        #mbInterface.mode := #READ_REGISTER;
+	        #index := 0;
+	        IF #MB_Conn.Connected AND NOT #MB_Conn.BUSY THEN
+	            #Status := 20;
+	        END_IF;
+	        IF #MB_Conn.ERROR THEN
+	            #ErrorID := #MB_Conn.STATUS;
+	            #Status := 100;
+	        END_IF;
+	    END_IF;
+	END_REGION
+	
+	
+	REGION 20: REQUEST
+	    IF #Status = 20 THEN
+	        
+	        #mbInterface.req := TRUE;
+	        
+	        CASE #index OF
+	            0:
+	                #mbInterface.DataAddr := 1;
+	                #mbInterface.DataLen := 2;
+	            1:
+	                #mbInterface.DataAddr := 3;
+	                #mbInterface.DataLen := 2;
+	            2:
+	                #mbInterface.DataAddr := 5;
+	                #mbInterface.DataLen := 2;
+	            3:
+	                #mbInterface.DataAddr := 13;
+	                #mbInterface.DataLen := 2;
+	            4:
+	                #mbInterface.DataAddr := 15;
+	                #mbInterface.DataLen := 2;
+	            5:
+	                #mbInterface.DataAddr := 17;
+	                #mbInterface.DataLen := 2;
+	            6:
+	                #mbInterface.DataAddr := 59;
+	                #mbInterface.DataLen := 2;
+	            7:
+	                #mbInterface.DataAddr := 61;
+	                #mbInterface.DataLen := 2;
+	            8:
+	                #mbInterface.DataAddr := 65;
+	                #mbInterface.DataLen := 2;
+	            9:
+	                #mbInterface.DataAddr := 67;
+	                #mbInterface.DataLen := 2;
+	            10:
+	                #mbInterface.DataAddr := 801;
+	                #mbInterface.DataLen := 4;
+	            11:
+	                #mbInterface.DataAddr := 833;
+	                #mbInterface.DataLen := 4;
+	        END_CASE;
+	        #Status := 30;
+	        
+	    END_IF;
+	END_REGION
+	
+	REGION 30: ANSWER
+	    IF #Status = 30 THEN
+	        
+	        IF #MB_Conn.DONE THEN
+	            #ErrorID := w#0;
+	            #mbInterface.req := FALSE;
+	            #Pos := 0;
+	            #Retval := Deserialize(SRC_ARRAY := #DataRead, DEST_VARIABLE => #DataRead_LR, POS := #Pos);
+	            #Pos := 0;
+	            #Retval := Deserialize(SRC_ARRAY := #DataRead, DEST_VARIABLE => #DataRead_R, POS := #Pos);
+	            CASE #index OF
+	                0:
+	                    #Device.Voltage_L1 := #DataRead_R;
+	                1:
+	                    #Device.Voltage_L2 := #DataRead_R;
+	                2:
+	                    #Device.Voltage_L3 := #DataRead_R;
+	                3:
+	                    #Device.Current_L1 := #DataRead_R;
+	                4:
+	                    #Device.Current_L2 := #DataRead_R;
+	                5:
+	                    #Device.Current_L3 := #DataRead_R;
+	                6:
+	                    #Device."AverageVoltageUL-L" := #DataRead_R;
+	                7:
+	                    #Device.AverageCurrent := #DataRead_R;
+	                8:
+	                    #Device.TotalActivePower := #DataRead_R / #K;
+	                9:
+	                    #Device.TotalReactivePower := #DataRead_R / #K;
+	                10:
+	                    #Device.TotalActiveEnergy := #DataRead_LR / #K;
+	                11:
+	                    #Device.TotalApparentEnergy := #DataRead_LR / #K;
+	            END_CASE;
+	            #index := (#index + 1) MOD #N_DATA;
+	            #Status := 20;
+	        END_IF;
+	        
+	        IF #MB_Conn.ERROR THEN
+	            #Status := 100;
+	        END_IF;
+	        
+	    END_IF;
+	END_REGION
+	
+	REGION 100: ERROR
+	    IF #Status = 100 THEN
+	        
+	        #mbInterface.req := FALSE;
+	        #mbInterface.disconnect := TRUE;
+	        
+	        IF NOT #MB_Conn.Connected AND NOT #MB_Conn.BUSY THEN
+	            #Status := 0;
+	        END_IF;
+	        
+	    END_IF;
+	END_REGION
+	
+	REGION MB_CLIENT call
+	    #MB_Conn(REQ := #mbInterface.req,
+	             DISCONNECT := #mbInterface.disconnect,
+	             MB_MODE := #mbInterface.mode,
+	             MB_DATA_ADDR := #mbInterface.DataAddr,
+	             MB_DATA_LEN := #mbInterface.DataLen,
+	             MB_DATA_PTR := #DataRead,
+	             CONNECT := #mbInterface.connect);
+	END_REGION
+	
+END_FUNCTION_BLOCK
+

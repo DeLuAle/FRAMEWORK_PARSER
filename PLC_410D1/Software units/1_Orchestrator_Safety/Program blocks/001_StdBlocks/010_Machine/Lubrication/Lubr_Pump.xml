@@ -1,0 +1,1187 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="SensorLevel" Datatype="Bool" />
+    </Member>
+    <Member Name="ValveCycleTimeOut" Datatype="Time">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Max lubraction tIme for single valve</MultiLanguageText>
+      </Comment>
+      <StartValue>T#5M</StartValue>
+    </Member>
+    <Member Name="Simulation" Datatype="Bool" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="ValveCmd" Datatype="Bool" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par" Datatype="&quot;LubrPump_Par&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="RunReq" Datatype="Bool" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="OldValve" Datatype="Int" />
+    </Member>
+    <Member Name="Alarm" Datatype="&quot;LubrPump_Alr&quot;" />
+    <Member Name="HMI" Datatype="&quot;LubrMotorPump_HMI&quot;" />
+    <Member Name="LubrInterface" Datatype="&quot;LubrValve_ITF&quot;" />
+    <Member Name="tonLowLevel" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonValveON" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="tonValveOFF" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="ValveChianTimeOut" Datatype="IEC_TIMER" Version="1.0" />
+  </Section>
+  <Section Name="Temp" />
+  <Section Name="Constant" />
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>Lubr_Pump</Name>
+      <Namespace />
+      <Number>152</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22">=============================================================================</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <LineComment UId="24">
+    <Text UId="25">PM FORMING</Text>
+  </LineComment>
+  <NewLine UId="26" />
+  <LineComment UId="27">
+    <Text UId="28">-----------------------------------------------------------------------------</Text>
+  </LineComment>
+  <NewLine UId="29" />
+  <LineComment UId="30">
+    <Text UId="31"> Library: StandardBlocks</Text>
+  </LineComment>
+  <NewLine UId="32" />
+  <LineComment UId="33">
+    <Text UId="34"> Tested with: S7-1518TF</Text>
+  </LineComment>
+  <NewLine UId="35" />
+  <LineComment UId="36">
+    <Text UId="37"> Engineering: TIA Portal V18</Text>
+  </LineComment>
+  <NewLine UId="38" />
+  <LineComment UId="39">
+    <Text UId="40"> Restrictions: -</Text>
+  </LineComment>
+  <NewLine UId="41" />
+  <LineComment UId="42">
+    <Text UId="43"> Requirements: S7-1500</Text>
+  </LineComment>
+  <NewLine UId="44" />
+  <LineComment UId="45">
+    <Text UId="46"> Functionality: Lubrication Pump for Lubr_Valve Machine</Text>
+  </LineComment>
+  <NewLine UId="47" />
+  <LineComment UId="48">
+    <Text UId="49" />
+  </LineComment>
+  <NewLine UId="50" />
+  <LineComment UId="51">
+    <Text UId="52"> v1.0.0  28/12/2022 </Text>
+  </LineComment>
+  <NewLine UId="53" />
+  <LineComment UId="54">
+    <Text UId="55"> v1.0.2  23/01/2023 Set default ValveCycleTimeOut at 5M</Text>
+  </LineComment>
+  <NewLine UId="56" />
+  <LineComment UId="57">
+    <Text UId="58"> v1.1.0  14/02/2023 Simulation added</Text>
+  </LineComment>
+  <NewLine UId="59" />
+  <LineComment UId="60">
+    <Text UId="61"> v1.1.3  22/11/2023 Bug Fixes</Text>
+  </LineComment>
+  <NewLine UId="62" />
+  <LineComment UId="63">
+    <Text UId="64">=============================================================================</Text>
+  </LineComment>
+  <NewLine Num="2" UId="65" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Info</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="LubrInterface" UId="25" />
+      <Token Text="." UId="26" />
+      <Component Name="Ctrl" UId="27" />
+      <Token Text="." UId="28" />
+      <Component Name="RstAlarms" UId="29" />
+    </Symbol>
+  </Access>
+  <Blank UId="30" />
+  <Token Text="THEN" UId="31" />
+  <NewLine UId="32" />
+  <Blank Num="4" UId="33" />
+  <Access Scope="LocalVariable" UId="34">
+    <Symbol UId="35">
+      <Component Name="Alarm" UId="36" />
+      <Token Text="." UId="37" />
+      <Component Name="LowLevelLubrication" UId="38" />
+    </Symbol>
+  </Access>
+  <Blank UId="39" />
+  <Token Text=":=" UId="40" />
+  <Blank UId="41" />
+  <Access Scope="LiteralConstant" UId="42">
+    <Constant UId="43">
+      <ConstantValue UId="45">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="46" />
+  <NewLine UId="47" />
+  <Token Text="END_IF" UId="48" />
+  <Token Text=";" UId="49" />
+  <NewLine UId="50" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Reset Alarms</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22">Low level lubrication alarm</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="LocalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="tonLowLevel" UId="26" />
+    </Symbol>
+  </Access>
+  <Token Text="." UId="27" />
+  <Access Scope="Call" UId="28">
+    <Instruction Name="TON" UId="29">
+      <Token Text="(" UId="30" />
+      <Parameter Name="IN" UId="31">
+        <Blank UId="32" />
+        <Token Text=":=" UId="33" />
+        <Blank UId="34" />
+        <Token Text="NOT" UId="35" />
+        <Blank UId="36" />
+        <Access Scope="LocalVariable" UId="37">
+          <Symbol UId="38">
+            <Component Name="DataIn" UId="39" />
+            <Token Text="." UId="40" />
+            <Component Name="SensorLevel" UId="41" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="42" />
+      <NewLine UId="43" />
+      <Blank Num="17" UId="44" />
+      <Parameter Name="PT" UId="45">
+        <Blank UId="46" />
+        <Token Text=":=" UId="47" />
+        <Blank UId="48" />
+        <Access Scope="LocalVariable" UId="49">
+          <Symbol UId="50">
+            <Component Name="Par" UId="51" />
+            <Token Text="." UId="52" />
+            <Component Name="LowLevelCheckTime" UId="53" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="54" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="55" />
+  <NewLine Num="2" UId="56" />
+  <Token Text="IF" UId="57" />
+  <Blank UId="58" />
+  <Access Scope="LocalVariable" UId="59">
+    <Symbol UId="60">
+      <Component Name="tonLowLevel" UId="61" />
+      <Token Text="." UId="62" />
+      <Component Name="Q" UId="63" />
+    </Symbol>
+  </Access>
+  <Blank UId="64" />
+  <Token Text="AND" UId="65" />
+  <Blank UId="66" />
+  <Access Scope="LocalVariable" UId="67">
+    <Symbol UId="68">
+      <Component Name="ValveCmd" UId="69" />
+    </Symbol>
+  </Access>
+  <Blank UId="70" />
+  <Token Text="AND" UId="71" />
+  <Blank UId="72" />
+  <Token Text="NOT" UId="73" />
+  <Blank UId="74" />
+  <Access Scope="LocalVariable" UId="75">
+    <Symbol UId="76">
+      <Component Name="Simulation" UId="77" />
+    </Symbol>
+  </Access>
+  <Blank UId="78" />
+  <Token Text="THEN" UId="79" />
+  <NewLine UId="80" />
+  <Blank Num="4" UId="81" />
+  <Access Scope="LocalVariable" UId="82">
+    <Symbol UId="83">
+      <Component Name="Alarm" UId="84" />
+      <Token Text="." UId="85" />
+      <Component Name="LowLevelLubrication" UId="86" />
+    </Symbol>
+  </Access>
+  <Blank UId="87" />
+  <Token Text=":=" UId="88" />
+  <Blank UId="89" />
+  <Access Scope="LiteralConstant" UId="90">
+    <Constant UId="91">
+      <ConstantValue UId="93">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="94" />
+  <NewLine UId="95" />
+  <Token Text="END_IF" UId="96" />
+  <Token Text=";" UId="97" />
+  <NewLine Num="2" UId="98" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Alarms &amp; Warning</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="LubrInterface" UId="25" />
+      <Token Text="." UId="26" />
+      <Component Name="ValveChain" UId="27" />
+      <Token Text="." UId="28" />
+      <Component Name="ActualValve" UId="29" />
+    </Symbol>
+  </Access>
+  <Blank UId="30" />
+  <Token Text="&gt;" UId="31" />
+  <Blank UId="32" />
+  <Access Scope="LiteralConstant" UId="33">
+    <Constant UId="34">
+      <ConstantValue UId="36">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="37" />
+  <Token Text="THEN" UId="38" />
+  <NewLine UId="39" />
+  <Blank Num="4" UId="40" />
+  <Access Scope="LocalVariable" UId="41">
+    <Symbol UId="42">
+      <Component Name="Ctrl" UId="43" />
+      <Token Text="." UId="44" />
+      <Component Name="RunReq" UId="45" />
+    </Symbol>
+  </Access>
+  <Blank UId="46" />
+  <Token Text=":=" UId="47" />
+  <Blank UId="48" />
+  <Access Scope="LocalVariable" UId="49">
+    <Symbol UId="50">
+      <Component Name="LubrInterface" UId="51" />
+      <Token Text="." UId="52" />
+      <Component Name="Ctrl" UId="53" />
+      <Token Text="." UId="54" />
+      <Component Name="WorkReq" UId="55" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="56" />
+  <NewLine UId="57" />
+  <Token Text="ELSE" UId="58" />
+  <NewLine UId="59" />
+  <Blank Num="4" UId="60" />
+  <Access Scope="LocalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="Ctrl" UId="63" />
+      <Token Text="." UId="64" />
+      <Component Name="RunReq" UId="65" />
+    </Symbol>
+  </Access>
+  <Blank UId="66" />
+  <Token Text=":=" UId="67" />
+  <Blank UId="68" />
+  <Access Scope="LiteralConstant" UId="69">
+    <Constant UId="70">
+      <ConstantValue UId="72">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="73" />
+  <NewLine UId="74" />
+  <Token Text="END_IF" UId="75" />
+  <Token Text=";" UId="76" />
+  <NewLine Num="2" UId="77" />
+  <Token Text="IF" UId="78" />
+  <Blank UId="79" />
+  <Access Scope="LocalVariable" UId="80">
+    <Symbol UId="81">
+      <Component Name="tonValveON" UId="82" />
+      <Token Text="." UId="83" />
+      <Component Name="Q" UId="84" />
+    </Symbol>
+  </Access>
+  <Blank UId="85" />
+  <Token Text="OR" UId="86" />
+  <Blank UId="87" />
+  <Access Scope="LocalVariable" UId="88">
+    <Symbol UId="89">
+      <Component Name="LubrInterface" UId="90" />
+      <Token Text="." UId="91" />
+      <Component Name="Sts" UId="92" />
+      <Token Text="." UId="93" />
+      <Component Name="Error" UId="94" />
+    </Symbol>
+  </Access>
+  <Blank UId="95" />
+  <Token Text="OR" UId="96" />
+  <Blank UId="97" />
+  <Token Text="NOT" UId="98" />
+  <Blank UId="99" />
+  <Access Scope="LocalVariable" UId="100">
+    <Symbol UId="101">
+      <Component Name="Ctrl" UId="102" />
+      <Token Text="." UId="103" />
+      <Component Name="RunReq" UId="104" />
+    </Symbol>
+  </Access>
+  <Blank UId="105" />
+  <Token Text="THEN" UId="106" />
+  <NewLine UId="107" />
+  <Blank Num="4" UId="108" />
+  <Access Scope="LocalVariable" UId="109">
+    <Symbol UId="110">
+      <Component Name="ValveCmd" UId="111" />
+    </Symbol>
+  </Access>
+  <Blank UId="112" />
+  <Token Text=":=" UId="113" />
+  <Blank UId="114" />
+  <Access Scope="LiteralConstant" UId="115">
+    <Constant UId="116">
+      <ConstantValue UId="118">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="119" />
+  <NewLine UId="120" />
+  <Token Text="ELSIF" UId="121" />
+  <Blank UId="122" />
+  <Access Scope="LocalVariable" UId="123">
+    <Symbol UId="124">
+      <Component Name="Ctrl" UId="125" />
+      <Token Text="." UId="126" />
+      <Component Name="RunReq" UId="127" />
+    </Symbol>
+  </Access>
+  <Blank UId="128" />
+  <Token Text="AND" UId="129" />
+  <Blank UId="130" />
+  <Access Scope="LocalVariable" UId="131">
+    <Symbol UId="132">
+      <Component Name="tonValveOFF" UId="133" />
+      <Token Text="." UId="134" />
+      <Component Name="Q" UId="135" />
+    </Symbol>
+  </Access>
+  <Blank UId="136" />
+  <Token Text="THEN" UId="137" />
+  <NewLine UId="138" />
+  <Blank Num="4" UId="139" />
+  <Access Scope="LocalVariable" UId="140">
+    <Symbol UId="141">
+      <Component Name="ValveCmd" UId="142" />
+    </Symbol>
+  </Access>
+  <Blank UId="143" />
+  <Token Text=":=" UId="144" />
+  <Blank UId="145" />
+  <Access Scope="LiteralConstant" UId="146">
+    <Constant UId="147">
+      <ConstantValue UId="149">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="150" />
+  <NewLine UId="151" />
+  <Token Text="END_IF" UId="152" />
+  <Token Text=";" UId="153" />
+  <NewLine Num="2" UId="154" />
+  <Access Scope="LocalVariable" UId="155">
+    <Symbol UId="156">
+      <Component Name="tonValveON" UId="157" />
+    </Symbol>
+  </Access>
+  <Token Text="." UId="158" />
+  <Access Scope="Call" UId="159">
+    <Instruction Name="TON" UId="160">
+      <Token Text="(" UId="161" />
+      <Parameter Name="IN" UId="162">
+        <Blank UId="163" />
+        <Token Text=":=" UId="164" />
+        <Blank UId="165" />
+        <Access Scope="LocalVariable" UId="166">
+          <Symbol UId="167">
+            <Component Name="ValveCmd" UId="168" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="169" />
+      <NewLine UId="170" />
+      <Blank Num="16" UId="171" />
+      <Parameter Name="PT" UId="172">
+        <Blank UId="173" />
+        <Token Text=":=" UId="174" />
+        <Blank UId="175" />
+        <Access Scope="LocalVariable" UId="176">
+          <Symbol UId="177">
+            <Component Name="Par" UId="178" />
+            <Token Text="." UId="179" />
+            <Component Name="ValveONTime" UId="180" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="181" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="182" />
+  <NewLine Num="2" UId="183" />
+  <Access Scope="LocalVariable" UId="184">
+    <Symbol UId="185">
+      <Component Name="tonValveOFF" UId="186" />
+    </Symbol>
+  </Access>
+  <Token Text="." UId="187" />
+  <Access Scope="Call" UId="188">
+    <Instruction Name="TON" UId="189">
+      <Token Text="(" UId="190" />
+      <Parameter Name="IN" UId="191">
+        <Blank UId="192" />
+        <Token Text=":=" UId="193" />
+        <Blank UId="194" />
+        <Token Text="NOT" UId="195" />
+        <Blank UId="196" />
+        <Access Scope="LocalVariable" UId="197">
+          <Symbol UId="198">
+            <Component Name="ValveCmd" UId="199" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="200" />
+      <NewLine UId="201" />
+      <Blank Num="17" UId="202" />
+      <Parameter Name="PT" UId="203">
+        <Blank UId="204" />
+        <Token Text=":=" UId="205" />
+        <Blank UId="206" />
+        <Access Scope="LocalVariable" UId="207">
+          <Symbol UId="208">
+            <Component Name="Par" UId="209" />
+            <Token Text="." UId="210" />
+            <Component Name="ValveOFFTime" UId="211" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="212" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="213" />
+  <NewLine Num="2" UId="214" />
+  <Access Scope="LocalVariable" UId="215">
+    <Symbol UId="216">
+      <Component Name="LubrInterface" UId="217" />
+      <Token Text="." UId="218" />
+      <Component Name="Sts" UId="219" />
+      <Token Text="." UId="220" />
+      <Component Name="Running" UId="221" />
+    </Symbol>
+  </Access>
+  <Blank UId="222" />
+  <Token Text=":=" UId="223" />
+  <Blank UId="224" />
+  <Access Scope="LocalVariable" UId="225">
+    <Symbol UId="226">
+      <Component Name="ValveCmd" UId="227" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="228" />
+  <NewLine UId="229" />
+  <Access Scope="LocalVariable" UId="230">
+    <Symbol UId="231">
+      <Component Name="LubrInterface" UId="232" />
+      <Token Text="." UId="233" />
+      <Component Name="Sts" UId="234" />
+      <Token Text="." UId="235" />
+      <Component Name="Error" UId="236" />
+    </Symbol>
+  </Access>
+  <Blank UId="237" />
+  <Token Text=":=" UId="238" />
+  <Blank UId="239" />
+  <Access Scope="LocalVariable" UId="240">
+    <Symbol UId="241">
+      <Component Name="Alarm" UId="242" />
+      <Token Text="." UId="243" />
+      <Component Name="LowLevelLubrication" UId="244" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="245" />
+  <NewLine UId="246" />
+  <Access Scope="LocalVariable" UId="247">
+    <Symbol UId="248">
+      <Component Name="LubrInterface" UId="249" />
+      <Token Text="." UId="250" />
+      <Component Name="Sts" UId="251" />
+      <Token Text="." UId="252" />
+      <Component Name="PumpType" UId="253" />
+    </Symbol>
+  </Access>
+  <Blank UId="254" />
+  <Token Text=":=" UId="255" />
+  <Blank UId="256" />
+  <Access Scope="LiteralConstant" UId="257">
+    <Constant UId="258">
+      <ConstantValue UId="260">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="261" />
+  <NewLine UId="262" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>PumpCtrl</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="29" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> End of round</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Token Text="IF" UId="24" />
+  <Blank UId="25" />
+  <Access Scope="LocalVariable" UId="26">
+    <Symbol UId="27">
+      <Component Name="LubrInterface" UId="28" />
+      <Token Text="." UId="29" />
+      <Component Name="ValveChain" UId="30" />
+      <Token Text="." UId="31" />
+      <Component Name="ActualValve" UId="32" />
+    </Symbol>
+  </Access>
+  <Blank UId="33" />
+  <Token Text="&gt;" UId="34" />
+  <Blank UId="35" />
+  <Access Scope="LocalVariable" UId="36">
+    <Symbol UId="37">
+      <Component Name="LubrInterface" UId="38" />
+      <Token Text="." UId="39" />
+      <Component Name="ValveChain" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="MaxValve" UId="42" />
+    </Symbol>
+  </Access>
+  <Blank UId="43" />
+  <Token Text="THEN" UId="44" />
+  <NewLine UId="45" />
+  <Blank Num="4" UId="46" />
+  <Access Scope="LocalVariable" UId="47">
+    <Symbol UId="48">
+      <Component Name="LubrInterface" UId="49" />
+      <Token Text="." UId="50" />
+      <Component Name="ValveChain" UId="51" />
+      <Token Text="." UId="52" />
+      <Component Name="ActualValve" UId="53" />
+    </Symbol>
+  </Access>
+  <Blank UId="54" />
+  <Token Text=":=" UId="55" />
+  <Blank UId="56" />
+  <Access Scope="LiteralConstant" UId="57">
+    <Constant UId="58">
+      <ConstantValue UId="60">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="61" />
+  <NewLine UId="62" />
+  <Token Text="END_IF" UId="63" />
+  <Token Text=";" UId="64" />
+  <NewLine Num="2" UId="65" />
+  <LineComment UId="66">
+    <Text UId="67"> Timeout</Text>
+  </LineComment>
+  <NewLine UId="68" />
+  <Access Scope="LocalVariable" UId="69">
+    <Symbol UId="70">
+      <Component Name="ValveChianTimeOut" UId="71" />
+    </Symbol>
+  </Access>
+  <Token Text="." UId="72" />
+  <Access Scope="Call" UId="73">
+    <Instruction Name="TON" UId="74">
+      <Token Text="(" UId="75" />
+      <Parameter Name="IN" UId="76">
+        <Blank UId="77" />
+        <Token Text=":=" UId="78" />
+        <Blank UId="79" />
+        <Access Scope="LocalVariable" UId="80">
+          <Symbol UId="81">
+            <Component Name="LubrInterface" UId="82" />
+            <Token Text="." UId="83" />
+            <Component Name="ValveChain" UId="84" />
+            <Token Text="." UId="85" />
+            <Component Name="ActualValve" UId="86" />
+          </Symbol>
+        </Access>
+        <Blank UId="87" />
+        <Token Text="=" UId="88" />
+        <Blank UId="89" />
+        <Access Scope="LocalVariable" UId="90">
+          <Symbol UId="91">
+            <Component Name="Sts" UId="92" />
+            <Token Text="." UId="93" />
+            <Component Name="OldValve" UId="94" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="95" />
+      <NewLine UId="96" />
+      <Blank Num="23" UId="97" />
+      <Parameter Name="PT" UId="98">
+        <Blank UId="99" />
+        <Token Text=":=" UId="100" />
+        <Blank UId="101" />
+        <Access Scope="LocalVariable" UId="102">
+          <Symbol UId="103">
+            <Component Name="ValveCycleTimeOut" UId="104" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="105" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="106" />
+  <NewLine Num="2" UId="107" />
+  <Token Text="IF" UId="108" />
+  <Blank UId="109" />
+  <Access Scope="LocalVariable" UId="110">
+    <Symbol UId="111">
+      <Component Name="ValveChianTimeOut" UId="112" />
+      <Token Text="." UId="113" />
+      <Component Name="Q" UId="114" />
+    </Symbol>
+  </Access>
+  <Blank UId="115" />
+  <Token Text="THEN" UId="116" />
+  <NewLine UId="117" />
+  <Blank Num="4" UId="118" />
+  <Access Scope="LocalVariable" UId="119">
+    <Symbol UId="120">
+      <Component Name="LubrInterface" UId="121" />
+      <Token Text="." UId="122" />
+      <Component Name="ValveChain" UId="123" />
+      <Token Text="." UId="124" />
+      <Component Name="ActualValve" UId="125" />
+    </Symbol>
+  </Access>
+  <Blank UId="126" />
+  <Token Text="+=" UId="127" />
+  <Blank UId="128" />
+  <Access Scope="LiteralConstant" UId="129">
+    <Constant UId="130">
+      <ConstantValue UId="132">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="133" />
+  <NewLine UId="134" />
+  <Token Text="END_IF" UId="135" />
+  <Token Text=";" UId="136" />
+  <NewLine UId="137" />
+  <Access Scope="LocalVariable" UId="138">
+    <Symbol UId="139">
+      <Component Name="Sts" UId="140" />
+      <Token Text="." UId="141" />
+      <Component Name="OldValve" UId="142" />
+    </Symbol>
+  </Access>
+  <Blank UId="143" />
+  <Token Text=":=" UId="144" />
+  <Blank UId="145" />
+  <Access Scope="LocalVariable" UId="146">
+    <Symbol UId="147">
+      <Component Name="LubrInterface" UId="148" />
+      <Token Text="." UId="149" />
+      <Component Name="ValveChain" UId="150" />
+      <Token Text="." UId="151" />
+      <Component Name="ActualValve" UId="152" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="153" />
+  <NewLine Num="2" UId="154" />
+  <LineComment UId="155">
+    <Text UId="156"> Not enabled </Text>
+  </LineComment>
+  <NewLine UId="157" />
+  <Token Text="IF" UId="158" />
+  <Blank UId="159" />
+  <Access Scope="LocalVariable" UId="160">
+    <Symbol UId="161">
+      <Component Name="LubrInterface" UId="162" />
+      <Token Text="." UId="163" />
+      <Component Name="ValveChain" UId="164" />
+      <Token Text="." UId="165" />
+      <Component Name="MaxValve" UId="166" />
+    </Symbol>
+  </Access>
+  <Blank UId="167" />
+  <Token Text="=" UId="168" />
+  <Blank UId="169" />
+  <Access Scope="LiteralConstant" UId="170">
+    <Constant UId="171">
+      <ConstantValue UId="173">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="174" />
+  <Token Text="THEN" UId="175" />
+  <NewLine UId="176" />
+  <Blank Num="4" UId="177" />
+  <Access Scope="LocalVariable" UId="178">
+    <Symbol UId="179">
+      <Component Name="LubrInterface" UId="180" />
+      <Token Text="." UId="181" />
+      <Component Name="ValveChain" UId="182" />
+      <Token Text="." UId="183" />
+      <Component Name="ActualValve" UId="184" />
+    </Symbol>
+  </Access>
+  <Blank UId="185" />
+  <Token Text=":=" UId="186" />
+  <Blank UId="187" />
+  <Access Scope="LiteralConstant" UId="188">
+    <Constant UId="189">
+      <ConstantValue UId="191">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="192" />
+  <NewLine UId="193" />
+  <Token Text="END_IF" UId="194" />
+  <Token Text=";" UId="195" />
+  <NewLine Num="2" UId="196" />
+  <LineComment UId="197">
+    <Text UId="198"> Init Chain</Text>
+  </LineComment>
+  <NewLine UId="199" />
+  <Access Scope="LocalVariable" UId="200">
+    <Symbol UId="201">
+      <Component Name="LubrInterface" UId="202" />
+      <Token Text="." UId="203" />
+      <Component Name="ValveChain" UId="204" />
+      <Token Text="." UId="205" />
+      <Component Name="MaxValve" UId="206" />
+    </Symbol>
+  </Access>
+  <Blank UId="207" />
+  <Token Text=":=" UId="208" />
+  <Blank UId="209" />
+  <Access Scope="LiteralConstant" UId="210">
+    <Constant UId="211">
+      <ConstantValue UId="213">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="214" />
+  <NewLine UId="215" />
+  <Blank UId="216" />
+  <NewLine UId="217" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2E" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>ValveChain</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="HMI" UId="23" />
+      <Token Text="." UId="24" />
+      <Component Name="Alarm" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text=":=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LocalVariable" UId="29">
+    <Symbol UId="30">
+      <Component Name="LubrInterface" UId="31" />
+      <Token Text="." UId="32" />
+      <Component Name="Sts" UId="33" />
+      <Token Text="." UId="34" />
+      <Component Name="Error" UId="35" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="36" />
+  <NewLine UId="37" />
+  <Access Scope="LocalVariable" UId="38">
+    <Symbol UId="39">
+      <Component Name="HMI" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="Running" UId="42" />
+    </Symbol>
+  </Access>
+  <Blank UId="43" />
+  <Token Text=":=" UId="44" />
+  <Blank UId="45" />
+  <Access Scope="LocalVariable" UId="46">
+    <Symbol UId="47">
+      <Component Name="LubrInterface" UId="48" />
+      <Token Text="." UId="49" />
+      <Component Name="Sts" UId="50" />
+      <Token Text="." UId="51" />
+      <Component Name="Running" UId="52" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="53" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="37" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="38" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>HMI</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="3B" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="3C" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Lubrication Pump for Lubr_Valve Machine</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3D" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3E" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

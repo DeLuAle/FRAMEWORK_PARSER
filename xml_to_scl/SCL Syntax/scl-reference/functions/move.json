@@ -1,0 +1,197 @@
+{
+    "category": "Move and Data Operations",
+    "description": "Funzioni per movimento e manipolazione dati, array e blocchi",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions",
+    "functions": [
+        {
+            "name": "MOVE",
+            "signature": "MOVE(IN := <source>, OUT => <destination>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ANY",
+                    "direction": "OUT",
+                    "description": "Destinazione",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "Assegnazione diretta"
+            },
+            "description": "Copia un valore dalla sorgente alla destinazione. Equivalente a assegnazione diretta.",
+            "example": "MOVE(IN := sourceValue, OUT => destValue);\n// Equivalente a: destValue := sourceValue;",
+            "notes": "Generalmente si preferisce l'assegnazione diretta (:=). MOVE utile in contesti dove serve una funzione esplicita.",
+            "see_also": [
+                "MOVE_BLK"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MOVE_BLK",
+            "signature": "MOVE_BLK(IN := <source_array>, COUNT := <num_elements>, OUT => <dest_array>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ARRAY",
+                    "direction": "IN",
+                    "description": "Array sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi da copiare",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY",
+                    "direction": "OUT",
+                    "description": "Array destinazione",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Copia un blocco di elementi da un array sorgente a un array destinazione.",
+            "example": "MOVE_BLK(IN := sourceArray, COUNT := 10, OUT => destArray);",
+            "anti_pattern": "// NON FARE:\nFOR i := 0 TO 9 DO\n    destArray[i] := sourceArray[i];\nEND_FOR;",
+            "why_native": "Operazione ottimizzata a livello di sistema, molto più veloce del loop manuale. Gestione automatica degli indici.",
+            "mandatory": true,
+            "notes": "COUNT non deve superare la dimensione degli array. Gli array devono avere elementi dello stesso tipo.",
+            "see_also": [
+                "UMOVE_BLK",
+                "FILL_BLK",
+                "MOVE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "FILL_BLK",
+            "signature": "FILL_BLK(IN := <value>, COUNT := <num_elements>, OUT => <dest_array>);",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore da replicare",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi da riempire",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY",
+                    "direction": "OUT",
+                    "description": "Array destinazione",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Riempie un array con un valore costante.",
+            "example": "FILL_BLK(IN := 0, COUNT := 100, OUT => dataArray);  // Azzera array",
+            "anti_pattern": "// NON FARE:\nFOR i := 0 TO 99 DO\n    dataArray[i] := 0;\nEND_FOR;",
+            "why_native": "Operazione ottimizzata, molto più veloce del loop manuale.",
+            "mandatory": true,
+            "notes": "Utile per inizializzazione array. COUNT non deve superare la dimensione dell'array.",
+            "see_also": [
+                "MOVE_BLK",
+                "UFILL_BLK"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SWAP",
+            "signature": "SWAP(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD/DWORD",
+                    "direction": "IN",
+                    "description": "Valore di cui invertire i byte",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore con byte invertiti"
+            },
+            "description": "Inverte l'ordine dei byte (byte swapping). WORD: scambia byte alto e basso. DWORD: inverte ordine di 4 byte.",
+            "example": "swappedValue := SWAP(IN := wordValue);  // 0x1234 -> 0x3412",
+            "notes": "Utile per conversione endianness (big-endian <-> little-endian) in comunicazioni.",
+            "see_also": [
+                "ROL",
+                "ROR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CountOfElements",
+            "signature": "CountOfElements(<array>)",
+            "parameters": [
+                {
+                    "name": "array",
+                    "type": "ARRAY",
+                    "direction": "IN",
+                    "description": "Array di cui contare gli elementi",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Numero di elementi nell'array"
+            },
+            "description": "Ritorna il numero di elementi di un array.",
+            "example": "numElements := CountOfElements(myArray);",
+            "notes": "Utile per iterare su array di dimensione variabile o sconosciuta.",
+            "see_also": [
+                "IS_ARRAY"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "IS_ARRAY",
+            "signature": "IS_ARRAY(<variable>)",
+            "parameters": [
+                {
+                    "name": "variable",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Variabile da verificare",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se la variabile è un array"
+            },
+            "description": "Verifica se una variabile è di tipo array.",
+            "example": "IF IS_ARRAY(data) THEN\n    count := CountOfElements(data);\nEND_IF;",
+            "see_also": [
+                "CountOfElements",
+                "TypeOf"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

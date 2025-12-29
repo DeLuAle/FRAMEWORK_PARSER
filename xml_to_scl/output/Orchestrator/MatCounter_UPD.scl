@@ -1,0 +1,68 @@
+﻿// Block: MatCounter_UPD
+// Title: AX FAK Module
+
+FUNCTION "MatCounter_UPD" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// AX FAK Module
+   VAR_IN_OUT
+      Data : MatCountData;
+   END_VAR
+
+   VAR_TEMP
+      AxDifference : LReal;
+      HalfModule : LReal;
+      HalfNegativeModule : LReal;
+      AxFAKModule : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: AX FAK Module"
+      AxFAKModule := (Data.AX_MODULE * Data.FAK);
+   END_REGION
+
+   REGION "Network 2: Half MODULE"
+      HalfModule := (Data.AX_MODULE / 2.0);
+      IF (Data.AX_MODULE / 2.0) THEN
+         HalfNegativeModule := NEG(IN:=HalfModule);
+      END_IF;
+   END_REGION
+
+   REGION "Network 3: Ax difference"
+      //=====================================================
+      // CONTROLLO GIRO COMPLETO CONTEGGIO ASSE 
+      //=====================================================
+      AxDifference := Data.AxPosition - Data.AxPositionPrevious;
+      Data.AxPositionPrevious := Data.AxPosition;
+
+      IF AxDifference > HalfModule THEN
+          Data.CounterOffset := Data.CounterOffset - AxFAKModule;
+      ELSIF AxDifference < HalfNegativeModule THEN
+          Data.CounterOffset := Data.CounterOffset + AxFAKModule;
+      END_IF;
+
+      //=====================================================
+      // COUNTER
+      //=====================================================
+      Data.CounterValue := (Data.AxPosition * Data.FAK) + Data.CounterOffset;
+
+      IF Data.CounterValue >= Data.COUNTER_MODULE THEN
+          Data.CounterOffset := Data.CounterOffset - Data.COUNTER_MODULE;
+          Data.CounterValue := (Data.AxPosition * Data.FAK) + Data.CounterOffset;
+          
+      ELSIF Data.CounterValue < 0.0 THEN
+          Data.CounterOffset := Data.CounterOffset + Data.COUNTER_MODULE;
+          Data.CounterValue := (Data.AxPosition * Data.FAK) + Data.CounterOffset;
+      END_IF;
+
+
+      IF (Data.CounterValue - Data.COUNTER_MODULE) < 0.01 THEN
+          Data.CounterValue := 0.0;
+      END_IF;
+          
+
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,1272 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Item" Datatype="&quot;Prod_Item&quot;" />
+  </Section>
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp">
+    <Member Name="PrgNo_PivotIndx" Datatype="Int" />
+    <Member Name="ProfileCode_PivotIndx" Datatype="Int" />
+    <Member Name="ProfileCode_PPrf" Datatype="DInt" />
+    <Member Name="ProfileCode_match" Datatype="Bool" />
+    <Member Name="i" Datatype="Int" />
+    <Member Name="strPos" Datatype="Int" />
+    <Member Name="RETVAL" Datatype="DInt" />
+  </Section>
+  <Section Name="Constant">
+    <Member Name="OK" Datatype="Int">
+      <StartValue>0</StartValue>
+    </Member>
+  </Section>
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="DInt" />
+  </Section>
+</Sections></Interface>
+      <Name>Prod_item_Check_DataValid</Name>
+      <Namespace />
+      <Number>82</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="Prod_item_Check_DataValid" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Access Scope="GlobalConstant" UId="27">
+    <Constant Name="PROD_FUN_RESULT_OK" UId="28" />
+  </Access>
+  <Token Text=";" UId="31" />
+  <NewLine Num="3" UId="32" />
+  <Token Text="IF" UId="33" />
+  <Blank UId="34" />
+  <Token Text="(" UId="35" />
+  <Access Scope="LocalVariable" UId="36">
+    <Symbol UId="37">
+      <Component Name="Item" UId="38" />
+      <Token Text="." UId="39" />
+      <Component Name="Type" UId="40" />
+    </Symbol>
+  </Access>
+  <Blank UId="41" />
+  <Token Text="&lt;&gt;" UId="42" />
+  <Blank UId="43" />
+  <Access Scope="GlobalConstant" UId="44">
+    <Constant Name="PROD_ITEM_TYPE_MES" UId="45" />
+  </Access>
+  <Token Text=")" UId="48" />
+  <Blank UId="49" />
+  <Token Text="AND" UId="50" />
+  <Blank UId="51" />
+  <Token Text="(" UId="52" />
+  <Access Scope="LocalVariable" UId="53">
+    <Symbol UId="54">
+      <Component Name="Item" UId="55" />
+      <Token Text="." UId="56" />
+      <Component Name="Type" UId="57" />
+    </Symbol>
+  </Access>
+  <Blank UId="58" />
+  <Token Text="&lt;&gt;" UId="59" />
+  <Blank UId="60" />
+  <Access Scope="GlobalConstant" UId="61">
+    <Constant Name="PROD_ITEM_TYPE_HMI" UId="62" />
+  </Access>
+  <Token Text=")" UId="65" />
+  <Blank UId="66" />
+  <Token Text="THEN" UId="67" />
+  <NewLine UId="68" />
+  <Blank Num="4" UId="69" />
+  <Access Scope="LocalVariable" UId="70">
+    <Symbol UId="71">
+      <Component Name="Prod_item_Check_DataValid" UId="72" />
+    </Symbol>
+  </Access>
+  <Blank UId="73" />
+  <Token Text=":=" UId="74" />
+  <Blank UId="75" />
+  <Access Scope="GlobalConstant" UId="76">
+    <Constant Name="PROD_ERR_Type_UNKNOW" UId="77" />
+  </Access>
+  <Token Text=";" UId="80" />
+  <NewLine UId="81" />
+  <Blank Num="4" UId="82" />
+  <Token Text="RETURN" UId="83" />
+  <Token Text=";" UId="84" />
+  <NewLine UId="85" />
+  <Token Text="END_IF" UId="86" />
+  <Token Text=";" UId="87" />
+  <NewLine Num="2" UId="88" />
+  <Token Text="IF" UId="89" />
+  <Blank UId="90" />
+  <Access Scope="LocalVariable" UId="91">
+    <Symbol UId="92">
+      <Component Name="Item" UId="93" />
+      <Token Text="." UId="94" />
+      <Component Name="O_ID" UId="95" />
+    </Symbol>
+  </Access>
+  <Blank UId="96" />
+  <Token Text="&lt;=" UId="97" />
+  <Blank UId="98" />
+  <Access Scope="LiteralConstant" UId="99">
+    <Constant UId="100">
+      <ConstantValue UId="102">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="103" />
+  <Token Text="THEN" UId="104" />
+  <NewLine UId="105" />
+  <Blank Num="4" UId="106" />
+  <Access Scope="LocalVariable" UId="107">
+    <Symbol UId="108">
+      <Component Name="Prod_item_Check_DataValid" UId="109" />
+    </Symbol>
+  </Access>
+  <Blank UId="110" />
+  <Token Text=":=" UId="111" />
+  <Blank UId="112" />
+  <Access Scope="GlobalConstant" UId="113">
+    <Constant Name="PROD_ERR_O_ID_empty" UId="114" />
+  </Access>
+  <Token Text=";" UId="117" />
+  <NewLine UId="118" />
+  <Blank Num="4" UId="119" />
+  <Token Text="RETURN" UId="120" />
+  <Token Text=";" UId="121" />
+  <NewLine UId="122" />
+  <Token Text="END_IF" UId="123" />
+  <Token Text=";" UId="124" />
+  <NewLine Num="2" UId="125" />
+  <Token Text="IF" UId="126" />
+  <Blank UId="127" />
+  <Token Text="(" UId="128" />
+  <Access Scope="LocalVariable" UId="129">
+    <Symbol UId="130">
+      <Component Name="Item" UId="131" />
+      <Token Text="." UId="132" />
+      <Component Name="MES_IDP" UId="133" />
+    </Symbol>
+  </Access>
+  <Blank UId="134" />
+  <Token Text="=" UId="135" />
+  <Blank UId="136" />
+  <Access Scope="LiteralConstant" UId="137">
+    <Constant UId="138">
+      <ConstantValue UId="140">''</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="141" />
+  <Blank UId="142" />
+  <Token Text="AND" UId="143" />
+  <Blank UId="144" />
+  <Token Text="(" UId="145" />
+  <Access Scope="LocalVariable" UId="146">
+    <Symbol UId="147">
+      <Component Name="Item" UId="148" />
+      <Token Text="." UId="149" />
+      <Component Name="Type" UId="150" />
+    </Symbol>
+  </Access>
+  <Blank UId="151" />
+  <Token Text="=" UId="152" />
+  <Blank UId="153" />
+  <Access Scope="LiteralConstant" UId="154">
+    <Constant UId="155">
+      <ConstantValue UId="157">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="158" />
+  <Blank Num="2" UId="159" />
+  <Token Text="THEN" UId="160" />
+  <NewLine UId="161" />
+  <Blank Num="4" UId="162" />
+  <Access Scope="LocalVariable" UId="163">
+    <Symbol UId="164">
+      <Component Name="Prod_item_Check_DataValid" UId="165" />
+    </Symbol>
+  </Access>
+  <Blank UId="166" />
+  <Token Text=":=" UId="167" />
+  <Blank UId="168" />
+  <Access Scope="GlobalConstant" UId="169">
+    <Constant Name="PROD_ERR_MES_IDP_NOT_Empty" UId="170" />
+  </Access>
+  <Token Text=";" UId="173" />
+  <NewLine UId="174" />
+  <Blank Num="4" UId="175" />
+  <Token Text="RETURN" UId="176" />
+  <Token Text=";" UId="177" />
+  <NewLine UId="178" />
+  <Token Text="END_IF" UId="179" />
+  <Token Text=";" UId="180" />
+  <NewLine Num="4" UId="181" />
+  <LineComment UId="182">
+    <Text UId="183"> Codice di errore = "PROD_ERR_MES_IDP_Duplicate" se IDP è già stato assegnato ad un ordine</Text>
+  </LineComment>
+  <NewLine UId="184" />
+  <LineComment UId="185">
+    <Text UId="186"> </Text>
+  </LineComment>
+  <NewLine UId="187" />
+  <Access Scope="GlobalVariable" UId="188">
+    <Symbol UId="189">
+      <Component Name="Sys" UId="190">
+        <BooleanAttribute Name="HasQuotes" UId="191">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="192" />
+      <Component Name="ByPass" UId="193" />
+    </Symbol>
+  </Access>
+  <Blank UId="194" />
+  <Token Text=":=" UId="195" />
+  <Blank UId="196" />
+  <Access Scope="GlobalVariable" UId="197">
+    <Symbol UId="198">
+      <Component Name="Sys" UId="199">
+        <BooleanAttribute Name="HasQuotes" UId="200">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="201" />
+      <Component Name="ByPass" UId="202" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="203" />
+  <NewLine UId="204" />
+  <LineComment Inserted="true" UId="205">
+    <Text UId="206">
+IF #Item.Type = 1  THEN
+    #RETVAL := "Prod_Item_Check_IDP_Duplicate"(#Item.MES_IDP);
+    
+    IF #RETVAL &lt; 0 THEN
+        #Prod_item_Check_Valid := #RETVAL;
+        RETURN;
+    END_IF;
+    
+    
+END_IF;
+</Text>
+  </LineComment>
+  <NewLine Num="2" UId="207" />
+  <Token Text="IF" UId="208" />
+  <Blank UId="209" />
+  <Token Text="(" UId="210" />
+  <Access Scope="LocalVariable" UId="211">
+    <Symbol UId="212">
+      <Component Name="Item" UId="213" />
+      <Token Text="." UId="214" />
+      <Component Name="MES_IDP" UId="215" />
+    </Symbol>
+  </Access>
+  <Blank UId="216" />
+  <Token Text="&lt;&gt;" UId="217" />
+  <Blank UId="218" />
+  <Access Scope="LiteralConstant" UId="219">
+    <Constant UId="220">
+      <ConstantValue UId="222">'HMI'</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="223" />
+  <Blank UId="224" />
+  <Token Text="AND" UId="225" />
+  <Blank UId="226" />
+  <Token Text="(" UId="227" />
+  <Access Scope="LocalVariable" UId="228">
+    <Symbol UId="229">
+      <Component Name="Item" UId="230" />
+      <Token Text="." UId="231" />
+      <Component Name="Type" UId="232" />
+    </Symbol>
+  </Access>
+  <Blank UId="233" />
+  <Token Text="=" UId="234" />
+  <Blank UId="235" />
+  <Access Scope="LiteralConstant" UId="236">
+    <Constant UId="237">
+      <ConstantValue UId="239">2</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="240" />
+  <Blank UId="241" />
+  <Token Text="THEN" UId="242" />
+  <NewLine UId="243" />
+  <Blank Num="4" UId="244" />
+  <Access Scope="LocalVariable" UId="245">
+    <Symbol UId="246">
+      <Component Name="Prod_item_Check_DataValid" UId="247" />
+    </Symbol>
+  </Access>
+  <Blank UId="248" />
+  <Token Text=":=" UId="249" />
+  <Blank UId="250" />
+  <Access Scope="GlobalConstant" UId="251">
+    <Constant Name="PROD_ERR_MES_IDP_Empty" UId="252" />
+  </Access>
+  <Token Text=";" UId="255" />
+  <NewLine UId="256" />
+  <Blank Num="4" UId="257" />
+  <Token Text="RETURN" UId="258" />
+  <Token Text=";" UId="259" />
+  <NewLine UId="260" />
+  <Token Text="END_IF" UId="261" />
+  <Token Text=";" UId="262" />
+  <NewLine Num="3" UId="263" />
+  <Token Text="IF" UId="264" />
+  <Blank UId="265" />
+  <Access Scope="LocalVariable" UId="266">
+    <Symbol UId="267">
+      <Component Name="Item" UId="268" />
+      <Token Text="." UId="269" />
+      <Component Name="PPrf_No" UId="270" />
+    </Symbol>
+  </Access>
+  <Blank UId="271" />
+  <Token Text="&lt;=" UId="272" />
+  <Blank UId="273" />
+  <Access Scope="LiteralConstant" UId="274">
+    <Constant UId="275">
+      <ConstantValue UId="277">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="278" />
+  <Token Text="THEN" UId="279" />
+  <NewLine UId="280" />
+  <Blank Num="4" UId="281" />
+  <Access Scope="LocalVariable" UId="282">
+    <Symbol UId="283">
+      <Component Name="Prod_item_Check_DataValid" UId="284" />
+    </Symbol>
+  </Access>
+  <Blank UId="285" />
+  <Token Text=":=" UId="286" />
+  <Blank UId="287" />
+  <Access Scope="GlobalConstant" UId="288">
+    <Constant Name="PROD_ERR_PPrfNo_Empty" UId="289" />
+  </Access>
+  <Token Text=";" UId="292" />
+  <NewLine UId="293" />
+  <Blank Num="4" UId="294" />
+  <Token Text="RETURN" UId="295" />
+  <Token Text=";" UId="296" />
+  <NewLine UId="297" />
+  <Token Text="END_IF" UId="298" />
+  <Token Text=";" UId="299" />
+  <NewLine Num="11" UId="300" />
+  <LineComment UId="301">
+    <Text UId="302"> Ricerca se il numero del programma profilo esiste nella lista PIVOT dei programmi</Text>
+  </LineComment>
+  <NewLine UId="303" />
+  <LineComment UId="304">
+    <Text UId="305"> </Text>
+  </LineComment>
+  <NewLine Num="2" UId="306" />
+  <Access Scope="LocalVariable" UId="307">
+    <Symbol UId="308">
+      <Component Name="PrgNo_PivotIndx" UId="309" />
+    </Symbol>
+  </Access>
+  <Blank UId="310" />
+  <Token Text=":=" UId="311" />
+  <Blank UId="312" />
+  <Access Scope="LiteralConstant" UId="313">
+    <Constant UId="314">
+      <ConstantValue UId="316">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="317" />
+  <NewLine Num="2" UId="318" />
+  <Token Text="FOR" UId="319" />
+  <Blank UId="320" />
+  <Access Scope="LocalVariable" UId="321">
+    <Symbol UId="322">
+      <Component Name="i" UId="323" />
+    </Symbol>
+  </Access>
+  <Blank UId="324" />
+  <Token Text=":=" UId="325" />
+  <Blank UId="326" />
+  <Access Scope="LiteralConstant" UId="327">
+    <Constant UId="328">
+      <ConstantValue UId="330">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="331" />
+  <Token Text="TO" UId="332" />
+  <Blank UId="333" />
+  <Access Scope="GlobalConstant" UId="334">
+    <Constant Name="PPRF_TOTAL_ARCHIVE_ITEMS" UId="335" />
+  </Access>
+  <Blank UId="338" />
+  <Token Text="DO" UId="339" />
+  <NewLine UId="340" />
+  <Blank Num="4" UId="341" />
+  <NewLine UId="342" />
+  <Blank Num="4" UId="343" />
+  <Token Text="IF" UId="344" />
+  <Blank UId="345" />
+  <Access Scope="LocalVariable" UId="346">
+    <Symbol UId="347">
+      <Component Name="Item" UId="348" />
+      <Token Text="." UId="349" />
+      <Component Name="PPrf_No" UId="350" />
+    </Symbol>
+  </Access>
+  <Blank UId="351" />
+  <Token Text="=" UId="352" />
+  <Blank UId="353" />
+  <Access Scope="GlobalVariable" UId="354">
+    <Symbol UId="355">
+      <Component Name="PPrf_MAIN" UId="356">
+        <BooleanAttribute Name="HasQuotes" UId="357">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="358" />
+      <Component Name="PIVOT" UId="359">
+        <Token Text="[" UId="360" />
+        <Access Scope="LocalVariable" UId="361">
+          <Symbol UId="362">
+            <Component Name="i" UId="363" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="364" />
+      </Component>
+      <Token Text="." UId="365" />
+      <Component Name="PrgNo" UId="366" />
+    </Symbol>
+  </Access>
+  <Blank UId="367" />
+  <Token Text="THEN" UId="368" />
+  <NewLine UId="369" />
+  <Blank Num="8" UId="370" />
+  <NewLine UId="371" />
+  <Blank Num="8" UId="372" />
+  <Access Scope="LocalVariable" UId="373">
+    <Symbol UId="374">
+      <Component Name="PrgNo_PivotIndx" UId="375" />
+    </Symbol>
+  </Access>
+  <Blank UId="376" />
+  <Token Text=":=" UId="377" />
+  <Blank UId="378" />
+  <Access Scope="LocalVariable" UId="379">
+    <Symbol UId="380">
+      <Component Name="i" UId="381" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="382" />
+  <NewLine UId="383" />
+  <Blank Num="8" UId="384" />
+  <NewLine UId="385" />
+  <Blank Num="8" UId="386" />
+  <Token Text="EXIT" UId="387" />
+  <Token Text=";" UId="388" />
+  <NewLine UId="389" />
+  <Blank Num="4" UId="390" />
+  <Token Text="END_IF" UId="391" />
+  <Token Text=";" UId="392" />
+  <NewLine UId="393" />
+  <Blank Num="4" UId="394" />
+  <NewLine UId="395" />
+  <Token Text="END_FOR" UId="396" />
+  <Token Text=";" UId="397" />
+  <NewLine Num="2" UId="398" />
+  <Token Text="IF" UId="399" />
+  <Blank UId="400" />
+  <Access Scope="LocalVariable" UId="401">
+    <Symbol UId="402">
+      <Component Name="PrgNo_PivotIndx" UId="403" />
+    </Symbol>
+  </Access>
+  <Blank UId="404" />
+  <Token Text="=" UId="405" />
+  <Blank UId="406" />
+  <Access Scope="LiteralConstant" UId="407">
+    <Constant UId="408">
+      <ConstantValue UId="410">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="411" />
+  <Token Text="THEN" UId="412" />
+  <NewLine UId="413" />
+  <Blank Num="4" UId="414" />
+  <Access Scope="LocalVariable" UId="415">
+    <Symbol UId="416">
+      <Component Name="Prod_item_Check_DataValid" UId="417" />
+    </Symbol>
+  </Access>
+  <Blank UId="418" />
+  <Token Text=":=" UId="419" />
+  <Blank UId="420" />
+  <Access Scope="GlobalConstant" UId="421">
+    <Constant Name="PROD_ERR_PPrfNo_NotExist" UId="422" />
+  </Access>
+  <Token Text=";" UId="425" />
+  <NewLine UId="426" />
+  <Blank Num="4" UId="427" />
+  <Token Text="RETURN" UId="428" />
+  <Token Text=";" UId="429" />
+  <NewLine UId="430" />
+  <Token Text="END_IF" UId="431" />
+  <Token Text=";" UId="432" />
+  <NewLine Num="2" UId="433" />
+  <LineComment UId="434">
+    <Text UId="435"> Verifica corrispondenza nome profilo MES</Text>
+  </LineComment>
+  <NewLine UId="436" />
+  <LineComment UId="437">
+    <Text UId="438" />
+  </LineComment>
+  <NewLine UId="439" />
+  <Token Text="IF" UId="440" />
+  <Blank UId="441" />
+  <Token Text="(" UId="442" />
+  <Access Scope="LocalVariable" UId="443">
+    <Symbol UId="444">
+      <Component Name="Item" UId="445" />
+      <Token Text="." UId="446" />
+      <Component Name="MES_PPrf_Name" UId="447" />
+    </Symbol>
+  </Access>
+  <Blank UId="448" />
+  <Token Text="&lt;&gt;" UId="449" />
+  <Blank UId="450" />
+  <Access Scope="LiteralConstant" UId="451">
+    <Constant UId="452">
+      <ConstantValue UId="454">''</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=")" UId="455" />
+  <Blank UId="456" />
+  <Token Text="AND" UId="457" />
+  <Blank UId="458" />
+  <Token Text="(" UId="459" />
+  <Access Scope="LocalVariable" UId="460">
+    <Symbol UId="461">
+      <Component Name="Item" UId="462" />
+      <Token Text="." UId="463" />
+      <Component Name="Type" UId="464" />
+    </Symbol>
+  </Access>
+  <Blank UId="465" />
+  <Token Text="=" UId="466" />
+  <Blank UId="467" />
+  <Access Scope="GlobalConstant" UId="468">
+    <Constant Name="PROD_ITEM_TYPE_MES" UId="469" />
+  </Access>
+  <Token Text=")" UId="472" />
+  <Blank UId="473" />
+  <Token Text="THEN" UId="474" />
+  <NewLine UId="475" />
+  <Blank Num="4" UId="476" />
+  <NewLine UId="477" />
+  <Blank Num="4" UId="478" />
+  <Access Scope="LocalVariable" UId="479">
+    <Symbol UId="480">
+      <Component Name="strPos" UId="481" />
+    </Symbol>
+  </Access>
+  <Blank UId="482" />
+  <Token Text=":=" UId="483" />
+  <Blank UId="484" />
+  <Access Scope="Call" UId="485">
+    <Instruction Name="FIND" UId="486">
+      <Token Text="(" UId="487" />
+      <Parameter Name="IN1" UId="488">
+        <Blank UId="489" />
+        <Token Text=":=" UId="490" />
+        <Blank UId="491" />
+        <Access Scope="GlobalVariable" UId="492">
+          <Symbol UId="493">
+            <Component Name="PPrf_MAIN" UId="494">
+              <BooleanAttribute Name="HasQuotes" UId="495">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="496" />
+            <Component Name="PIVOT" UId="497">
+              <Token Text="[" UId="498" />
+              <Access Scope="LocalVariable" UId="499">
+                <Symbol UId="500">
+                  <Component Name="PrgNo_PivotIndx" UId="501" />
+                </Symbol>
+              </Access>
+              <Token Text="]" UId="502" />
+            </Component>
+            <Token Text="." UId="503" />
+            <Component Name="PrgName" UId="504" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Blank UId="505" />
+      <Token Text="," UId="506" />
+      <Blank UId="507" />
+      <Parameter Name="IN2" UId="508">
+        <Blank UId="509" />
+        <Token Text=":=" UId="510" />
+        <Access Scope="LocalVariable" UId="511">
+          <Symbol UId="512">
+            <Component Name="Item" UId="513" />
+            <Token Text="." UId="514" />
+            <Component Name="MES_PPrf_Name" UId="515" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Blank UId="516" />
+      <Token Text=")" UId="518" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="519" />
+  <NewLine UId="520" />
+  <Blank Num="4" UId="521" />
+  <NewLine UId="522" />
+  <Blank Num="4" UId="523" />
+  <Token Text="IF" UId="524" />
+  <Blank UId="525" />
+  <Access Scope="LocalVariable" UId="526">
+    <Symbol UId="527">
+      <Component Name="strPos" UId="528" />
+    </Symbol>
+  </Access>
+  <Blank UId="529" />
+  <Token Text="&lt;=" UId="530" />
+  <Blank UId="531" />
+  <Access Scope="LiteralConstant" UId="532">
+    <Constant UId="533">
+      <ConstantValue UId="535">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="536" />
+  <Token Text="THEN" UId="537" />
+  <NewLine UId="538" />
+  <Blank Num="8" UId="539" />
+  <Access Scope="LocalVariable" UId="540">
+    <Symbol UId="541">
+      <Component Name="Prod_item_Check_DataValid" UId="542" />
+    </Symbol>
+  </Access>
+  <Blank UId="543" />
+  <Token Text=":=" UId="544" />
+  <Blank UId="545" />
+  <Access Scope="GlobalConstant" UId="546">
+    <Constant Name="PROD_ERR_PPrf_Name_Mismatch" UId="547" />
+  </Access>
+  <Token Text=";" UId="550" />
+  <NewLine UId="551" />
+  <Blank Num="8" UId="552" />
+  <Token Text="RETURN" UId="553" />
+  <Token Text=";" UId="554" />
+  <NewLine UId="555" />
+  <Blank Num="4" UId="556" />
+  <Token Text="END_IF" UId="557" />
+  <Token Text=";" UId="558" />
+  <NewLine UId="559" />
+  <Token Text="END_IF" UId="560" />
+  <Token Text=";" UId="561" />
+  <NewLine Num="3" UId="562" />
+  <Token Text="IF" UId="563" />
+  <Blank UId="564" />
+  <Access Scope="LocalVariable" UId="565">
+    <Symbol UId="566">
+      <Component Name="Item" UId="567" />
+      <Token Text="." UId="568" />
+      <Component Name="Beams_W_A" UId="569" />
+    </Symbol>
+  </Access>
+  <Blank UId="570" />
+  <Token Text="&lt;" UId="571" />
+  <Blank UId="572" />
+  <Access Scope="GlobalConstant" UId="573">
+    <Constant Name="BEAM_W_MIN" UId="574" />
+  </Access>
+  <Blank UId="577" />
+  <Token Text="THEN" UId="578" />
+  <NewLine UId="579" />
+  <Blank Num="4" UId="580" />
+  <Access Scope="LocalVariable" UId="581">
+    <Symbol UId="582">
+      <Component Name="Prod_item_Check_DataValid" UId="583" />
+    </Symbol>
+  </Access>
+  <Blank UId="584" />
+  <Token Text=":=" UId="585" />
+  <Blank UId="586" />
+  <Access Scope="GlobalConstant" UId="587">
+    <Constant Name="PROD_ERR_Beam_W_A_Min" UId="588" />
+  </Access>
+  <Token Text=";" UId="591" />
+  <NewLine UId="592" />
+  <Blank Num="4" UId="593" />
+  <Token Text="RETURN" UId="594" />
+  <Token Text=";" UId="595" />
+  <NewLine UId="596" />
+  <Token Text="END_IF" UId="597" />
+  <Token Text=";" UId="598" />
+  <NewLine Num="2" UId="599" />
+  <Token Text="IF" UId="600" />
+  <Blank UId="601" />
+  <Access Scope="LocalVariable" UId="602">
+    <Symbol UId="603">
+      <Component Name="Item" UId="604" />
+      <Token Text="." UId="605" />
+      <Component Name="Beams_W_A" UId="606" />
+    </Symbol>
+  </Access>
+  <Blank UId="607" />
+  <Token Text="&gt;" UId="608" />
+  <Blank UId="609" />
+  <Access Scope="GlobalConstant" UId="610">
+    <Constant Name="BEAM_W_MAX" UId="611" />
+  </Access>
+  <Blank UId="614" />
+  <Token Text="THEN" UId="615" />
+  <NewLine UId="616" />
+  <Blank Num="4" UId="617" />
+  <Access Scope="LocalVariable" UId="618">
+    <Symbol UId="619">
+      <Component Name="Prod_item_Check_DataValid" UId="620" />
+    </Symbol>
+  </Access>
+  <Blank UId="621" />
+  <Token Text=":=" UId="622" />
+  <Blank UId="623" />
+  <Access Scope="GlobalConstant" UId="624">
+    <Constant Name="PROD_ERR_Beam_W_A_Max" UId="625" />
+  </Access>
+  <Token Text=";" UId="628" />
+  <NewLine UId="629" />
+  <Blank Num="4" UId="630" />
+  <Token Text="RETURN" UId="631" />
+  <Token Text=";" UId="632" />
+  <NewLine UId="633" />
+  <Token Text="END_IF" UId="634" />
+  <Token Text=";" UId="635" />
+  <NewLine Num="3" UId="636" />
+  <Token Text="IF" UId="637" />
+  <Blank UId="638" />
+  <Access Scope="LocalVariable" UId="639">
+    <Symbol UId="640">
+      <Component Name="Item" UId="641" />
+      <Token Text="." UId="642" />
+      <Component Name="Beams_H_B" UId="643" />
+    </Symbol>
+  </Access>
+  <Blank UId="644" />
+  <Token Text="&lt;" UId="645" />
+  <Blank UId="646" />
+  <Access Scope="GlobalConstant" UId="647">
+    <Constant Name="BEAM_H_MIN" UId="648" />
+  </Access>
+  <Blank UId="651" />
+  <Token Text="THEN" UId="652" />
+  <NewLine UId="653" />
+  <Blank Num="4" UId="654" />
+  <Access Scope="LocalVariable" UId="655">
+    <Symbol UId="656">
+      <Component Name="Prod_item_Check_DataValid" UId="657" />
+    </Symbol>
+  </Access>
+  <Blank UId="658" />
+  <Token Text=":=" UId="659" />
+  <Blank UId="660" />
+  <Access Scope="GlobalConstant" UId="661">
+    <Constant Name="PROD_ERR_Beam_H_B_Min" UId="662" />
+  </Access>
+  <Token Text=";" UId="665" />
+  <NewLine UId="666" />
+  <Blank Num="4" UId="667" />
+  <Token Text="RETURN" UId="668" />
+  <Token Text=";" UId="669" />
+  <NewLine UId="670" />
+  <Token Text="END_IF" UId="671" />
+  <Token Text=";" UId="672" />
+  <NewLine Num="2" UId="673" />
+  <Token Text="IF" UId="674" />
+  <Blank UId="675" />
+  <Access Scope="LocalVariable" UId="676">
+    <Symbol UId="677">
+      <Component Name="Item" UId="678" />
+      <Token Text="." UId="679" />
+      <Component Name="Beams_H_B" UId="680" />
+    </Symbol>
+  </Access>
+  <Blank UId="681" />
+  <Token Text="&gt;" UId="682" />
+  <Blank UId="683" />
+  <Access Scope="GlobalConstant" UId="684">
+    <Constant Name="BEAM_H_MAX" UId="685" />
+  </Access>
+  <Blank UId="688" />
+  <Token Text="THEN" UId="689" />
+  <NewLine UId="690" />
+  <Blank Num="4" UId="691" />
+  <Access Scope="LocalVariable" UId="692">
+    <Symbol UId="693">
+      <Component Name="Prod_item_Check_DataValid" UId="694" />
+    </Symbol>
+  </Access>
+  <Blank UId="695" />
+  <Token Text=":=" UId="696" />
+  <Blank UId="697" />
+  <Access Scope="GlobalConstant" UId="698">
+    <Constant Name="PROD_ERR_Beam_H_B_Max" UId="699" />
+  </Access>
+  <Token Text=";" UId="702" />
+  <NewLine UId="703" />
+  <Blank Num="4" UId="704" />
+  <Token Text="RETURN" UId="705" />
+  <Token Text=";" UId="706" />
+  <NewLine UId="707" />
+  <Token Text="END_IF" UId="708" />
+  <Token Text=";" UId="709" />
+  <NewLine Num="3" UId="710" />
+  <Token Text="IF" UId="711" />
+  <Blank UId="712" />
+  <Access Scope="LocalVariable" UId="713">
+    <Symbol UId="714">
+      <Component Name="Item" UId="715" />
+      <Token Text="." UId="716" />
+      <Component Name="Beams_Thickness" UId="717" />
+    </Symbol>
+  </Access>
+  <Blank UId="718" />
+  <Token Text="&lt;" UId="719" />
+  <Blank UId="720" />
+  <Access Scope="GlobalConstant" UId="721">
+    <Constant Name="BEAM_TK_MIN" UId="722" />
+  </Access>
+  <Blank UId="725" />
+  <Token Text="THEN" UId="726" />
+  <NewLine UId="727" />
+  <Blank Num="4" UId="728" />
+  <Access Scope="LocalVariable" UId="729">
+    <Symbol UId="730">
+      <Component Name="Prod_item_Check_DataValid" UId="731" />
+    </Symbol>
+  </Access>
+  <Blank UId="732" />
+  <Token Text=":=" UId="733" />
+  <Blank UId="734" />
+  <Access Scope="GlobalConstant" UId="735">
+    <Constant Name="PROD_ERR_Beam_Tickness_Min" UId="736" />
+  </Access>
+  <Token Text=";" UId="739" />
+  <NewLine UId="740" />
+  <Blank Num="4" UId="741" />
+  <Token Text="RETURN" UId="742" />
+  <Token Text=";" UId="743" />
+  <NewLine UId="744" />
+  <Token Text="END_IF" UId="745" />
+  <Token Text=";" UId="746" />
+  <NewLine Num="3" UId="747" />
+  <Token Text="IF" UId="748" />
+  <Blank UId="749" />
+  <Access Scope="LocalVariable" UId="750">
+    <Symbol UId="751">
+      <Component Name="Item" UId="752" />
+      <Token Text="." UId="753" />
+      <Component Name="Beams_Thickness" UId="754" />
+    </Symbol>
+  </Access>
+  <Blank UId="755" />
+  <Token Text="&gt;" UId="756" />
+  <Blank UId="757" />
+  <Access Scope="GlobalConstant" UId="758">
+    <Constant Name="BEAM_TK_MAX" UId="759" />
+  </Access>
+  <Blank UId="762" />
+  <Token Text="THEN" UId="763" />
+  <NewLine UId="764" />
+  <Blank Num="4" UId="765" />
+  <Access Scope="LocalVariable" UId="766">
+    <Symbol UId="767">
+      <Component Name="Prod_item_Check_DataValid" UId="768" />
+    </Symbol>
+  </Access>
+  <Blank UId="769" />
+  <Token Text=":=" UId="770" />
+  <Blank UId="771" />
+  <Access Scope="GlobalConstant" UId="772">
+    <Constant Name="PROD_ERR_Beam_Tickness_Max" UId="773" />
+  </Access>
+  <Token Text=";" UId="776" />
+  <NewLine UId="777" />
+  <Blank Num="4" UId="778" />
+  <Token Text="RETURN" UId="779" />
+  <Token Text=";" UId="780" />
+  <NewLine UId="781" />
+  <Token Text="END_IF" UId="782" />
+  <Token Text=";" UId="783" />
+  <NewLine Num="3" UId="784" />
+  <Token Text="IF" UId="785" />
+  <Blank UId="786" />
+  <Access Scope="LocalVariable" UId="787">
+    <Symbol UId="788">
+      <Component Name="Item" UId="789" />
+      <Token Text="." UId="790" />
+      <Component Name="Beams_Len" UId="791" />
+    </Symbol>
+  </Access>
+  <Blank UId="792" />
+  <Token Text="&lt;" UId="793" />
+  <Blank UId="794" />
+  <Access Scope="GlobalConstant" UId="795">
+    <Constant Name="BEAM_LEN_MIN" UId="796" />
+  </Access>
+  <Blank UId="799" />
+  <Token Text="OR" UId="800" />
+  <Blank UId="801" />
+  <Access Scope="LocalVariable" UId="802">
+    <Symbol UId="803">
+      <Component Name="Item" UId="804" />
+      <Token Text="." UId="805" />
+      <Component Name="Parts_Len" UId="806" />
+    </Symbol>
+  </Access>
+  <Blank UId="807" />
+  <Token Text="&lt;" UId="808" />
+  <Blank UId="809" />
+  <Access Scope="GlobalConstant" UId="810">
+    <Constant Name="P_LEN_MIN" UId="811" />
+  </Access>
+  <Blank UId="814" />
+  <Token Text="THEN" UId="815" />
+  <NewLine UId="816" />
+  <Blank Num="4" UId="817" />
+  <Access Scope="LocalVariable" UId="818">
+    <Symbol UId="819">
+      <Component Name="Prod_item_Check_DataValid" UId="820" />
+    </Symbol>
+  </Access>
+  <Blank UId="821" />
+  <Token Text=":=" UId="822" />
+  <Blank UId="823" />
+  <Access Scope="GlobalConstant" UId="824">
+    <Constant Name="PROD_ERR_Len_min" UId="825" />
+  </Access>
+  <Token Text=";" UId="828" />
+  <NewLine UId="829" />
+  <Blank Num="4" UId="830" />
+  <Token Text="RETURN" UId="831" />
+  <Token Text=";" UId="832" />
+  <NewLine UId="833" />
+  <Token Text="END_IF" UId="834" />
+  <Token Text=";" UId="835" />
+  <NewLine Num="3" UId="836" />
+  <Token Text="IF" UId="837" />
+  <Blank UId="838" />
+  <Access Scope="LocalVariable" UId="839">
+    <Symbol UId="840">
+      <Component Name="Item" UId="841" />
+      <Token Text="." UId="842" />
+      <Component Name="Beams_Len" UId="843" />
+    </Symbol>
+  </Access>
+  <Blank UId="844" />
+  <Token Text="&gt;" UId="845" />
+  <Blank UId="846" />
+  <Access Scope="GlobalConstant" UId="847">
+    <Constant Name="BEAM_LEN_MAX" UId="848" />
+  </Access>
+  <Blank UId="851" />
+  <Token Text="OR" UId="852" />
+  <Blank UId="853" />
+  <Access Scope="LocalVariable" UId="854">
+    <Symbol UId="855">
+      <Component Name="Item" UId="856" />
+      <Token Text="." UId="857" />
+      <Component Name="Parts_Len" UId="858" />
+    </Symbol>
+  </Access>
+  <Blank UId="859" />
+  <Token Text="&gt;" UId="860" />
+  <Blank UId="861" />
+  <Access Scope="GlobalConstant" UId="862">
+    <Constant Name="P_LEN_MAX" UId="863" />
+  </Access>
+  <Blank UId="866" />
+  <Token Text="THEN" UId="867" />
+  <NewLine UId="868" />
+  <Blank Num="4" UId="869" />
+  <Access Scope="LocalVariable" UId="870">
+    <Symbol UId="871">
+      <Component Name="Prod_item_Check_DataValid" UId="872" />
+    </Symbol>
+  </Access>
+  <Blank UId="873" />
+  <Token Text=":=" UId="874" />
+  <Blank UId="875" />
+  <Access Scope="GlobalConstant" UId="876">
+    <Constant Name="PROD_ERR_Len_max" UId="877" />
+  </Access>
+  <Token Text=";" UId="880" />
+  <NewLine UId="881" />
+  <Blank Num="4" UId="882" />
+  <Token Text="RETURN" UId="883" />
+  <Token Text=";" UId="884" />
+  <NewLine UId="885" />
+  <Token Text="END_IF" UId="886" />
+  <Token Text=";" UId="887" />
+  <NewLine Num="3" UId="888" />
+  <Token Text="IF" UId="889" />
+  <Blank UId="890" />
+  <Token Text="NOT" UId="891" />
+  <Blank UId="892" />
+  <Access Scope="LocalVariable" UId="893">
+    <Symbol UId="894">
+      <Component Name="Item" UId="895" />
+      <Token Text="." UId="896" />
+      <Component Name="Kanban_Style" UId="897" />
+    </Symbol>
+  </Access>
+  <Blank UId="898" />
+  <Token Text="THEN" UId="899" />
+  <NewLine Num="2" UId="900" />
+  <Blank Num="4" UId="901" />
+  <Token Text="IF" UId="902" />
+  <Blank UId="903" />
+  <Access Scope="LocalVariable" UId="904">
+    <Symbol UId="905">
+      <Component Name="Item" UId="906" />
+      <Token Text="." UId="907" />
+      <Component Name="Beams_REQ" UId="908" />
+    </Symbol>
+  </Access>
+  <Blank UId="909" />
+  <Token Text="&lt;=" UId="910" />
+  <Blank UId="911" />
+  <Access Scope="LiteralConstant" UId="912">
+    <Constant UId="913">
+      <ConstantValue UId="915">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="916" />
+  <Token Text="THEN" UId="917" />
+  <NewLine UId="918" />
+  <Blank Num="8" UId="919" />
+  <Access Scope="LocalVariable" UId="920">
+    <Symbol UId="921">
+      <Component Name="Prod_item_Check_DataValid" UId="922" />
+    </Symbol>
+  </Access>
+  <Blank UId="923" />
+  <Token Text=":=" UId="924" />
+  <Blank UId="925" />
+  <Access Scope="GlobalConstant" UId="926">
+    <Constant Name="PROD_ERR_Beams_REQ_empty" UId="927" />
+  </Access>
+  <Token Text=";" UId="930" />
+  <NewLine UId="931" />
+  <Blank Num="8" UId="932" />
+  <Token Text="RETURN" UId="933" />
+  <Token Text=";" UId="934" />
+  <NewLine UId="935" />
+  <Blank Num="4" UId="936" />
+  <Token Text="END_IF" UId="937" />
+  <Token Text=";" UId="938" />
+  <NewLine UId="939" />
+  <Blank Num="4" UId="940" />
+  <NewLine UId="941" />
+  <Blank Num="4" UId="942" />
+  <Token Text="IF" UId="943" />
+  <Blank UId="944" />
+  <Access Scope="LocalVariable" UId="945">
+    <Symbol UId="946">
+      <Component Name="Item" UId="947" />
+      <Token Text="." UId="948" />
+      <Component Name="Parts_REQ" UId="949" />
+    </Symbol>
+  </Access>
+  <Blank UId="950" />
+  <Token Text="&lt;=" UId="951" />
+  <Blank UId="952" />
+  <Access Scope="LiteralConstant" UId="953">
+    <Constant UId="954">
+      <ConstantValue UId="956">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="957" />
+  <Token Text="THEN" UId="958" />
+  <NewLine UId="959" />
+  <Blank Num="8" UId="960" />
+  <Access Scope="LocalVariable" UId="961">
+    <Symbol UId="962">
+      <Component Name="Prod_item_Check_DataValid" UId="963" />
+    </Symbol>
+  </Access>
+  <Blank UId="964" />
+  <Token Text=":=" UId="965" />
+  <Blank UId="966" />
+  <Access Scope="GlobalConstant" UId="967">
+    <Constant Name="PROD_ERR_Parts_REQ_empty" UId="968" />
+  </Access>
+  <Token Text=";" UId="971" />
+  <NewLine UId="972" />
+  <Blank Num="8" UId="973" />
+  <Token Text="RETURN" UId="974" />
+  <Token Text=";" UId="975" />
+  <NewLine UId="976" />
+  <Blank Num="4" UId="977" />
+  <Token Text="END_IF" UId="978" />
+  <Token Text=";" UId="979" />
+  <NewLine UId="980" />
+  <Blank Num="4" UId="981" />
+  <NewLine UId="982" />
+  <Blank Num="4" UId="983" />
+  <Token Text="IF" UId="984" />
+  <Blank UId="985" />
+  <Access Scope="LocalVariable" UId="986">
+    <Symbol UId="987">
+      <Component Name="Item" UId="988" />
+      <Token Text="." UId="989" />
+      <Component Name="Parts_ToGo" UId="990" />
+    </Symbol>
+  </Access>
+  <Blank UId="991" />
+  <Token Text="&lt;=" UId="992" />
+  <Blank UId="993" />
+  <Access Scope="LiteralConstant" UId="994">
+    <Constant UId="995">
+      <ConstantValue UId="997">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="998" />
+  <Token Text="THEN" UId="999" />
+  <NewLine UId="1000" />
+  <Blank Num="8" UId="1001" />
+  <Access Scope="LocalVariable" UId="1002">
+    <Symbol UId="1003">
+      <Component Name="Prod_item_Check_DataValid" UId="1004" />
+    </Symbol>
+  </Access>
+  <Blank UId="1005" />
+  <Token Text=":=" UId="1006" />
+  <Blank UId="1007" />
+  <Access Scope="GlobalConstant" UId="1008">
+    <Constant Name="PROD_ERR_No_Parts_ToGo" UId="1009" />
+  </Access>
+  <Token Text=";" UId="1012" />
+  <NewLine UId="1013" />
+  <Blank Num="8" UId="1014" />
+  <Token Text="RETURN" UId="1015" />
+  <Token Text=";" UId="1016" />
+  <NewLine UId="1017" />
+  <Blank Num="4" UId="1018" />
+  <Token Text="END_IF" UId="1019" />
+  <Token Text=";" UId="1020" />
+  <NewLine Num="2" UId="1021" />
+  <Token Text="END_IF" UId="1022" />
+  <Token Text=";" UId="1023" />
+  <NewLine UId="1024" />
+  <Blank Num="8" UId="1025" />
+  <NewLine UId="1026" />
+  <Blank Num="8" UId="1027" />
+  <NewLine UId="1028" />
+  <Blank Num="8" UId="1029" />
+  <NewLine UId="1030" />
+  <Blank Num="4" UId="1031" />
+  <NewLine Num="5" UId="1032" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Generazione codice di return se &lt; 0 allora l'item non è valido</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="E" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>CHECK IF ITEM IS VALID = ALL REQUIRED DATA VALUES ARE CONSISTENT AND WITHIN LIMITS</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="10" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="11" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

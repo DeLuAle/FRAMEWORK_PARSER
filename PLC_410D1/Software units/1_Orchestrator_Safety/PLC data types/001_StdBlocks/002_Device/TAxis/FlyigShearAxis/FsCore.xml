@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Types.PlcStruct ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="None">
+    <Member Name="OKTAG" Datatype="Bool">
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="HomePos" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">GoHome target position [Axis UM]</MultiLanguageText>
+      </Comment>
+      <StartValue>0.0</StartValue>
+    </Member>
+    <Member Name="HomeVelocity" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Return velocity [Axis UM]</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Acc" Datatype="LReal" />
+    <Member Name="Jerk" Datatype="LReal" />
+    <Member Name="ErrWindow" Datatype="LReal" />
+    <Member Name="ErrDwellTime" Datatype="Time" />
+    <Member Name="ErrTimeout" Datatype="Time" />
+    <Member Name="FAK" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">FAK material to axis ratio</MultiLanguageText>
+      </Comment>
+      <StartValue>1.0</StartValue>
+    </Member>
+    <Member Name="AxMODULO" Datatype="LReal">
+      <StartValue>0.0</StartValue>
+    </Member>
+    <Member Name="MasterPosition" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Actual position of Lead axis</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="SlavePosition" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Actual Position of Follower axis</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MaterialPosition" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Lead/following  relative position</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="MasterVelocity" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Velocity of lead axis</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="StartAdvance" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Advance space</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="SyncDelay" Datatype="LReal" />
+    <Member Name="MasterExtraSpeed" Datatype="Real">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Extra-velocity </MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="SlaveVelocity" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Velocity of following axis</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="SlaveAcceleration" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Actual Following axis Acceleration</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="WorkPosition" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Work Position</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Fct" Datatype="UInt">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Flying shear phase</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Status</MultiLanguageText>
+      </Comment>
+      <Member Name="Standstill" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Following axis standstill</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="NotReachable" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Work position not reachable</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="NotSynched" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Work position not synched</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="ErrTimeout" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Work command on timeout</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="NotPermitted" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Procedure aborted cause of missed permission </MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+    <Member Name="iWorkPosition" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Internal work position</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="iSlaveSynchPos" Datatype="LReal" />
+    <Member Name="iMasterSyncPos" Datatype="LReal" />
+    <Member Name="iStartTrigger" Datatype="Bool">
+      <StartValue>FALSE</StartValue>
+    </Member>
+    <Member Name="iSpaceToGo" Datatype="LReal" />
+    <Member Name="iMasterSynchSpace" Datatype="LReal" />
+    <Member Name="iSlaveSynchSpace" Datatype="LReal" />
+    <Member Name="iMasterLag" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Missing space to synchro position</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="iJerkToUse" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Jerk to use</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="K_mV_TO_m/s" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">from lead Velocity UM  to m/s</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="K_mA_TO_m/s^2" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">from master Aceleration UM  to m/s^2</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="K_sV_TO_m/s" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">from follower Velocity UM  to m/s</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="K_sA_TO_m/s^2" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">from follower Aceleration UM  to m/s^2</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="K_m/s^3_TO_sJ" Datatype="LReal">
+      <Comment>
+        <MultiLanguageText Lang="en-US">from m/s^3 to slave Jerk UM</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Par_SI" Datatype="Struct">
+      <Member Name="Acc" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Acceleration [m/s^2]</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Jerk" Datatype="LReal">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Jerk [m/s^3]</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>FsCore</Name>
+      <Namespace />
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Types.PlcStruct>
+</Document>

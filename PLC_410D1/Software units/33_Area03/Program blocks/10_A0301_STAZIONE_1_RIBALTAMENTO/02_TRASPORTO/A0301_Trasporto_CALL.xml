@@ -1,0 +1,825 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp" />
+  <Section Name="Constant">
+    <Member Name="MISSING" Datatype="Int" />
+  </Section>
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <Name>A0301_Trasporto_CALL</Name>
+      <Namespace />
+      <Number>111</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> TRASFERIMENTO #CIn MANAGER</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Trasporto" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="CIn" UId="29" />
+      <Token Text="." UId="30" />
+      <Component Name="OP_SemiAut_PB" UId="31" />
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="A0301_Manager" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="39" />
+      <Component Name="DataIn" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="SemiAut_Pb" UId="42" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="43" />
+  <NewLine Num="2" UId="44" />
+  <LineComment UId="45">
+    <Text UId="46"> TRASFERIMENTO #CIn DRIVE</Text>
+  </LineComment>
+  <NewLine UId="47" />
+  <Access Scope="GlobalVariable" UId="48">
+    <Symbol UId="49">
+      <Component Name="A0301_Trasporto" UId="50">
+        <BooleanAttribute Name="HasQuotes" UId="51">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="52" />
+      <Component Name="CIn" UId="53" />
+      <Token Text="." UId="54" />
+      <Component Name="Drive" UId="55" />
+      <Token Text="." UId="56" />
+      <Component Name="Manager" UId="57" />
+    </Symbol>
+  </Access>
+  <Blank UId="58" />
+  <Token Text=":=" UId="59" />
+  <Blank UId="60" />
+  <Access Scope="GlobalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="A0301_Manager" UId="63">
+        <BooleanAttribute Name="HasQuotes" UId="64">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="65" />
+      <Component Name="COut" UId="66" />
+      <Token Text="." UId="67" />
+      <Component Name="Trasporto" UId="68" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="69" />
+  <NewLine UId="70" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; TRASFERIMENTO stati CIn del blocco &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> TRASFERIMENTO #DataIn STATI BUTTON TRASPORTO</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <LineComment UId="24">
+    <Text UId="25"> PB TRASPORTO</Text>
+  </LineComment>
+  <NewLine UId="26" />
+  <Access Scope="GlobalVariable" UId="27">
+    <Symbol UId="28">
+      <Component Name="A0301_Trasporto" UId="29">
+        <BooleanAttribute Name="HasQuotes" UId="30">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="31" />
+      <Component Name="DataIn" UId="32" />
+      <Token Text="." UId="33" />
+      <Component Name="PB" UId="34" />
+      <Token Text="." UId="35" />
+      <Component Name="Bwd_Minus" UId="36" />
+    </Symbol>
+  </Access>
+  <Blank UId="37" />
+  <Token Text=":=" UId="38" />
+  <Blank UId="39" />
+  <Access Scope="GlobalVariable" UId="40">
+    <Symbol UId="41">
+      <Component Name="A03_HMI" UId="42">
+        <BooleanAttribute Name="HasQuotes" UId="43">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="44" />
+      <Component Name="MB3" UId="45" />
+      <Token Text="." UId="46" />
+      <Component Name="Button" UId="47" />
+      <Token Text="." UId="48" />
+      <Component Name="A0301" UId="49" />
+      <Token Text="." UId="50" />
+      <Component Name="Trasporto" UId="51" />
+      <Token Text="." UId="52" />
+      <Component Name="Bwd_Minus" UId="53" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="54" />
+  <NewLine UId="55" />
+  <Access Scope="GlobalVariable" UId="56">
+    <Symbol UId="57">
+      <Component Name="A0301_Trasporto" UId="58">
+        <BooleanAttribute Name="HasQuotes" UId="59">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="60" />
+      <Component Name="DataIn" UId="61" />
+      <Token Text="." UId="62" />
+      <Component Name="PB" UId="63" />
+      <Token Text="." UId="64" />
+      <Component Name="Fwd_Plus" UId="65" />
+    </Symbol>
+  </Access>
+  <Blank UId="66" />
+  <Token Text=":=" UId="67" />
+  <Blank UId="68" />
+  <Access Scope="GlobalVariable" UId="69">
+    <Symbol UId="70">
+      <Component Name="A03_HMI" UId="71">
+        <BooleanAttribute Name="HasQuotes" UId="72">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="73" />
+      <Component Name="MB3" UId="74" />
+      <Token Text="." UId="75" />
+      <Component Name="Button" UId="76" />
+      <Token Text="." UId="77" />
+      <Component Name="A0301" UId="78" />
+      <Token Text="." UId="79" />
+      <Component Name="Trasporto" UId="80" />
+      <Token Text="." UId="81" />
+      <Component Name="Fwd_Plus" UId="82" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="83" />
+  <NewLine Num="2" UId="84" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text> "Sys".ByPass ===> SOSTITUIRE CON INGRESSI</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; TRASFERIMENTO stati DataIn  &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22" />
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Trasporto" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="DSI" UId="29" />
+    </Symbol>
+  </Access>
+  <Blank UId="30" />
+  <Token Text=":=" UId="31" />
+  <Blank UId="32" />
+  <Access Scope="GlobalVariable" UId="33">
+    <Symbol UId="34">
+      <Component Name="F_DB" UId="35">
+        <BooleanAttribute Name="HasQuotes" UId="36">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="37" />
+      <Component Name="DSI_Trasporto" UId="38" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="39" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>DSI</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22" />
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Trasporto" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="HWID_Ax_TEL1" UId="29" />
+    </Symbol>
+  </Access>
+  <Blank UId="30" />
+  <Token Text=":=" UId="31" />
+  <Blank UId="32" />
+  <Access Scope="GlobalVariable" UId="33">
+    <Symbol UId="34">
+      <Component Name="HW_Const_Values" UId="35">
+        <BooleanAttribute Name="HasQuotes" UId="36">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="37" />
+      <Component Name="CU5_PN_1480A1_1_Standard_telegram_1" UId="38" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="39" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>HW</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="29" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22"> </Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <Access Scope="GlobalVariable" UId="24">
+    <Symbol UId="25">
+      <Component Name="A0301_Trasporto" UId="26">
+        <BooleanAttribute Name="HasQuotes" UId="27">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="28" />
+      <Component Name="Drive" UId="29" />
+      <Token Text="." UId="30" />
+      <Component Name="Infeed_ON" UId="31" />
+    </Symbol>
+  </Access>
+  <Blank UId="32" />
+  <Token Text=":=" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="GlobalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="Areas_ITF" UId="37">
+        <BooleanAttribute Name="HasQuotes" UId="38">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="39" />
+      <Component Name="AG" UId="40" />
+      <Token Text="." UId="41" />
+      <Component Name="Infeed_Running" UId="42" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="43" />
+  <Token Text=";" UId="44" />
+  <NewLine UId="45" />
+  <Access Scope="GlobalVariable" UId="46">
+    <Symbol UId="47">
+      <Component Name="A0301_Trasporto" UId="48">
+        <BooleanAttribute Name="HasQuotes" UId="49">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="50" />
+      <Component Name="Drive" UId="51" />
+      <Token Text="." UId="52" />
+      <Component Name="AccessPoint" UId="53" />
+    </Symbol>
+  </Access>
+  <Blank UId="54" />
+  <Token Text=":=" UId="55" />
+  <Blank UId="56" />
+  <Access Scope="GlobalVariable" UId="57">
+    <Symbol UId="58">
+      <Component Name="HW_Const_Values" UId="59">
+        <BooleanAttribute Name="HasQuotes" UId="60">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="61" />
+      <Component Name="CU5_PN_600A1_ModuleAccessPoint" UId="62" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="63" />
+  <NewLine UId="64" />
+  <Access Scope="GlobalVariable" UId="65">
+    <Symbol UId="66">
+      <Component Name="A0301_Trasporto" UId="67">
+        <BooleanAttribute Name="HasQuotes" UId="68">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="69" />
+      <Component Name="Drive" UId="70" />
+      <Token Text="." UId="71" />
+      <Component Name="AxisID" UId="72" />
+    </Symbol>
+  </Access>
+  <Blank UId="73" />
+  <Token Text=":=" UId="74" />
+  <Blank UId="75" />
+  <Access Scope="GlobalConstant" UId="76">
+    <Constant Name="CU5_ID_3_1480A1_1_1480M1" UId="77" />
+  </Access>
+  <Token Text=";" UId="80" />
+  <NewLine UId="81" />
+  <Access Scope="GlobalVariable" UId="82">
+    <Symbol UId="83">
+      <Component Name="A0301_Trasporto" UId="84">
+        <BooleanAttribute Name="HasQuotes" UId="85">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="86" />
+      <Component Name="Drive" UId="87" />
+      <Token Text="." UId="88" />
+      <Component Name="TokenChain" UId="89" />
+    </Symbol>
+  </Access>
+  <Blank UId="90" />
+  <Token Text=":=" UId="91" />
+  <Blank UId="92" />
+  <Access Scope="GlobalConstant" UId="93">
+    <Constant Name="TOKENCHAIN_CU5" UId="94" />
+  </Access>
+  <Token Text=";" UId="97" />
+  <NewLine UId="98" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="2A" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="2B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="2D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="2E" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="2F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Drive</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="30" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="31" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="32" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="GlobalVariable" UId="21">
+      <Symbol>
+        <Component Name="Area03" />
+        <Component Name="AreaInterface" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="22">
+      <Symbol>
+        <Component Name="F_DB" />
+        <Component Name="ZSI_Zone21" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="23">
+      <Symbol>
+        <Component Name="PrjConfig_A03" />
+        <Component Name="A0301" />
+        <Component Name="Trasporto" />
+      </Symbol>
+    </Access>
+    <Access Scope="GlobalVariable" UId="24">
+      <Symbol>
+        <Component Name="A0301_Trasporto_PERS" />
+        <Component Name="Par" />
+      </Symbol>
+    </Access>
+    <Call UId="25">
+      <CallInfo Name="A0301_Trasporto_FB" BlockType="FB">
+        <Instance Scope="GlobalVariable" UId="26">
+          <Component Name="A0301_Trasporto" />
+        </Instance>
+        <Parameter Name="AreaInterface" Section="Input" Type="&quot;AreaInterface&quot;" />
+        <Parameter Name="ZSI" Section="Input" Type="&quot;udt_ZoneSafetyInterface&quot;" />
+        <Parameter Name="DSI" Section="Input" Type="&quot;udt_DeviceSafetyInterface&quot;" />
+        <Parameter Name="Drive" Section="Input" Type="&quot;TAx_DriveInterface&quot;" />
+        <Parameter Name="DataIn" Section="Input" Type="&quot;SpeedMachine_DataIn&quot;" />
+        <Parameter Name="CIn" Section="Input" Type="Struct" />
+        <Parameter Name="Config" Section="Input" Type="&quot;SpeedMachine_Config&quot;" />
+        <Parameter Name="HWID_Ax_TEL1" Section="Input" Type="HW_SUBMODULE" />
+        <Parameter Name="MachineInterface" Section="Output" Type="&quot;MachineInterface&quot;" />
+        <Parameter Name="COut" Section="Output" Type="Struct" />
+        <Parameter Name="Par" Section="InOut" Type="Struct" />
+      </CallInfo>
+    </Call>
+  </Parts>
+  <Wires>
+    <Wire UId="34">
+      <Powerrail />
+      <NameCon UId="25" Name="en" />
+    </Wire>
+    <Wire UId="35">
+      <IdentCon UId="21" />
+      <NameCon UId="25" Name="AreaInterface" />
+    </Wire>
+    <Wire UId="36">
+      <IdentCon UId="22" />
+      <NameCon UId="25" Name="ZSI" />
+    </Wire>
+    <Wire UId="37">
+      <OpenCon UId="27" />
+      <NameCon UId="25" Name="DSI" />
+    </Wire>
+    <Wire UId="38">
+      <OpenCon UId="28" />
+      <NameCon UId="25" Name="Drive" />
+    </Wire>
+    <Wire UId="39">
+      <OpenCon UId="29" />
+      <NameCon UId="25" Name="DataIn" />
+    </Wire>
+    <Wire UId="40">
+      <OpenCon UId="30" />
+      <NameCon UId="25" Name="CIn" />
+    </Wire>
+    <Wire UId="41">
+      <IdentCon UId="23" />
+      <NameCon UId="25" Name="Config" />
+    </Wire>
+    <Wire UId="42">
+      <OpenCon UId="31" />
+      <NameCon UId="25" Name="HWID_Ax_TEL1" />
+    </Wire>
+    <Wire UId="43">
+      <IdentCon UId="24" />
+      <NameCon UId="25" Name="Par" />
+    </Wire>
+    <Wire UId="44">
+      <NameCon UId="25" Name="MachineInterface" />
+      <OpenCon UId="32" />
+    </Wire>
+    <Wire UId="45">
+      <NameCon UId="25" Name="COut" />
+      <OpenCon UId="33" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="33" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="34" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="35" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="36" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="37" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="38" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>&lt;&lt; RICHIAMO - TRASPORTO &gt;&gt;</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="39" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="3B" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource />
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="3C" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="3D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="3F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="40" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="41" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="42" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="43" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="44" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="45" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="46" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="47" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>Rollformer_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="Drive" Datatype="&quot;TAx_DriveInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_DataIn&quot;" />
+      <Member Name="ConnectorPlugged1" Datatype="Bool" />
+      <Member Name="ConnectorPlugged2" Datatype="Bool" />
+      <Member Name="ConnectorPlugged3Side1" Datatype="Bool" />
+      <Member Name="ConnectorPlugged3Side2" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="ExtEnable_LoopFwdOk" Datatype="Bool" />
+      <Member Name="ExtEnable_LoopBwdOk" Datatype="Bool" />
+      <Member Name="ExtEnable_FlyingShareOk" Datatype="Bool" />
+      <Member Name="ExtEnable_MaterialCounterOK" Datatype="Bool" />
+      <Member Name="ExtEnable_UnloadRollwayOk" Datatype="Bool" />
+      <Member Name="ExtEnable_MwFakCalcOk" Datatype="Bool" />
+      <Member Name="Loop1_VelOverride" Datatype="LReal" />
+      <Member Name="SOS_Enable" Datatype="Bool" />
+      <Member Name="Manager" Datatype="&quot;PositioningMachine_Manager&quot;" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_Config&quot;" />
+      <Member Name="Data" Datatype="&quot;PositioningMachine_Ax_Parameters&quot;" />
+      <Member Name="DataPresence" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_COut&quot;" />
+      <Member Name="EnableSOS" Datatype="Bool" />
+    </Member>
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_DataOut&quot;" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="TO_Ax" Datatype="TO_PositioningAxis" Version="8.0" />
+    <Member Name="PersistentValues" Datatype="&quot;udt_Rollformer_Pers&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarms" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_Alr&quot;" />
+      <Member Name="ConnectorNotPlugged1" Datatype="Bool" />
+      <Member Name="ConnectorNotPlugged2" Datatype="Bool" />
+      <Member Name="ConnectorNotPlugged3Side1" Datatype="Bool" />
+      <Member Name="ConnectorNotPlugged3Side2" Datatype="Bool" />
+    </Member>
+    <Member Name="Warnings" Datatype="Struct">
+      <Member Name="Feed" Datatype="&quot;PositioningMachine_Wng&quot;" />
+      <Member Name="ExtraLowIsON" Datatype="Bool" />
+      <Member Name="MissingCnd" Datatype="Struct">
+        <Member Name="FlyingShare" Datatype="Bool" />
+        <Member Name="MaterialCounter" Datatype="Bool" />
+        <Member Name="UnloadRollway" Datatype="Bool" />
+        <Member Name="MwFakClac" Datatype="Bool" />
+        <Member Name="Loop1_Enable_BWD" Datatype="Bool" />
+        <Member Name="Loop1_Enable_FWD" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="MissingCnd" Datatype="Struct">
+        <Member Name="FlyingShare" Datatype="Bool" />
+        <Member Name="MaterialCounter" Datatype="Bool" />
+        <Member Name="UnloadRollway" Datatype="Bool" />
+        <Member Name="MwFacCalc" Datatype="Bool" />
+        <Member Name="Loop1_Enable_BWD" Datatype="Bool" />
+        <Member Name="Loop1_Enable_FWD" Datatype="Bool" />
+      </Member>
+      <Member Name="ManTargetMaterialPosition" Datatype="LReal" />
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="CndBWD_OK" Datatype="Bool" />
+      <Member Name="CndFWD_OK" Datatype="Bool" />
+    </Member>
+    <Member Name="Feed" Datatype="&quot;PositioningMachine_FB&quot;" />
+    <Member Name="TON_SOS" Datatype="TON_TIME" Version="1.0" />
+  </Section>
+</Sections></Interface>
+      <Name>Rollformer</Name>
+      <Namespace />
+      <Number>141</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

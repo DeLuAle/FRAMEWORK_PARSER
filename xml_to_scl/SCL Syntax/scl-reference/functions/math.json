@@ -1,0 +1,457 @@
+{
+    "category": "Math Functions",
+    "description": "Funzioni matematiche standard per operazioni numeriche su PLC S7-1500/S7-1200",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions / Siemens Online Documentation",
+    "functions": [
+        {
+            "name": "LIMIT",
+            "signature": "LIMIT(MN := <min>, IN := <value>, MX := <max>)",
+            "parameters": [
+                {
+                    "name": "MN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore minimo (limite inferiore)",
+                    "optional": false
+                },
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da limitare",
+                    "optional": false
+                },
+                {
+                    "name": "MX",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore massimo (limite superiore)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore limitato nell'intervallo [MN, MX]"
+            },
+            "description": "Limita il valore IN nell'intervallo [MN, MX]. Se IN < MN ritorna MN, se IN > MX ritorna MX, altrimenti ritorna IN.",
+            "example": "speed := LIMIT(MN := 0.0, IN := rawSpeed, MX := 100.0);",
+            "anti_pattern": "IF val < min THEN\n    val := min;\nELSIF val > max THEN\n    val := max;\nEND_IF;",
+            "why_native": "Compilato in singola istruzione CPU, nessun branch prediction overhead. Performance superiore e codice più leggibile.",
+            "mandatory": true,
+            "notes": "MN deve essere <= MX, altrimenti comportamento indefinito. Tutti i parametri devono essere dello stesso tipo.",
+            "see_also": [
+                "MIN",
+                "MAX",
+                "IN_RANGE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MIN",
+            "signature": "MIN(IN1 := <value1>, IN2 := <value2>, ...)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN3..IN32",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valori aggiuntivi (opzionali)",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "Il valore minimo tra tutti gli input"
+            },
+            "description": "Ritorna il valore minore tra 2 o più input (fino a 32 parametri).",
+            "example": "minValue := MIN(IN1 := temp1, IN2 := temp2, IN3 := temp3);",
+            "anti_pattern": "IF a < b THEN\n    result := a;\nELSE\n    result := b;\nEND_IF;",
+            "why_native": "Istruzione singola ottimizzata, evita branching. Supporta confronto multiplo in una sola chiamata.",
+            "mandatory": true,
+            "notes": "Tutti gli input devono essere dello stesso tipo. Minimo 2 input, massimo 32.",
+            "see_also": [
+                "MAX",
+                "LIMIT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MAX",
+            "signature": "MAX(IN1 := <value1>, IN2 := <value2>, ...)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN3..IN32",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valori aggiuntivi (opzionali)",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "Il valore massimo tra tutti gli input"
+            },
+            "description": "Ritorna il valore maggiore tra 2 o più input (fino a 32 parametri).",
+            "example": "maxValue := MAX(IN1 := pressure1, IN2 := pressure2);",
+            "anti_pattern": "IF a > b THEN\n    result := a;\nELSE\n    result := b;\nEND_IF;",
+            "why_native": "Istruzione singola ottimizzata, evita branching. Supporta confronto multiplo in una sola chiamata.",
+            "mandatory": true,
+            "notes": "Tutti gli input devono essere dello stesso tipo. Minimo 2 input, massimo 32 (fino a 100 in alcuni contesti).",
+            "see_also": [
+                "MIN",
+                "LIMIT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ABS",
+            "signature": "ABS(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore di input",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore assoluto di IN"
+            },
+            "description": "Ritorna il valore assoluto di IN. Se IN è negativo ritorna -IN, altrimenti ritorna IN.",
+            "example": "distance := ABS(IN := delta);",
+            "anti_pattern": "IF val < 0 THEN\n    val := -val;\nEND_IF;",
+            "why_native": "Istruzione CPU nativa per valore assoluto, più efficiente del controllo condizionale.",
+            "mandatory": true,
+            "notes": "Supporta tutti i tipi numerici con segno (INT, DINT, REAL, LREAL).",
+            "see_also": [
+                "NEG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "NEG",
+            "signature": "NEG(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore di input",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Negazione di IN (-IN)"
+            },
+            "description": "Ritorna il valore negato di IN (cambia il segno).",
+            "example": "opposite := NEG(IN := value);",
+            "anti_pattern": "result := value * (-1);",
+            "why_native": "Più leggibile e semanticamente corretto rispetto alla moltiplicazione per -1.",
+            "mandatory": true,
+            "see_also": [
+                "ABS"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MOD",
+            "signature": "MOD(IN1 := <dividend>, IN2 := <divisor>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_INT",
+                    "direction": "IN",
+                    "description": "Dividendo",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_INT",
+                    "direction": "IN",
+                    "description": "Divisore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "Resto della divisione intera IN1 / IN2"
+            },
+            "description": "Ritorna il resto della divisione intera IN1 / IN2.",
+            "example": "remainder := MOD(IN1 := counter, IN2 := 10);",
+            "mandatory": true,
+            "notes": "IN2 non deve essere 0 (divisione per zero). Funziona solo con tipi interi.",
+            "see_also": [
+                "DIV"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SQR",
+            "signature": "SQR(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore di input",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Quadrato del valore (IN * IN)"
+            },
+            "description": "Calcola il quadrato di IN (IN * IN).",
+            "example": "squared := SQR(IN := radius);",
+            "anti_pattern": "result := value * value;",
+            "why_native": "Più leggibile e semanticamente chiaro. Stessa performance ma migliore manutenibilità.",
+            "mandatory": true,
+            "see_also": [
+                "SQRT",
+                "POW"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SQRT",
+            "signature": "SQRT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore di input (>= 0)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Radice quadrata di IN"
+            },
+            "description": "Calcola la radice quadrata di IN.",
+            "example": "root := SQRT(IN := area);",
+            "mandatory": true,
+            "notes": "IN deve essere >= 0, altrimenti risultato indefinito o errore ENO.",
+            "see_also": [
+                "SQR",
+                "POW"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LN",
+            "signature": "LN(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore di input (> 0)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Logaritmo naturale di IN (base e)"
+            },
+            "description": "Calcola il logaritmo naturale (base e) di IN.",
+            "example": "logValue := LN(IN := concentration);",
+            "mandatory": true,
+            "notes": "IN deve essere > 0.",
+            "see_also": [
+                "EXP",
+                "LOG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "EXP",
+            "signature": "EXP(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Esponente",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "e elevato alla potenza IN"
+            },
+            "description": "Calcola e^IN (esponenziale naturale).",
+            "example": "expValue := EXP(IN := rate);",
+            "mandatory": true,
+            "see_also": [
+                "LN",
+                "POW"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SIN",
+            "signature": "SIN(IN := <angle>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Angolo in radianti",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Seno dell'angolo"
+            },
+            "description": "Calcola il seno di un angolo espresso in radianti.",
+            "example": "sinValue := SIN(IN := angle);",
+            "mandatory": true,
+            "notes": "L'angolo deve essere in radianti, non gradi.",
+            "see_also": [
+                "COS",
+                "TAN",
+                "ASIN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "COS",
+            "signature": "COS(IN := <angle>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Angolo in radianti",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Coseno dell'angolo"
+            },
+            "description": "Calcola il coseno di un angolo espresso in radianti.",
+            "example": "cosValue := COS(IN := angle);",
+            "mandatory": true,
+            "notes": "L'angolo deve essere in radianti, non gradi.",
+            "see_also": [
+                "SIN",
+                "TAN",
+                "ACOS"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TAN",
+            "signature": "TAN(IN := <angle>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Angolo in radianti",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Tangente dell'angolo"
+            },
+            "description": "Calcola la tangente di un angolo espresso in radianti.",
+            "example": "tanValue := TAN(IN := angle);",
+            "mandatory": true,
+            "notes": "L'angolo deve essere in radianti. Evitare multipli dispari di π/2.",
+            "see_also": [
+                "SIN",
+                "COS",
+                "ATAN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ROUND",
+            "signature": "ROUND(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore floating point",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DINT/LINT",
+                "description": "Valore arrotondato al numero intero più vicino"
+            },
+            "description": "Arrotonda al numero intero più vicino (0.5 arrotonda verso l'alto).",
+            "example": "rounded := ROUND(IN := 3.7);  // risultato: 4",
+            "mandatory": true,
+            "see_also": [
+                "TRUNC",
+                "CEIL",
+                "FLOOR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TRUNC",
+            "signature": "TRUNC(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore floating point",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DINT/LINT",
+                "description": "Parte intera (troncata verso zero)"
+            },
+            "description": "Tronca la parte decimale, ritorna la parte intera (arrotondamento verso zero).",
+            "example": "intPart := TRUNC(IN := 3.7);  // risultato: 3\nintNeg := TRUNC(IN := -3.7);  // risultato: -3",
+            "mandatory": true,
+            "see_also": [
+                "ROUND",
+                "CEIL",
+                "FLOOR"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

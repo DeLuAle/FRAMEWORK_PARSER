@@ -1,0 +1,438 @@
+﻿// Block: FeedMachine_FB
+// Title: Reset
+
+FUNCTION_BLOCK "FeedMachine_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : FeedMachine_DataIn;
+      CIn : FeedMachine_CIn;
+      Config : FeedMachine_Config;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : FeedMachine_DataOut;
+      COut : FeedMachine_COut;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_SpeedAxis;
+      Par : FeedMachine_Par;
+      Alarm : FeedMachine_Alr;
+      Warning : FeedMachine_Wng;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Standstill : Bool;
+         AlarmPresence : Bool;
+         WarningPresence : Bool;
+         Gen_Cnd : Bool;
+         Bwd_Cnd : Bool;
+         Fwd_Cnd : Bool;
+         ReductionRatio : LReal;
+      END_STRUCT;
+      Ctrl : Struct
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         Man_HighSpeed : Bool;
+         Bwd_Man : Bool;
+         Fwd_Man : Bool;
+         Bwd_Aut : Bool;
+         Fwd_Aut : Bool;
+         Fan : Bool;
+         Vel : LReal;
+         Acc : LReal;
+         Dec : LReal;
+         Jerk : LReal;
+      END_STRUCT;
+      Diag : Struct
+         Ax : TO_Diagnostic;
+      END_STRUCT;
+      Ax : SpeedAxis;
+      Fan_M : Motor;
+      TON_NoPendingCmd : TON_TIME;
+      TON_Feed_DelayManChangeSpeed : TON_TIME;
+      TON_MissingCndBwd : TON_TIME;
+      TON_MissingCndFwd : TON_TIME;
+      TON_Fan_DelayOff : TON_TIME;
+      TON_Brake_TimeOut : TON_TIME;
+      AUX : Struct
+         PB_Bwd : Bool;
+         PB_Fwd : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         PB_Bwd : Bool;
+         PB_Fwd : Bool;
+      END_STRUCT;
+      Req : Bool;
+      AxisVelMax : LReal;
+      LimVel_EngUnit : LReal;
+      LimAcc_EngUnit : LReal;
+      LimDec_EngUnit : LReal;
+      LimJerk_EngUnit : LReal;
+      Real_VelTarget : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Reset"
+      IF AreaInterface.RstAlarms THEN
+          
+          Alarm.BrakeTimeOut :=
+          
+          Warning.NotAutReady :=
+          Warning.MissingCnd_Bkw :=
+          Warning.MissingCnd_Fwd := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 2: Alarm motor brake timeout"
+      #TON_Brake_TimeOut(
+         IN := (((Config.Brake_Presence AND DataIn.Brake_M_Q) AND NOT DataIn.Brake_M_Feedback) OR ((Config.Brake_Presence AND NOT DataIn.Brake_M_Q) AND DataIn.Brake_M_Feedback)),
+         PT := t#1s
+      );
+
+      IF #TON_Brake_TimeOut.Q THEN
+         Alarm.BrakeTimeOut := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4: Stop due next door opening"
+      Ctrl.StopDueDoorOpeningRequest := (((((TON_NoPendingCmd.Q AND Sts.Standstill) OR Ctrl.StopDueDoorOpeningRequest) AND CIn.Manager.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT ZSI.Door_Opened);
+   END_REGION
+
+   REGION "Network 5: Stop in phase"
+      IF NOT AreaInterface.StopInPhase THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 6: Stop programmed"
+      IF NOT AreaInterface.StopProgrammed THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 9: PB"
+      PE.PB_Bwd := PosEdge(DataIn.PB.Bwd_Minus);
+      PE.PB_Fwd := PosEdge(DataIn.PB.Fwd_Plus);
+   END_REGION
+
+   REGION "Network 10: Man"
+      #TON_Feed_DelayManChangeSpeed(
+         IN := (((Ctrl.Fwd_Man AND NOT Ax.AxisSts.Standstill) AND NOT CIn.VelocityOverride.Enable) AND CIn.EnableManChangeVel),
+         PT := Par.Man.DelayChangeVel
+      );
+
+      Ctrl.Bwd_Man := (((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND PE.PB_Bwd) OR ((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ctrl.Bwd_Man)) AND DataIn.PB.Bwd_Minus) AND NOT DataIn.PB.Fwd_Plus);
+      Ctrl.Fwd_Man := (((((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND PE.PB_Fwd) OR ((AreaInterface.Man AND NOT CIn.Manager.Control_ON) AND Ctrl.Fwd_Man)) AND DataIn.PB.Fwd_Plus) AND NOT DataIn.PB.Bwd_Minus);
+      Ctrl.Man_HighSpeed := (#TON_Feed_DelayManChangeSpeed.Q AND (Par.Man.DelayChangeVel > T#0s));
+   END_REGION
+
+   REGION "Network 11: Aut"
+      Ctrl.Bwd_Aut := ((CIn.Manager.Control_ON AND CIn.Manager.Bwd) AND NOT CIn.Manager.Fwd);
+      Ctrl.Fwd_Aut := ((CIn.Manager.Control_ON AND NOT CIn.Manager.Bwd) AND CIn.Manager.Fwd);
+   END_REGION
+
+   REGION "Network 12: Reduction ratio calculation"
+   END_REGION
+
+   REGION "Network 13: Axis max velocity"
+      IF UnknownLogic_MIN_27 THEN
+         COut.MaxVelocity := (AxisVelMax * Sts.ReductionRatio);
+      END_IF;
+   END_REGION
+
+   REGION "Network 14: Velocity & Dynamics"
+      LimVel_EngUnit := TO_Ax.DynamicLimits.MaxVelocity *  Sts.ReductionRatio;
+      LimAcc_EngUnit := TO_Ax.DynamicLimits.MaxAcceleration * Sts.ReductionRatio;
+      LimDec_EngUnit := TO_Ax.DynamicLimits.MaxDeceleration * Sts.ReductionRatio;
+      LimJerk_EngUnit := TO_Ax.DynamicLimits.MaxJerk * Sts.ReductionRatio;
+
+
+
+
+      Ctrl.Vel := 0.0;
+
+      IF Ctrl.Bwd_Man AND Ax.AxisCtrl.MoveMinus THEN
+          
+          
+          Ctrl.Acc := Par.Man.Acc;
+          Ctrl.Dec := Par.Man.Dec;
+          Ctrl.Jerk := Par.Man.Jerk;
+          
+          Ctrl.Vel := Par.Man.VelBwd;
+
+      ELSIF Ctrl.Fwd_Man AND Ax.AxisCtrl.MovePlus THEN
+
+          
+          Ctrl.Acc := Par.Man.Acc;
+          Ctrl.Dec := Par.Man.Dec;
+          Ctrl.Jerk := Par.Man.Jerk;
+          
+          
+          IF Ctrl.Man_HighSpeed THEN
+              Ctrl.Vel := Par.Man.VelFwdHigh;
+          ELSE
+              Ctrl.Vel := Par.Man.VelFwdLow;
+          END_IF;
+          
+          
+      ELSIF (Ctrl.Bwd_Aut AND Ax.AxisCtrl.MoveMinus) OR (Ctrl.Fwd_Aut AND Ax.AxisCtrl.MovePlus)  THEN
+          
+          Ctrl.Vel := CIn.Manager.Vel;
+          Ctrl.Acc := CIn.Manager.Acc;
+          Ctrl.Dec := CIn.Manager.Dec;
+          Ctrl.Jerk := CIn.Manager.Jerk;
+
+      END_IF;
+
+
+      // Dynamics limit
+
+      Ctrl.Vel := (IN1:= Ctrl.Vel,IN2:= LimVel_EngUnit);
+
+      Ctrl.Acc := (IN1:= Ctrl.Acc,IN2:= LimAcc_EngUnit);
+      IF Ctrl.Acc <= 0.0 THEN
+          Ctrl.Acc := Par.Man.Acc;
+      END_IF;
+
+      Ctrl.Dec := (IN1:= Ctrl.Dec,IN2:= LimDec_EngUnit);
+      IF Ctrl.Dec <= 0.0 THEN
+          Ctrl.Dec := Par.Man.Dec;
+      END_IF;
+
+      IF Ctrl.Jerk > 0.0 THEN
+          Ctrl.Jerk := (IN1:= Ctrl.Jerk,IN2:= LimJerk_EngUnit);
+      ELSE
+          Ctrl.Jerk := 0.0;
+      END_IF;
+
+
+
+      // Velocity override
+      // 
+      TO_Ax.Override.Velocity := 100.0;
+      IF CIn.VelocityOverride.Enable THEN
+          TO_Ax.Override.Velocity := (MN:= 1.0, IN:=CIn.VelocityOverride.Value, MX:=100.0);
+      END_IF;
+
+
+
+      // SLS velocity limit
+      //
+      IF ZSI.Door_Opened AND Ctrl.Vel > Config.SLS_VEL THEN
+          Ctrl.Vel := Config.SLS_VEL;
+      END_IF;
+
+
+
+      // Conversion and write dynamics value
+      // 
+      Ax.AxisCtrl.Velocity := Ctrl.Vel / Sts.ReductionRatio;
+      Ax.AxisCtrl.Acceleration := Ctrl.Acc / Sts.ReductionRatio;
+      Ax.AxisCtrl.Deceleration := Ctrl.Dec / Sts.ReductionRatio;
+      Ax.AxisCtrl.Jerk := Ctrl.Jerk / Sts.ReductionRatio;
+
+      Ax.StandtillVelocity := Config.Ax.StandstillVelocity / Sts.ReductionRatio;
+
+   END_REGION
+
+   REGION "Network 15: Move request in bkw / fwd direction"
+      COut.Bwd_CheckNext := NOT ((NOT Ctrl.Bwd_Man AND NOT Ctrl.Bwd_Aut));
+      COut.Fwd_CheckNext := NOT ((NOT Ctrl.Fwd_Man AND NOT Ctrl.Fwd_Aut));
+   END_REGION
+
+   REGION "Network 16: Conditions"
+      Sts.Gen_Cnd := ((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Fan_M.MotorSts.Running) OR (((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Bwd_Cnd) OR (((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Fwd_Cnd)) AND NOT TON_NoPendingCmd.Q));
+      Sts.Bwd_Cnd := ((((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Fan_M.MotorSts.Running) OR (((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Bwd_Cnd) OR (((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Fwd_Cnd)) AND NOT TON_NoPendingCmd.Q)) AND Ax.AxisSts.MoveMinusPermitted) AND CIn.Bwd_ExtEnable);
+      Sts.Fwd_Cnd := ((((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Fan_M.MotorSts.Running) OR (((((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Bwd_Cnd) OR (((((((NOT Ctrl.StopDueDoorOpeningRequest AND NOT Ctrl.StopInPhase) AND NOT Ctrl.StopProgrammed) AND NOT Ctrl.StopAborting) AND NOT DSI.SafeStop) AND NOT DSI.DevicesInSafeState) AND NOT Alarm.BrakeTimeOut) AND Sts.Fwd_Cnd)) AND NOT TON_NoPendingCmd.Q)) AND Ax.AxisSts.MovePlusPermitted) AND CIn.Fwd_ExtEnable);
+   END_REGION
+
+   REGION "Network 17: Missing conditions"
+      #TON_MissingCndBwd(
+         IN := ((Ax.AxisSts.Standstill AND COut.Bwd_CheckNext) AND NOT Sts.Bwd_Cnd),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_MissingCndFwd(
+         IN := ((Ax.AxisSts.Standstill AND COut.Fwd_CheckNext) AND NOT Sts.Fwd_Cnd),
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Warning.MissingCnd_Bkw AND Sts.Bwd_Cnd) THEN
+         Warning.MissingCnd_Bkw := FALSE;
+      END_IF;
+      IF (Warning.MissingCnd_Fwd AND Sts.Fwd_Cnd) THEN
+         Warning.MissingCnd_Fwd := FALSE;
+      END_IF;
+      IF #TON_MissingCndBwd.Q THEN
+         Warning.MissingCnd_Bkw := TRUE;
+      END_IF;
+      IF #TON_MissingCndFwd.Q THEN
+         Warning.MissingCnd_Fwd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 18: Axis Control"
+      Ax.AxisCtrl.SafeStop := DSI.SafeStop;
+      Ax.AxisCtrl.Rst := AreaInterface.RstAlarms;
+      Ax.AxisCtrl.RstHW := FALSE;
+      Ax.AxisCtrl.Power := ((CIn.Manager.Control_ON AND Config.Fan.Exist) AND NOT Ctrl.StopDueDoorOpeningRequest);
+      Ax.AxisCtrl.MoveMinus := (COut.Bwd_CheckNext AND Sts.Bwd_Cnd);
+      Ax.AxisCtrl.MovePlus := (COut.Fwd_CheckNext AND Sts.Fwd_Cnd);
+      IF TRUE THEN
+         Ax.AxisCtrl.ExtControl := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 20: Axis manager"
+      #Ax(
+         en := TRUE,
+         PowerEnable := (DSI.PowerEnable OR Sys.SimulationDevice),
+         AxisCtrl := ???,
+         Drive := Drive,
+         PowerOffDelay := Config.Ax.PowerOffDelay,
+         StandtillVelocity := ???,
+         StandstillDelay := Config.Ax.StandstillDelay,
+         Simulation := Sys.SimulationDevice,
+         Axis := TO_Ax,
+         Alarm := Alarm.Ax,
+         Warning := Warning.Ax,
+         Diag := Diag.Ax,
+         Infeed_REQ_ON => COut.Infeed_ReqON
+      );
+
+   END_REGION
+
+   REGION "Network 21: Mask warning 1699 = Test stop STO required"
+      IF (Warning.Ax.Drive AND (Diag.Ax.Drive_Message = 1699)) THEN
+         Warning.Ax.Drive := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 22: Coordination Out"
+      COut.CtrlSafe := (NOT TON_NoPendingCmd.IN OR (COut.CtrlSafe AND Ax.AxisSts.Enabled) OR (CIn.Manager.Control_ON AND NOT Ctrl.StopDueDoorOpeningRequest));
+      Real_VelTarget := (Ax.MOVE_VELOCITY.Velocity * TO_Ax.Override.Velocity);
+      IF (Ax.MOVE_VELOCITY.Velocity * TO_Ax.Override.Velocity) THEN
+         Real_VelTarget := (Real_VelTarget / 100.0);
+      END_IF;
+      COut.Fwd_VelZero := (((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 1)) AND (Real_VelTarget = 0.0)) AND Ax.MOVE_VELOCITY.InVelocity);
+      COut.Fwd_Running := ((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 1)) AND (Real_VelTarget > 0.0));
+      COut.Bwd_VelZero := (((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 2)) AND (Real_VelTarget = 0.0)) AND Ax.MOVE_VELOCITY.InVelocity);
+      COut.Bwd_Running := ((Ax.MOVE_VELOCITY.Busy AND (Ax.MOVE_VELOCITY.Direction = 2)) AND (Real_VelTarget > 0.0));
+      COut.TargetVelocity := (Real_VelTarget * Sts.ReductionRatio);
+      COut.ActualVelocity := (TO_Ax.ActualSpeed * Sts.ReductionRatio);
+   END_REGION
+
+   REGION "Network 25: Run"
+      #TON_Fan_DelayOff(
+         IN := (NOT Req AND Ctrl.Fan),
+         PT := Config.Fan.DelayOff
+      );
+
+      Req := NOT (((NOT Ax.AxisSts.Enabled AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext));
+      Ctrl.Fan := ((NOT (((NOT Ax.AxisSts.Enabled AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext)) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      IF #TON_Fan_DelayOff.Q THEN
+         Ctrl.Fan := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 26: Device"
+      #Fan_M(
+         en := Config.Fan.Exist,
+         MotorCtrl := ???,
+         ThermalProtection := DataIn.Fan_M_ThermalProtection,
+         FdbkRunning := DataIn.Fan_M_Feedback,
+         FeedbackTimeout := T#1S,
+         Simulation := ???,
+         Alarm := Alarm.Fan_M,
+         Contactor => DataOut.Fan_M_Contactor
+      );
+
+      Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
+      Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
+      Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF NOT Config.Fan.Exist THEN
+         DataOut.Fan_M_Contactor := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Exist THEN
+         Fan_M.MotorSts.RunPermitted := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Exist THEN
+         Fan_M.MotorSts.Running := TRUE;
+      END_IF;
+      IF NOT Config.Fan.Exist THEN
+         Alarm.Fan_M.ThermalProtection := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Exist THEN
+         Alarm.Fan_M.Feedback := FALSE;
+      END_IF;
+      IF NOT Config.Fan.Exist THEN
+         Fan_M.MotorSts.AlarmPresence := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 30: Standstill"
+      Sts.Standstill := (Ax.AxisSts.Standstill OR DSI.DevicesInSafeState);
+      COut.Standstill := (Ax.AxisSts.Standstill OR DSI.DevicesInSafeState);
+   END_REGION
+
+   REGION "Network 31: No pending commands"
+      #TON_NoPendingCmd(
+         IN := ((((NOT Sys.FirstPLCCycle AND NOT COut.Bwd_CheckNext) AND NOT COut.Fwd_CheckNext) AND NOT Ax.AxisCtrl.MovePlus) AND NOT Ax.AxisCtrl.MoveMinus),
+         PT := T#500MS
+      );
+
+   END_REGION
+
+   REGION "Network 32: Warnings presence"
+      Sts.WarningPresence := NOT ((((NOT Warning.NotAutReady AND NOT Warning.MissingCnd_Bkw) AND NOT Warning.MissingCnd_Fwd) AND NOT Ax.AxisSts.WarningPresence));
+   END_REGION
+
+   REGION "Network 33: Alarms presence"
+      Sts.AlarmPresence := NOT ((((NOT Alarm.BrakeTimeOut AND NOT Ax.AxisSts.AlarmPresence) AND NOT Fan_M.MotorSts.AlarmPresence) AND NOT CIn.ExternalAlarms));
+   END_REGION
+
+   REGION "Network 34: Stop aborting"
+      Ctrl.StopAborting := (((AreaInterface.Cycle AND Sts.Standstill) OR (AreaInterface.Cycle AND Ctrl.StopAborting) OR AreaInterface.Aut OR CIn.Manager.Control_ON) AND Sts.AlarmPresence);
+   END_REGION
+
+   REGION "Network 35: Collect machine to zone interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmPresence;
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      MachineInterface.MotionsStandStill := TON_NoPendingCmd.Q AND Sts.Standstill;
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      MachineInterface.AlarmsPresence := Sts.AlarmPresence;
+      MachineInterface.WarningPresence := Sts.WarningPresence;
+
+   END_REGION
+
+   REGION "Network 36: Warning Machine not ready for automatic"
+      IF AreaInterface.Cycle THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

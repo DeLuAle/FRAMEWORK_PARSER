@@ -1,0 +1,93 @@
+﻿FUNCTION "Prod_O_Counters_Sum_Update" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      O_ID_Location : DInt;
+      Index : Int;
+   END_VAR
+
+
+BEGIN
+	
+	        
+	IF #O_ID_Location =  "PROD_ORDER_IS_AT_O_ACT" THEN
+	    
+	    "Production".O_ACT.Beams_ToGo := "Production".O_ACT.Beams_REQ - "Production".O_ACT.Beams_GOOD - "Production".O_ACT.Beams_GOOD_R;
+	    "Production".O_ACT.Beams_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_ACT.Beams_ToGo);
+	    
+	    "Production".O_ACT.Parts_ToGo := "Production".O_ACT.Parts_REQ - "Production".O_ACT.Parts_GOOD - "Production".O_ACT.Parts_GOOD_R;
+	    "Production".O_ACT.Parts_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_ACT.Parts_ToGo);
+	    
+	    "Production".O_ACT.Material_Len_REQ := "Production".O_ACT.Parts_Len * DINT_TO_REAL("Production".O_ACT.Parts_REQ);
+	    "Production".O_ACT.Material_Len_ToGo :="Production".O_ACT.Parts_Len * DINT_TO_REAL("Production".O_ACT.Parts_ToGo) ;
+	    "Production".O_ACT.Material_Len_ToGo := MAX_REAL(IN1 := 0.0, IN2 := "Production".O_ACT.Material_Len_ToGo);
+	    
+	    RETURN;
+	    
+	    
+	END_IF;
+	
+	
+	IF #O_ID_Location = "PROD_ORDER_IS_AT_O_TODO" THEN
+	    
+	    IF #Index >= 1 AND #Index <= "PROD_TODO_ITEMS" THEN
+	        
+	        
+	        "Production".O_TODO[#Index].Beams_ToGo := "Production".O_TODO[#Index].Beams_REQ - "Production".O_TODO[#Index].Beams_GOOD - "Production".O_TODO[#Index].Beams_GOOD_R;
+	        "Production".O_TODO[#Index].Beams_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_TODO[#Index].Beams_ToGo);
+	        
+	        "Production".O_TODO[#Index].Parts_ToGo := "Production".O_TODO[#Index].Parts_REQ - "Production".O_TODO[#Index].Parts_GOOD - "Production".O_TODO[#Index].Parts_GOOD_R;
+	        "Production".O_TODO[#Index].Parts_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_TODO[#Index].Parts_ToGo);
+	        
+	        "Production".O_TODO[#Index].Material_Len_REQ := "Production".O_TODO[#Index].Parts_Len * DINT_TO_REAL("Production".O_TODO[#Index].Parts_REQ);
+	        "Production".O_TODO[#Index].Material_Len_ToGo := "Production".O_TODO[#Index].Parts_Len * DINT_TO_REAL("Production".O_TODO[#Index].Parts_ToGo);
+	        "Production".O_TODO[#Index].Material_Len_ToGo := MAX_REAL(IN1 := 0.0, IN2 := "Production".O_TODO[#Index].Material_Len_ToGo);
+	        
+	    END_IF;
+	END_IF;
+	
+	
+	
+	IF #O_ID_Location = "PROD_ORDER_IS_AT_O_ENDING" THEN
+	    IF #Index >= 1 AND #Index <= "PROD_ENDING_ITEMS" THEN
+	        
+	        "Production".O_ENDING[#Index].Beams_ToGo := "Production".O_ENDING[#Index].Beams_REQ - "Production".O_ENDING[#Index].Beams_GOOD - "Production".O_ENDING[#Index].Beams_GOOD_R;
+	        "Production".O_ENDING[#Index].Beams_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_ENDING[#Index].Beams_ToGo);
+	        
+	        "Production".O_ENDING[#Index].Parts_ToGo := "Production".O_ENDING[#Index].Parts_REQ - "Production".O_ENDING[#Index].Parts_GOOD - "Production".O_ENDING[#Index].Parts_GOOD_R;
+	        "Production".O_ENDING[#Index].Parts_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_ENDING[#Index].Parts_ToGo);
+	        
+	        "Production".O_ENDING[#Index].Material_Len_REQ := "Production".O_ENDING[#Index].Parts_Len * DINT_TO_REAL("Production".O_ENDING[#Index].Parts_REQ);
+	        "Production".O_ENDING[#Index].Material_Len_ToGo := "Production".O_ENDING[#Index].Parts_Len * DINT_TO_REAL("Production".O_ENDING[#Index].Parts_ToGo);
+	        "Production".O_ENDING[#Index].Material_Len_ToGo := MAX_REAL(IN1 := 0.0, IN2 := "Production".O_ENDING[#Index].Material_Len_ToGo);
+	        
+	        
+	    END_IF;
+	    
+	END_IF;
+	
+	
+	IF #O_ID_Location = "PROD_ORDER_IS_AT_O_OUT" THEN
+	    IF #Index >= 1 AND #Index <= "PROD_OUT_ITEMS" THEN
+	        
+	        "Production".O_OUT[#Index].Beams_ToGo := "Production".O_OUT[#Index].Beams_REQ - "Production".O_OUT[#Index].Beams_GOOD - "Production".O_OUT[#Index].Beams_GOOD_R;
+	        "Production".O_OUT[#Index].Beams_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_OUT[#Index].Beams_ToGo);
+	        
+	        "Production".O_OUT[#Index].Parts_ToGo := "Production".O_OUT[#Index].Parts_REQ - "Production".O_OUT[#Index].Parts_GOOD - "Production".O_OUT[#Index].Parts_GOOD_R;
+	        "Production".O_OUT[#Index].Parts_ToGo := MAX_DINT(IN1 := 0, IN2 := "Production".O_OUT[#Index].Parts_ToGo);
+	        
+	        "Production".O_OUT[#Index].Material_Len_REQ := "Production".O_OUT[#Index].Parts_Len * DINT_TO_REAL("Production".O_OUT[#Index].Parts_REQ);
+	        "Production".O_OUT[#Index].Material_Len_ToGo := "Production".O_OUT[#Index].Parts_Len * DINT_TO_REAL("Production".O_OUT[#Index].Parts_ToGo);
+	        "Production".O_OUT[#Index].Material_Len_ToGo := MAX_REAL(IN1 := 0.0, IN2 := "Production".O_OUT[#Index].Material_Len_ToGo);
+	    END_IF;
+	    
+	    RETURN;
+	END_IF;
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

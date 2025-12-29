@@ -1,0 +1,985 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FB ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Execute" Datatype="Bool" />
+    <Member Name="PrgNo" Datatype="DInt" />
+  </Section>
+  <Section Name="Output">
+    <Member Name="Busy" Datatype="Bool" />
+    <Member Name="Done" Datatype="Bool" />
+    <Member Name="Error" Datatype="Bool" />
+    <Member Name="workTime" Datatype="LTime" />
+  </Section>
+  <Section Name="InOut">
+    <Member Name="GET_ITF" Datatype="&quot;Prg_GetITF&quot;" />
+    <Member Name="GET_Data" Datatype="Variant" />
+    <Member Name="PRG_Data" Datatype="Variant" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Status" Datatype="Int" />
+    <Member Name="iTime" Datatype="DTL" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="Temp">
+    <Member Name="retval" Datatype="Int" />
+    <Member Name="now" Datatype="DTL" Version="1.0" />
+  </Section>
+  <Section Name="Constant" />
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>GetPrg</Name>
+      <Namespace />
+      <Number>22</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="Status" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text="=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LiteralConstant" UId="29">
+    <Constant UId="30">
+      <ConstantValue UId="32">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="33" />
+  <Token Text="THEN" UId="34" />
+  <NewLine UId="35" />
+  <Blank Num="4" UId="36" />
+  <Access Scope="LocalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="Busy" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="LiteralConstant" UId="43">
+    <Constant UId="44">
+      <ConstantValue UId="46">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="47" />
+  <NewLine UId="48" />
+  <Blank Num="4" UId="49" />
+  <Access Scope="LocalVariable" UId="50">
+    <Symbol UId="51">
+      <Component Name="Done" UId="52" />
+    </Symbol>
+  </Access>
+  <Blank UId="53" />
+  <Token Text=":=" UId="54" />
+  <Blank UId="55" />
+  <Access Scope="LiteralConstant" UId="56">
+    <Constant UId="57">
+      <ConstantValue UId="59">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="60" />
+  <NewLine UId="61" />
+  <Blank Num="4" UId="62" />
+  <Access Scope="LocalVariable" UId="63">
+    <Symbol UId="64">
+      <Component Name="Error" UId="65" />
+    </Symbol>
+  </Access>
+  <Blank UId="66" />
+  <Token Text=":=" UId="67" />
+  <Blank UId="68" />
+  <Access Scope="LiteralConstant" UId="69">
+    <Constant UId="70">
+      <ConstantValue UId="72">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="73" />
+  <Blank Num="2" UId="74" />
+  <NewLine UId="75" />
+  <Blank Num="4" UId="76" />
+  <NewLine UId="77" />
+  <Blank Num="4" UId="78" />
+  <Token Text="IF" UId="79" />
+  <Blank UId="80" />
+  <Access Scope="LocalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="Execute" UId="83" />
+    </Symbol>
+  </Access>
+  <Blank UId="84" />
+  <Token Text="THEN" UId="85" />
+  <NewLine UId="86" />
+  <Blank Num="8" UId="87" />
+  <Access Scope="LocalVariable" UId="88">
+    <Symbol UId="89">
+      <Component Name="retval" UId="90" />
+    </Symbol>
+  </Access>
+  <Blank UId="91" />
+  <Token Text=":=" UId="92" />
+  <Blank UId="93" />
+  <Access Scope="Call" UId="94">
+    <Instruction Name="RD_LOC_T" UId="95">
+      <Token Text="(" UId="96" />
+      <NamelessParameter UId="97">
+        <Access Scope="LocalVariable" UId="98">
+          <Symbol UId="99">
+            <Component Name="iTime" UId="100" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="102" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="103" />
+  <NewLine UId="104" />
+  <Blank Num="8" UId="105" />
+  <Access Scope="LocalVariable" UId="106">
+    <Symbol UId="107">
+      <Component Name="Status" UId="108" />
+    </Symbol>
+  </Access>
+  <Blank UId="109" />
+  <Token Text=":=" UId="110" />
+  <Blank UId="111" />
+  <Access Scope="LiteralConstant" UId="112">
+    <Constant UId="113">
+      <ConstantValue UId="115">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="116" />
+  <NewLine UId="117" />
+  <Blank Num="4" UId="118" />
+  <Token Text="ELSE" UId="119" />
+  <NewLine UId="120" />
+  <Blank Num="8" UId="121" />
+  <Token Text="RETURN" UId="122" />
+  <Token Text=";" UId="123" />
+  <NewLine UId="124" />
+  <Blank Num="4" UId="125" />
+  <Token Text="END_IF" UId="126" />
+  <Token Text=";" UId="127" />
+  <Blank Num="4" UId="128" />
+  <NewLine Num="2" UId="129" />
+  <Token Text="END_IF" UId="130" />
+  <Token Text=";" UId="131" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Wait Execute</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="Status" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text="=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LiteralConstant" UId="29">
+    <Constant UId="30">
+      <ConstantValue UId="32">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="33" />
+  <Token Text="THEN" UId="34" />
+  <NewLine UId="35" />
+  <Blank Num="4" UId="36" />
+  <Access Scope="LocalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="Busy" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="LiteralConstant" UId="43">
+    <Constant UId="44">
+      <ConstantValue UId="46">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="47" />
+  <NewLine UId="48" />
+  <Blank Num="4" UId="49" />
+  <Token Text="IF" UId="50" />
+  <Blank UId="51" />
+  <Token Text="NOT" UId="52" />
+  <Blank UId="53" />
+  <Access Scope="LocalVariable" UId="54">
+    <Symbol UId="55">
+      <Component Name="GET_ITF" UId="56" />
+      <Token Text="." UId="57" />
+      <Component Name="Execute" UId="58" />
+    </Symbol>
+  </Access>
+  <NewLine UId="59" />
+  <Blank Num="8" UId="60" />
+  <Token Text="AND" UId="61" />
+  <Blank UId="62" />
+  <Token Text="NOT" UId="63" />
+  <Blank UId="64" />
+  <Access Scope="LocalVariable" UId="65">
+    <Symbol UId="66">
+      <Component Name="GET_ITF" UId="67" />
+      <Token Text="." UId="68" />
+      <Component Name="InProgress" UId="69" />
+    </Symbol>
+  </Access>
+  <NewLine UId="70" />
+  <Blank Num="8" UId="71" />
+  <Token Text="AND" UId="72" />
+  <Blank UId="73" />
+  <Token Text="NOT" UId="74" />
+  <Blank UId="75" />
+  <Access Scope="LocalVariable" UId="76">
+    <Symbol UId="77">
+      <Component Name="GET_ITF" UId="78" />
+      <Token Text="." UId="79" />
+      <Component Name="Done" UId="80" />
+    </Symbol>
+  </Access>
+  <NewLine UId="81" />
+  <Blank Num="8" UId="82" />
+  <Token Text="AND" UId="83" />
+  <Blank UId="84" />
+  <Token Text="NOT" UId="85" />
+  <Blank UId="86" />
+  <Access Scope="LocalVariable" UId="87">
+    <Symbol UId="88">
+      <Component Name="GET_ITF" UId="89" />
+      <Token Text="." UId="90" />
+      <Component Name="Error" UId="91" />
+    </Symbol>
+  </Access>
+  <Blank Num="2" UId="92" />
+  <Token Text="THEN" UId="93" />
+  <NewLine UId="94" />
+  <Blank Num="8" UId="95" />
+  <Access Scope="LocalVariable" UId="96">
+    <Symbol UId="97">
+      <Component Name="GET_ITF" UId="98" />
+      <Token Text="." UId="99" />
+      <Component Name="PrgNo" UId="100" />
+    </Symbol>
+  </Access>
+  <Blank UId="101" />
+  <Token Text=":=" UId="102" />
+  <Blank UId="103" />
+  <Access Scope="LocalVariable" UId="104">
+    <Symbol UId="105">
+      <Component Name="PrgNo" UId="106" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="107" />
+  <NewLine UId="108" />
+  <Blank Num="8" UId="109" />
+  <Access Scope="LocalVariable" UId="110">
+    <Symbol UId="111">
+      <Component Name="GET_ITF" UId="112" />
+      <Token Text="." UId="113" />
+      <Component Name="Execute" UId="114" />
+    </Symbol>
+  </Access>
+  <Blank UId="115" />
+  <Token Text=":=" UId="116" />
+  <Blank UId="117" />
+  <Access Scope="LiteralConstant" UId="118">
+    <Constant UId="119">
+      <ConstantValue UId="121">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="122" />
+  <NewLine UId="123" />
+  <Blank Num="8" UId="124" />
+  <Access Scope="LocalVariable" UId="125">
+    <Symbol UId="126">
+      <Component Name="Status" UId="127" />
+    </Symbol>
+  </Access>
+  <Blank UId="128" />
+  <Token Text=":=" UId="129" />
+  <Blank UId="130" />
+  <Access Scope="LiteralConstant" UId="131">
+    <Constant UId="132">
+      <ConstantValue UId="134">2</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="135" />
+  <NewLine UId="136" />
+  <Blank Num="4" UId="137" />
+  <Token Text="END_IF" UId="138" />
+  <Token Text=";" UId="139" />
+  <NewLine UId="140" />
+  <Token Text="END_IF" UId="141" />
+  <Token Text=";" UId="142" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Check if there is another GET busy or in progress</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>Program GET Request</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="Status" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text="=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LiteralConstant" UId="29">
+    <Constant UId="30">
+      <ConstantValue UId="32">2</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="33" />
+  <Token Text="THEN" UId="34" />
+  <NewLine UId="35" />
+  <Blank Num="4" UId="36" />
+  <Access Scope="LocalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="Busy" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="LiteralConstant" UId="43">
+    <Constant UId="44">
+      <ConstantValue UId="46">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="47" />
+  <NewLine Num="2" UId="48" />
+  <Blank Num="4" UId="49" />
+  <Token Text="IF" UId="50" />
+  <Blank UId="51" />
+  <Access Scope="LocalVariable" UId="52">
+    <Symbol UId="53">
+      <Component Name="GET_ITF" UId="54" />
+      <Token Text="." UId="55" />
+      <Component Name="Done" UId="56" />
+    </Symbol>
+  </Access>
+  <Blank UId="57" />
+  <Token Text="THEN" UId="58" />
+  <NewLine UId="59" />
+  <Blank Num="8" UId="60" />
+  <Access Scope="LocalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="retval" UId="63" />
+    </Symbol>
+  </Access>
+  <Blank UId="64" />
+  <Token Text=":=" UId="65" />
+  <Blank UId="66" />
+  <Access Scope="Call" UId="67">
+    <Instruction Name="MOVE_BLK_VARIANT" UId="68">
+      <Token Text="(" UId="69" />
+      <Parameter Name="SRC" UId="70">
+        <Blank UId="71" />
+        <Token Text=":=" UId="72" />
+        <Blank UId="73" />
+        <Access Scope="LocalVariable" UId="74">
+          <Symbol UId="75">
+            <Component Name="GET_Data" UId="76" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="77" />
+      <Blank UId="78" />
+      <Parameter Name="COUNT" UId="79">
+        <Blank UId="80" />
+        <Token Text=":=" UId="81" />
+        <Blank UId="82" />
+        <Access Scope="LiteralConstant" UId="83">
+          <Constant UId="84">
+            <ConstantValue UId="86">1</ConstantValue>
+          </Constant>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="87" />
+      <Blank UId="88" />
+      <Parameter Name="SRC_INDEX" UId="89">
+        <Blank UId="90" />
+        <Token Text=":=" UId="91" />
+        <Blank UId="92" />
+        <Access Scope="LiteralConstant" UId="93">
+          <Constant UId="94">
+            <ConstantValue UId="96">0</ConstantValue>
+          </Constant>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="97" />
+      <Blank UId="98" />
+      <Parameter Name="DEST_INDEX" UId="99">
+        <Blank UId="100" />
+        <Token Text=":=" UId="101" />
+        <Blank UId="102" />
+        <Access Scope="LiteralConstant" UId="103">
+          <Constant UId="104">
+            <ConstantValue UId="106">0</ConstantValue>
+          </Constant>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="107" />
+      <Blank UId="108" />
+      <Parameter Name="DEST" UId="109">
+        <Blank UId="110" />
+        <Token Text="=&gt;" UId="111" />
+        <Blank UId="112" />
+        <Access Scope="LocalVariable" UId="113">
+          <Symbol UId="114">
+            <Component Name="PRG_Data" UId="115" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="117" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="118" />
+  <NewLine UId="119" />
+  <Blank Num="8" UId="120" />
+  <Access Scope="LocalVariable" UId="121">
+    <Symbol UId="122">
+      <Component Name="Done" UId="123" />
+    </Symbol>
+  </Access>
+  <Blank UId="124" />
+  <Token Text=":=" UId="125" />
+  <Blank UId="126" />
+  <Access Scope="LocalVariable" UId="127">
+    <Symbol UId="128">
+      <Component Name="retval" UId="129" />
+    </Symbol>
+  </Access>
+  <Blank UId="130" />
+  <Token Text="=" UId="131" />
+  <Blank UId="132" />
+  <Access Scope="LiteralConstant" UId="133">
+    <Constant UId="134">
+      <ConstantValue UId="136">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="137" />
+  <NewLine UId="138" />
+  <Blank Num="8" UId="139" />
+  <Access Scope="LocalVariable" UId="140">
+    <Symbol UId="141">
+      <Component Name="Error" UId="142" />
+    </Symbol>
+  </Access>
+  <Blank UId="143" />
+  <Token Text=":=" UId="144" />
+  <Blank UId="145" />
+  <Access Scope="LocalVariable" UId="146">
+    <Symbol UId="147">
+      <Component Name="retval" UId="148" />
+    </Symbol>
+  </Access>
+  <Blank UId="149" />
+  <Token Text="&lt;&gt;" UId="150" />
+  <Blank UId="151" />
+  <Access Scope="LiteralConstant" UId="152">
+    <Constant UId="153">
+      <ConstantValue UId="155">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="156" />
+  <NewLine UId="157" />
+  <Blank Num="4" UId="158" />
+  <Token Text="END_IF" UId="159" />
+  <Token Text=";" UId="160" />
+  <NewLine UId="161" />
+  <Blank Num="4" UId="162" />
+  <NewLine UId="163" />
+  <Blank Num="4" UId="164" />
+  <Token Text="IF" UId="165" />
+  <Blank UId="166" />
+  <Access Scope="LocalVariable" UId="167">
+    <Symbol UId="168">
+      <Component Name="GET_ITF" UId="169" />
+      <Token Text="." UId="170" />
+      <Component Name="Error" UId="171" />
+    </Symbol>
+  </Access>
+  <Blank UId="172" />
+  <Token Text="THEN" UId="173" />
+  <NewLine UId="174" />
+  <Blank Num="8" UId="175" />
+  <Access Scope="LocalVariable" UId="176">
+    <Symbol UId="177">
+      <Component Name="Error" UId="178" />
+    </Symbol>
+  </Access>
+  <Blank UId="179" />
+  <Token Text=":=" UId="180" />
+  <Blank UId="181" />
+  <Access Scope="LiteralConstant" UId="182">
+    <Constant UId="183">
+      <ConstantValue UId="185">TRUE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="186" />
+  <NewLine UId="187" />
+  <Blank Num="4" UId="188" />
+  <Token Text="END_IF" UId="189" />
+  <Token Text=";" UId="190" />
+  <NewLine Num="2" UId="191" />
+  <Blank Num="4" UId="192" />
+  <Token Text="IF" UId="193" />
+  <Blank Num="2" UId="194" />
+  <Access Scope="LocalVariable" UId="195">
+    <Symbol UId="196">
+      <Component Name="Done" UId="197" />
+    </Symbol>
+  </Access>
+  <Blank UId="198" />
+  <Token Text="OR" UId="199" />
+  <Blank UId="200" />
+  <Access Scope="LocalVariable" UId="201">
+    <Symbol UId="202">
+      <Component Name="Error" UId="203" />
+    </Symbol>
+  </Access>
+  <Blank UId="204" />
+  <Token Text="THEN" UId="205" />
+  <NewLine UId="206" />
+  <Blank Num="8" UId="207" />
+  <Access Scope="LocalVariable" UId="208">
+    <Symbol UId="209">
+      <Component Name="retval" UId="210" />
+    </Symbol>
+  </Access>
+  <Blank UId="211" />
+  <Token Text=":=" UId="212" />
+  <Blank UId="213" />
+  <Access Scope="Call" UId="214">
+    <Instruction Name="RD_LOC_T" UId="215">
+      <Token Text="(" UId="216" />
+      <NamelessParameter UId="217">
+        <Access Scope="LocalVariable" UId="218">
+          <Symbol UId="219">
+            <Component Name="now" UId="220" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="222" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="223" />
+  <NewLine UId="224" />
+  <Blank Num="8" UId="225" />
+  <Access Scope="LocalVariable" UId="226">
+    <Symbol UId="227">
+      <Component Name="workTime" UId="228" />
+    </Symbol>
+  </Access>
+  <Blank UId="229" />
+  <Token Text=":=" UId="230" />
+  <Blank UId="231" />
+  <Access Scope="Call" UId="232">
+    <Instruction Name="T_DIFF" UId="233">
+      <Token Text="(" UId="234" />
+      <Parameter Name="IN1" UId="235">
+        <Token Text=":=" UId="236" />
+        <Access Scope="LocalVariable" UId="237">
+          <Symbol UId="238">
+            <Component Name="now" UId="239" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text="," UId="240" />
+      <Blank UId="241" />
+      <Parameter Name="IN2" UId="242">
+        <Token Text=":=" UId="243" />
+        <Access Scope="LocalVariable" UId="244">
+          <Symbol UId="245">
+            <Component Name="iTime" UId="246" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Token Text=")" UId="248" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="249" />
+  <NewLine UId="250" />
+  <Blank Num="8" UId="251" />
+  <Access Scope="LocalVariable" UId="252">
+    <Symbol UId="253">
+      <Component Name="GET_ITF" UId="254" />
+      <Token Text="." UId="255" />
+      <Component Name="Execute" UId="256" />
+    </Symbol>
+  </Access>
+  <Blank UId="257" />
+  <Token Text=":=" UId="258" />
+  <Blank UId="259" />
+  <Access Scope="LiteralConstant" UId="260">
+    <Constant UId="261">
+      <ConstantValue UId="263">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="264" />
+  <NewLine UId="265" />
+  <Blank Num="8" UId="266" />
+  <Access Scope="LocalVariable" UId="267">
+    <Symbol UId="268">
+      <Component Name="Status" UId="269" />
+    </Symbol>
+  </Access>
+  <Blank UId="270" />
+  <Token Text=":=" UId="271" />
+  <Blank UId="272" />
+  <Access Scope="LiteralConstant" UId="273">
+    <Constant UId="274">
+      <ConstantValue UId="276">3</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="277" />
+  <NewLine UId="278" />
+  <Blank Num="4" UId="279" />
+  <Token Text="END_IF" UId="280" />
+  <Token Text=";" UId="281" />
+  <Blank Num="6" UId="282" />
+  <NewLine UId="283" />
+  <Blank Num="4" UId="284" />
+  <NewLine UId="285" />
+  <Token Text="END_IF" UId="286" />
+  <Token Text=";" UId="287" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Wait result from program manager</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>Wait for GET </Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="20" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Token Text="IF" UId="21" />
+  <Blank UId="22" />
+  <Access Scope="LocalVariable" UId="23">
+    <Symbol UId="24">
+      <Component Name="Status" UId="25" />
+    </Symbol>
+  </Access>
+  <Blank UId="26" />
+  <Token Text="=" UId="27" />
+  <Blank UId="28" />
+  <Access Scope="LiteralConstant" UId="29">
+    <Constant UId="30">
+      <ConstantValue UId="32">3</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="33" />
+  <Token Text="THEN" UId="34" />
+  <NewLine UId="35" />
+  <Blank Num="4" UId="36" />
+  <Access Scope="LocalVariable" UId="37">
+    <Symbol UId="38">
+      <Component Name="Busy" UId="39" />
+    </Symbol>
+  </Access>
+  <Blank UId="40" />
+  <Token Text=":=" UId="41" />
+  <Blank UId="42" />
+  <Access Scope="LiteralConstant" UId="43">
+    <Constant UId="44">
+      <ConstantValue UId="46">FALSE</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="47" />
+  <NewLine UId="48" />
+  <Blank Num="4" UId="49" />
+  <Token Text="IF" UId="50" />
+  <Blank UId="51" />
+  <Token Text="NOT" UId="52" />
+  <Blank UId="53" />
+  <Access Scope="LocalVariable" UId="54">
+    <Symbol UId="55">
+      <Component Name="Execute" UId="56" />
+    </Symbol>
+  </Access>
+  <Blank UId="57" />
+  <Token Text="THEN" UId="58" />
+  <NewLine UId="59" />
+  <Blank Num="8" UId="60" />
+  <Access Scope="LocalVariable" UId="61">
+    <Symbol UId="62">
+      <Component Name="Status" UId="63" />
+    </Symbol>
+  </Access>
+  <Blank UId="64" />
+  <Token Text=":=" UId="65" />
+  <Blank UId="66" />
+  <Access Scope="LiteralConstant" UId="67">
+    <Constant UId="68">
+      <ConstantValue UId="70">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="71" />
+  <Blank Num="3" UId="72" />
+  <NewLine UId="73" />
+  <Blank Num="4" UId="74" />
+  <Token Text="END_IF" UId="75" />
+  <Token Text=";" UId="76" />
+  <Blank Num="4" UId="77" />
+  <NewLine UId="78" />
+  <Token Text="END_IF" UId="79" />
+  <Token Text=";" UId="80" />
+  <NewLine UId="81" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="21" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="22" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="23" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="24" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="25" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="26" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Done</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="27" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>Wait for </Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="28" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="29" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="2A" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Program Get</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2B" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="2C" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FB>
+</Document>

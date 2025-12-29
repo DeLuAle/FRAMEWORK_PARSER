@@ -1,0 +1,31 @@
+﻿FUNCTION "MES_Error_Set" : "MES_Err_&_Msg"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      msg_RETVAL : DInt;   // Codice RETURN VALUE del send o receive del messaggio
+      msg : "MES_Msg";   // Messaggio MES to PLC / PLC to MES
+   END_VAR
+
+
+BEGIN
+	// Inpacchetta nella UDT "MES_Err_&_Msg" il messaggio e gli errori nel workflow di ricezione
+	// Per ogni errore c'è il suo codice e la descrizione in plain text
+	// 
+	
+	// 
+	IF #msg_RETVAL < 0 THEN
+	    
+	    #MES_Error_Set.Presence := TRUE;
+	    #MES_Error_Set.Code := #msg_RETVAL;
+	    
+	ELSE
+	    #MES_Error_Set.Presence := FALSE;
+	    #MES_Error_Set.Code := 0;
+	    
+	    
+	END_IF;
+	
+	#MES_Error_Set.Description := "Error_Code_To_Description_String"(#msg_RETVAL);
+	#MES_Error_Set.Msg := #msg;
+END_FUNCTION
+

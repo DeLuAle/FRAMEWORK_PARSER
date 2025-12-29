@@ -1,0 +1,73 @@
+﻿FUNCTION_BLOCK "CheckAxisSynch"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Ax1_Pos : LReal;
+      Ax2_Pos : LReal;
+      TargetPos { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : LReal;
+      MaxDistance : LReal;
+      MinDistance : LReal;
+   END_VAR
+
+   VAR_OUTPUT 
+      Ax1_SynchOk : Bool;
+      Ax2_SynchOk : Bool;
+   END_VAR
+
+   VAR 
+      Prev_Ax1_SynchOk : Bool;
+      Prev_Ax2_SynchOk : Bool;
+      Prev_Target : LReal;
+   END_VAR
+
+   VAR_TEMP 
+      PosDiff : LReal;
+      Ax1_Behind : Bool;
+      Ax2_Behind : Bool;
+   END_VAR
+
+
+BEGIN
+	// Calcolo la distanza tra testa e coda
+	#PosDiff := ABS(#Ax1_Pos - #Ax2_Pos);
+	
+	// Determino chi è indietro in base alla direzione
+	IF (#TargetPos >= #Ax1_Pos) AND (#TargetPos >=
+	    
+	    #Ax2_Pos) THEN
+	    #Ax1_Behind := #Ax1_Pos < #Ax2_Pos;
+	    #Ax2_Behind := #Ax2_Pos < #Ax1_Pos;
+	    
+	ELSIF (#TargetPos <= #Ax1_Pos) AND (#TargetPos <= #Ax2_Pos) THEN
+	    #Ax1_Behind := #Ax1_Pos > #Ax2_Pos;
+	    #Ax2_Behind := #Ax2_Pos > #Ax1_Pos;
+	ELSE
+	    #Ax1_Behind := FALSE;
+	    #Ax2_Behind := FALSE;
+	END_IF;
+	
+	// LOGICA SINCRONIZZAZIONE CON ISTERESI E MEMORIA
+	IF #PosDiff >= #MaxDistance OR #TargetPos<>#Prev_Target THEN
+	    // Solo l’asse indietro può muoversi
+	    #Ax1_SynchOk := #Ax1_Behind;
+	    #Ax2_SynchOk := #Ax2_Behind;
+	
+	    
+	ELSIF #PosDiff < #MinDistance THEN
+	    // Entrambi possono muoversi
+	    #Ax1_SynchOk := TRUE;
+	    #Ax2_SynchOk := TRUE;
+	    
+	ELSE
+	    // Zona di isteresi: mantieni lo stato precedente
+	    #Ax1_SynchOk := #Prev_Ax1_SynchOk;
+	    #Ax2_SynchOk := #Prev_Ax2_SynchOk;
+	END_IF;
+	
+	// --- Memorizza i consensi attuali per il prossimo ciclo ---
+	#Prev_Ax1_SynchOk := #Ax1_SynchOk;
+	#Prev_Ax2_SynchOk := #Ax2_SynchOk;
+	#Prev_Target := #TargetPos;
+	
+END_FUNCTION_BLOCK
+

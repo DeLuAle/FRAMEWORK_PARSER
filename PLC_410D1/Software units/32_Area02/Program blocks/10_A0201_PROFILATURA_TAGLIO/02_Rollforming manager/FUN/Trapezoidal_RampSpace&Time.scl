@@ -1,0 +1,49 @@
+﻿FUNCTION "Trapezoidal_RampSpace&Time" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      VDelta : LReal;   // Delta Final - Initial velocity LU/min)
+      AccDec : LReal;   // Acceleration or Deceleration (LU/s^2)
+      Jerk : LReal;   // Jerk (LU/S^3)
+   END_VAR
+
+   VAR_OUTPUT 
+      Space : LReal;   // LU
+      Time_s : LReal;   // Time for execute velocity delta (s)
+   END_VAR
+
+   VAR_TEMP 
+      AverageAccDec : LReal;   // Equivalent Acc / Dec without jerk component
+   END_VAR
+
+
+BEGIN
+	
+	#Space := 0.0;
+	
+	
+	IF ABS(#VDelta) = 0.0 OR #AccDec <= 0.0 THEN
+	    RETURN;
+	END_IF;
+	
+	
+	#Time_s := "Trapezoidal_RampTime_1"(VDelta := #VDelta, AccDec := #AccDec, Jerk := #Jerk);
+	
+	
+	IF #Time_s <= 0.0 THEN
+	    #Time_s := 0.0;
+	    RETURN;
+	END_IF;
+	
+	
+	#AverageAccDec := ABS(#VDelta/60.0) / #Time_s;
+	
+	
+	// SPACE = 1/2 * a * t²
+	#Space := 0.5 * #AverageAccDec * #Time_s * #Time_s;
+	
+	
+	
+	
+END_FUNCTION
+

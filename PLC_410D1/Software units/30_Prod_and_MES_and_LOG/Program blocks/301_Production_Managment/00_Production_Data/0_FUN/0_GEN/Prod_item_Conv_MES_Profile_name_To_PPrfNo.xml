@@ -1,0 +1,355 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="Item" Datatype="&quot;Prod_Item&quot;" />
+  </Section>
+  <Section Name="Output" />
+  <Section Name="InOut" />
+  <Section Name="Temp">
+    <Member Name="i" Datatype="Int" />
+    <Member Name="strPos" Datatype="Int" />
+    <Member Name="ProfileCode_PivotIndx" Datatype="Int" />
+  </Section>
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="DInt" />
+  </Section>
+</Sections></Interface>
+      <Name>Prod_item_Conv_MES_Profile_name_To_PPrfNo</Name>
+      <Namespace />
+      <Number>84</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <Access Scope="LocalVariable" UId="21">
+    <Symbol UId="22">
+      <Component Name="ProfileCode_PivotIndx" UId="23" />
+    </Symbol>
+  </Access>
+  <Blank UId="24" />
+  <Token Text=":=" UId="25" />
+  <Blank UId="26" />
+  <Access Scope="LiteralConstant" UId="27">
+    <Constant UId="28">
+      <ConstantValue UId="30">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="31" />
+  <NewLine Num="2" UId="32" />
+  <Token Text="FOR" UId="33" />
+  <Blank UId="34" />
+  <Access Scope="LocalVariable" UId="35">
+    <Symbol UId="36">
+      <Component Name="i" UId="37" />
+    </Symbol>
+  </Access>
+  <Blank UId="38" />
+  <Token Text=":=" UId="39" />
+  <Blank UId="40" />
+  <Access Scope="LiteralConstant" UId="41">
+    <Constant UId="42">
+      <ConstantValue UId="44">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="45" />
+  <Token Text="TO" UId="46" />
+  <Blank UId="47" />
+  <Access Scope="GlobalConstant" UId="48">
+    <Constant Name="PPRF_TOTAL_ARCHIVE_ITEMS" UId="49" />
+  </Access>
+  <Blank UId="52" />
+  <Token Text="DO" UId="53" />
+  <NewLine UId="54" />
+  <Blank Num="4" UId="55" />
+  <NewLine UId="56" />
+  <Blank Num="4" UId="57" />
+  <Access Scope="LocalVariable" UId="58">
+    <Symbol UId="59">
+      <Component Name="strPos" UId="60" />
+    </Symbol>
+  </Access>
+  <Blank UId="61" />
+  <Token Text=":=" UId="62" />
+  <Blank UId="63" />
+  <Access Scope="Call" UId="64">
+    <Instruction Name="FIND" UId="65">
+      <Token Text="(" UId="66" />
+      <Parameter Name="IN1" UId="67">
+        <Blank UId="68" />
+        <Token Text=":=" UId="69" />
+        <Blank UId="70" />
+        <Access Scope="GlobalVariable" UId="71">
+          <Symbol UId="72">
+            <Component Name="PPrf_MAIN" UId="73">
+              <BooleanAttribute Name="HasQuotes" UId="74">true</BooleanAttribute>
+            </Component>
+            <Token Text="." UId="75" />
+            <Component Name="PIVOT" UId="76">
+              <Token Text="[" UId="77" />
+              <Access Scope="LocalVariable" UId="78">
+                <Symbol UId="79">
+                  <Component Name="i" UId="80" />
+                </Symbol>
+              </Access>
+              <Token Text="]" UId="81" />
+            </Component>
+            <Token Text="." UId="82" />
+            <Component Name="PrgName" UId="83" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Blank UId="84" />
+      <Token Text="," UId="85" />
+      <Blank UId="86" />
+      <Parameter Name="IN2" UId="87">
+        <Blank UId="88" />
+        <Token Text=":=" UId="89" />
+        <Blank UId="90" />
+        <Access Scope="LocalVariable" UId="91">
+          <Symbol UId="92">
+            <Component Name="Item" UId="93" />
+            <Token Text="." UId="94" />
+            <Component Name="MES_PPrf_Name" UId="95" />
+          </Symbol>
+        </Access>
+      </Parameter>
+      <Blank UId="96" />
+      <Token Text=")" UId="98" />
+    </Instruction>
+  </Access>
+  <Token Text=";" UId="99" />
+  <NewLine UId="100" />
+  <Blank Num="4" UId="101" />
+  <NewLine UId="102" />
+  <Blank Num="4" UId="103" />
+  <Token Text="IF" UId="104" />
+  <Blank UId="105" />
+  <Access Scope="LocalVariable" UId="106">
+    <Symbol UId="107">
+      <Component Name="strPos" UId="108" />
+    </Symbol>
+  </Access>
+  <Blank UId="109" />
+  <Token Text="&gt;=" UId="110" />
+  <Blank UId="111" />
+  <Access Scope="LiteralConstant" UId="112">
+    <Constant UId="113">
+      <ConstantValue UId="115">1</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="116" />
+  <Token Text="THEN" UId="117" />
+  <NewLine UId="118" />
+  <Blank Num="8" UId="119" />
+  <NewLine UId="120" />
+  <Blank Num="8" UId="121" />
+  <NewLine UId="122" />
+  <Blank Num="8" UId="123" />
+  <Access Scope="LocalVariable" UId="124">
+    <Symbol UId="125">
+      <Component Name="ProfileCode_PivotIndx" UId="126" />
+    </Symbol>
+  </Access>
+  <Blank UId="127" />
+  <Token Text=":=" UId="128" />
+  <Blank UId="129" />
+  <Access Scope="LocalVariable" UId="130">
+    <Symbol UId="131">
+      <Component Name="i" UId="132" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="133" />
+  <NewLine UId="134" />
+  <Blank Num="8" UId="135" />
+  <NewLine UId="136" />
+  <Blank Num="8" UId="137" />
+  <Access Scope="LocalVariable" UId="138">
+    <Symbol UId="139">
+      <Component Name="Prod_item_Conv_MES_Profile_name_To_PPrfNo" UId="140" />
+    </Symbol>
+  </Access>
+  <Blank UId="141" />
+  <Token Text=":=" UId="142" />
+  <Blank UId="143" />
+  <Access Scope="GlobalVariable" UId="144">
+    <Symbol UId="145">
+      <Component Name="PPrf_MAIN" UId="146">
+        <BooleanAttribute Name="HasQuotes" UId="147">true</BooleanAttribute>
+      </Component>
+      <Token Text="." UId="148" />
+      <Component Name="PIVOT" UId="149">
+        <Token Text="[" UId="150" />
+        <Access Scope="LocalVariable" UId="151">
+          <Symbol UId="152">
+            <Component Name="i" UId="153" />
+          </Symbol>
+        </Access>
+        <Token Text="]" UId="154" />
+      </Component>
+      <Token Text="." UId="155" />
+      <Component Name="PrgNo" UId="156" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="157" />
+  <NewLine UId="158" />
+  <Blank Num="8" UId="159" />
+  <NewLine UId="160" />
+  <Blank Num="8" UId="161" />
+  <Token Text="EXIT" UId="162" />
+  <Token Text=";" UId="163" />
+  <NewLine UId="164" />
+  <Blank Num="4" UId="165" />
+  <Token Text="END_IF" UId="166" />
+  <Token Text=";" UId="167" />
+  <NewLine UId="168" />
+  <Blank Num="4" UId="169" />
+  <NewLine UId="170" />
+  <Token Text="END_FOR" UId="171" />
+  <Token Text=";" UId="172" />
+  <NewLine Num="2" UId="173" />
+  <Token Text="IF" UId="174" />
+  <Blank Num="2" UId="175" />
+  <Access Scope="LocalVariable" UId="176">
+    <Symbol UId="177">
+      <Component Name="ProfileCode_PivotIndx" UId="178" />
+    </Symbol>
+  </Access>
+  <Blank UId="179" />
+  <Token Text="=" UId="180" />
+  <Blank UId="181" />
+  <Access Scope="LiteralConstant" UId="182">
+    <Constant UId="183">
+      <ConstantValue UId="185">0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="186" />
+  <Token Text="THEN" UId="187" />
+  <NewLine UId="188" />
+  <Blank Num="4" UId="189" />
+  <Access Scope="LocalVariable" UId="190">
+    <Symbol UId="191">
+      <Component Name="Prod_item_Conv_MES_Profile_name_To_PPrfNo" UId="192" />
+    </Symbol>
+  </Access>
+  <Blank UId="193" />
+  <Token Text=":=" UId="194" />
+  <Blank UId="195" />
+  <Access Scope="LiteralConstant" UId="196">
+    <Constant UId="197">
+      <ConstantValue UId="199">-1</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="200" />
+  <NewLine UId="201" />
+  <Blank Num="4" UId="202" />
+  <Token Text="RETURN" UId="203" />
+  <Token Text=";" UId="204" />
+  <NewLine UId="205" />
+  <Token Text="END_IF" UId="206" />
+  <Token Text=";" UId="207" />
+  <NewLine Num="2" UId="208" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Exe</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="E" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="F" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>CONVERSION OF MES PROFILE CODE TO PROFILE PROGRAM NUMBER</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="10" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="11" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

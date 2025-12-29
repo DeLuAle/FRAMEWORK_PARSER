@@ -1,0 +1,61 @@
+﻿FUNCTION "PTrk_CheckPresence_O_ID_FAST" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      O_ID : DInt;
+      Complete_Scan : Bool;   // Se TRUE cerca su tutti gli array TRK; Se FALSE esece alla prima posizione trivata
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	
+	#PTrk_CheckPresence_O_ID_FAST := 0;
+	
+	IF #O_ID <= 0 THEN
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PTRK_A0202_ITEMS" DO
+	    IF "PTrk".A0202.P[#i].O_ID = #O_ID THEN
+	        #PTrk_CheckPresence_O_ID_FAST.%X0 := TRUE;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #PTrk_CheckPresence_O_ID_FAST > 0  AND #Complete_Scan = FALSE THEN
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PTRK_A0202_EXIT_TOCHECK_ITEMS" DO
+	    IF "PTrk".A02_EXIT_TOCHECK[#i].O_ID = #O_ID AND "PTrk".A02_EXIT_TOCHECK[#i].Quality <> "NG_R" THEN
+	        
+	        #PTrk_CheckPresence_O_ID_FAST.%X1 := TRUE;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #PTrk_CheckPresence_O_ID_FAST > 0 AND #Complete_Scan = FALSE THEN
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PTRK_A0301_ITEMS" DO
+	    IF "PTrk".A0301.P[#i].O_ID = #O_ID THEN
+	    
+	        #PTrk_CheckPresence_O_ID_FAST.%X2 := TRUE;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #PTrk_CheckPresence_O_ID_FAST > 0 AND #Complete_Scan = FALSE THEN
+	    RETURN;
+	END_IF;
+	
+END_FUNCTION
+

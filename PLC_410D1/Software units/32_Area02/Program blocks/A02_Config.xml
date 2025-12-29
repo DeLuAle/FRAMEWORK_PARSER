@@ -1,0 +1,2810 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="Area02_Main" Datatype="&quot;AreaConfig&quot;" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="TimeOutStopImmediate" Datatype="Time">
+            <StartValue>T#2S</StartValue>
+          </Member>
+          <Member Name="TimeOutStopInPhase" Datatype="Time">
+            <StartValue>T#30S</StartValue>
+          </Member>
+          <Member Name="TimeOutStopProgrammed" Datatype="Time">
+            <StartValue>T#1M</StartValue>
+          </Member>
+          <Member Name="TimeOutResetAlarms" Datatype="Time">
+            <StartValue>T#1S</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="RollformingMng" Datatype="Struct" Remanence="Retain">
+      <Member Name="SensorsDelayOn" Datatype="Time">
+        <StartValue>T#100MS</StartValue>
+      </Member>
+      <Member Name="SensorsDelayOff" Datatype="Time">
+        <StartValue>T#500MS</StartValue>
+      </Member>
+      <Member Name="SensorExtractor_DelayOn" Datatype="Time">
+        <StartValue>T#250MS</StartValue>
+      </Member>
+      <Member Name="SensorExtractor_DelayOff" Datatype="Time">
+        <StartValue>T#100MS</StartValue>
+      </Member>
+    </Member>
+    <Member Name="PitTableLoop1" Datatype="Struct" Remanence="Retain">
+      <Member Name="LIFT" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#10S</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#10S</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Exist" Datatype="Bool">
+        <StartValue>TRUE</StartValue>
+      </Member>
+    </Member>
+    <Member Name="A0201_Profilatrice_RegolazioneFormato" Datatype="Struct" Remanence="Retain">
+      <Member Name="Ax_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <Subelement Path="1">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="CyclicOBTime_ms" Datatype="LReal">
+              <Subelement Path="1">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Ax" Datatype="&quot;OOAx_Config&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="limitMinus" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="limitPlus" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="Backlash" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="BacklashActivation" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ToleranceWindow" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ToleranceWindowDelay" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreCutOff" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreEndLowSpeed" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreEndMedSpeed" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ChangeDirectionDelay" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="StandstillVelocity" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="StandStillDelay" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="HomingDirection" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RecallTime" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="VelocityFilter_T" Datatype="LReal">
+                    <Subelement Path="1">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="VelocityMeasUnit" Datatype="Int">
+                    <Subelement Path="1">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PosFbkDisabled" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="FbkCtrlDisabled" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="Ax_UM2" Datatype="&quot;udt_LinTranformation&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="m" Datatype="Real">
+                    <Subelement Path="1">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="q" Datatype="Real">
+                    <Subelement Path="1">
+                      <StartValue>267.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>267.3</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>262.3</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>262.6</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>261.8</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>262.0</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="S120" Datatype="Struct">
+              <Member Name="SpeedMotor" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <Subelement Path="1">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                      <Subelement Path="2">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                      <Subelement Path="3">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                      <Subelement Path="4">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                      <Subelement Path="5">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                      <Subelement Path="6">
+                        <StartValue>2200.0</StartValue>
+                      </Subelement>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <Subelement Path="1">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                      <Subelement Path="2">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                      <Subelement Path="3">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                      <Subelement Path="4">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                      <Subelement Path="5">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                      <Subelement Path="6">
+                        <StartValue>FALSE</StartValue>
+                      </Subelement>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <Subelement Path="1">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>T#1S_500MS</StartValue>
+                </Subelement>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <Subelement Path="1">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>20.0</StartValue>
+                </Subelement>
+              </Member>
+              <Member Name="AccTime" Datatype="LReal">
+                <Subelement Path="1">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+              </Member>
+              <Member Name="DecTime" Datatype="LReal">
+                <Subelement Path="1">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>0.5</StartValue>
+                </Subelement>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <Subelement Path="1">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>FALSE</StartValue>
+                </Subelement>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <Subelement Path="1">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+                <Subelement Path="2">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+                <Subelement Path="3">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+                <Subelement Path="4">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+                <Subelement Path="5">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+                <Subelement Path="6">
+                  <StartValue>T#10M</StartValue>
+                </Subelement>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <Subelement Path="1">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Ax_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <Subelement Path="7">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="8">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="9">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="10">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="11">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="12">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="13">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+              <Subelement Path="14">
+                <StartValue>T#0MS</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="CyclicOBTime_ms" Datatype="LReal">
+              <Subelement Path="7">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="8">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="9">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="10">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="11">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="12">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="13">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+              <Subelement Path="14">
+                <StartValue>10.0</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Ax" Datatype="&quot;OOAx_Config&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="limitMinus" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="limitPlus" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="Backlash" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.4</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="BacklashActivation" Datatype="Bool">
+                    <Subelement Path="7">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ToleranceWindow" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ToleranceWindowDelay" Datatype="Time">
+                    <Subelement Path="7">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreCutOff" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreEndLowSpeed" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PreEndMedSpeed" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="ChangeDirectionDelay" Datatype="Time">
+                    <Subelement Path="7">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>T#0MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="StandstillVelocity" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.5</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="StandStillDelay" Datatype="Time">
+                    <Subelement Path="7">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>T#100MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="HomingDirection" Datatype="Bool">
+                    <Subelement Path="7">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RecallTime" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="VelocityFilter_T" Datatype="LReal">
+                    <Subelement Path="7">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>10.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="VelocityMeasUnit" Datatype="Int">
+                    <Subelement Path="7">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>2</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="PosFbkDisabled" Datatype="Bool">
+                    <Subelement Path="7">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="FbkCtrlDisabled" Datatype="Bool">
+                    <Subelement Path="7">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+            <Member Name="Ax_UM2" Datatype="&quot;udt_LinTranformation&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="m" Datatype="Real">
+                    <Subelement Path="7">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>-1.0</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="q" Datatype="Real">
+                    <Subelement Path="7">
+                      <StartValue>84.8</StartValue>
+                    </Subelement>
+                    <Subelement Path="8">
+                      <StartValue>84.8</StartValue>
+                    </Subelement>
+                    <Subelement Path="9">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="10">
+                      <StartValue>0.0</StartValue>
+                    </Subelement>
+                    <Subelement Path="11">
+                      <StartValue>81.6</StartValue>
+                    </Subelement>
+                    <Subelement Path="12">
+                      <StartValue>81.6</StartValue>
+                    </Subelement>
+                    <Subelement Path="13">
+                      <StartValue>81.3</StartValue>
+                    </Subelement>
+                    <Subelement Path="14">
+                      <StartValue>81.3</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="Area02_HU" Datatype="Struct" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Pump" Datatype="&quot;HU_Pump_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="SafetyCutOffValveExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="StandbyValveExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="OilPumpContactotFeedbackTimeOut" Datatype="Time">
+              <StartValue>T#5S</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Tank" Datatype="&quot;HU_Tank_Config&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+        <Sections>
+          <Section Name="None">
+            <Member Name="RecirculationPumpExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="HeatExchangerFanExist" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="HeatingUnitExistNum" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="ChillerExist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="OilMaxTemperature" Datatype="Real">
+              <StartValue>70.0</StartValue>
+            </Member>
+            <Member Name="WaterMaxTemperature" Datatype="Real">
+              <StartValue>60.0</StartValue>
+            </Member>
+            <Member Name="TemperatureStartCheckFilters" Datatype="Real">
+              <StartValue>35.0</StartValue>
+            </Member>
+            <Member Name="HeatingHysteresys" Datatype="Real">
+              <StartValue>1.0</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayHeatingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStart" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="DelayCollingStop" Datatype="Time">
+              <StartValue>T#30S</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlOilTemp_LowLimit" Datatype="Real">
+              <StartValue>0.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_HighLimit" Datatype="Real">
+              <StartValue>100.0</StartValue>
+            </Member>
+            <Member Name="AnlWaterTemp_LowLimit" Datatype="Real">
+              <StartValue>-10.0</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+    </Member>
+    <Member Name="PostPunchingMatCounter" Datatype="Struct" Remanence="Retain">
+      <Member Name="Default_FAK" Datatype="LReal">
+        <StartValue>1.0</StartValue>
+      </Member>
+    </Member>
+    <Member Name="Rollformer" Datatype="&quot;PositioningMachine_Config&quot;" Remanence="Retain">
+      <Sections>
+        <Section Name="None">
+          <Member Name="SLS_VEL" Datatype="LReal">
+            <StartValue>5000.0</StartValue>
+          </Member>
+          <Member Name="DelayMissingCondition" Datatype="Time">
+            <StartValue>T#3S</StartValue>
+          </Member>
+          <Member Name="Ax" Datatype="Struct">
+            <Member Name="OptionON_EncoderSelection" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="OptionON_ParameterChange" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="OptionON_AutoReloadPosition" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="OptionON_ManPreset" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="HomeMode" Datatype="Int">
+              <StartValue>0</StartValue>
+            </Member>
+            <Member Name="PosAxis" Datatype="&quot;TAx_Config&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="Simulation" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="PowerOffDelay" Datatype="Time">
+                    <StartValue>T#5S</StartValue>
+                  </Member>
+                  <Member Name="PowerStartMode" Datatype="Int">
+                    <StartValue>1</StartValue>
+                  </Member>
+                  <Member Name="PowerStopMode" Datatype="Int">
+                    <StartValue>2</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Member>
+          <Member Name="Fan" Datatype="Struct">
+            <Member Name="Presence" Datatype="Bool">
+              <StartValue>TRUE</StartValue>
+            </Member>
+            <Member Name="DelayOff" Datatype="Time">
+              <StartValue>T#10M</StartValue>
+            </Member>
+          </Member>
+          <Member Name="Brake_Presence" Datatype="Bool">
+            <StartValue>FALSE</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="RollfomerLubr" Datatype="&quot;LubrValve_Config&quot;" Remanence="Retain">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+      <Sections>
+        <Section Name="None">
+          <Member Name="WorkMode" Datatype="Int">
+            <StartValue>2</StartValue>
+          </Member>
+          <Member Name="CounterMode" Datatype="Int">
+            <StartValue>0</StartValue>
+          </Member>
+          <Member Name="ValveType" Datatype="Int">
+            <StartValue>1</StartValue>
+          </Member>
+          <Member Name="ManualCmdTimeOut" Datatype="Time">
+            <StartValue>T#5M</StartValue>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="MwFakCalc" Datatype="Struct" Remanence="Retain">
+      <Member Name="PushAx" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>79.984948</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>5.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>1.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#1S_500MS</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>20.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#100MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Gripper" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1S</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="MaterialPresenceDly" Datatype="Time">
+        <StartValue>T#250MS</StartValue>
+      </Member>
+      <Member Name="MaterialAbsenceDly" Datatype="Time">
+        <StartValue>T#250MS</StartValue>
+      </Member>
+      <Member Name="PushAx_FwdTimeout" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <StartValue>T#30S</StartValue>
+      </Member>
+      <Member Name="PushAx_BwdTimeout" Datatype="Time">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <StartValue>T#30S</StartValue>
+      </Member>
+      <Member Name="Default_FAK" Datatype="LReal">
+        <StartValue>1.0</StartValue>
+      </Member>
+    </Member>
+    <Member Name="FlyingCarriage" Datatype="&quot;udt_FlyingCarriage_Config&quot;" Remanence="Retain">
+      <Sections>
+        <Section Name="None">
+          <Member Name="SLS_VEL" Datatype="LReal">
+            <StartValue>5000.0</StartValue>
+          </Member>
+          <Member Name="DelayMissingCondition" Datatype="Time">
+            <StartValue>T#3S</StartValue>
+          </Member>
+          <Member Name="Fan" Datatype="Struct">
+            <Member Name="Exist" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="DelayOff" Datatype="Time">
+              <StartValue>T#15M</StartValue>
+            </Member>
+          </Member>
+        </Section>
+      </Sections>
+    </Member>
+    <Member Name="FinalCut" Datatype="Struct" Remanence="Retain">
+      <Member Name="CheckRestPosition" Datatype="Bool">
+        <StartValue>TRUE</StartValue>
+      </Member>
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#1S_500MS</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Locking" Datatype="&quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <StartValue>1</StartValue>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <StartValue>TRUE</StartValue>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <StartValue>FALSE</StartValue>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <StartValue>T#1MS</StartValue>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <StartValue>T#2S</StartValue>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <StartValue>T#2S</StartValue>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Locking_AI_HighLimit" Datatype="Real">
+        <StartValue>250.0</StartValue>
+      </Member>
+      <Member Name="Locking_AI_LowLimit" Datatype="Real">
+        <StartValue>0.0</StartValue>
+      </Member>
+    </Member>
+    <Member Name="FinalCutLub" Datatype="Struct" Remanence="Retain">
+      <Member Name="EnableWngSystemOff" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="ExternalPump" Datatype="Bool">
+        <StartValue>FALSE</StartValue>
+      </Member>
+      <Member Name="PumpWorkDuration" Datatype="Time">
+        <StartValue>T#2S</StartValue>
+      </Member>
+      <Member Name="PumpPauseDuration" Datatype="Time">
+        <StartValue>T#3S</StartValue>
+      </Member>
+      <Member Name="LowTankLevelDly" Datatype="Time">
+        <StartValue>T#3S</StartValue>
+      </Member>
+    </Member>
+    <Member Name="AccRollConveyor" Datatype="Struct" Remanence="Retain">
+      <Member Name="Roll1" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>219.911</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>7.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>1.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#1S_500MS</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#100MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Roll2" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>219.911</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>7.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>1.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#1S_500MS</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#100MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="Roll3" Datatype="&quot;SpeedMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="SLS_VEL" Datatype="LReal">
+              <StartValue>5000.0</StartValue>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <StartValue>T#3S</StartValue>
+            </Member>
+            <Member Name="Ax" Datatype="Struct">
+              <Member Name="SINA_Drive" Datatype="&quot;SpeedMotor_Config&quot;">
+                <Sections>
+                  <Section Name="None">
+                    <Member Name="ReferenceVelocity" Datatype="LReal">
+                      <StartValue>2200.0</StartValue>
+                    </Member>
+                    <Member Name="InvertDirection" Datatype="Bool">
+                      <StartValue>FALSE</StartValue>
+                    </Member>
+                  </Section>
+                </Sections>
+              </Member>
+              <Member Name="MinAccTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="MinDecTime" Datatype="LReal">
+                <StartValue>0.1</StartValue>
+              </Member>
+              <Member Name="LeadScrewPitchVal" Datatype="LReal">
+                <StartValue>219.911</StartValue>
+              </Member>
+              <Member Name="MotorRevolution" Datatype="LReal">
+                <StartValue>7.0</StartValue>
+              </Member>
+              <Member Name="LoadRevolution" Datatype="LReal">
+                <StartValue>1.0</StartValue>
+              </Member>
+              <Member Name="PowerOffDelay" Datatype="Time">
+                <StartValue>T#1S_500MS</StartValue>
+              </Member>
+              <Member Name="StandstillVelocity" Datatype="LReal">
+                <StartValue>50.0</StartValue>
+              </Member>
+              <Member Name="StandstillDelay" Datatype="Time">
+                <StartValue>T#100MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Fan" Datatype="Struct">
+              <Member Name="Presence" Datatype="Bool">
+                <StartValue>FALSE</StartValue>
+              </Member>
+              <Member Name="DelayOff" Datatype="Time">
+                <StartValue>T#0MS</StartValue>
+              </Member>
+            </Member>
+            <Member Name="Brake_Presence" Datatype="Bool">
+              <StartValue>FALSE</StartValue>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="PusherVert" Datatype="Array[1..6] of &quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <Subelement Path="1">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <Subelement Path="1">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <Subelement Path="1">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>1</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <Subelement Path="1">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>1</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <Subelement Path="1">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <Subelement Path="1">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#250MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="PusherHoriz" Datatype="Array[1..6] of &quot;ValveMachine_Config&quot;">
+        <Sections>
+          <Section Name="None">
+            <Member Name="DelayPressureRunningTimeout" Datatype="Time">
+              <Subelement Path="1">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="DelayMissingCondition" Datatype="Time">
+              <Subelement Path="1">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>T#3S</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Rest_LsQty" Datatype="Int">
+              <Subelement Path="1">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>1</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Work_LsQty" Datatype="Int">
+              <Subelement Path="1">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>1</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>1</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Rest_RetainAut" Datatype="Bool">
+              <Subelement Path="1">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="Work_RetainAut" Datatype="Bool">
+              <Subelement Path="1">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="2">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="3">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="4">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="5">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+              <Subelement Path="6">
+                <StartValue>FALSE</StartValue>
+              </Subelement>
+            </Member>
+            <Member Name="V" Datatype="&quot;ValveConfig&quot;">
+              <Sections>
+                <Section Name="None">
+                  <Member Name="RestLimSwitchExist" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkLimSwitchExist" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>TRUE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CheckOilInPressure" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CutRestWhenIsAtRest" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="CutWorkWhenIsAtWork" Datatype="Bool">
+                    <Subelement Path="1">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>FALSE</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RestTime" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkTime" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="RestTimeOut" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                  </Member>
+                  <Member Name="WorkTimeOut" Datatype="Time">
+                    <Subelement Path="1">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="2">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="3">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="4">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="5">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                    <Subelement Path="6">
+                      <StartValue>T#1S_500MS</StartValue>
+                    </Subelement>
+                  </Member>
+                </Section>
+              </Sections>
+            </Member>
+          </Section>
+        </Sections>
+      </Member>
+      <Member Name="SensorsDelayOn" Datatype="Time">
+        <StartValue>T#10MS</StartValue>
+      </Member>
+      <Member Name="SensorsDelayOff" Datatype="Time">
+        <StartValue>T#10MS</StartValue>
+      </Member>
+      <Member Name="ExitLeftDelayOn" Datatype="Time">
+        <StartValue>T#250MS</StartValue>
+      </Member>
+      <Member Name="ExitLeftDelayOff" Datatype="Time">
+        <StartValue>T#250MS</StartValue>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>A02_Config</Name>
+      <Namespace />
+      <Number>38</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

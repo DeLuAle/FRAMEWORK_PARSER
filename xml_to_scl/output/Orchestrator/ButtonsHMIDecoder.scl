@@ -1,0 +1,61 @@
+﻿// Block: ButtonsHMIDecoder
+
+FUNCTION_BLOCK "ButtonsHMIDecoder"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      ButtonMinus : Bool;
+      ButtonPlus : Bool;
+      OpEnabled : Bool;
+      OpRunning : Bool;
+      OpDone : Bool;
+      CodeReq : Int;
+   END_VAR
+
+   VAR_OUTPUT
+      Code : Int;
+      OperationMinus : Bool;
+      OperationPlus : Bool;
+      Lamp : Bool;
+   END_VAR
+
+   VAR
+      SavedCode : Int;
+      PE_Aux_ButtonMinus : Bool;
+      PE_Aux_ButtonPlus : Bool;
+      tonStable : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      CodeEqual : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      STABLE_TIME : Time;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      #tonStable(
+         IN := CodeEqual,
+         PT := #STABLE_TIME
+      );
+
+      CodeEqual := (CodeReq = SavedCode);
+      SavedCode := CodeReq;
+      IF #tonStable.Q THEN
+         Code := CodeReq;
+      END_IF;
+   END_REGION
+
+   REGION "Network 2"
+      OperationMinus := (((PosEdge(ButtonMinus) OR OperationMinus) AND ButtonMinus) AND tonStable.Q);
+      OperationPlus := (((PosEdge(ButtonPlus) OR OperationPlus) AND ButtonPlus) AND tonStable.Q);
+   END_REGION
+
+   REGION "Network 3: Lamp"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

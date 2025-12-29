@@ -1,0 +1,328 @@
+{
+    "category": "Comparison and Selection",
+    "description": "Funzioni per confronto valori e selezione condizionale",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions",
+    "functions": [
+        {
+            "name": "SEL",
+            "signature": "SEL(G := <condition>, IN0 := <value_false>, IN1 := <value_true>)",
+            "parameters": [
+                {
+                    "name": "G",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Selettore booleano (FALSE=IN0, TRUE=IN1)",
+                    "optional": false
+                },
+                {
+                    "name": "IN0",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore ritornato se G=FALSE",
+                    "optional": false
+                },
+                {
+                    "name": "IN1",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore ritornato se G=TRUE",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN0/IN1",
+                "description": "IN0 se G=FALSE, IN1 se G=TRUE"
+            },
+            "description": "Seleziona uno tra due valori basandosi su una condizione booleana. Equivalente a operatore ternario.",
+            "example": "output := SEL(G := temperature > 50.0, IN0 := 'NORMAL', IN1 := 'HIGH');",
+            "anti_pattern": "IF condition THEN\n    result := valueTrue;\nELSE\n    result := valueFalse;\nEND_IF;",
+            "why_native": "Istruzione singola, nessun branching. Codice più conciso e leggibile. Ottimizzazione compilatore.",
+            "mandatory": true,
+            "notes": "IN0 e IN1 devono essere dello stesso tipo. Molto utile per assegnazioni condizionali.",
+            "see_also": [
+                "MUX",
+                "IF"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "IN_RANGE",
+            "signature": "IN_RANGE(MIN := <min>, VAL := <value>, MAX := <max>)",
+            "parameters": [
+                {
+                    "name": "MIN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore minimo del range",
+                    "optional": false
+                },
+                {
+                    "name": "VAL",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da verificare",
+                    "optional": false
+                },
+                {
+                    "name": "MAX",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore massimo del range",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se MIN <= VAL <= MAX"
+            },
+            "description": "Verifica se un valore è compreso in un intervallo (estremi inclusi).",
+            "example": "IF IN_RANGE(MIN := 20, VAL := temperature, MAX := 80) THEN\n    // Temperatura nel range normale\nEND_IF;",
+            "anti_pattern": "IF val >= min AND val <= max THEN\n    // ...\nEND_IF;",
+            "why_native": "Più leggibile e semanticamente chiaro. Singola istruzione ottimizzata.",
+            "mandatory": true,
+            "notes": "Gli estremi sono INCLUSI. MIN deve essere <= MAX.",
+            "see_also": [
+                "OUT_RANGE",
+                "LIMIT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "OUT_RANGE",
+            "signature": "OUT_RANGE(MIN := <min>, VAL := <value>, MAX := <max>)",
+            "parameters": [
+                {
+                    "name": "MIN",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore minimo del range",
+                    "optional": false
+                },
+                {
+                    "name": "VAL",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore da verificare",
+                    "optional": false
+                },
+                {
+                    "name": "MAX",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Valore massimo del range",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se VAL < MIN OR VAL > MAX"
+            },
+            "description": "Verifica se un valore è FUORI da un intervallo.",
+            "example": "IF OUT_RANGE(MIN := 0, VAL := pressure, MAX := 100) THEN\n    alarm := TRUE;  // Pressione fuori range\nEND_IF;",
+            "anti_pattern": "IF val < min OR val > max THEN\n    // ...\nEND_IF;",
+            "why_native": "Più leggibile e semanticamente chiaro. Complementare a IN_RANGE.",
+            "mandatory": true,
+            "see_also": [
+                "IN_RANGE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "EQ",
+            "signature": "EQ(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 = IN2"
+            },
+            "description": "Confronto di uguaglianza. Equivalente a operatore =.",
+            "example": "isEqual := EQ(IN1 := status, IN2 := 'READY');",
+            "notes": "Generalmente si preferisce l'operatore = diretto. Utile in contesti funzionali.",
+            "see_also": [
+                "NE",
+                "CMP"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "NE",
+            "signature": "NE(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 <> IN2"
+            },
+            "description": "Confronto di disuguaglianza. Equivalente a operatore <>.",
+            "example": "isDifferent := NE(IN1 := currentMode, IN2 := previousMode);",
+            "notes": "Generalmente si preferisce l'operatore <> diretto.",
+            "see_also": [
+                "EQ",
+                "CMP"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LT",
+            "signature": "LT(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 < IN2"
+            },
+            "description": "Confronto minore di. Equivalente a operatore <.",
+            "example": "isLess := LT(IN1 := value, IN2 := threshold);",
+            "notes": "Generalmente si preferisce l'operatore < diretto.",
+            "see_also": [
+                "LE",
+                "GT",
+                "GE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LE",
+            "signature": "LE(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 <= IN2"
+            },
+            "description": "Confronto minore o uguale. Equivalente a operatore <=.",
+            "example": "isLessOrEqual := LE(IN1 := value, IN2 := max);",
+            "notes": "Generalmente si preferisce l'operatore <= diretto.",
+            "see_also": [
+                "LT",
+                "GT",
+                "GE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GT",
+            "signature": "GT(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 > IN2"
+            },
+            "description": "Confronto maggiore di. Equivalente a operatore >.",
+            "example": "isGreater := GT(IN1 := pressure, IN2 := safeLimit);",
+            "notes": "Generalmente si preferisce l'operatore > diretto.",
+            "see_also": [
+                "GE",
+                "LT",
+                "LE"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GE",
+            "signature": "GE(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Primo valore",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_NUM",
+                    "direction": "IN",
+                    "description": "Secondo valore",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se IN1 >= IN2"
+            },
+            "description": "Confronto maggiore o uguale. Equivalente a operatore >=.",
+            "example": "isGreaterOrEqual := GE(IN1 := level, IN2 := minLevel);",
+            "notes": "Generalmente si preferisce l'operatore >= diretto.",
+            "see_also": [
+                "GT",
+                "LT",
+                "LE"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

@@ -1,0 +1,55 @@
+﻿FUNCTION "MES_Get_KeyValue_From_Payload" : String
+TITLE = ESTRAZIONE VALORE CHIAVE ALL'INTERNO DELLA STRINGA DI PAYLOAD
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+AUTHOR : DeLu
+VERSION : 0.1
+   VAR_INPUT 
+      payLoad : String;
+      key : String;
+      delimiter : String;
+   END_VAR
+
+   VAR_TEMP 
+      startPos : Int;
+      endPos : Int;
+      length : Int;
+      subString : String;
+   END_VAR
+
+
+BEGIN
+	
+	// Trova la posizione iniziale della chiave
+	#startPos := FIND(IN1 := #payLoad, IN2 := #key);
+	
+	// Se la chiave è trovata
+	IF #startPos > 0 THEN
+	    
+	    // Calcola la posizione iniziale del valore dopo la chiave
+	    #startPos := #startPos + LEN(#key);
+	    
+	    // Estrae la sottostringa a partire da StartPos fino alla fine
+	    #subString := MID(IN := #payLoad, L := LEN(#payLoad) - #startPos + 1, P := #startPos);
+	    
+	    // Trova la posizione del primo carattere delimitatore ';' nella sottostringa
+	    #endPos := FIND(IN1 := #subString, IN2 := #delimiter);
+	    
+	    // Se il delimitatore ';' è trovato
+	    IF #endPos > 0 THEN
+	        // Calcola la lunghezza del valore
+	        #length := #endPos - 1;
+	        
+	        // Estrae il valore associato alla chiave
+	        #MES_Get_KeyValue_From_Payload := MID(IN := #payLoad, L := #length, P := #startPos);
+	        
+	    ELSE
+	        // Se il delimitatore non è stato trovato..
+	        #MES_Get_KeyValue_From_Payload := '!ERROR!_DELIMITATORE_NON_TROVATO';
+	    END_IF;
+	ELSE
+	    // Se la chiave non è stata trovato
+	    #MES_Get_KeyValue_From_Payload := '!ERROR!_CHIAVE_NON_TROVATA';
+	END_IF;
+	
+END_FUNCTION
+

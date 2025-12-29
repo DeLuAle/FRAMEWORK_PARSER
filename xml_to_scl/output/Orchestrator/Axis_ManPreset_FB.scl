@@ -1,0 +1,189 @@
+﻿// Block: Axis_ManPreset_FB
+// Title: Reset alarms
+
+FUNCTION_BLOCK "Axis_ManPreset_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms
+   VAR_INPUT
+      OptionON : Bool;
+      Execute : Bool;
+      Rst : Bool;
+      LoadPosAx : LReal;
+      Ax_Sts_PM : TAx_Pos_Sts;
+      Ax_Sts_SIEMENS : TAx_STATUSWORD;
+   END_VAR
+
+   VAR_OUTPUT
+      Ready : Bool;
+      Running : Bool;
+      Done : Bool;
+      AlarmsPresence : Bool;
+      Ctrl_ForcePosCtrl : Bool;
+      Ctrl_LoadPosition : Bool;
+      Ctrl_LoadPosAx : LReal;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+   END_VAR
+
+   VAR
+      Status : Int;
+      Alarm : Struct
+         TOut_AxisHomingPermitted : Bool;
+         TOut_ExecutionAxisHoming : Bool;
+      END_STRUCT;
+      TON_TimeOutInit : TON_TIME;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Reset alarms"
+      IF ((((Status = 0) AND NOT Execute) AND Rst) OR (NOT OptionON AND AlarmsPresence)) THEN
+         Alarm.TOut_AxisHomingPermitted := FALSE;
+      END_IF;
+      IF ((((Status = 0) AND NOT Execute) AND Rst) OR (NOT OptionON AND AlarmsPresence)) THEN
+         Alarm.TOut_ExecutionAxisHoming := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 2: Alarms presence"
+      AlarmsPresence := NOT ((NOT Alarm.TOut_AxisHomingPermitted AND NOT Alarm.TOut_ExecutionAxisHoming));
+   END_REGION
+
+   REGION "Network 3: Ready"
+      Ready := ((OptionON AND (Status = 0)) AND NOT AlarmsPresence);
+   END_REGION
+
+   REGION "Network 4: Sequence"
+      CASE Status OF
+              
+          //=============================================================================================
+          // STATUS = 0 IDLE
+          //=============================================================================================
+          // 
+
+          0:
+              
+              TON_TimeOutInit(IN:=FALSE,PT:=T#10s);
+              
+              Ctrl_ForcePosCtrl := FALSE;
+              
+              Ctrl_LoadPosition := FALSE;
+              
+              
+              Running := FALSE;
+              Done := FALSE;
+              
+              
+              IF  Ready AND Execute THEN
+                  
+                  Running := TRUE;
+                  Ready := FALSE;
+                  
+                  Status += 1;
+                  
+              END_IF;
+              
+
+          
+          //=============================================================================================
+          // STATUS = 1 WAIT HOMING PERMISSION THEN START COMMAND
+          //=============================================================================================
+          //     
+              
+              
+          1:
+              
+              TON_TimeOutInit(IN:=TRUE ,PT:=T#10s);
+              
+              
+              Ctrl_ForcePosCtrl := Ax_Sts_SIEMENS.NonPositionControlled;
+              
+              
+              
+              IF  TON_TimeOutInit.Q THEN
+                  
+                  Alarm.TOut_AxisHomingPermitted := TRUE;
+                  
+                  Status := 0;
+                  
+                  
+              ELSIF   Ctrl_ForcePosCtrl OR Ax_Sts_PM.Enabled  THEN
+                  
+                  ;
+                  
+              ELSIF   Ax_Sts_PM.HomingPermitted  THEN
+                  
+                  Ctrl_LoadPosition := TRUE;
+                  
+                  Ctrl_LoadPosAx := LoadPosAx;
+                  
+                  Status += 1;
+                  
+              END_IF;
+              
+
+          //=============================================================================================
+          // STATUS = 2 WAIT HOMING DONE
+          //=============================================================================================
+          //      
+              
+          2:
+              
+              
+              TON_TimeOutInit(IN:=TRUE,PT:=T#10s);
+              
+              
+              IF   TON_TimeOutInit.Q THEN
+                  
+                  Alarm.TOut_ExecutionAxisHoming := TRUE;
+                  
+                  Status := 0;
+                  
+              ELSIF      Ax_Sts_PM.Homed AND Ax_Sts_PM.HomingDone THEN
+                  
+                  
+                  
+                  Status += 1;
+                  
+              END_IF;
+              
+              
+              
+          //=============================================================================================
+          // STATUS = 3 DONE
+          //=============================================================================================
+          //    
+          3:
+              
+              TON_TimeOutInit(IN:=FALSE,PT:=T#10s);
+              
+              
+              
+              Ctrl_LoadPosition := FALSE;
+              
+              Ctrl_ForcePosCtrl := FALSE;
+              
+              Done := TRUE;
+              
+              
+              IF NOT Execute THEN
+                  Status := 0;
+              END_IF;
+              
+           
+              
+          ELSE
+              Status := 0;
+              
+      END_CASE;
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

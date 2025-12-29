@@ -1,0 +1,69 @@
+﻿FUNCTION "Prod_Item_Check_IDP_Duplicate" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      MES_IDP : String;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	
+	
+	// Uscita con codice di errore "PROD_ERR_MES_IDP_Duplicate" se
+	// se il valore della chiave MES IDP è già presenre su un ordine
+	// 
+	
+	
+	#Prod_Item_Check_IDP_Duplicate := "PROD_FUN_RESULT_OK";
+	
+	
+	FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	    IF "Production".O_TODO[#i].MES_IDP = #MES_IDP THEN
+	        #Prod_Item_Check_IDP_Duplicate := "PROD_ERR_MES_IDP_Duplicate";
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #Prod_Item_Check_IDP_Duplicate <> "PROD_FUN_RESULT_OK" THEN
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PROD_ENDING_ITEMS" DO
+	    IF "Production".O_ENDING[#i].MES_IDP = #MES_IDP THEN
+	        #Prod_Item_Check_IDP_Duplicate := "PROD_ERR_MES_IDP_Duplicate";
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #Prod_Item_Check_IDP_Duplicate <> "PROD_FUN_RESULT_OK" THEN
+	    RETURN;
+	END_IF;
+	
+	
+	FOR #i := 1 TO "PROD_OUT_ITEMS" DO
+	    IF "Production".O_OUT[#i].MES_IDP = #MES_IDP THEN
+	        #Prod_Item_Check_IDP_Duplicate := "PROD_ERR_MES_IDP_Duplicate";
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	IF #Prod_Item_Check_IDP_Duplicate <> "PROD_FUN_RESULT_OK" THEN
+	    RETURN;
+	END_IF;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

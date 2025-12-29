@@ -1,0 +1,184 @@
+﻿FUNCTION_BLOCK "Prod_SetUp_Man"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PART_PROD { ExternalWritable := 'False'} : "Prod_Part_Area";
+      BEAM_PROD { ExternalWritable := 'False'} : "Prod_Beam_Area";
+   END_VAR
+
+   VAR_IN_OUT 
+      SET_UP : "Prod_SetUp_Data";
+   END_VAR
+
+   VAR 
+      i : Int;
+      Step : Int;
+      Aux_Pb_All : Bool;
+      AUX_Op_X : Array[1.."SETUP_MAN_OPERATIONS_QTY"] of Bool;
+      AUX_Op_Y : Array[1.."SETUP_MAN_OP_WITH_CODE_QTY"] of Bool;
+   END_VAR
+
+   VAR_TEMP 
+      Pe_Pb_All : Bool;
+      PE_Op_X : Array[1.."SETUP_MAN_OPERATIONS_QTY"] of Bool;
+      PE_Op_Y : Array[1.."SETUP_MAN_OP_WITH_CODE_QTY"] of Bool;
+   END_VAR
+
+   VAR CONSTANT 
+      INIT : Int := 0;
+      IDLE : Int := 1;
+      RUN : Int := 2;
+   END_VAR
+
+
+BEGIN
+	"Production_HMI".SETUP.Button_LinePreparation_Start.Show :=
+	"Production_HMI".SETUP.Button_LinePreparation_Start.AllowControl :=
+	"Production_HMI".SETUP.Button_LinePreparation_Stop.Show :=
+	"Production_HMI".SETUP.Button_LinePreparation_Stop.AllowControl :=
+	"Production_HMI".SETUP.Button_OP_Man_Set_All_OK.Show :=
+	"Production_HMI".SETUP.Button_OP_Man_Set_All_OK.AllowControl :=
+	
+	#SET_UP.Status >= "PROD_SETUP_EXE_AUT_PREPARATION"
+	AND
+	#SET_UP.Status < "PROD_SETUP_WAIT_THREADING_BEGIN";
+	
+	
+	
+	
+	CASE #Step OF
+	        
+	    #INIT:
+	        
+	        "Production_HMI".SETUP.Button_OP_Man_Set_All_OK.Pressed := FALSE;
+	        #Aux_Pb_All := FALSE;
+	        
+	        FOR #i := 1 TO "SETUP_MAN_OPERATIONS_QTY" DO
+	            #AUX_Op_X[#i] := FALSE;
+	            "Production_HMI".SETUP.Button_OP_Man_X_Pressed[#i] := FALSE;
+	        END_FOR;
+	        
+	        FOR #i := 1 TO "SETUP_MAN_OP_WITH_CODE_QTY" DO
+	            #AUX_Op_Y[#i] := FALSE;
+	            "Production_HMI".SETUP.Button_OP_Man_Y_Pressed[#i] := FALSE;
+	        END_FOR;
+	        
+	        
+	        
+	        
+	        #Step += 1;
+	        
+	    #IDLE:
+	        
+	        IF #SET_UP.Status >= "PROD_SETUP_WAIT_MAN_PREPARATION" THEN
+	            #Step += 1;
+	        END_IF;
+	        
+	    #RUN:
+	        
+	        #Pe_Pb_All := "Production_HMI".SETUP.Button_OP_Man_Set_All_OK.Pressed AND NOT #Aux_Pb_All;
+	        #Aux_Pb_All := "Production_HMI".SETUP.Button_OP_Man_Set_All_OK.Pressed;
+	        
+	        
+	        "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done := TRUE;
+	        "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done_X := TRUE;
+	        "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done_Y := TRUE;
+	        "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done_Z := TRUE;
+	        
+	        
+	        FOR #i := 1 TO "SETUP_MAN_OPERATIONS_QTY" DO
+	            
+	            #PE_Op_X[#i] := "Production_HMI".SETUP.Button_OP_Man_X_Pressed[#i] AND NOT #AUX_Op_X[#i];
+	            
+	            IF (#PE_Op_X[#i] AND NOT #SET_UP.STS_Man_SetUp.Ack_Eseguito_X[#i]) OR #Pe_Pb_All THEN
+	                #SET_UP.STS_Man_SetUp.Ack_Eseguito_X[#i] := TRUE;
+	            ELSIF #PE_Op_X[#i] AND #SET_UP.STS_Man_SetUp.Ack_Eseguito_X[#i] THEN
+	                #SET_UP.STS_Man_SetUp.Ack_Eseguito_X[#i] := FALSE;
+	            END_IF;
+	            
+	            
+	            IF #SET_UP.STS_Man_SetUp.Ack_Eseguito_X[#i] = FALSE THEN
+	                "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done_X := FALSE;
+	                "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done := FALSE;
+	            END_IF;
+	            
+	            
+	        END_FOR;
+	        
+	        FOR #i := 1 TO "SETUP_MAN_OP_WITH_CODE_QTY" DO
+	            
+	            #PE_Op_Y[#i] := "Production_HMI".SETUP.Button_OP_Man_Y_Pressed[#i] AND NOT #AUX_Op_Y[#i];
+	            
+	            IF (#PE_Op_Y[#i] AND NOT #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[#i]) OR #Pe_Pb_All THEN
+	                #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[#i] := TRUE;
+	            ELSIF #PE_Op_Y[#i] AND #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[#i] THEN
+	                #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[#i] := FALSE;
+	            END_IF;
+	            
+	            
+	            IF #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[#i] = FALSE THEN
+	                "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done_Y := FALSE;
+	                "ProductionMng_PERS".Pers.Data.SET_UP.STS_Man_SetUp.Done := FALSE;
+	            END_IF;
+	            
+	            
+	        END_FOR;
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        IF #SET_UP.Status <> "PROD_SETUP_WAIT_MAN_PREPARATION" THEN
+	            #Step += 1;
+	        END_IF;
+	    ELSE
+	        #Step := #INIT;
+	END_CASE;
+	
+	
+	
+	"Production_HMI".SETUP.SetUp_Aut_OK_Profilatrice := #PART_PROD.SetupDone_Ax;
+	
+	
+	"Production_HMI".SETUP.SetUp_Aut_Profilatrice_OK_Cumultativo := TRUE;
+	FOR #i := 1 TO 14 DO
+	    IF "Production_HMI".SETUP.SetUp_Aut_OK_Profilatrice[#i] = FALSE THEN
+	        "Production_HMI".SETUP.SetUp_Aut_Profilatrice_OK_Cumultativo := FALSE;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	
+	
+	"Production_HMI".SETUP.SetUp_Aut_OK_Bordatrice := #BEAM_PROD.SetupDone_Ax;
+	
+	
+	"Production_HMI".SETUP.SetUp_Aut_Bordatrice_OK_Cumultativo := TRUE;
+	FOR #i := 1 TO 9 DO
+	    IF "Production_HMI".SETUP.SetUp_Aut_OK_Bordatrice[#i] = FALSE THEN
+	        "Production_HMI".SETUP.SetUp_Aut_Bordatrice_OK_Cumultativo := FALSE;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	"Production_HMI".SETUP.SetUp_OP_Man_X_OK := #SET_UP.STS_Man_SetUp.Ack_Eseguito_X;
+	"Production_HMI".SETUP.SetUp_OP_Man_Y_OK := #SET_UP.STS_Man_SetUp.Ack_Eseguito_Y;
+	
+	
+	
+	
+	
+	"Production_HMI".StampoTracciabilita_Attuale.IDRotolo := "Production".Coil_Data.TAGLIO_FINALE.MES_CN;
+	"Production_HMI".StampoTracciabilita_Attuale.NumeroColata := "Production".Coil_Data.TAGLIO_FINALE.MES_HN;
+	
+	"Production_HMI".StampoTracciabilita_Prossimo.IDRotolo := "Production".Coil_Data.JB.MES_CN;
+	"Production_HMI".StampoTracciabilita_Prossimo.NumeroColata := "Production".Coil_Data.JB.MES_HN;
+	    
+	    
+	        
+	
+	
+END_FUNCTION_BLOCK
+

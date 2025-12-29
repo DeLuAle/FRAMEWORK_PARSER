@@ -1,0 +1,18 @@
+﻿FUNCTION "Dec_DINT" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      value : DInt;
+      min : DInt;
+   END_VAR
+
+
+BEGIN
+	// Decrementa valore con limite negativo
+	// 
+	#Dec_DINT := #value;
+	#Dec_DINT -= 1;
+	#Dec_DINT := MAX(IN1 := #min, IN2 := #Dec_DINT);
+	
+END_FUNCTION
+

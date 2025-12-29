@@ -1,0 +1,93 @@
+﻿// Block: OpCycleAnalisys
+// Title: Now
+
+FUNCTION_BLOCK "OpCycleAnalisys"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme' }
+VERSION : 0.1
+// Now
+   VAR_INPUT
+      CoordinationIn : Struct
+         OperationX : Struct
+            GoToWork : Bool;
+            GoToRest : Bool;
+            IsAtWork : Bool;
+            IsAtRest : Bool;
+            Reset : Bool;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      OperationX_TIME_1 : Time;
+      OperationX_TIME_2 : Time;
+      OperationX_TIME_3 : Time;
+      OperationX_TOTAL : Time;
+   END_VAR
+
+   VAR
+      Now : Date_And_Time;
+      Fp1 : Bool;
+      Fp2 : Bool;
+      Fp3 : Bool;
+      Fp4 : Bool;
+      Fp5 : Bool;
+      Fp6 : Bool;
+      Fp7 : Bool;
+      Fp8 : Bool;
+      Fp9 : Bool;
+      Fp10 : Bool;
+      Fp11 : Bool;
+      Fp12 : Bool;
+      DT_1 : Date_And_Time;
+      DT_2 : Date_And_Time;
+      DT_3 : Date_And_Time;
+   END_VAR
+
+   VAR_TEMP
+      RetVal : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Now"
+   END_REGION
+
+   REGION "Network 2: Reset calculations"
+      IF CoordinationIn.OperationX.Reset THEN
+         DT_1 := Now;
+      END_IF;
+      IF CoordinationIn.OperationX.Reset THEN
+         DT_2 := Now;
+      END_IF;
+      IF CoordinationIn.OperationX.Reset THEN
+         DT_3 := Now;
+      END_IF;
+      IF CoordinationIn.OperationX.Reset THEN
+         OperationX_TIME_1 := T#0MS;
+      END_IF;
+      IF CoordinationIn.OperationX.Reset THEN
+         OperationX_TIME_2 := T#0MS;
+      END_IF;
+      IF CoordinationIn.OperationX.Reset THEN
+         OperationX_TIME_3 := T#0MS;
+      END_IF;
+   END_REGION
+
+   REGION "Network 3: Timing Operation"
+      IF PosEdge(CoordinationIn.OperationX.GoToWork) THEN
+         DT_1 := Now;
+      END_IF;
+      IF PosEdge(CoordinationIn.OperationX.IsAtWork) THEN
+         DT_2 := Now;
+      END_IF;
+      IF PosEdge(CoordinationIn.OperationX.GoToRest) THEN
+         DT_3 := Now;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4: Total time calculation"
+      OperationX_TOTAL := (OperationX_TIME_1 + OperationX_TIME_2);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

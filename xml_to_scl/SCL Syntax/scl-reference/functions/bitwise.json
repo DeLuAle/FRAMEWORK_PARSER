@@ -1,0 +1,265 @@
+{
+    "category": "Bitwise Operations",
+    "description": "Operazioni bit a bit su tipi di dati binari",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - SCL Instructions",
+    "functions": [
+        {
+            "name": "AND",
+            "signature": "AND(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Primo operando",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Secondo operando",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "AND bit a bit"
+            },
+            "description": "Esegue AND logico bit a bit tra due valori.",
+            "example": "result := AND(IN1 := value1, IN2 := 16#00FF);  // Maschera byte basso",
+            "notes": "Utile per mascherare bit. Equivalente a operatore &.",
+            "see_also": [
+                "OR",
+                "XOR",
+                "NOT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "OR",
+            "signature": "OR(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Primo operando",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Secondo operando",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "OR bit a bit"
+            },
+            "description": "Esegue OR logico bit a bit tra due valori.",
+            "example": "result := OR(IN1 := flags, IN2 := 16#0001);  // Setta bit 0",
+            "notes": "Utile per settare bit. Equivalente a operatore OR.",
+            "see_also": [
+                "AND",
+                "XOR",
+                "NOT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "XOR",
+            "signature": "XOR(IN1 := <value1>, IN2 := <value2>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Primo operando",
+                    "optional": false
+                },
+                {
+                    "name": "IN2",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Secondo operando",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "XOR bit a bit"
+            },
+            "description": "Esegue XOR (exclusive OR) logico bit a bit tra due valori.",
+            "example": "result := XOR(IN1 := value, IN2 := 16#FFFF);  // Inverte tutti i bit",
+            "notes": "Utile per toggle bit e checksum. Equivalente a operatore XOR.",
+            "see_also": [
+                "AND",
+                "OR",
+                "NOT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "NOT",
+            "signature": "NOT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da invertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "NOT bit a bit (complemento a 1)"
+            },
+            "description": "Inverte tutti i bit del valore (complemento a 1).",
+            "example": "inverted := NOT(IN := value);",
+            "notes": "Equivalente a operatore NOT.",
+            "see_also": [
+                "AND",
+                "OR",
+                "XOR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SHL",
+            "signature": "SHL(IN := <value>, N := <shift_count>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da shiftare",
+                    "optional": false
+                },
+                {
+                    "name": "N",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero di posizioni da shiftare a sinistra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore shiftato a sinistra"
+            },
+            "description": "Shift logico a sinistra. I bit a destra vengono riempiti con 0.",
+            "example": "shifted := SHL(IN := value, N := 2);  // Moltiplica per 4",
+            "notes": "Shift a sinistra di N posizioni equivale a moltiplicare per 2^N. I bit che escono a sinistra vengono persi.",
+            "see_also": [
+                "SHR",
+                "ROL",
+                "ROR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SHR",
+            "signature": "SHR(IN := <value>, N := <shift_count>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da shiftare",
+                    "optional": false
+                },
+                {
+                    "name": "N",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero di posizioni da shiftare a destra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore shiftato a destra"
+            },
+            "description": "Shift logico a destra. I bit a sinistra vengono riempiti con 0.",
+            "example": "shifted := SHR(IN := value, N := 2);  // Divide per 4",
+            "notes": "Shift a destra di N posizioni equivale a dividere per 2^N (divisione intera). I bit che escono a destra vengono persi.",
+            "see_also": [
+                "SHL",
+                "ROL",
+                "ROR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ROL",
+            "signature": "ROL(IN := <value>, N := <rotate_count>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da ruotare",
+                    "optional": false
+                },
+                {
+                    "name": "N",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero di posizioni da ruotare a sinistra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore ruotato a sinistra"
+            },
+            "description": "Rotazione a sinistra. I bit che escono a sinistra rientrano a destra.",
+            "example": "rotated := ROL(IN := value, N := 1);",
+            "notes": "Differenza con SHL: i bit non vengono persi ma ruotano. Utile per manipolazione ciclica di bit.",
+            "see_also": [
+                "ROR",
+                "SHL",
+                "SHR"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ROR",
+            "signature": "ROR(IN := <value>, N := <rotate_count>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_BIT",
+                    "direction": "IN",
+                    "description": "Valore da ruotare",
+                    "optional": false
+                },
+                {
+                    "name": "N",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero di posizioni da ruotare a destra",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as IN",
+                "description": "Valore ruotato a destra"
+            },
+            "description": "Rotazione a destra. I bit che escono a destra rientrano a sinistra.",
+            "example": "rotated := ROR(IN := value, N := 1);",
+            "notes": "Differenza con SHR: i bit non vengono persi ma ruotano.",
+            "see_also": [
+                "ROL",
+                "SHL",
+                "SHR"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

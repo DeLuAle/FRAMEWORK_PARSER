@@ -1,0 +1,22 @@
+﻿// Block: PB_Lamp
+// Title: Lamp
+
+FUNCTION "PB_Lamp" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Lamp
+   VAR_INPUT
+      OpSelect : Bool;
+      OpRequest : Bool;
+      OpRunning : Bool;
+      OpDone : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Lamp"
+      PB_Lamp := ((((OpSelect AND NOT OpRequest) OR (((OpSelect AND OpRequest) AND NOT OpDone) AND OpRunning) OR (((OpSelect AND OpRequest) AND NOT OpDone) AND Sys.Clock_1S) OR (((OpSelect AND OpRequest) AND OpDone) AND Sys.Clock_250MS)) AND NOT Sys.LampTestMem) OR Sys.LampTest);
+   END_REGION
+
+
+END_FUNCTION

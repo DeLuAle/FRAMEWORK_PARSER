@@ -1,0 +1,33 @@
+﻿FUNCTION "PieceToCheck_Presence" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Trk_B : Array[1.."BTRK_A03_EXIT_TOCHECK_ITEMS"] of "BTrk_item";
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      Found : Bool;
+   END_VAR
+
+
+BEGIN
+	// Funzione che controlla se nel banco di accumulo c'è almeno un pezzo da controllare o ricondizionato
+	
+	FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    IF #Trk_B[#i].O_ID > 0 THEN
+	        IF #Trk_B[#i].Quality = "TO_CHECK" OR #Trk_B[#i].Quality = "RECOND_GOOD" OR #Trk_B[#i].Quality = "GOOD_R" THEN
+	            #Found := TRUE;
+	            EXIT;
+	        END_IF;
+	        
+	    END_IF;
+	    
+	END_FOR;
+	
+	#PieceToCheck_Presence := #Found;
+	
+	
+END_FUNCTION
+

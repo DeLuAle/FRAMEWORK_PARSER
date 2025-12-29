@@ -1,0 +1,191 @@
+{
+    "category": "IEC Counters",
+    "description": "Counter function blocks standard IEC 61131-3 per S7-1500/S7-1200",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - IEC Counters / IEC 61131-3 Standard",
+    "functions": [
+        {
+            "name": "CTU",
+            "signature": "#instanceName(CU := <count_up>, R := <reset>, PV := <preset_value>, Q => <output>, CV => <count_value>);",
+            "parameters": [
+                {
+                    "name": "CU",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Count Up input (fronte di salita incrementa)",
+                    "optional": false
+                },
+                {
+                    "name": "R",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Reset (azzera CV a 0)",
+                    "optional": false
+                },
+                {
+                    "name": "PV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Preset Value (valore target)",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE quando CV >= PV",
+                    "optional": false
+                },
+                {
+                    "name": "CV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "OUT",
+                    "description": "Count Value (valore corrente)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e CV"
+            },
+            "description": "Count Up: incrementa CV ad ogni fronte di salita di CU. Q diventa TRUE quando CV >= PV.",
+            "example": "// Dichiarazione in VAR_STAT:\n// counterUp : CTU;\n\n#counterUp(CU := sensorPulse, R := resetButton, PV := 100);\nIF #counterUp.Q THEN\n    // Raggiunte 100 unità\n    batchComplete := TRUE;\nEND_IF;",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. Incremento su fronte di salita di CU. CV può superare PV. Reset con R=TRUE azzera CV e Q. Applicazione tipica: conteggio pezzi, batch.",
+            "see_also": [
+                "CTD",
+                "CTUD"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CTD",
+            "signature": "#instanceName(CD := <count_down>, LD := <load>, PV := <preset_value>, Q => <output>, CV => <count_value>);",
+            "parameters": [
+                {
+                    "name": "CD",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Count Down input (fronte di salita decrementa)",
+                    "optional": false
+                },
+                {
+                    "name": "LD",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Load (carica PV in CV)",
+                    "optional": false
+                },
+                {
+                    "name": "PV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Preset Value (valore iniziale)",
+                    "optional": false
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE quando CV <= 0",
+                    "optional": false
+                },
+                {
+                    "name": "CV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "OUT",
+                    "description": "Count Value (valore corrente)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output Q e CV"
+            },
+            "description": "Count Down: decrementa CV ad ogni fronte di salita di CD. Q diventa TRUE quando CV <= 0.",
+            "example": "// Dichiarazione in VAR_STAT:\n// counterDown : CTD;\n\n#counterDown(CD := decrementPulse, LD := loadPreset, PV := 50);\nIF #counterDown.Q THEN\n    // Contatore arrivato a zero\n    sequenceComplete := TRUE;\nEND_IF;",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. Decremento su fronte di salita di CD. LD=TRUE carica PV in CV. CV può diventare negativo. Applicazione tipica: countdown, sequenze.",
+            "see_also": [
+                "CTU",
+                "CTUD"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CTUD",
+            "signature": "#instanceName(CU := <count_up>, CD := <count_down>, R := <reset>, LD := <load>, PV := <preset_value>, QU => <up_output>, QD => <down_output>, CV => <count_value>);",
+            "parameters": [
+                {
+                    "name": "CU",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Count Up input",
+                    "optional": false
+                },
+                {
+                    "name": "CD",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Count Down input",
+                    "optional": false
+                },
+                {
+                    "name": "R",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Reset (azzera CV)",
+                    "optional": false
+                },
+                {
+                    "name": "LD",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Load (carica PV in CV)",
+                    "optional": false
+                },
+                {
+                    "name": "PV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Preset Value",
+                    "optional": false
+                },
+                {
+                    "name": "QU",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE quando CV >= PV",
+                    "optional": false
+                },
+                {
+                    "name": "QD",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE quando CV <= 0",
+                    "optional": false
+                },
+                {
+                    "name": "CV",
+                    "type": "INT/DINT/UINT/UDINT",
+                    "direction": "OUT",
+                    "description": "Count Value",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "N/A (FB)",
+                "description": "Usare output QU, QD e CV"
+            },
+            "description": "Count Up/Down: contatore bidirezionale. Incrementa con CU, decrementa con CD. Due output separati per limite superiore (QU) e inferiore (QD).",
+            "example": "// Dichiarazione in VAR_STAT:\n// counterUpDown : CTUD;\n\n#counterUpDown(CU := increment, CD := decrement, R := reset, LD := load, PV := 50);\nIF #counterUpDown.QU THEN\n    // Limite superiore raggiunto\nEND_IF;\nIF #counterUpDown.QD THEN\n    // Limite inferiore raggiunto\nEND_IF;",
+            "mandatory": true,
+            "notes": "Richiede istanza statica. Combina funzionalità CTU e CTD. R=TRUE azzera CV. LD=TRUE carica PV in CV. Applicazione tipica: livelli serbatoio, posizionamento.",
+            "see_also": [
+                "CTU",
+                "CTD"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

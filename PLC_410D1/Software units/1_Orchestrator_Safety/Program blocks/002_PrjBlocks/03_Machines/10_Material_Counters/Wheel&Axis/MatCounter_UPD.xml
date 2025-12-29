@@ -1,0 +1,800 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.FC ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input" />
+  <Section Name="Output" />
+  <Section Name="InOut">
+    <Member Name="Data" Datatype="&quot;MatCountData&quot;" />
+  </Section>
+  <Section Name="Temp">
+    <Member Name="AxDifference" Datatype="LReal" />
+    <Member Name="HalfModule" Datatype="LReal" />
+    <Member Name="HalfNegativeModule" Datatype="LReal" />
+    <Member Name="AxFAKModule" Datatype="LReal" />
+  </Section>
+  <Section Name="Constant" />
+  <Section Name="Return">
+    <Member Name="Ret_Val" Datatype="Void" />
+  </Section>
+</Sections></Interface>
+      <Name>MatCounter_UPD</Name>
+      <Namespace />
+      <Number>103</Number>
+      <ProgrammingLanguage>LAD</ProgrammingLanguage>
+      <SetENOAutomatically>false</SetENOAutomatically>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <SW.Blocks.CompileUnit ID="5" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="Data" />
+        <Component Name="AX_MODULE" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="22">
+      <Symbol>
+        <Component Name="Data" />
+        <Component Name="FAK" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="AxFAKModule" />
+      </Symbol>
+    </Access>
+    <Part Name="Mul" UId="24" DisabledENO="true">
+      <TemplateValue Name="Card" Type="Cardinality">2</TemplateValue>
+      <AutomaticTyped Name="SrcType" />
+    </Part>
+  </Parts>
+  <Wires>
+    <Wire UId="25">
+      <Powerrail />
+      <NameCon UId="24" Name="en" />
+    </Wire>
+    <Wire UId="26">
+      <IdentCon UId="21" />
+      <NameCon UId="24" Name="in1" />
+    </Wire>
+    <Wire UId="27">
+      <IdentCon UId="22" />
+      <NameCon UId="24" Name="in2" />
+    </Wire>
+    <Wire UId="28">
+      <NameCon UId="24" Name="out" />
+      <IdentCon UId="23" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="6" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="7" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="8" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="9" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="A" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>AX FAK Module</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="C" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>AX FAK Module</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="E" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><FlgNet xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/FlgNet/v5">
+  <Parts>
+    <Access Scope="LocalVariable" UId="21">
+      <Symbol>
+        <Component Name="Data" />
+        <Component Name="AX_MODULE" />
+      </Symbol>
+    </Access>
+    <Access Scope="LiteralConstant" UId="22">
+      <Constant>
+        <ConstantType>LReal</ConstantType>
+        <ConstantValue>2.0</ConstantValue>
+      </Constant>
+    </Access>
+    <Access Scope="LocalVariable" UId="23">
+      <Symbol>
+        <Component Name="HalfModule" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="24">
+      <Symbol>
+        <Component Name="HalfModule" />
+      </Symbol>
+    </Access>
+    <Access Scope="LocalVariable" UId="25">
+      <Symbol>
+        <Component Name="HalfNegativeModule" />
+      </Symbol>
+    </Access>
+    <Part Name="Div" UId="26" DisabledENO="true">
+      <AutomaticTyped Name="SrcType" />
+    </Part>
+    <Part Name="Neg" UId="27" DisabledENO="true">
+      <TemplateValue Name="SrcType" Type="Type">LReal</TemplateValue>
+    </Part>
+  </Parts>
+  <Wires>
+    <Wire UId="28">
+      <Powerrail />
+      <NameCon UId="26" Name="en" />
+    </Wire>
+    <Wire UId="29">
+      <IdentCon UId="21" />
+      <NameCon UId="26" Name="in1" />
+    </Wire>
+    <Wire UId="30">
+      <IdentCon UId="22" />
+      <NameCon UId="26" Name="in2" />
+    </Wire>
+    <Wire UId="31">
+      <NameCon UId="26" Name="eno" />
+      <NameCon UId="27" Name="en" />
+    </Wire>
+    <Wire UId="32">
+      <NameCon UId="26" Name="out" />
+      <IdentCon UId="23" />
+    </Wire>
+    <Wire UId="33">
+      <IdentCon UId="24" />
+      <NameCon UId="27" Name="in" />
+    </Wire>
+    <Wire UId="34">
+      <NameCon UId="27" Name="out" />
+      <IdentCon UId="25" />
+    </Wire>
+  </Wires>
+</FlgNet></NetworkSource>
+          <ProgrammingLanguage>LAD</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="F" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="10" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="11" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="12" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="13" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="14" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Half MODULE</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="15" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>Half MODULE</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="16" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <SW.Blocks.CompileUnit ID="17" CompositionName="CompileUnits">
+        <AttributeList>
+          <NetworkSource><StructuredText xmlns="http://www.siemens.com/automation/Openness/SW/NetworkSource/StructuredText/v4">
+  <LineComment UId="21">
+    <Text UId="22">=====================================================</Text>
+  </LineComment>
+  <NewLine UId="23" />
+  <LineComment UId="24">
+    <Text UId="25"> CONTROLLO GIRO COMPLETO CONTEGGIO ASSE </Text>
+  </LineComment>
+  <NewLine UId="26" />
+  <LineComment UId="27">
+    <Text UId="28">=====================================================</Text>
+  </LineComment>
+  <NewLine UId="29" />
+  <Access Scope="LocalVariable" UId="30">
+    <Symbol UId="31">
+      <Component Name="AxDifference" UId="32" />
+    </Symbol>
+  </Access>
+  <Blank UId="33" />
+  <Token Text=":=" UId="34" />
+  <Blank UId="35" />
+  <Access Scope="LocalVariable" UId="36">
+    <Symbol UId="37">
+      <Component Name="Data" UId="38" />
+      <Token Text="." UId="39" />
+      <Component Name="AxPosition" UId="40" />
+    </Symbol>
+  </Access>
+  <Blank UId="41" />
+  <Token Text="-" UId="42" />
+  <Blank UId="43" />
+  <Access Scope="LocalVariable" UId="44">
+    <Symbol UId="45">
+      <Component Name="Data" UId="46" />
+      <Token Text="." UId="47" />
+      <Component Name="AxPositionPrevious" UId="48" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="49" />
+  <NewLine UId="50" />
+  <Access Scope="LocalVariable" UId="51">
+    <Symbol UId="52">
+      <Component Name="Data" UId="53" />
+      <Token Text="." UId="54" />
+      <Component Name="AxPositionPrevious" UId="55" />
+    </Symbol>
+  </Access>
+  <Blank UId="56" />
+  <Token Text=":=" UId="57" />
+  <Blank UId="58" />
+  <Access Scope="LocalVariable" UId="59">
+    <Symbol UId="60">
+      <Component Name="Data" UId="61" />
+      <Token Text="." UId="62" />
+      <Component Name="AxPosition" UId="63" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="64" />
+  <NewLine Num="2" UId="65" />
+  <Token Text="IF" UId="66" />
+  <Blank UId="67" />
+  <Access Scope="LocalVariable" UId="68">
+    <Symbol UId="69">
+      <Component Name="AxDifference" UId="70" />
+    </Symbol>
+  </Access>
+  <Blank UId="71" />
+  <Token Text="&gt;" UId="72" />
+  <Blank UId="73" />
+  <Access Scope="LocalVariable" UId="74">
+    <Symbol UId="75">
+      <Component Name="HalfModule" UId="76" />
+    </Symbol>
+  </Access>
+  <Blank UId="77" />
+  <Token Text="THEN" UId="78" />
+  <NewLine UId="79" />
+  <Blank Num="4" UId="80" />
+  <Access Scope="LocalVariable" UId="81">
+    <Symbol UId="82">
+      <Component Name="Data" UId="83" />
+      <Token Text="." UId="84" />
+      <Component Name="CounterOffset" UId="85" />
+    </Symbol>
+  </Access>
+  <Blank UId="86" />
+  <Token Text=":=" UId="87" />
+  <Blank UId="88" />
+  <Access Scope="LocalVariable" UId="89">
+    <Symbol UId="90">
+      <Component Name="Data" UId="91" />
+      <Token Text="." UId="92" />
+      <Component Name="CounterOffset" UId="93" />
+    </Symbol>
+  </Access>
+  <Blank UId="94" />
+  <Token Text="-" UId="95" />
+  <Blank UId="96" />
+  <Access Scope="LocalVariable" UId="97">
+    <Symbol UId="98">
+      <Component Name="AxFAKModule" UId="99" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="100" />
+  <NewLine UId="101" />
+  <Token Text="ELSIF" UId="102" />
+  <Blank UId="103" />
+  <Access Scope="LocalVariable" UId="104">
+    <Symbol UId="105">
+      <Component Name="AxDifference" UId="106" />
+    </Symbol>
+  </Access>
+  <Blank UId="107" />
+  <Token Text="&lt;" UId="108" />
+  <Blank UId="109" />
+  <Access Scope="LocalVariable" UId="110">
+    <Symbol UId="111">
+      <Component Name="HalfNegativeModule" UId="112" />
+    </Symbol>
+  </Access>
+  <Blank UId="113" />
+  <Token Text="THEN" UId="114" />
+  <NewLine UId="115" />
+  <Blank Num="4" UId="116" />
+  <Access Scope="LocalVariable" UId="117">
+    <Symbol UId="118">
+      <Component Name="Data" UId="119" />
+      <Token Text="." UId="120" />
+      <Component Name="CounterOffset" UId="121" />
+    </Symbol>
+  </Access>
+  <Blank UId="122" />
+  <Token Text=":=" UId="123" />
+  <Blank UId="124" />
+  <Access Scope="LocalVariable" UId="125">
+    <Symbol UId="126">
+      <Component Name="Data" UId="127" />
+      <Token Text="." UId="128" />
+      <Component Name="CounterOffset" UId="129" />
+    </Symbol>
+  </Access>
+  <Blank UId="130" />
+  <Token Text="+" UId="131" />
+  <Blank UId="132" />
+  <Access Scope="LocalVariable" UId="133">
+    <Symbol UId="134">
+      <Component Name="AxFAKModule" UId="135" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="136" />
+  <NewLine UId="137" />
+  <Token Text="END_IF" UId="138" />
+  <Token Text=";" UId="139" />
+  <NewLine Num="2" UId="140" />
+  <LineComment UId="141">
+    <Text UId="142">=====================================================</Text>
+  </LineComment>
+  <NewLine UId="143" />
+  <LineComment UId="144">
+    <Text UId="145"> COUNTER</Text>
+  </LineComment>
+  <NewLine UId="146" />
+  <LineComment UId="147">
+    <Text UId="148">=====================================================</Text>
+  </LineComment>
+  <NewLine UId="149" />
+  <Access Scope="LocalVariable" UId="150">
+    <Symbol UId="151">
+      <Component Name="Data" UId="152" />
+      <Token Text="." UId="153" />
+      <Component Name="CounterValue" UId="154" />
+    </Symbol>
+  </Access>
+  <Blank UId="155" />
+  <Token Text=":=" UId="156" />
+  <Blank UId="157" />
+  <Token Text="(" UId="158" />
+  <Access Scope="LocalVariable" UId="159">
+    <Symbol UId="160">
+      <Component Name="Data" UId="161" />
+      <Token Text="." UId="162" />
+      <Component Name="AxPosition" UId="163" />
+    </Symbol>
+  </Access>
+  <Blank UId="164" />
+  <Token Text="*" UId="165" />
+  <Blank UId="166" />
+  <Access Scope="LocalVariable" UId="167">
+    <Symbol UId="168">
+      <Component Name="Data" UId="169" />
+      <Token Text="." UId="170" />
+      <Component Name="FAK" UId="171" />
+    </Symbol>
+  </Access>
+  <Token Text=")" UId="172" />
+  <Blank UId="173" />
+  <Token Text="+" UId="174" />
+  <Blank UId="175" />
+  <Access Scope="LocalVariable" UId="176">
+    <Symbol UId="177">
+      <Component Name="Data" UId="178" />
+      <Token Text="." UId="179" />
+      <Component Name="CounterOffset" UId="180" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="181" />
+  <NewLine Num="2" UId="182" />
+  <Token Text="IF" UId="183" />
+  <Blank UId="184" />
+  <Access Scope="LocalVariable" UId="185">
+    <Symbol UId="186">
+      <Component Name="Data" UId="187" />
+      <Token Text="." UId="188" />
+      <Component Name="CounterValue" UId="189" />
+    </Symbol>
+  </Access>
+  <Blank UId="190" />
+  <Token Text="&gt;=" UId="191" />
+  <Blank UId="192" />
+  <Access Scope="LocalVariable" UId="193">
+    <Symbol UId="194">
+      <Component Name="Data" UId="195" />
+      <Token Text="." UId="196" />
+      <Component Name="COUNTER_MODULE" UId="197" />
+    </Symbol>
+  </Access>
+  <Blank UId="198" />
+  <Token Text="THEN" UId="199" />
+  <NewLine UId="200" />
+  <Blank Num="4" UId="201" />
+  <Access Scope="LocalVariable" UId="202">
+    <Symbol UId="203">
+      <Component Name="Data" UId="204" />
+      <Token Text="." UId="205" />
+      <Component Name="CounterOffset" UId="206" />
+    </Symbol>
+  </Access>
+  <Blank UId="207" />
+  <Token Text=":=" UId="208" />
+  <Blank UId="209" />
+  <Access Scope="LocalVariable" UId="210">
+    <Symbol UId="211">
+      <Component Name="Data" UId="212" />
+      <Token Text="." UId="213" />
+      <Component Name="CounterOffset" UId="214" />
+    </Symbol>
+  </Access>
+  <Blank UId="215" />
+  <Token Text="-" UId="216" />
+  <Blank UId="217" />
+  <Access Scope="LocalVariable" UId="218">
+    <Symbol UId="219">
+      <Component Name="Data" UId="220" />
+      <Token Text="." UId="221" />
+      <Component Name="COUNTER_MODULE" UId="222" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="223" />
+  <NewLine UId="224" />
+  <Blank Num="4" UId="225" />
+  <Access Scope="LocalVariable" UId="226">
+    <Symbol UId="227">
+      <Component Name="Data" UId="228" />
+      <Token Text="." UId="229" />
+      <Component Name="CounterValue" UId="230" />
+    </Symbol>
+  </Access>
+  <Blank UId="231" />
+  <Token Text=":=" UId="232" />
+  <Blank UId="233" />
+  <Token Text="(" UId="234" />
+  <Access Scope="LocalVariable" UId="235">
+    <Symbol UId="236">
+      <Component Name="Data" UId="237" />
+      <Token Text="." UId="238" />
+      <Component Name="AxPosition" UId="239" />
+    </Symbol>
+  </Access>
+  <Blank UId="240" />
+  <Token Text="*" UId="241" />
+  <Blank UId="242" />
+  <Access Scope="LocalVariable" UId="243">
+    <Symbol UId="244">
+      <Component Name="Data" UId="245" />
+      <Token Text="." UId="246" />
+      <Component Name="FAK" UId="247" />
+    </Symbol>
+  </Access>
+  <Token Text=")" UId="248" />
+  <Blank UId="249" />
+  <Token Text="+" UId="250" />
+  <Blank UId="251" />
+  <Access Scope="LocalVariable" UId="252">
+    <Symbol UId="253">
+      <Component Name="Data" UId="254" />
+      <Token Text="." UId="255" />
+      <Component Name="CounterOffset" UId="256" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="257" />
+  <NewLine UId="258" />
+  <Blank Num="4" UId="259" />
+  <NewLine UId="260" />
+  <Token Text="ELSIF" UId="261" />
+  <Blank UId="262" />
+  <Access Scope="LocalVariable" UId="263">
+    <Symbol UId="264">
+      <Component Name="Data" UId="265" />
+      <Token Text="." UId="266" />
+      <Component Name="CounterValue" UId="267" />
+    </Symbol>
+  </Access>
+  <Blank UId="268" />
+  <Token Text="&lt;" UId="269" />
+  <Blank UId="270" />
+  <Access Scope="LiteralConstant" UId="271">
+    <Constant UId="272">
+      <ConstantValue UId="274">0.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="275" />
+  <Token Text="THEN" UId="276" />
+  <NewLine UId="277" />
+  <Blank Num="4" UId="278" />
+  <Access Scope="LocalVariable" UId="279">
+    <Symbol UId="280">
+      <Component Name="Data" UId="281" />
+      <Token Text="." UId="282" />
+      <Component Name="CounterOffset" UId="283" />
+    </Symbol>
+  </Access>
+  <Blank UId="284" />
+  <Token Text=":=" UId="285" />
+  <Blank UId="286" />
+  <Access Scope="LocalVariable" UId="287">
+    <Symbol UId="288">
+      <Component Name="Data" UId="289" />
+      <Token Text="." UId="290" />
+      <Component Name="CounterOffset" UId="291" />
+    </Symbol>
+  </Access>
+  <Blank UId="292" />
+  <Token Text="+" UId="293" />
+  <Blank UId="294" />
+  <Access Scope="LocalVariable" UId="295">
+    <Symbol UId="296">
+      <Component Name="Data" UId="297" />
+      <Token Text="." UId="298" />
+      <Component Name="COUNTER_MODULE" UId="299" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="300" />
+  <NewLine UId="301" />
+  <Blank Num="4" UId="302" />
+  <Access Scope="LocalVariable" UId="303">
+    <Symbol UId="304">
+      <Component Name="Data" UId="305" />
+      <Token Text="." UId="306" />
+      <Component Name="CounterValue" UId="307" />
+    </Symbol>
+  </Access>
+  <Blank UId="308" />
+  <Token Text=":=" UId="309" />
+  <Blank UId="310" />
+  <Token Text="(" UId="311" />
+  <Access Scope="LocalVariable" UId="312">
+    <Symbol UId="313">
+      <Component Name="Data" UId="314" />
+      <Token Text="." UId="315" />
+      <Component Name="AxPosition" UId="316" />
+    </Symbol>
+  </Access>
+  <Blank UId="317" />
+  <Token Text="*" UId="318" />
+  <Blank UId="319" />
+  <Access Scope="LocalVariable" UId="320">
+    <Symbol UId="321">
+      <Component Name="Data" UId="322" />
+      <Token Text="." UId="323" />
+      <Component Name="FAK" UId="324" />
+    </Symbol>
+  </Access>
+  <Token Text=")" UId="325" />
+  <Blank UId="326" />
+  <Token Text="+" UId="327" />
+  <Blank UId="328" />
+  <Access Scope="LocalVariable" UId="329">
+    <Symbol UId="330">
+      <Component Name="Data" UId="331" />
+      <Token Text="." UId="332" />
+      <Component Name="CounterOffset" UId="333" />
+    </Symbol>
+  </Access>
+  <Token Text=";" UId="334" />
+  <NewLine UId="335" />
+  <Token Text="END_IF" UId="336" />
+  <Token Text=";" UId="337" />
+  <NewLine Num="3" UId="338" />
+  <Token Text="IF" UId="339" />
+  <Blank UId="340" />
+  <Access Scope="Call" UId="341">
+    <Instruction Name="ABS" UId="342">
+      <TemplateValue Name="value_type" Type="Type" UId="343">LReal</TemplateValue>
+      <Token Text="(" UId="344" />
+      <NamelessParameter UId="345">
+        <Access Scope="LocalVariable" UId="346">
+          <Symbol UId="347">
+            <Component Name="Data" UId="348" />
+            <Token Text="." UId="349" />
+            <Component Name="CounterValue" UId="350" />
+          </Symbol>
+        </Access>
+        <Blank UId="351" />
+        <Token Text="-" UId="352" />
+        <Blank UId="353" />
+        <Access Scope="LocalVariable" UId="354">
+          <Symbol UId="355">
+            <Component Name="Data" UId="356" />
+            <Token Text="." UId="357" />
+            <Component Name="COUNTER_MODULE" UId="358" />
+          </Symbol>
+        </Access>
+      </NamelessParameter>
+      <Token Text=")" UId="360" />
+    </Instruction>
+  </Access>
+  <Blank UId="361" />
+  <Token Text="&lt;" UId="362" />
+  <Blank UId="363" />
+  <Access Scope="LiteralConstant" UId="364">
+    <Constant UId="365">
+      <ConstantValue UId="367">0.01</ConstantValue>
+    </Constant>
+  </Access>
+  <Blank UId="368" />
+  <Token Text="THEN" UId="369" />
+  <NewLine UId="370" />
+  <Blank Num="4" UId="371" />
+  <Access Scope="LocalVariable" UId="372">
+    <Symbol UId="373">
+      <Component Name="Data" UId="374" />
+      <Token Text="." UId="375" />
+      <Component Name="CounterValue" UId="376" />
+    </Symbol>
+  </Access>
+  <Blank UId="377" />
+  <Token Text=":=" UId="378" />
+  <Blank UId="379" />
+  <Access Scope="LiteralConstant" UId="380">
+    <Constant UId="381">
+      <ConstantValue UId="383">0.0</ConstantValue>
+    </Constant>
+  </Access>
+  <Token Text=";" UId="384" />
+  <NewLine UId="385" />
+  <Token Text="END_IF" UId="386" />
+  <Token Text=";" UId="387" />
+  <NewLine UId="388" />
+  <Blank Num="4" UId="389" />
+</StructuredText></NetworkSource>
+          <ProgrammingLanguage>SCL</ProgrammingLanguage>
+        </AttributeList>
+        <ObjectList>
+          <MultilingualText ID="18" CompositionName="Comment">
+            <ObjectList>
+              <MultilingualTextItem ID="19" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1A" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1B" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+          <MultilingualText ID="1C" CompositionName="Title">
+            <ObjectList>
+              <MultilingualTextItem ID="1D" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-US</Culture>
+                  <Text>Ax difference</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1E" CompositionName="Items">
+                <AttributeList>
+                  <Culture>en-GB</Culture>
+                  <Text>Ax difference</Text>
+                </AttributeList>
+              </MultilingualTextItem>
+              <MultilingualTextItem ID="1F" CompositionName="Items">
+                <AttributeList>
+                  <Culture>it-IT</Culture>
+                  <Text />
+                </AttributeList>
+              </MultilingualTextItem>
+            </ObjectList>
+          </MultilingualText>
+        </ObjectList>
+      </SW.Blocks.CompileUnit>
+      <MultilingualText ID="20" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="21" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text>Update</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="22" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text>Update</Text>
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="23" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.FC>
+</Document>

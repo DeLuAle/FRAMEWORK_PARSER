@@ -1,0 +1,256 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0201_Profilatrice_RegolazioneFormato_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="Array[1..14] of &quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="Cin" Datatype="Struct">
+      <Member Name="LineSetup_Exe" Datatype="Bool" />
+      <Member Name="OB30_High" Datatype="Bool" />
+      <Member Name="Infeed_ON" Datatype="Bool" />
+    </Member>
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="PB_Passaggio02_Combo" Datatype="&quot;Ax_PB&quot;" />
+      <Member Name="PB_Passaggio14_Combo" Datatype="&quot;Ax_PB&quot;" />
+      <Member Name="PB_Passaggio17_Combo" Datatype="&quot;Ax_PB&quot;" />
+      <Member Name="PB_Passaggio18_Combo" Datatype="&quot;Ax_PB&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Cout" Datatype="Struct">
+      <Member Name="OB30_High_Req" Datatype="Bool" />
+      <Member Name="Infeed_ReqON" Datatype="Bool" />
+      <Member Name="CtrlSafe_AX_M" Datatype="Bool" />
+      <Member Name="SetUp_Done" Datatype="Array[1..14] of Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par_Machne" Datatype="Struct">
+      <Member Name="Passaggio02_MaxDisallineamentoAXs" Datatype="Real" />
+      <Member Name="Passaggio14_MaxDisallineamentoAXs" Datatype="Real" />
+      <Member Name="Passaggio17_MaxDisallineamentoAXs" Datatype="Real" />
+      <Member Name="Passaggio18_MaxDisallineamentoAXs" Datatype="Real" />
+      <Member Name="AxD_AutoSpeed" Datatype="Real" />
+    </Member>
+    <Member Name="Par_Enc" Datatype="Array[1..14] of &quot;PosFbk_RTN&quot;" />
+    <Member Name="Par_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_Par&quot;" />
+    <Member Name="Par_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_Par&quot;" />
+    <Member Name="Pers_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_Pers_Data&quot;" />
+    <Member Name="Pers_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_Pers_Data&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="i" Datatype="Int" />
+    <Member Name="Init_Done" Datatype="Bool" />
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Passaggio02_Combo_TargetPos" Datatype="Real" />
+      <Member Name="Passaggio14_Combo_TargetPos" Datatype="Real" />
+      <Member Name="Passaggio17_Combo_TargetPos" Datatype="Real" />
+      <Member Name="Passaggio18_Combo_TargetPos" Datatype="Real" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="Ax_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_Wng&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Ax_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_Wng&quot;" />
+      <Member Name="Passaggio02_MaxDisallineamentoAXs" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Passaggio14_MaxDisallineamentoAXs" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Passaggio17_MaxDisallineamentoAXs" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Passaggio18_MaxDisallineamentoAXs" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="Enc" Datatype="Array[1..14] of &quot;PosFbk_Encoder_Alr&quot;" />
+      <Member Name="Ax_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_Alr&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Ax_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_Alr&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="UpdateSel" Datatype="Int" />
+      <Member Name="Passaggio02" Datatype="Struct">
+        <Member Name="DeltaPos_OP_MOT" Datatype="LReal" />
+        <Member Name="AxOP_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxOP_Pause_Plus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Plus" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio14" Datatype="Struct">
+        <Member Name="DeltaPos_OP_MOT" Datatype="LReal" />
+        <Member Name="AxOP_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxOP_Pause_Plus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Plus" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio17" Datatype="Struct">
+        <Member Name="DeltaPos_OP_MOT" Datatype="LReal" />
+        <Member Name="AxOP_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxOP_Pause_Plus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Plus" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio18" Datatype="Struct">
+        <Member Name="DeltaPos_OP_MOT" Datatype="LReal" />
+        <Member Name="AxOP_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxOP_Pause_Plus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Minus" Datatype="Bool" />
+        <Member Name="AxMOT_Pause_Plus" Datatype="Bool" />
+      </Member>
+      <Member Name="TargetPos" Datatype="Array[1..14] of Real" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="OB30_High_Req" Datatype="Bool" />
+      <Member Name="Passaggio02_Combo_MAN" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio14_Combo_MAN" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio17_Combo_MAN" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="Passaggio18_Combo_MAN" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="EncITF" Datatype="Array[1..14] of &quot;PosFbk_ITF&quot;" />
+    <Member Name="TOF_OB30_High" Datatype="TOF_TIME" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Enc" Datatype="Array[1..14] of &quot;PosFbk_SickAFM60&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="AX_D" Datatype="Array[1..6] of &quot;Positioning_DOL_Machine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="AX_M" Datatype="Array[7..14] of &quot;Positioning_MOL_Machine_FB&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="PB_Passaggio02_Combo" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="PB_Passaggio14_Combo" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="PB_Passaggio17_Combo" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+      <Member Name="PB_Passaggio18_Combo" Datatype="Struct">
+        <Member Name="Minus" Datatype="Bool" />
+        <Member Name="Plus" Datatype="Bool" />
+        <Member Name="MoveToPos" Datatype="Bool" />
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <Name>A0201_Profilatrice_RegolazioneFormato</Name>
+      <Namespace />
+      <Number>47</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>FlyingCarriage_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="Drive" Datatype="&quot;TAx_DriveInterface&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="CIn" Datatype="&quot;udt_FlyingCarriage_CIn&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+      <Member Name="Pb_Bkw" Datatype="Bool" />
+      <Member Name="Pb_Fwd" Datatype="Bool" />
+      <Member Name="Pb_Pos" Datatype="Bool" />
+      <Member Name="Pb_Zero" Datatype="Bool" />
+      <Member Name="Pb_PresetPos" Datatype="Bool" />
+      <Member Name="Fbk_Fan" Datatype="Bool" />
+    </Member>
+    <Member Name="Config" Datatype="&quot;udt_FlyingCarriage_Config&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+        <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+      </AttributeList>
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="Fan" Datatype="Bool" />
+      <Member Name="LP_ZeroOK" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="TO_Carriage" Datatype="TO_SynchronousAxis" Version="8.0" />
+    <Member Name="TO_Master" Datatype="TO_PositioningAxis" Version="8.0" />
+    <Member Name="TO_ZeroChk" Datatype="TO_MeasuringInput" Version="8.0" />
+    <Member Name="Parameter" Datatype="&quot;udt_FlyingCarriage_Parameter&quot;" />
+    <Member Name="FsParameter" Datatype="&quot;udt_FsParameter&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="NotAutReady" Datatype="Bool" />
+      <Member Name="ZeroChkRequest" Datatype="Bool" />
+      <Member Name="Axis" Datatype="&quot;TAx_Warnings&quot;" />
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="NotHomed" Datatype="Bool" />
+      <Member Name="ZeroChkFailed" Datatype="Bool" />
+      <Member Name="ZeroChk_NotCatched" Datatype="Bool" />
+      <Member Name="ZeroChk_NotReleased" Datatype="Bool" />
+      <Member Name="TargetPosition_OutOfRange" Datatype="Bool" />
+      <Member Name="Axis" Datatype="&quot;TAx_Alarms&quot;" />
+      <Member Name="ZeroChk" Datatype="&quot;TMeasuring_Alarms&quot;" />
+      <Member Name="Fan" Datatype="&quot;MotorAlr&quot;" />
+    </Member>
+    <Member Name="Diag" Datatype="Struct">
+      <Member Name="Ax" Datatype="&quot;TO_Diagnostic&quot;" />
+      <Member Name="ZeroChk" Datatype="&quot;TO_Diagnostic&quot;" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Infeed_ReqON" Datatype="Bool" />
+      <Member Name="CtrlSafe" Datatype="Bool" />
+      <Member Name="Ax_InOperation" Datatype="Bool" />
+      <Member Name="Standstill" Datatype="Bool" />
+      <Member Name="CheckNext_Minus" Datatype="Bool" />
+      <Member Name="CheckNext_Plus" Datatype="Bool" />
+      <Member Name="PositioningDone" Datatype="Bool" />
+      <Member Name="InSynch" Datatype="Bool" />
+      <Member Name="ActualTargetPosAx" Datatype="LReal" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="Pb_PresetPos" Datatype="Bool" />
+      <Member Name="PresetPosValue" Datatype="LReal" />
+      <Member Name="LastPositionDetect" Datatype="LReal" />
+      <Member Name="ManPosTarget" Datatype="LReal" />
+      <Member Name="PositionNorm" Datatype="Real" />
+    </Member>
+    <Member Name="Ax" Datatype="&quot;FlyingShearAxis&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="MeasInp_ZeroChk" Datatype="&quot;MeasuringInput&quot;">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="M_MotorFan" Datatype="&quot;Motor&quot;" />
+    <Member Name="tonDelayFanOff" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="tonDelayNoPendingCommands" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="DriveMessagesPresence" Datatype="Bool" />
+      <Member Name="AxisMessagePresence" Datatype="Bool" />
+      <Member Name="InOperatin" Datatype="Bool" />
+      <Member Name="DriveParReadWriteDone" Datatype="Bool" />
+      <Member Name="DriveMessagesReadDone" Datatype="Bool" />
+      <Member Name="Gen_Condition" Datatype="Bool" />
+      <Member Name="Bkw_Condition" Datatype="Bool" />
+      <Member Name="Fwd_Condition" Datatype="Bool" />
+      <Member Name="NoManCmd" Datatype="Bool" />
+      <Member Name="Positioning_Condition" Datatype="Bool" />
+      <Member Name="MotionRequestInNegativeDirection" Datatype="Bool" />
+      <Member Name="MotionRequestInPositiveDirection" Datatype="Bool" />
+      <Member Name="InPosition" Datatype="Bool" />
+      <Member Name="AtHomePosition" Datatype="Bool" />
+      <Member Name="Target_PosAx" Datatype="LReal" />
+      <Member Name="MissingToTarget" Datatype="LReal" />
+      <Member Name="ActualLimitMinus" Datatype="LReal" />
+      <Member Name="ActualLimitPlus" Datatype="LReal" />
+      <Member Name="ZeroChk_LastPositionDetect" Datatype="LReal" />
+      <Member Name="ZeroChk_MeasInLastID" Datatype="UInt" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="RstAlarms" Datatype="Bool" />
+      <Member Name="SafeMotion" Datatype="Bool" />
+      <Member Name="StopDueDoorOpeningRequest" Datatype="Bool" />
+      <Member Name="StopSafe" Datatype="Bool" />
+      <Member Name="StopInPhase" Datatype="Bool" />
+      <Member Name="StopProgrammed" Datatype="Bool" />
+      <Member Name="StopAborting" Datatype="Bool" />
+      <Member Name="ReadSLSParam" Datatype="Bool" />
+      <Member Name="DriveParReadWrite_Exe" Datatype="Bool" />
+      <Member Name="DriveMessageRead_Exe" Datatype="Bool" />
+      <Member Name="Fan" Datatype="Bool" />
+      <Member Name="Man_JogPosBkw" Datatype="Bool" />
+      <Member Name="Man_JogPosFwd" Datatype="Bool" />
+      <Member Name="Man_Pos" Datatype="Bool" />
+      <Member Name="Man_Zero" Datatype="Bool" />
+      <Member Name="Zero_Bkw" Datatype="Bool" />
+      <Member Name="Zero_Fwd" Datatype="Bool" />
+      <Member Name="Zero_Home" Datatype="Bool" />
+      <Member Name="Man_Zero_Bkw" Datatype="Bool" />
+      <Member Name="Man_Zero_Fwd" Datatype="Bool" />
+      <Member Name="Man_Zero_Home" Datatype="Bool" />
+      <Member Name="Man_PresetPosition" Datatype="Bool" />
+      <Member Name="Aut_Zero" Datatype="Bool" />
+      <Member Name="Aut_PosAbs" Datatype="Bool" />
+      <Member Name="Aut_GearPos" Datatype="Bool" />
+    </Member>
+    <Member Name="AckRstAlarms" Datatype="Bool" />
+    <Member Name="Pb_Bkw_PEAux" Datatype="Bool" />
+    <Member Name="Pb_Fwd_PEAux" Datatype="Bool" />
+    <Member Name="Pb_Pos_PEAux" Datatype="Bool" />
+    <Member Name="Pb_Zero_PEAux" Datatype="Bool" />
+    <Member Name="Pb_PresetPos_PEAux" Datatype="Bool" />
+    <Member Name="ZeroChk_LastID" Datatype="UInt" />
+  </Section>
+</Sections></Interface>
+      <Name>FlyingCarriage</Name>
+      <Namespace />
+      <Number>135</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

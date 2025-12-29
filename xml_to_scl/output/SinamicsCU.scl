@@ -1,0 +1,61 @@
+﻿// Block: SinamicsCU
+// Title: Info
+
+FUNCTION_BLOCK "SinamicsCU"
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      Rst : Bool;
+      Tel393_HWID : HW_IO;
+      AccessPoint : HW_IO;
+      AxisID : USInt;
+      TokenChain : Int;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      AlarmPresence : Bool;
+      WarningPresence : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : SinamicsCU_Alarms;
+      Warning : SinamicsCU_Warnings;
+      Diag : TO_Diagnostic;
+   END_VAR
+
+   VAR
+      GetTelIn : GETIO;
+      SetTelOut : SETIO_PART;
+      ReadAlarm : RW_SINAMICS_Par;
+      ReadWarning : RW_SINAMICS_Par;
+      PathTest : Array[1..4] of PathTestSignal;
+   END_VAR
+
+   VAR_TEMP
+      TEL_IN : Tel393In_PM;
+      TEL_OUT : Tel393Out_PM;
+   END_VAR
+
+
+BEGIN
+   REGION Logic
+      // FB calls extracted from LAD logic
+
+      #GetTelIn(
+         en := TRUE,
+         ID := Tel393_HWID,
+         INPUTS := TEL_IN
+      );
+
+      #SetTelOut(
+         en := TRUE,
+         ID := Tel393_HWID,
+         OFFSET := 4,
+         LEN := 2,
+         OUTPUTS := TEL_OUT.A_DIGITAL_1
+      );
+
+   END_REGION
+
+END_FUNCTION_BLOCK

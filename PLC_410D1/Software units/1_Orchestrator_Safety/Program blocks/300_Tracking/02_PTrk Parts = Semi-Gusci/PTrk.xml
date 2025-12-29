@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Access>Published</Access>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="Last_P_ID" Datatype="DInt" Remanence="Retain">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Ultimo ID asseggnato a una parte (Part/Semi-guscio)</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Empty" Datatype="&quot;PTrk_Item&quot;" />
+    <Member Name="A0202" Datatype="Struct" Remanence="Retain">
+      <Member Name="Empty" Datatype="Bool" />
+      <Member Name="Ready" Datatype="Bool" />
+      <Member Name="Part_Qty" Datatype="Int" />
+      <Member Name="Part_Len" Datatype="Real" />
+      <Member Name="Beam_Len_Candidate" Datatype="Real" />
+      <Member Name="P" Datatype="Array[1..&quot;PTRK_A0202_ITEMS&quot;] of &quot;PTrk_Item&quot;">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Tracciamento SG su rulliera do accelerazione dopo la stazone di taglio profili = Semi-gusci</MultiLanguageText>
+        </Comment>
+        <Sections>
+          <Section Name="None" />
+        </Sections>
+        <Subelement Path="1">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_CUTTED</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="2">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_ENTRY</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="3">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P6</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="4">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P5</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="5">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P4</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="6">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P3</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="7">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P2</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="8">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_P1</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="9">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A02_S2_P0</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="10">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_DEVIATOR_To_A0301</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="11">
+          <Comment>
+            <MultiLanguageText Lang="en-US">PTRK_A0202_DEVITATOR_To_EXIT</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="12">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Free</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="13">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Free</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="14">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Free</MultiLanguageText>
+          </Comment>
+        </Subelement>
+        <Subelement Path="15">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Free</MultiLanguageText>
+          </Comment>
+        </Subelement>
+      </Member>
+    </Member>
+    <Member Name="A02_EXIT_TOCHECK" Datatype="Array[1..&quot;PTRK_A0202_EXIT_TOCHECK_ITEMS&quot;] of &quot;PTrk_Item&quot;" Remanence="Retain">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Tracciamento SG su scivolo di scarico da rulliera di accelerazione( Da controllare / Conformi per cico solo semi-gusci)</MultiLanguageText>
+      </Comment>
+      <Sections>
+        <Section Name="None" />
+      </Sections>
+      <Subelement Path="1">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Ultimo SG deviato</MultiLanguageText>
+        </Comment>
+      </Subelement>
+    </Member>
+    <Member Name="A0301" Datatype="Struct" Remanence="Retain">
+      <Member Name="Empty" Datatype="Bool" />
+      <Member Name="Ready" Datatype="Bool" />
+      <Member Name="Part_Qty" Datatype="Int" />
+      <Member Name="Part_Len" Datatype="Real" />
+      <Member Name="Beam_Len_Candidate" Datatype="Real" />
+      <Member Name="P" Datatype="Array[1..&quot;PTRK_A0301_ITEMS&quot;] of &quot;PTrk_Item&quot;">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Tracciamento SG su stazione di assemblaggio (capovolgimento dei due semi-gusci uno sopra all'altro)</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>PTrk</Name>
+      <Namespace />
+      <Number>26</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

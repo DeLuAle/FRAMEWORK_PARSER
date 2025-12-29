@@ -1,0 +1,270 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>FinalCut_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="ZSI" Datatype="&quot;udt_ZoneSafetyInterface&quot;" />
+    <Member Name="DSI" Datatype="&quot;udt_DeviceSafetyInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveMachine_DataIn&quot;" />
+      <Member Name="Locking_PressureAI" Datatype="Int" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="PressureRunning" Datatype="Bool" />
+      <Member Name="MaterialStandstill" Datatype="Bool" />
+      <Member Name="EnableCutHead" Datatype="Bool" />
+      <Member Name="EnableDrawHead" Datatype="Bool" />
+      <Member Name="EnableMarkHead" Datatype="Bool" />
+      <Member Name="PPrf_PrgNo" Datatype="DInt" />
+      <Member Name="CutHead_Manager" Datatype="&quot;ValveMachine_Manager&quot;" />
+      <Member Name="DrawHead_Manager" Datatype="&quot;ValveMachine_Manager&quot;" />
+      <Member Name="MarkHead_Manager" Datatype="&quot;ValveMachine_Manager&quot;" />
+    </Member>
+    <Member Name="Config" Datatype="Struct">
+      <Member Name="CheckRestPosition" Datatype="Bool" />
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveMachine_Config&quot;" />
+      <Member Name="Locking_AI_HighLimit" Datatype="Real" />
+      <Member Name="Locking_AI_LowLimit" Datatype="Real" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="DataOut" Datatype="Struct">
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_DataOut&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveMachine_DataOut&quot;" />
+    </Member>
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveMachine_COut&quot;" />
+      <Member Name="Avg_R_to_W_Time" Datatype="Time" />
+      <Member Name="Avg_W_to_R_Time" Datatype="Time" />
+      <Member Name="AllAtRest" Datatype="Bool" />
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="PersistentValues" Datatype="&quot;udt_FinalCut_Pers&quot;" />
+  </Section>
+  <Section Name="Static">
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="CycleTime" Datatype="Struct">
+        <Member Name="CutHead" Datatype="Struct">
+          <Member Name="DT_W_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_W_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="R_To_W_Exe" Datatype="Bool" />
+          <Member Name="W_To_R_Exe" Datatype="Bool" />
+          <Member Name="R_To_W_Items" Datatype="Int" />
+          <Member Name="R_To_W_Sum" Datatype="Time" />
+          <Member Name="W_To_R_Items" Datatype="Int" />
+          <Member Name="W_To_R_Sum" Datatype="Time" />
+        </Member>
+        <Member Name="DrawHead" Datatype="Struct">
+          <Member Name="DT_W_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_W_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="R_To_W_Exe" Datatype="Bool" />
+          <Member Name="W_To_R_Exe" Datatype="Bool" />
+          <Member Name="R_To_W_Items" Datatype="Int" />
+          <Member Name="R_To_W_Sum" Datatype="Time" />
+          <Member Name="W_To_R_Items" Datatype="Int" />
+          <Member Name="W_To_R_Sum" Datatype="Time" />
+        </Member>
+        <Member Name="MarkHead" Datatype="Struct">
+          <Member Name="DT_W_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_W_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Start" Datatype="DTL" Version="1.0" />
+          <Member Name="DT_R_Stop" Datatype="DTL" Version="1.0" />
+          <Member Name="R_To_W_Exe" Datatype="Bool" />
+          <Member Name="W_To_R_Exe" Datatype="Bool" />
+          <Member Name="R_To_W_Items" Datatype="Int" />
+          <Member Name="R_To_W_Sum" Datatype="Time" />
+          <Member Name="W_To_R_Items" Datatype="Int" />
+          <Member Name="W_To_R_Sum" Datatype="Time" />
+        </Member>
+        <Member Name="PPrf_PrgNoSave" Datatype="DInt" />
+      </Member>
+      <Member Name="LockingPressure" Datatype="Real" />
+      <Member Name="WorkPressureOk" Datatype="Bool" />
+      <Member Name="MinPressureOk" Datatype="Bool" />
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Reload" Datatype="Struct">
+        <Member Name="CutHead" Datatype="Bool" />
+        <Member Name="DrawHead" Datatype="Bool" />
+        <Member Name="MarkHead" Datatype="Bool" />
+        <Member Name="Locking" Datatype="Bool" />
+      </Member>
+      <Member Name="RstAlarms" Datatype="Bool" />
+    </Member>
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="CutHead" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveAlr&quot;" />
+      <Member Name="Locking_NotAWork" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="CutHead" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="DrawHead" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="MarkHead" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="Locking" Datatype="&quot;ValveMachine_Wng&quot;" />
+      <Member Name="CutHead_NotAtRest" Datatype="Bool" />
+      <Member Name="DrawHead_NotAtRest" Datatype="Bool" />
+      <Member Name="MarkHead_NotAtRest" Datatype="Bool" />
+      <Member Name="Locking_NotAWork" Datatype="Bool" />
+      <Member Name="MaterialNotStandstill" Datatype="Bool" />
+    </Member>
+    <Member Name="HMI" Datatype="Struct">
+      <Member Name="CutHead" Datatype="Struct">
+        <Member Name="Last_R_to_W_ID" Datatype="DInt" />
+        <Member Name="Last_R_to_W_Time" Datatype="Time" />
+        <Member Name="Last_W_to_R_ID" Datatype="DInt" />
+        <Member Name="Last_W_to_R_Time" Datatype="Time" />
+        <Member Name="Avg_R_to_W_Time" Datatype="Time" />
+        <Member Name="Avg_W_to_R_Time" Datatype="Time" />
+        <Member Name="Buffer_R_to_W_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+        <Member Name="Buffer_W_to_R_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+      </Member>
+      <Member Name="DrawHead" Datatype="Struct">
+        <Member Name="Last_R_to_W_ID" Datatype="DInt" />
+        <Member Name="Last_R_to_W_Time" Datatype="Time" />
+        <Member Name="Last_W_to_R_ID" Datatype="DInt" />
+        <Member Name="Last_W_to_R_Time" Datatype="Time" />
+        <Member Name="Avg_R_to_W_Time" Datatype="Time" />
+        <Member Name="Avg_W_to_R_Time" Datatype="Time" />
+        <Member Name="Buffer_R_to_W_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+        <Member Name="Buffer_W_to_R_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+      </Member>
+      <Member Name="MarkHead" Datatype="Struct">
+        <Member Name="Last_R_to_W_ID" Datatype="DInt" />
+        <Member Name="Last_R_to_W_Time" Datatype="Time" />
+        <Member Name="Last_W_to_R_ID" Datatype="DInt" />
+        <Member Name="Last_W_to_R_Time" Datatype="Time" />
+        <Member Name="Avg_R_to_W_Time" Datatype="Time" />
+        <Member Name="Avg_W_to_R_Time" Datatype="Time" />
+        <Member Name="Buffer_R_to_W_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+        <Member Name="Buffer_W_to_R_Time" Datatype="Array[1..10] of Struct">
+          <Member Name="ID" Datatype="DInt" />
+          <Member Name="Value" Datatype="Time" />
+        </Member>
+      </Member>
+    </Member>
+    <Member Name="CutHead" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="DrawHead" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="MarkHead" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="Locking" Datatype="&quot;ValveMachine_FB&quot;" />
+    <Member Name="TON_CutHead_Pause" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_CutHead_Duration" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_DrawHead_Pause" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_DrawHead_Duration" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_MarkHead_Pause" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_MarkHead_Duration" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_LockingTimeOut" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="PE_Aux" Datatype="Struct">
+      <Member Name="CutHead" Datatype="Struct">
+        <Member Name="AtRest" Datatype="Bool" />
+        <Member Name="AtWork" Datatype="Bool" />
+        <Member Name="NotAtRest" Datatype="Bool" />
+        <Member Name="NotAtWork" Datatype="Bool" />
+      </Member>
+      <Member Name="DrawHead" Datatype="Struct">
+        <Member Name="AtRest" Datatype="Bool" />
+        <Member Name="AtWork" Datatype="Bool" />
+        <Member Name="NotAtRest" Datatype="Bool" />
+        <Member Name="NotAtWork" Datatype="Bool" />
+      </Member>
+      <Member Name="MarkHead" Datatype="Struct">
+        <Member Name="AtRest" Datatype="Bool" />
+        <Member Name="AtWork" Datatype="Bool" />
+        <Member Name="NotAtRest" Datatype="Bool" />
+        <Member Name="NotAtWork" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="i" Datatype="Int" />
+  </Section>
+</Sections></Interface>
+      <Name>FinalCut</Name>
+      <Namespace />
+      <Number>139</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>

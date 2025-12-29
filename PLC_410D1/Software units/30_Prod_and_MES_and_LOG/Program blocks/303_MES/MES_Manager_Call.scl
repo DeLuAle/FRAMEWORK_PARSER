@@ -1,0 +1,123 @@
+﻿FUNCTION "MES_Manager_Call" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+
+BEGIN
+	
+	
+	"MES_Manager"();
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION DEBUG SIMULAZIONE MESSAGGI TOPIC 1XX
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic1XX".MSG_100.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_100"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic1XX".MSG_130.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_130"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic1XX".MSG_140.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_140"();
+	    END_IF;
+	    
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic1XX".MSG_142.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_142"();
+	    END_IF;
+	    
+	    
+	    IF "DEBUG_MES_Send_Msg_1XX".MSG101.ABILITA_FC THEN
+	        "DEBUG_Simulate_Send_Msg_101"();
+	        
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Send_Msg_1XX".MSG102.ABILITA_FC THEN
+	        "DEBUG_Simulate_Send_Msg_102"();
+	        
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Send_Msg_1XX".TEST_FUN_BUFFER.ABILITA_FC THEN
+	        "DEBUG_Test_Fun_Buffer_Topic1XX"();
+	        
+	    END_IF;
+	    
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic1XX".FUN.ABILITA_FC THEN
+	        "DEBUG_Check_Fun_Msg_100"();
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	REGION DEBUG SIMULAZIONE MESSAGGI TOPIC 2XX
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic2XX".MSG_200.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_200"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic2XX".MSG_210.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_210"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic2XX".MSG_212.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_212"();
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	REGION DEBUG SIMULAZIONE MESSAGGI TOPIC 3XX
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic3XX".NEW_MSG_300.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_300"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic3XX".NEW_MSG_301.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_301"();
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	REGION DEBUG SIMULAZIONE MESSAGGI TOPIC 4XX
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_401.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_401"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_402.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_402"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_403.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_403"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_410.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_410"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_412.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_412"();
+	    END_IF;
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.ABILITA_FC THEN
+	        "DEBUG_Simulate_Receive_Msg_422"();
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+END_FUNCTION
+

@@ -1,0 +1,334 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.GlobalDB ID="0">
+    <AttributeList>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Static">
+    <Member Name="MAN_O" Datatype="Struct">
+      <Member Name="PPrf_No" Datatype="DInt" />
+      <Member Name="Req" Datatype="DInt" />
+      <Member Name="Len" Datatype="Real" />
+      <Member Name="Use_Ribbing_Roll" Datatype="Bool" />
+      <Member Name="Use_Trace_Mark_Tool" Datatype="Bool" />
+      <Member Name="Use_Thick_Mark_Tool" Datatype="Bool" />
+    </Member>
+    <Member Name="Sel_Index" Datatype="Int">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Riga degli ordini da fare selezionata</MultiLanguageText>
+      </Comment>
+    </Member>
+    <Member Name="Button_Pop_ACT_To_ENDING" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Pulsante HMI per spostare ordine al taglio completato su ordini in via di completamento</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool" />
+      <Member Name="AllowControl" Datatype="Bool" />
+      <Member Name="Pressed" Datatype="Bool" />
+      <Member Name="Done" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Error" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Color" Datatype="Int" />
+    </Member>
+    <Member Name="Button_Pop_ACT_To_TODO" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Pulsante HMI per interrompere ordine al taglio non completato su lista ordini da fare</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool" />
+      <Member Name="AllowControl" Datatype="Bool" />
+      <Member Name="Pressed" Datatype="Bool" />
+      <Member Name="Done" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Error" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="Color" Datatype="Int" />
+    </Member>
+    <Member Name="Button_Pop_TODO_To_ACT" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Pulsante HMI per spostare in lavoro l'ordine selezionato dalla lista di quelli da fare </MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abiliita visualizzazione button che avvia il comando</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="AllowControl" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abilita pulsanti nascosti di selezione riga</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Pressed" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Set con pulsante premuto, Rst da PLC</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Done" Datatype="Bool" />
+      <Member Name="Error" Datatype="Bool" />
+      <Member Name="Color" Datatype="Int" />
+    </Member>
+    <Member Name="Button_Push_ManualOrder_To_TODO" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione Pulsante HMI per caricamento ordine manuale su lista ordini da fare</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool" />
+      <Member Name="AllowControl" Datatype="Bool" />
+      <Member Name="Pressed" Datatype="Bool" />
+      <Member Name="Done" Datatype="Bool" />
+      <Member Name="Error" Datatype="Bool" />
+      <Member Name="Color" Datatype="Int" />
+    </Member>
+    <Member Name="Buttons_ChangeOrder_TODO" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione Pulsanti HMI per cambiare ordine di esecuzione della lista ordini da fare (Solo se MES è OFF)</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abiliita visualizzazione button che avvia il comando</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="AllowControl" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abilita pulsanti nascosti di selezione riga</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Pressed_UP" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">(Set con pulsante premuto, Rst da PLC) Sposta in alto (indice più piccolo)</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Pressed_DW" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">(Set con pulsante premuto, Rst da PLC) Sposta in basso (indice più grande)</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+    <Member Name="Button_Pop_TODO_To_ENDING" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione Pulsante HMI per sposatre ordine di lavoro da in esecuzione a in via di completamento (solo se MES è OFF)</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abiliita visualizzazione button che avvia il comando</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="AllowControl" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Abilita pulsanti nascosti di selezione riga</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Pressed" Datatype="Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Set con pulsante premuto, Rst da PLC</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Done" Datatype="Bool" />
+      <Member Name="Error" Datatype="Bool" />
+      <Member Name="Color" Datatype="Int" />
+    </Member>
+    <Member Name="Button_ShowDetatails" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Pulsante HMI per spostare ordine al taglio completato su ordini in via di completamento</MultiLanguageText>
+      </Comment>
+      <Member Name="Show" Datatype="Bool" />
+      <Member Name="Pressed" Datatype="Bool" />
+      <Member Name="Data" Datatype="&quot;Prod_Item&quot;">
+        <AttributeList>
+          <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+        </AttributeList>
+      </Member>
+    </Member>
+    <Member Name="SETUP" Datatype="Struct">
+      <Comment>
+        <MultiLanguageText Lang="en-US">Gestione SETUP operazini manuali</MultiLanguageText>
+      </Comment>
+      <Member Name="Button_LinePreparation_Start" Datatype="Struct">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Gestione Pulsante HMI per sposatre ordine di lavoro da in esecuzione a in via di completamento (solo se MES è OFF)</MultiLanguageText>
+        </Comment>
+        <Member Name="Show" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Abiliita visualizzazione button che avvia il comando</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="AllowControl" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Abilita pulsanti nascosti di selezione riga</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="Pressed" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Set con pulsante premuto, Rst da PLC</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="Done" Datatype="Bool" />
+        <Member Name="Error" Datatype="Bool" />
+        <Member Name="Color" Datatype="Int" />
+      </Member>
+      <Member Name="Button_LinePreparation_Stop" Datatype="Struct">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Gestione Pulsante HMI per sposatre ordine di lavoro da in esecuzione a in via di completamento (solo se MES è OFF)</MultiLanguageText>
+        </Comment>
+        <Member Name="Show" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Abiliita visualizzazione button che avvia il comando</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="AllowControl" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Abilita pulsanti nascosti di selezione riga</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="Pressed" Datatype="Bool">
+          <Comment>
+            <MultiLanguageText Lang="en-US">Set con pulsante premuto, Rst da PLC</MultiLanguageText>
+          </Comment>
+        </Member>
+        <Member Name="Done" Datatype="Bool" />
+        <Member Name="Error" Datatype="Bool" />
+        <Member Name="Color" Datatype="Int" />
+      </Member>
+      <Member Name="Button_OP_Man_X_Pressed" Datatype="Array[1..&quot;SETUP_MAN_OPERATIONS_QTY&quot;] of Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Bit usato come "on con tasto premuto" - ACK op.man.con su array REAL</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Button_OP_Man_Y_Pressed" Datatype="Array[1..&quot;SETUP_MAN_OP_WITH_CODE_QTY&quot;] of Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Bit usato come "on con tasto premuto" - ACK op.man.con su array INT</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Button_OP_Man_Z_Pressed" Datatype="Array[1..&quot;PROD_SETUP_WAIT_MAN_PREPARATION&quot;] of Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Bit usato come "on con tasto premuto" - ACK op.man.con su array INT</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="Button_OP_Man_Set_All_OK" Datatype="Struct">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Pulsante HMI per impostare OK su tutte le operazioni manuali</MultiLanguageText>
+        </Comment>
+        <Member Name="Show" Datatype="Bool" />
+        <Member Name="AllowControl" Datatype="Bool" />
+        <Member Name="Pressed" Datatype="Bool" />
+        <Member Name="Done" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Error" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+            <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="Color" Datatype="Int" />
+      </Member>
+      <Member Name="SetUp_OP-Man_OK_Cumultativo" Datatype="Bool" />
+      <Member Name="SetUp_OP_Man_X_OK" Datatype="Array[1..&quot;SETUP_MAN_OPERATIONS_QTY&quot;] of Bool" />
+      <Member Name="SetUp_OP_Man_Y_OK" Datatype="Array[1..&quot;SETUP_MAN_OP_WITH_CODE_QTY&quot;] of Bool" />
+      <Member Name="SetUp_Aut_Profilatrice_OK_Cumultativo" Datatype="Bool" />
+      <Member Name="SetUp_Aut_Bordatrice_OK_Cumultativo" Datatype="Bool" />
+      <Member Name="SetUp_Aut_OK_Profilatrice" Datatype="Array[1..14] of Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Stati del singolo asse di preparazione della PROFILATRICE in posizione richiesta per setup</MultiLanguageText>
+        </Comment>
+      </Member>
+      <Member Name="SetUp_Aut_OK_Bordatrice" Datatype="Array[1..9] of Bool">
+        <Comment>
+          <MultiLanguageText Lang="en-US">Stati del singolo asse di preparazione della BORDATRICE in posizione richiesta per setup</MultiLanguageText>
+        </Comment>
+      </Member>
+    </Member>
+    <Member Name="Material_To_GO_Cumulative" Datatype="LReal" />
+    <Member Name="OrdineKanban_Presence" Datatype="Bool">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="StampoTracciabilita_Attuale" Datatype="Struct">
+      <Member Name="IDRotolo" Datatype="String" />
+      <Member Name="NumeroColata" Datatype="String" />
+    </Member>
+    <Member Name="StampoTracciabilita_Prossimo" Datatype="Struct">
+      <Member Name="IDRotolo" Datatype="String" />
+      <Member Name="NumeroColata" Datatype="String" />
+    </Member>
+  </Section>
+</Sections></Interface>
+      <MemoryReserve>100</MemoryReserve>
+      <Name>Production_HMI</Name>
+      <Namespace />
+      <Number>9</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.GlobalDB>
+</Document>

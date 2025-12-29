@@ -1,0 +1,507 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Document>
+  <Engineering version="V19" />
+  <SW.Blocks.InstanceDB ID="0">
+    <AttributeList>
+      <InstanceOfName>A0303_Manager_FB</InstanceOfName>
+      <InstanceOfType>FB</InstanceOfType>
+      <Interface><Sections xmlns="http://www.siemens.com/automation/Openness/SW/Interface/v5">
+  <Section Name="Input">
+    <Member Name="AreaInterface" Datatype="&quot;AreaInterface&quot;" />
+    <Member Name="DataIn" Datatype="Struct">
+      <Member Name="LsCheckPassaggio_Coda" Datatype="Bool" />
+      <Member Name="LsCheckPassaggio_Testa" Datatype="Bool" />
+      <Member Name="LsPezzoPosMax_Coda" Datatype="Bool" />
+      <Member Name="LsPezzoPosMax_Testa" Datatype="Bool" />
+      <Member Name="SemiAut_Pb" Datatype="Bool" />
+    </Member>
+    <Member Name="CIn" Datatype="Struct">
+      <Member Name="PareggiatoreTesta" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+      </Member>
+      <Member Name="PareggiatoreCoda" Datatype="Struct">
+        <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+      </Member>
+      <Member Name="Spalle" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        </Member>
+      </Member>
+      <Member Name="Spintore" Datatype="Struct">
+        <Member Name="Vrt" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Orz" Datatype="&quot;ValveMachine_COut&quot;" />
+      </Member>
+      <Member Name="TraslazioneStrato" Datatype="Struct">
+        <Member Name="Ax_Testa" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Ax_Coda" Datatype="&quot;Positioning_EPOS_Machine_COut&quot;" />
+        <Member Name="Manip_Sostegno" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="Manip_Pareggiatore" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="SostegnoVrt" Datatype="&quot;ValveMachine_COut&quot;" />
+        <Member Name="IsMeasuring" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevamento" Datatype="Struct">
+        <Member Name="Ax_Testa" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+        <Member Name="Ax_Coda" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+      </Member>
+      <Member Name="Sostegno" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="Paletto" Datatype="Struct">
+            <Member Name="CtrlSafe" Datatype="Bool" />
+            <Member Name="Standstill" Datatype="Bool" />
+            <Member Name="Rest_CheckNext" Datatype="Bool" />
+            <Member Name="Work_CheckNext" Datatype="Bool" />
+            <Member Name="Pos" Datatype="Int" />
+            <Member Name="RestPosition" Datatype="Bool" />
+          </Member>
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="Ax" Datatype="&quot;Positioning_DOL_Machine_COut&quot;" />
+          <Member Name="Paletto" Datatype="Struct">
+            <Member Name="CtrlSafe" Datatype="Bool" />
+            <Member Name="Standstill" Datatype="Bool" />
+            <Member Name="Rest_CheckNext" Datatype="Bool" />
+            <Member Name="Work_CheckNext" Datatype="Bool" />
+            <Member Name="Pos" Datatype="Int" />
+            <Member Name="RestPosition" Datatype="Bool" />
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="Navetta" Datatype="Struct">
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+        <Member Name="InPosizioneDiDeposito" Datatype="Bool" />
+        <Member Name="InPosizioneDiPrelievo" Datatype="Bool" />
+        <Member Name="InPosizioneDiPrePrelievo" Datatype="Bool" />
+        <Member Name="RequestDeposito" Datatype="Bool" />
+        <Member Name="RequestPrelievo" Datatype="Bool" />
+      </Member>
+      <Member Name="ProdManager" Datatype="&quot;Prod_Beam_Ctrl&quot;" />
+    </Member>
+  </Section>
+  <Section Name="Output">
+    <Member Name="MachineInterface" Datatype="&quot;MachineInterface&quot;" />
+    <Member Name="COut" Datatype="Struct">
+      <Member Name="Spalla" Datatype="Struct">
+        <Member Name="Testa" Datatype="&quot;Positioning_DOL_Machine_Manager&quot;" />
+        <Member Name="Coda" Datatype="&quot;Positioning_DOL_Machine_Manager&quot;" />
+      </Member>
+      <Member Name="Spintore" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+        <Member Name="Control_ON" Datatype="Bool" />
+        <Member Name="CanMoveFreely" Datatype="Bool" />
+        <Member Name="Rest" Datatype="Bool" />
+        <Member Name="Work" Datatype="Bool" />
+      </Member>
+      <Member Name="Trasporto" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+        <Member Name="Control_ON" Datatype="Bool" />
+        <Member Name="CanMoveFreely" Datatype="Bool" />
+        <Member Name="OP" Datatype="Struct">
+          <Member Name="VAI_A_PRELIEVO" Datatype="Bool" />
+          <Member Name="PRELIEVO" Datatype="Bool" />
+          <Member Name="VAI_A_DEPOSITO" Datatype="Bool" />
+          <Member Name="DEPOSITO" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="Sollevatore" Datatype="Struct">
+        <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+        <Member Name="EnableStopInPhase" Datatype="Bool" />
+        <Member Name="EnableStopProgrammed" Datatype="Bool" />
+        <Member Name="Control_ON" Datatype="Bool" />
+        <Member Name="CanMoveFreely" Datatype="Bool" />
+        <Member Name="TargetPosition" Datatype="LReal" />
+        <Member Name="OP" Datatype="Struct">
+          <Member Name="PRELIEVO" Datatype="Bool" />
+          <Member Name="PRE_DEPOSITO" Datatype="Bool" />
+          <Member Name="DEPOSITO" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="Sostegno" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+          <Member Name="EnableStopInPhase" Datatype="Bool" />
+          <Member Name="EnableStopProgrammed" Datatype="Bool" />
+          <Member Name="Control_ON" Datatype="Bool" />
+          <Member Name="CanMoveFreely" Datatype="Bool" />
+          <Member Name="Phase" Datatype="Struct">
+            <Member Name="VAI_A_LAVORO" Datatype="Bool" />
+            <Member Name="VAI_A_RIPOSO" Datatype="Bool" />
+          </Member>
+          <Member Name="Ax" Datatype="Struct">
+            <Member Name="Pos" Datatype="LReal">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+              </AttributeList>
+            </Member>
+          </Member>
+          <Member Name="Paletti" Datatype="Struct">
+            <Member Name="PosPaletto" Datatype="Int" />
+            <Member Name="Pos1Collision" Datatype="Bool" />
+            <Member Name="Pos2Collision" Datatype="Bool" />
+          </Member>
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="EnableStopDoorOpeningReq" Datatype="Bool" />
+          <Member Name="EnableStopInPhase" Datatype="Bool" />
+          <Member Name="EnableStopProgrammed" Datatype="Bool" />
+          <Member Name="Control_ON" Datatype="Bool" />
+          <Member Name="CanMoveFreely" Datatype="Bool" />
+          <Member Name="Phase" Datatype="Struct">
+            <Member Name="VAI_A_LAVORO" Datatype="Bool" />
+            <Member Name="VAI_A_RIPOSO" Datatype="Bool" />
+          </Member>
+          <Member Name="Ax" Datatype="Struct">
+            <Member Name="Pos" Datatype="LReal">
+              <AttributeList>
+                <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+                <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+              </AttributeList>
+            </Member>
+          </Member>
+          <Member Name="Paletti" Datatype="Struct">
+            <Member Name="PosPaletto" Datatype="Int" />
+            <Member Name="Pos1Collision" Datatype="Bool" />
+            <Member Name="Pos2Collision" Datatype="Bool" />
+          </Member>
+        </Member>
+      </Member>
+      <Member Name="Manipolatore" Datatype="Struct">
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+      </Member>
+    </Member>
+  </Section>
+  <Section Name="InOut">
+    <Member Name="Par" Datatype="Struct">
+      <Member Name="Antiribaltamento" Datatype="Struct">
+        <Member Name="Offset_Pos" Datatype="LReal" />
+      </Member>
+    </Member>
+    <Member Name="Par_Trasporto" Datatype="Struct">
+      <Member Name="PosPrelievo" Datatype="LReal" />
+      <Member Name="PosDeposito" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+    <Member Name="Par_Sollevatore" Datatype="Struct">
+      <Member Name="PosDeposito" Datatype="LReal" />
+      <Member Name="OffsetPrelievo" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+    <Member Name="Par_SostegnoAntirib" Datatype="Struct">
+      <Member Name="RestPosition" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+      <Member Name="PosTimeout" Datatype="Time" />
+    </Member>
+    <Member Name="Par_Spalla_Testa" Datatype="Struct">
+      <Member Name="MinDistanzaConParegg" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+    <Member Name="Par_Spalla_Coda" Datatype="Struct">
+      <Member Name="MinDistanzaConParegg" Datatype="LReal" />
+      <Member Name="ToleranceWindow" Datatype="LReal" />
+    </Member>
+  </Section>
+  <Section Name="Static">
+    <Member Name="Alarm" Datatype="Struct">
+      <Member Name="TrkPassaggioPezzo" Datatype="Bool" />
+      <Member Name="TrkPreparationAlreadyFull" Datatype="Bool" />
+      <Member Name="TrkStackerAlreadyFull" Datatype="Bool" />
+      <Member Name="PaccoOltreLimiteMax" Datatype="Bool" />
+      <Member Name="STOP_FineTurno" Datatype="Bool" />
+      <Member Name="STOP_End_Of_Proroduction" Datatype="Bool" />
+      <Member Name="STOP_ControlloQualita" Datatype="Bool" />
+      <Member Name="STOP_Inattività" Datatype="Bool" />
+    </Member>
+    <Member Name="Warning" Datatype="Struct">
+      <Member Name="IsWaiting_NoPiecesBefore" Datatype="Bool" />
+      <Member Name="IsWaiting_NoPiecesBefore_A01NotInCycle" Datatype="Bool" />
+      <Member Name="IsWaiting_NoPiecesBefore_A02NotInCycle" Datatype="Bool" />
+      <Member Name="IsWaiting_NoPiecesBefore_A03NotInCycle" Datatype="Bool" />
+      <Member Name="IsWaiting_ShuttleUnload" Datatype="Bool" />
+      <Member Name="IsWaiting_PezziDaRintegrare" Datatype="Bool" />
+      <Member Name="STOP_End_Of_Proroduction" Datatype="Bool" />
+      <Member Name="STOP_FineTurno" Datatype="Bool" />
+      <Member Name="STOP_ControlloQualita" Datatype="Bool" />
+      <Member Name="MissingCnd" Datatype="Struct">
+        <Member Name="SollevatoreNotReadyToRecive" Datatype="Bool" />
+      </Member>
+    </Member>
+    <Member Name="OP_CND" Datatype="Struct">
+      <Member Name="Trasporto" Datatype="Struct">
+        <Member Name="VaiAPrelievo" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+        <Member Name="Prelievo" Datatype="Array[0..15] of &quot;OpCnd&quot;">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="VaiADeposito" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+        <Member Name="Deposito" Datatype="Array[0..15] of &quot;OpCnd&quot;" />
+      </Member>
+    </Member>
+    <Member Name="Ctrl" Datatype="Struct">
+      <Member Name="Stop" Datatype="Bool" />
+      <Member Name="Cycle" Datatype="Struct">
+        <Member Name="Trasferimento" Datatype="Struct">
+          <Member Name="VaiAPrelievo" Datatype="Bool" />
+          <Member Name="Prelievo" Datatype="Bool" />
+          <Member Name="VaiADeposito" Datatype="Bool" />
+          <Member Name="Deposito" Datatype="Bool" />
+        </Member>
+        <Member Name="Sollevamento" Datatype="Struct">
+          <Member Name="Prelievo" Datatype="Bool" />
+          <Member Name="Deposito" Datatype="Bool" />
+          <Member Name="PreDeposito" Datatype="Bool" />
+        </Member>
+        <Member Name="SostegnoAntirib_Testa" Datatype="Struct">
+          <Member Name="VaiALavoro" Datatype="Bool" />
+          <Member Name="VaiARiposo" Datatype="Bool" />
+          <Member Name="CyclePos" Datatype="LReal" />
+          <Member Name="PalettoPos" Datatype="Int" />
+        </Member>
+        <Member Name="SostegnoAntirib_Coda" Datatype="Struct">
+          <Member Name="VaiALavoro" Datatype="Bool" />
+          <Member Name="VaiARiposo" Datatype="Bool" />
+          <Member Name="CyclePos" Datatype="LReal" />
+          <Member Name="PalettoPos" Datatype="Int" />
+        </Member>
+      </Member>
+      <Member Name="BTrk" Datatype="Struct">
+        <Member Name="B3ToLayer1" Datatype="Bool" />
+        <Member Name="TransferToStacker" Datatype="Bool" />
+      </Member>
+      <Member Name="Spintore" Datatype="Struct">
+        <Member Name="Vrt" Datatype="Struct">
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="Orz" Datatype="Struct">
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="Work" Datatype="Bool" />
+        <Member Name="Rest" Datatype="Bool" />
+      </Member>
+      <Member Name="Spalle" Datatype="Struct">
+        <Member Name="Testa" Datatype="Struct">
+          <Member Name="MoveToPos" Datatype="Bool" />
+          <Member Name="Pos" Datatype="LReal" />
+        </Member>
+        <Member Name="Coda" Datatype="Struct">
+          <Member Name="MoveToPos" Datatype="Bool" />
+          <Member Name="Pos" Datatype="LReal" />
+        </Member>
+      </Member>
+      <Member Name="TraslazioneStrato" Datatype="Struct">
+        <Member Name="Ax" Datatype="Struct">
+          <Member Name="MovePrelievo" Datatype="Bool" />
+          <Member Name="MoveDeposito" Datatype="Bool" />
+          <Member Name="PosDeposito" Datatype="LReal" />
+          <Member Name="PosPrelievo" Datatype="LReal" />
+        </Member>
+        <Member Name="SostegnoVrt" Datatype="Struct">
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="Manip_Sostegno" Datatype="Struct">
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+        <Member Name="Manip_Pareggiatore" Datatype="Struct">
+          <Member Name="Rest" Datatype="Bool" />
+          <Member Name="Work" Datatype="Bool" />
+        </Member>
+      </Member>
+    </Member>
+    <Member Name="Sts" Datatype="Struct">
+      <Member Name="AlarmsPresence" Datatype="Bool" />
+      <Member Name="WarningsPresence" Datatype="Bool" />
+      <Member Name="IsStandstill" Datatype="Bool" />
+      <Member Name="SemiAut" Datatype="Struct">
+        <Member Name="ON" Datatype="Bool" />
+        <Member Name="PbMaterialFwd" Datatype="Bool" />
+        <Member Name="Request" Datatype="Bool" />
+      </Member>
+      <Member Name="SpallaTesta" Datatype="Struct">
+        <Member Name="InCyclePos" Datatype="Bool" />
+      </Member>
+      <Member Name="SpallaCoda" Datatype="Struct">
+        <Member Name="InCyclePos" Datatype="Bool" />
+      </Member>
+      <Member Name="Sollevatore" Datatype="Struct">
+        <Member Name="ReadyToRecive" Datatype="Bool" />
+        <Member Name="InPrelievoPos" Datatype="Bool" />
+        <Member Name="InPrePrelievoPos" Datatype="Bool" />
+        <Member Name="InPosDeposito" Datatype="Bool" />
+        <Member Name="InPosPreDeposito" Datatype="Bool" />
+      </Member>
+      <Member Name="Preparazione" Datatype="Struct">
+        <Member Name="Completato" Datatype="Bool" />
+      </Member>
+      <Member Name="TraslazioneStrato" Datatype="Struct">
+        <Member Name="InPosDeposito" Datatype="Bool" />
+        <Member Name="InPosPrelievo" Datatype="Bool" />
+        <Member Name="OutOfWorkspace" Datatype="Bool" />
+        <Member Name="DropRequest" Datatype="Bool" />
+      </Member>
+      <Member Name="SostegnoTesta" Datatype="Struct">
+        <Member Name="Ax" Datatype="Struct">
+          <Member Name="InCyclePos" Datatype="Bool" />
+          <Member Name="InRestPos" Datatype="Bool" />
+        </Member>
+        <Member Name="Paletto" Datatype="Struct">
+          <Member Name="InCyclePos" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="SostegnoCoda" Datatype="Struct">
+        <Member Name="Ax" Datatype="Struct">
+          <Member Name="InCyclePos" Datatype="Bool" />
+          <Member Name="InRestPos" Datatype="Bool" />
+        </Member>
+        <Member Name="Paletto" Datatype="Struct">
+          <Member Name="InCyclePos" Datatype="Bool" />
+        </Member>
+      </Member>
+      <Member Name="BTrk" Datatype="Struct">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+        <Member Name="ZonePreparationEmpty" Datatype="Bool">
+          <AttributeList>
+            <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+          </AttributeList>
+        </Member>
+        <Member Name="ZoneStackerEmpty" Datatype="Bool" />
+        <Member Name="Actual_O_ID" Datatype="DInt" />
+      </Member>
+    </Member>
+    <Member Name="AUX" Datatype="Struct">
+      <Member Name="LsPosition1Coda_PE" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="LsPosition1Coda_NE" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="LsPosition1Testa_PE" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="LsPosition1Testa_NE" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="TrkToTransfer" Datatype="Bool">
+        <AttributeList>
+          <BooleanAttribute Name="ExternalAccessible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalVisible" SystemDefined="true">false</BooleanAttribute>
+          <BooleanAttribute Name="ExternalWritable" SystemDefined="true">false</BooleanAttribute>
+        </AttributeList>
+      </Member>
+      <Member Name="TrkToShuttle" Datatype="Bool" />
+      <Member Name="SemiAut_Pb" Datatype="Bool" />
+    </Member>
+    <Member Name="TON_PassaggioPezzoAlarm" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_NoPiecesBefore" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_Stop" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="TON_StopPerInattivita" Datatype="IEC_TIMER" Version="1.0">
+      <AttributeList>
+        <BooleanAttribute Name="SetPoint" SystemDefined="true">true</BooleanAttribute>
+      </AttributeList>
+    </Member>
+    <Member Name="Attrezzamento" Datatype="Struct">
+      <Member Name="Ready" Datatype="Bool" />
+      <Member Name="FindNewID" Datatype="Bool" />
+      <Member Name="RequestNewPosition" Datatype="Bool" />
+      <Member Name="TargetSpalle" Datatype="LReal" />
+      <Member Name="TargetSostegno" Datatype="LReal" />
+      <Member Name="ID" Datatype="DInt" />
+    </Member>
+    <Member Name="CycleWithShortPiece" Datatype="Bool" />
+    <Member Name="PE_Engaged_Coda" Datatype="Bool" />
+    <Member Name="NE_Engaged_Coda" Datatype="Bool" />
+    <Member Name="PE_Engaged_Testa" Datatype="Bool" />
+    <Member Name="NE_Engaged_Testa" Datatype="Bool" />
+    <Member Name="TON_CheckCompletato_Stacker" Datatype="IEC_TIMER" Version="1.0" />
+    <Member Name="TON_CheckCompletato_Preparation" Datatype="IEC_TIMER" Version="1.0" />
+  </Section>
+</Sections></Interface>
+      <Name>A0303_Manager</Name>
+      <Namespace />
+      <Number>163</Number>
+      <ProgrammingLanguage>DB</ProgrammingLanguage>
+    </AttributeList>
+    <ObjectList>
+      <MultilingualText ID="1" CompositionName="Comment">
+        <ObjectList>
+          <MultilingualTextItem ID="2" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="3" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="4" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+      <MultilingualText ID="5" CompositionName="Title">
+        <ObjectList>
+          <MultilingualTextItem ID="6" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-US</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="7" CompositionName="Items">
+            <AttributeList>
+              <Culture>en-GB</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+          <MultilingualTextItem ID="8" CompositionName="Items">
+            <AttributeList>
+              <Culture>it-IT</Culture>
+              <Text />
+            </AttributeList>
+          </MultilingualTextItem>
+        </ObjectList>
+      </MultilingualText>
+    </ObjectList>
+  </SW.Blocks.InstanceDB>
+</Document>
