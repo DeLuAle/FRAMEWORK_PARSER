@@ -1,0 +1,264 @@
+(*
+  ============================================================================
+  SINAMICS S120/S150 Alarm and Fault Handler
+  UNIFIED KNOWLEDGE BASE VERSION
+
+  Funzione SCL per TIA Portal (S7-1200, S7-1500)
+  Gestione allarmi e fault del drive SINAMICS
+
+  Genera descrizioni e soluzioni partendo dal numero di allarme/fault
+  Dati estratti dalla Unified Knowledge Base SINAMICS S120/S150
+
+  Contiene: 38 allarmi + 42 fault
+  Fonti:
+  - sinamics_s120_communication
+  - sinamics_s120_drive_functions
+  - sinamics_s120_s150_list_manual
+  ============================================================================
+*)
+
+TYPE AlarmFaultRecord
+STRUCT
+    Code : STRING[10];           (* Codice alarm/fault: "0230", "F3000", etc. *)
+    Type : STRING[10];           (* "ALARM" o "FAULT" *)
+    Description : STRING[256];   (* Descrizione del messaggio *)
+    Solution : STRING[256];      (* Soluzione consigliata *)
+    SectionID : STRING[20];      (* ID sezione manuale *)
+END_STRUCT
+END_TYPE
+
+(* Tipo per il risultato della ricerca *)
+TYPE SearchResult
+STRUCT
+    Found : BOOL;                (* TRUE se alarm/fault trovato *)
+    Record : AlarmFaultRecord;   (* Dati dell'alarm/fault *)
+    ErrorMessage : STRING[256];  (* Messaggio di errore se non trovato *)
+END_STRUCT
+END_TYPE
+
+(*
+  ============================================================================
+  DATABASE ALLARMI E FAULT - UNIFIED KNOWLEDGE BASE
+  Estratto automaticamente da Unified KB (38 allarmi + 42 fault)
+  ============================================================================
+*)
+
+VAR CONSTANT
+    (* Tabella allarmi SINAMICS - UNIFIED *)
+    ALARM_DATABASE : ARRAY [1..38] OF AlarmFaultRecord := (
+        (Code := "8839", Type := "ALARM", Description := "for p8839, the following rules apply: ● the setting of p8839 applies for all drive objects of a cont", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_001348"),        (Code := "3120", Type := "ALARM", Description := "● r3120[0..63] component fault ● r3121[0..63] component alarm ● r9745[0..63] si component (with safe", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_001871"),        (Code := "2047", Type := "ALARM", Description := "● sequence – following a telegram failure and once the additional monitoring time (p2047) has elapse", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_002605"),        (Code := "a0194", Type := "ALARM", Description := "faults and alarms with profibus slave-to-slave communication the alarm a01945 signals that the conne", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_002849"),        (Code := "2110", Type := "ALARM", Description := "r2110[3] alarm number 4", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_005151"),        (Code := "cbe20", Type := "ALARM", Description := "requirements the following preconditions must be fulfilled to operate sinamics link: ● one cbe20 mus", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_005585"),        (Code := "3100", Type := "ALARM", Description := "setting time synchronization with ntp 1. using p3100, changeover the time format from operating hour", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_000614"),        (Code := "a0109", Type := "ALARM", Description := "faults and alarms (see sinamics s120/s150 list manual) ● a01099 ● a01097 (n)", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_000622"),        (Code := "1400", Type := "ALARM", Description := "we recommend activating the load estimation in the event of changes in the speed setpoints via p1400", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010148"),        (Code := "1502", Type := "ALARM", Description := "a load change in the acceleration or deceleration set the source of p1502 to a 1 signal. phases cann", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010153"),        (Code := "5250", Type := "ALARM", Description := "used to switch between the two compensation tables (where p5250.1 = 1) for di‐ rection reversal in o", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010868"),        (Code := "a0735", Type := "ALARM", Description := "faults and alarms (see sinamics s120/s150 list manual) a07354 f07355 a07356", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010901"),        (Code := "a0780", Type := "ALARM", Description := "thermal monitoring the following thermal monitoring functions are active: • i2t monitoring - a07805", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010947"),        (Code := "ceede", Type := "ALARM", Description := "reaction when the temperature threshold is exceeded, the pulse frequency is reduced to a permis‐ sib", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010967"),        (Code := "0632", Type := "ALARM", Description := "explanation alarm threshold when the temperature from the motor temperature model (r0632) exceeds th", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011045"),        (Code := "0610", Type := "ALARM", Description := "parameters (see sinamics s120/s150 list manual) thermal motor model 1, 2 and 3 • p0610[0...n] motor", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011061"),        (Code := "1000", Type := "ALARM", Description := "monitoring functions and protective functions 10.2 thermal motor protection pt1000 or kty84 • when", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011717"),        (Code := "a0791", Type := "ALARM", Description := "alarm a07910", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011740"),        (Code := "f0701", Type := "ALARM", Description := "• if the set fault threshold is reached, fault f07011 is triggered depending on the setting in p0610", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011747"),        (Code := "4100", Type := "ALARM", Description := "parameters for tm31 • p4100 tm31 sensor type • p4102[0...1] tm31 fault threshold/alarm threshold • p", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011764"),        (Code := "9601", Type := "ALARM", Description := "safety integrated basic functions 11.4 safe torque off (sto) • sto via tm54f: – p9601.0 = 0 – p9601", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011972"),        (Code := "a0169", Type := "ALARM", Description := "the following alarms and faults are output: – a01698 (si cu: commissioning mode active) during first", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_012429"),        (Code := "60204", Type := "ALARM", Description := "stop a corresponds to stop category 0 in accordance with en 60204-1. with stop a, the motor is switc", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_012545"),        (Code := "2100", Type := "ALARM", Description := "applications 12.4 quick stop in the event of a power failure or emergency stop (servo) • p2100[x] =", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_012876"),        (Code := "a0131", Type := "ALARM", Description := "after inserting a component, before activating, first wait for alarm a01317.", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_011019"),        (Code := "4102", Type := "ALARM", Description := "sets the hysteresis for the fault threshold/alarm threshold (p4102[0...23]) for the terminal module", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106684"),        (Code := "a3521", Type := "ALARM", Description := "sets the fault threshold/alarm threshold for terminal module 31 (tm31). a35211 is initiated, if the", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_105992"),        (Code := "f3520", Type := "ALARM", Description := "the fault f35207 ... f35210 and f35400 ... 35407 only results in the drive being shut down if at lea", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106091"),        (Code := "ceede", Type := "ALARM", Description := "signal name temperature alarm threshold exceeded temperature fault threshold exceeded sensor fault (", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106148"),        (Code := "4105", Type := "ALARM", Description := "the following applies for a corresponding alarm: - remains until the temperature actual value (r4105", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106692"),        (Code := "1000", Type := "ALARM", Description := "no sensor ptc fault ptc alarm ptc alarm & timer kty84, pt100, pt1000 bimetallic nc contact fault bim", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_110307"),        (Code := "0108", Type := "ALARM", Description := "active messages can prevent or influence activating a function module. refer to: p0108, p0171, p0172", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_011304"),        (Code := "4688", Type := "ALARM", Description := "accumulator (p4688) is compared with this parameter, and where relevant, alarm a3x422 is output for", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_111795"),        (Code := "4736", Type := "ALARM", Description := "sets the physical address for the seventh signal to be traced. the data type is defined using p4736.", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_114133"),        (Code := "effec", Type := "ALARM", Description := "sets the speed offset for the motor. the offset is intended to prevent non-linear effects, such as b", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_119567"),        (Code := "0600", Type := "ALARM", Description := "for bit 00, 04: the motor temperature is measured using a temperature sensor (p0600, p0601). when th", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_120791"),        (Code := "5390", Type := "ALARM", Description := "mot_temp_mod 1/3 alarm threshold image p5390 / a thr image p5390", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_120881"),        (Code := "5423", Type := "ALARM", Description := "the supplementary inductance is deactivated with p5423 = 0. the converter's output voltage is calcul", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_121630")
+    );
+
+    (* Tabella fault SINAMICS - UNIFIED *)
+    FAULT_DATABASE : ARRAY [1..42] OF AlarmFaultRecord := (
+        (Code := "0945", Type := "FAULT", Description := "communication according to profidrive 4.4 acyclic communication ● parameter number: 945 dec → p0945", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_001731"),        (Code := "3120", Type := "FAULT", Description := "● r3120[0..63] component fault ● r3121[0..63] component alarm ● r9745[0..63] si component (with safe", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_001871"),        (Code := "2044", Type := "FAULT", Description := "telegram failure with a cpu stop ● once the delay time p2044 has elapsed, fault f01910 is output. fa", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_002584"),        (Code := "2047", Type := "FAULT", Description := "● sequence – following a telegram failure and once the additional monitoring time (p2047) has elapse", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_002605"),        (Code := "a0194", Type := "FAULT", Description := "faults and alarms with profibus slave-to-slave communication the alarm a01945 signals that the conne", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_002849"),        (Code := "f0191", Type := "FAULT", Description := "no connection or setpoint failure (f01910).", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_003472"),        (Code := "40400", Type := "FAULT", Description := "fault diagnostics 40400", Solution := "Consultare manuale sinamics_s120_communication", SectionID := "sezione_004177"),        (Code := "3749", Type := "FAULT", Description := "after preassigning the parameters, carry out a ram to rom data backup. note using p3749 • when inter", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010291"),        (Code := "feedb", Type := "FAULT", Description := "• a highpass filter for the differential position feedback can be parameterized in parameter p3767.", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010463"),        (Code := "2103", Type := "FAULT", Description := "p2103 bi: 1. acknowledge faults or p2104 bi: 2. acknowledge faults or p2105 bi: 3. acknowledge fault", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_001052"),        (Code := "a0735", Type := "FAULT", Description := "faults and alarms (see sinamics s120/s150 list manual) a07354 f07355 a07356", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010901"),        (Code := "0287", Type := "FAULT", Description := "after the threshold in p0287 is exceeded, f30021 "power unit: ground fault"→ off2 occurs. note the s", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010937"),        (Code := "f3001", Type := "FAULT", Description := "f30011 "line phase-failure in main circuit" → off2", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010941"),        (Code := "ceede", Type := "FAULT", Description := "reaction when the temperature alarm threshold or i2t alarm threshold is exceeded, the output current", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_010955"),        (Code := "0632", Type := "FAULT", Description := "fault threshold when the temperature from the motor temperature model (r0632) exceeds the fault thre", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011047"),        (Code := "0610", Type := "FAULT", Description := "parameters (see sinamics s120/s150 list manual) thermal motor model 1, 2 and 3 • p0610[0...n] motor", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011061"),        (Code := "f0701", Type := "FAULT", Description := "• if the set fault threshold is reached, fault f07011 is triggered depending on the setting in p0610", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011747"),        (Code := "4100", Type := "FAULT", Description := "parameters for tm31 • p4100 tm31 sensor type • p4102[0...1] tm31 fault threshold/alarm threshold • p", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011764"),        (Code := "0318", Type := "FAULT", Description := "thermal motor models • p0318[0...n] motor stall current • p0335[0...n] motor cooling type • p0344[0.", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011769"),        (Code := "1744", Type := "FAULT", Description := "function description if the adaptation controller output exceeds the speed threshold set in p1744 fo", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011815"),        (Code := "60204", Type := "FAULT", Description := "safety integrated basic functions 11.2 general information • en 60204-1 safety of machinery - elect", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011856"),        (Code := "9798", Type := "FAULT", Description := "safety integrated basic functions 11.2 general information basic functions • r9798 si actual checks", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011922"),        (Code := "9601", Type := "FAULT", Description := "safety integrated basic functions 11.4 safe torque off (sto) • sto via tm54f: – p9601.0 = 0 – p9601", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_011972"),        (Code := "defec", Type := "FAULT", Description := "warning undesirable motor motion due to defective brake "safe brake control" does not detect mechani", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_012012"),        (Code := "0799", Type := "FAULT", Description := "t_e1) = 2 · p0799 (default = 4 ms)", Solution := "Consultare manuale sinamics_s120_drive_functions", SectionID := "sezione_012075"),        (Code := "4056", Type := "FAULT", Description := "when changing p4056, the parameters of the scaling characteristic (p4057, p4058, p4059, p4060) are o", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_103145"),        (Code := "4076", Type := "FAULT", Description := "when changing p4076, the parameters of the scaling characteristic (p4077, p4078, p4079, p4080) are o", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_104305"),        (Code := "4096", Type := "FAULT", Description := "refer to: p4096 warning:", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_105100"),        (Code := "4102", Type := "FAULT", Description := "sets the hysteresis for the fault threshold/alarm threshold (p4102[0...23]) for the terminal module", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106684"),        (Code := "a0701", Type := "FAULT", Description := "for a07017 the following applies: - remains until the temperature actual value (r4105) reaches or fa", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_105898"),        (Code := "a3521", Type := "FAULT", Description := "sets the fault threshold/alarm threshold for terminal module 31 (tm31). a35211 is initiated, if the", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_105992"),        (Code := "f3520", Type := "FAULT", Description := "fault f35207 only causes the drive to be shut down if there is at least one bico interconnection bet", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106118"),        (Code := "4103", Type := "FAULT", Description := "with p4103 = 0, the timer is deactivated and only the fault threshold is effective.", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106120"),        (Code := "ceede", Type := "FAULT", Description := "signal name temperature alarm threshold exceeded temperature fault threshold exceeded sensor fault (", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106148"),        (Code := "4104", Type := "FAULT", Description := "- the temperature display is not valid (temperature sensor fault, also see r4104.2). - no sensor sel", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106279"),        (Code := "effec", Type := "FAULT", Description := "sets the effect for an error of a sensor of a group for terminal module tm150 (tm150). for p4117 = 0", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106654"),        (Code := "4105", Type := "FAULT", Description := "the following applies for a corresponding alarm: - remains until the temperature actual value (r4105", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_106692"),        (Code := "4404", Type := "FAULT", Description := "sets the controller option for incremental encoder emulation on terminal module 41 (tm41). p4404.0 =", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_109809"),        (Code := "1000", Type := "FAULT", Description := "no sensor ptc fault ptc alarm ptc alarm & timer kty84, pt100, pt1000 bimetallic nc contact fault bim", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_110307"),        (Code := "4619", Type := "FAULT", Description := "for r4619 equal to -200.0 °c, the following applies: this temperature display is not valid (temperat", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_110367"),        (Code := "4642", Type := "FAULT", Description := "test function to initiate an encoder fault for p4642 = 1: when setting, an encoder fault is output o", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_110671"),        (Code := "4692", Type := "FAULT", Description := "p4692 = 10: automatic on successful completion of backup procedure. p4692 = 13, 16, 20, 29: error va", Solution := "Consultare manuale sinamics_s120_s150_list_manual", SectionID := "sezione_112090")
+    );
+END_VAR
+
+(*
+  ============================================================================
+  FUNCTION: SearchAlarmByCode
+
+  Ricerca un allarme nel database per codice
+
+  Parametri di ingresso:
+    AlarmCode : STRING - Codice allarme da cercare (es. "0230", "A0681")
+
+  Ritorna:
+    SearchResult - Struttura con risultati della ricerca
+  ============================================================================
+*)
+FUNCTION SearchAlarmByCode : SearchResult
+    VAR_INPUT
+        AlarmCode : STRING;
+    END_VAR
+    VAR
+        i : INT;
+        Result : SearchResult;
+        UpperCode : STRING;
+    END_VAR
+BEGIN
+    Result.Found := FALSE;
+    Result.ErrorMessage := '';
+
+    (* Converte il codice a maiuscole per ricerca case-insensitive *)
+    UpperCode := UPPER(AlarmCode);
+
+    (* Ricerca nel database allarmi *)
+    FOR i := 1 TO ARRAY_SIZE(ALARM_DATABASE, 1) DO
+        IF UPPER(ALARM_DATABASE[i].Code) = UpperCode THEN
+            Result.Found := TRUE;
+            Result.Record := ALARM_DATABASE[i];
+            RETURN Result;
+        END_IF;
+    END_FOR;
+
+    (* Se non trovato nei database allarmi, restituisce errore *)
+    Result.ErrorMessage := CONCAT('Allarme non trovato: ', AlarmCode);
+    RETURN Result;
+END_FUNCTION
+
+(*
+  ============================================================================
+  FUNCTION: SearchFaultByCode
+
+  Ricerca un fault nel database per codice
+
+  Parametri di ingresso:
+    FaultCode : STRING - Codice fault da cercare (es. "F0300", "3000")
+
+  Ritorna:
+    SearchResult - Struttura con risultati della ricerca
+  ============================================================================
+*)
+FUNCTION SearchFaultByCode : SearchResult
+    VAR_INPUT
+        FaultCode : STRING;
+    END_VAR
+    VAR
+        i : INT;
+        Result : SearchResult;
+        UpperCode : STRING;
+    END_VAR
+BEGIN
+    Result.Found := FALSE;
+    Result.ErrorMessage := '';
+
+    (* Converte il codice a maiuscole per ricerca case-insensitive *)
+    UpperCode := UPPER(FaultCode);
+
+    (* Ricerca nel database fault *)
+    FOR i := 1 TO ARRAY_SIZE(FAULT_DATABASE, 1) DO
+        IF UPPER(FAULT_DATABASE[i].Code) = UpperCode THEN
+            Result.Found := TRUE;
+            Result.Record := FAULT_DATABASE[i];
+            RETURN Result;
+        END_IF;
+    END_FOR;
+
+    (* Se non trovato nei database fault, restituisce errore *)
+    Result.ErrorMessage := CONCAT('Fault non trovato: ', FaultCode);
+    RETURN Result;
+END_FUNCTION
+
+(*
+  ============================================================================
+  FUNCTION: SearchAlarmOrFault
+
+  Ricerca sia allarmi che fault per codice (procedura unificata)
+
+  Parametri di ingresso:
+    Code : STRING - Codice da cercare (funziona per allarmi e fault)
+
+  Ritorna:
+    SearchResult - Struttura con risultati della ricerca
+  ============================================================================
+*)
+FUNCTION SearchAlarmOrFault : SearchResult
+    VAR_INPUT
+        Code : STRING;
+    END_VAR
+    VAR
+        Result : SearchResult;
+    END_VAR
+BEGIN
+    (* Prova a cercare prima negli allarmi *)
+    Result := SearchAlarmByCode(Code);
+
+    IF NOT Result.Found THEN
+        (* Se non trovato negli allarmi, cerca nei fault *)
+        Result := SearchFaultByCode(Code);
+    END_IF;
+
+    RETURN Result;
+END_FUNCTION
+
+(*
+  ============================================================================
+  FUNCTION: GetAlarmDescription
+
+  Ritorna solo la descrizione di un allarme (senza struttura completa)
+
+  Parametri di ingresso:
+    AlarmCode : STRING - Codice allarme
+
+  Ritorna:
+    STRING - Descrizione dell'allarme o messaggio di errore
+  ============================================================================
+*)
+FUNCTION GetAlarmDescription : STRING
+    VAR_INPUT
+        AlarmCode : STRING;
+    END_VAR
+    VAR
+        Result : SearchResult;
+    END_VAR
+BEGIN
+    Result := SearchAlarmByCode(AlarmCode);
+
+    IF Result.Found THEN
+        RETURN Result.Record.Description;
+    ELSE
+        RETURN Result.ErrorMessage;
+    END_IF;
+END_FUNCTION
+
+(*
+  ============================================================================
+  FUNCTION: GetFaultDescription
+
+  Ritorna solo la descrizione di un fault
+
+  Parametri di ingresso:
+    FaultCode : STRING - Codice fault
+
+  Ritorna:
+    STRING - Descrizione del fault o messaggio di errore
+  ============================================================================
+*)
+FUNCTION GetFaultDescription : STRING
+    VAR_INPUT
+        FaultCode : STRING;
+    END_VAR
+    VAR
+        Result : SearchResult;
+    END_VAR
+BEGIN
+    Result := SearchFaultByCode(FaultCode);
+
+    IF Result.Found THEN
+        RETURN Result.Record.Description;
+    ELSE
+        RETURN Result.ErrorMessage;
+    END_IF;
+END_FUNCTION
+
+(*
+  ============================================================================
+  FUNCTION: GetSolution
+
+  Ritorna la soluzione consigliata per un allarme/fault
+
+  Parametri di ingresso:
+    Code : STRING - Codice allarme/fault
+
+  Ritorna:
+    STRING - Soluzione consigliata o messaggio di errore
+  ============================================================================
+*)
+FUNCTION GetSolution : STRING
+    VAR_INPUT
+        Code : STRING;
+    END_VAR
+    VAR
+        Result : SearchResult;
+    END_VAR
+BEGIN
+    Result := SearchAlarmOrFault(Code);
+
+    IF Result.Found THEN
+        RETURN Result.Record.Solution;
+    ELSE
+        RETURN Result.ErrorMessage;
+    END_IF;
+END_FUNCTION

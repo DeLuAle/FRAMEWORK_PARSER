@@ -23,14 +23,27 @@ python xml_to_scl/batch_convert_project.py "PLC_410D1" --output "PLC_410D1_Parse
 - **Input**: The directory containing your TIA Portal XML exports (e.g., `PLC_410D1`).
 - **Output**: A new directory (e.g., `PLC_410D1_Parsed`) where the converted SCL/CSV files will be saved, maintaining the original folder structure.
 
-## 📂 Features
-
-- **FB/FC Conversion**: Converts Ladder/FBD logic into structured SCL code.
-- **DB Generation**: Converts Global DBs into `.db` files.
-- **UDT Support**: Converts PLC User Data Types into `.udt` files.
-- **PLC Tags**: Converts Tag Tables into `.csv` files compatible with TIA Portal import.
-- **Structure Preservation**: Maintains the original folder hierarchy (Software units, Program blocks, etc.).
 - **Validation**: Automatically checks for placeholders (`???`) in the generated code and logs them in a detailed report.
+
+---
+
+## 📚 Ecosystem & Components
+
+Oltre al parser principale, la repository include strumenti specializzati per l'ecosistema Siemens:
+
+### 🔍 [DocKB_Siemens](./DocKB_Siemens)
+Sistema di **Information Retrieval** e Knowledge Base tecnica.
+- **Estrazione**: Smonta manuali PDF (SINAMICS, S7-1500) in database JSON.
+- **Ricerca Rapida**: Trova parametri, fault e allarmi istantaneamente senza consultare PDF da 1000+ pagine.
+- **Integrazione**: Fornisce script di ricerca CLI e modelli SCL per TIA Portal.
+
+### ✍️ [SKILL_SCL_SYNTAX](./SKILL_SCL_SYNTAX)
+Guida di riferimento e assistenza per la programmazione **SCL (Structured Control Language)**.
+- **Best Practices**: Regole critiche per TIA Portal V20+ (es. parametri nominati, istanze persistenti).
+- **Database Funzioni**: Riferimento per oltre 200 funzioni native Siemens.
+- **Anti-Patterns**: Catalogo di errori comuni da evitare durante lo sviluppo.
+
+---
 
 ## 📊 Reports
 

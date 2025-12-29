@@ -1,0 +1,170 @@
+# DocKB_Siemens - Dependencies
+
+## System Dependencies (Required)
+
+Questi tool devono essere installati sul sistema operativo:
+
+### Windows
+
+Usa **Chocolatey** (consigliato) o **winget**:
+
+```powershell
+# Opzione 1: Chocolatey
+choco install poppler
+choco install pandoc
+
+# Opzione 2: winget
+winget install poppler
+winget install pandoc
+
+# Opzione 3: MSYS2
+pacman -S mingw-w64-x86_64-poppler
+pacman -S pandoc
+```
+
+#### Verifica Installazione (Windows)
+```powershell
+pdftotext -v
+pandoc --version
+```
+
+### Linux (Ubuntu/Debian)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y poppler-utils pandoc
+```
+
+### macOS
+
+```bash
+brew install poppler pandoc
+```
+
+---
+
+## Python Dependencies
+
+**Questo progetto usa SOLO la libreria standard Python.**
+
+Non sono necessarie installazioni pip aggiuntive.
+
+### Python Modules Utilizzati (Standard Library)
+- `json` - Parsing e generazione JSON
+- `pathlib` - Gestione percorsi cross-platform
+- `re` - Regex per pattern matching
+- `subprocess` - Chiamate a tool sistema (pdftotext, pandoc)
+- `argparse` - CLI argument parsing
+- `collections` - Utilities (defaultdict)
+- `datetime` - Timestamp
+- `typing` - Type hints
+
+---
+
+## Requisiti Python
+
+- **Python 3.7+** (raccomandato: Python 3.9+)
+
+---
+
+## Installazione Completa (Quick Start)
+
+### Windows
+
+```powershell
+# 1. Installa Python (se non già installato)
+winget install Python.Python.3.11
+
+# 2. Installa dipendenze sistema
+choco install poppler pandoc
+
+# 3. Clona/Sposta DocKB_Siemens in c:\Projects
+cd c:\Projects\DocKB_Siemens
+
+# 4. Verifica setup
+python config.py
+python validate_setup.py
+```
+
+### Linux/Mac
+
+```bash
+# 1. Installa Python (di solito già presente)
+python3 --version
+
+# 2. Installa dipendenze
+sudo apt-get install poppler-utils pandoc  # Linux
+brew install poppler pandoc                # Mac
+
+# 3. Naviga al progetto
+cd /path/to/DocKB_Siemens
+
+# 4. Verifica setup
+python3 config.py
+python3 validate_setup.py
+```
+
+---
+
+## Dipendenze Opzionali (Future Features)
+
+Se in futuro vorrai aggiungere funzionalità avanzate:
+
+### Per RAG/LLM Integration:
+```bash
+pip install sentence-transformers  # Embeddings
+pip install chromadb              # Vector database
+pip install openai                # OpenAI API
+```
+
+### Per Web Interface:
+```bash
+pip install flask                 # Web server
+pip install flask-cors            # CORS support
+```
+
+### Per Advanced Search:
+```bash
+pip install whoosh                # Full-text search engine
+```
+
+**Nota:** Queste sono opzionali e NON necessarie per il funzionamento base.
+
+---
+
+## Troubleshooting
+
+### Windows - "pdftotext not found"
+- Verifica che Chocolatey/winget abbia installato correttamente
+- Aggiungi manualmente al PATH: `C:\ProgramData\chocolatey\bin`
+- Riavvia PowerShell dopo installazione
+
+### Linux - Permission denied
+```bash
+sudo chmod +x /usr/bin/pdftotext
+sudo chmod +x /usr/bin/pandoc
+```
+
+### Import Error in Python
+- Tutti i moduli usati sono nella standard library
+- Se vedi `ModuleNotFoundError`, verifica versione Python >= 3.7
+
+---
+
+## Verifica Setup
+
+Esegui questo comando per verificare che tutto sia configurato:
+
+```bash
+python validate_setup.py
+```
+
+Output atteso:
+```
+✓ Python version: 3.11.x
+✓ pdftotext installed
+✓ pandoc installed
+✓ All directories exist
+✓ Registry files valid
+✓ Setup complete!
+```
