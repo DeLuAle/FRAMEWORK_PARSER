@@ -140,6 +140,7 @@ BEGIN
       IF ((((((NOT (Rotation.DataIn.Rest_Ls[1]) AND NOT (Rotation.DataIn.Work_Ls[1])) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)) AND AreaInterface.Aut) THEN
          Alarm.Rotation_NotInPosition := TRUE;
       END_IF;
+      #TON_Rotation_NotInPosition.Q;
       Warning.Rotation_NotInPosition := (#TON_Rotation_NotInPosition.Q AND NOT (Alarm.Rotation_NotInPosition));
    END_REGION
 
@@ -184,9 +185,24 @@ BEGIN
          DataOut => DataOut.Rotation
       );
 
+      #Rotation.Q;
    END_REGION
 
    REGION "Tower"
+      "Lamp"(
+         en := TRUE,
+         Signal := (NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))) AND Sys.Clock_500MS),
+         Ret_Val => DataOut.Tower_Lamp
+      );
+
+      "Lamp"(
+         en := TRUE,
+         Signal := NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))),
+         Ret_Val => DataOut.Tower_Horn
+      );
+
+      DataOut.Tower_Lamp := "Lamp"(Signal := (NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))) AND Sys.Clock_500MS));
+      DataOut.Tower_Horn := "Lamp"(Signal := NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))));
    END_REGION
 
    REGION "Alarms / Warnings pivot not work"
@@ -201,6 +217,7 @@ BEGIN
       IF ((((((((Rotation.V.ValveSts.IsAtRest OR Rotation.V.ValveSts.IsAtWork) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Pivot.V.ValveSts.IsAtWork)) AND NOT (CIn.Manager.ChangeDecoilerEnable)) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)) AND AreaInterface.Aut) THEN
          Alarm.Pivot_NotWork := TRUE;
       END_IF;
+      #TON_Pivot_NotWork.Q;
       Warning.Pivot_NotWork := (#TON_Pivot_NotWork.Q AND NOT (Alarm.Pivot_NotWork));
    END_REGION
 
@@ -259,6 +276,7 @@ BEGIN
          DataOut => DataOut.Pivot
       );
 
+      #Pivot.Q;
    END_REGION
 
    REGION "Decoiler 1 / 2 in line partial (without chwck transaltion position)"
@@ -321,6 +339,7 @@ BEGIN
          PT := T#2s
       );
 
+      #TON_Translation_NotInPosition.Q;
       Warning.Translation_NotInPosition := #TON_Translation_NotInPosition.Q;
    END_REGION
 
@@ -348,6 +367,7 @@ BEGIN
          Alarm := Alarm.Traslation_Enc
       );
 
+      #Traslation_Enc.Q;
    END_REGION
 
    REGION "Positioning Machine Manager"
@@ -368,15 +388,45 @@ BEGIN
          COut => COut.Traslation
       );
 
+      #Translation.Q;
    END_REGION
 
    REGION "Machine coordination out"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Translation.COut.ActualPosition,
+         Target := Translation.CIn.Manager.Pos,
+         PosWin := PersistentValues.Par.TraslationAx.PosTolerance,
+         Ret_Val => COut.Translation_InPosition
+      );
+
+      COut.Translation_InPosition := "TolWindow"(ActPos := Translation.COut.ActualPosition, Target := Translation.CIn.Manager.Pos, PosWin := PersistentValues.Par.TraslationAx.PosTolerance);
       COut.Decoiler1_InLine := (true AND Sts.Decoiler1_InLine_Partial);
       COut.Decoiler2_InLine := (true AND Sts.Decoiler2_InLine_Partial);
       COut.DecoilerX_InLine_CheckNext := ((Ctrl.Decoiler1_MoveInLine AND NOT (COut.Decoiler1_InLine)) OR (Ctrl.Decoiler2_MoveInLine AND NOT (COut.Decoiler2_InLine)));
    END_REGION
 
    REGION "Collect machine to zone interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Rotation.MachineInterface,
+         MachineInterface_2 := Pivot.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((NOT (Warning.Rotation_NotInPosition) AND NOT (Warning.Pivot_NotWork)) AND NOT (Warning.Translation_NotInPosition))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Translation.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Rotation.MachineInterface, MachineInterface_2 := Pivot.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((NOT (Warning.Rotation_NotInPosition) AND NOT (Warning.Pivot_NotWork)) AND NOT (Warning.Translation_NotInPosition))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Translation.MachineInterface, AdditionalAlarms := FALSE);
    END_REGION
 
 

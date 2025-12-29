@@ -220,6 +220,9 @@ class LADLogicParser:
                                 components.append(comp.get('Name'))
                         if components:
                             part_data['instance_name'] = '.'.join(components)
+                    
+                    # Store block name even if no instance (for FCs)
+                    part_data['block_name'] = call_info.get('Name')
                             
             self.parts[uid] = part_data
 
@@ -326,19 +329,20 @@ class LADLogicParser:
         """Extract FB calls with parameter connections"""
         fb_calls = []
         
-        # Find all FB instances (Parts)
+        # Find all block calls (Parts or Call elements)
         for uid, part in self.parts.items():
-            if part.get('type') == 'Part' and 'instance_name' in part:
+            # A call is anything with an instance_name OR a block_name from a Call element
+            if part.get('type') == 'Part' and (part.get('instance_name') or part.get('block_name')):
                 fb_call = {
-                    'instance': part['instance_name'],
-                    'fb_type': part['part_type'],
+                    'instance': part.get('instance_name'),
+                    'fb_type': part.get('part_type') or part.get('block_name'),
                     'version': part.get('version'),
                     'inputs': {},
                     'outputs': {},
                     'inouts': {}
                 }
                 
-                logger.debug(f"Processing FB instance '{part['instance_name']}' with UID {uid}")
+                logger.debug(f"Processing block call '{fb_call['fb_type']}' with UID {uid}")
                 
                 # For input parameters, we need to find what connects TO them.
                 # In LAD, FB inputs are pins on the Part.
@@ -780,14 +784,22 @@ class LADLogicParser:
              else:
                  return f"#{instance_name}.Q" # Best guess default
 
-        elif part.get('type') == 'Call' or (part_type and part.get('blocktype') == 'FC'):
+        elif part.get('type') == 'Call' or (part_type and part.get('blocktype') == 'FC') or part.get('block_name'):
             # FC/FB Call in LAD logic
-            # part_type contains the FC/FB name (e.g., "Um2-1")
-            call_name = part_type or part.get('name', f'Call_{uid}')
-            # FC calls in LAD expressions are typically used as function results
-            # Return a placeholder that indicates this is a function call result
-            logger.warning(f"FC call '{call_name}' used in LAD logic expression - using placeholder")
-            return f"???"  # Placeholder for FC call result
+            # part_type or block_name contains the FC/FB name
+            call_name = part_type or part.get('block_name') or part.get('name', f'Call_{uid}')
+            
+            # Resolve parameters
+            input_args = {}
+            for (curr_uid, curr_pin), source_info in self.connections.items():
+                if curr_uid == uid and curr_pin and curr_pin not in ['en', 'eno', 'Ret_Val']:
+                    # Use the common resolver
+                    val = self._resolve_input_connection(source_info)
+                    input_args[curr_pin] = val
+            
+            # Formatting call: "FC_Name"(Param1 := Val1, ...)
+            params = [f"{k} := {v}" for k, v in input_args.items() if v != '???']
+            return f'"{call_name}"({", ".join(params)})'
 
         # For unknown or unsupported logic parts (e.g., FC call results in LAD)
         # Return placeholder instead of UnknownLogic to be more explicit that we don't support this
@@ -1030,6 +1042,33 @@ class LADLogicParser:
                  en_conn = self.connections.get((uid, 'en'))
                  en_expr = self._resolve_input_connection(en_conn) if en_conn else 'TRUE'
                  op_entry = { 'type': 'continue', 'condition': en_expr }
+
+            # --- GENERIC CALLS (FC/FB) ---
+            elif part.get('block_name') or part.get('instance_name'):
+                 # This covers calls that weren't processed as specific operations above
+                 en_conn = self.connections.get((uid, 'en'))
+                 en_expr = self._resolve_input_connection(en_conn) if en_conn else 'TRUE'
+                 
+                 # Check if it has a return value (assignment)
+                 dest_var = self._find_variable_connected_to_output(uid, 'Ret_Val') or \
+                            self._find_variable_connected_to_output(uid, 'out')
+                 
+                 # Resolve call string
+                 call_expr = self._resolve_logic_part(uid, None)
+                 
+                 if dest_var:
+                      op_entry = {
+                          'type': 'instruction_assignment',
+                          'variable': dest_var,
+                          'expression': call_expr,
+                          'en_expr': en_expr
+                      }
+                 else:
+                      op_entry = {
+                          'type': 'instruction_call',
+                          'expression': call_expr,
+                          'en_expr': en_expr
+                      }
 
             if op_entry:
                 operations.append(op_entry)

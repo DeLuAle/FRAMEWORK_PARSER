@@ -365,11 +365,14 @@ class FBFCGenerator(SCLGeneratorBase):
     
     def _generate_single_fb_call(self, fb_call: Dict[str, Any]):
         """Generate SCL code for a single FB call"""
-        instance = fb_call.get('instance', 'Unknown')
+        instance = fb_call.get('instance')
+        fb_type = fb_call.get('fb_type', 'Unknown')
         inputs = fb_call.get('inputs', {})
         outputs = fb_call.get('outputs', {})
         
-        self._add_line(f'#{instance}(')
+        # Use # prefix for instances (FBs), but NOT for standalone calls (FCs)
+        call_name = f'#{instance}' if instance else f'"{fb_type}"'
+        self._add_line(f'{call_name}(')
         self._indent()
         
         # Combine inputs and outputs
