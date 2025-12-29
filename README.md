@@ -1,6 +1,10 @@
 # FRAMEWORK_PARSER
 
 > **Nota**: Questa repository è stata creata per imparare come funziona il framework PLC e la relativa codebase.
+>
+> [!IMPORTANT]
+> **Source of Truth & Disclaimer**: Gli artefatti SCL/CSV generati sono il risultato di una conversione automatica eseguita dal modulo `xml_to_scl`. Data la natura euristica del parsing della logica Ladder/FBD, il codice prodotto potrebbe contenere discrepanze o errori di interpretazione. La **Source of Truth (SoT)** definitiva rimane esclusivamente il sorgente XML originale esportato da TIA Portal. La validazione tecnica deve sempre fare riferimento ai file XML per garantire l'integrità delle informazioni.
+
 
 TIA Portal XML to SCL Converter. This tool allows you to convert PLC blocks (FB, FC, DB, UDT) and Tag Tables exported from TIA Portal in XML format into readable and importable SCL or CSV files.
 
