@@ -1,0 +1,1134 @@
+﻿// Block: Area02_CALL
+// Title: Data In
+
+FUNCTION "Area02_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In
+   VAR_TEMP
+      AlrIndex : Int;
+      WngIndex : Int;
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      Area02.DataIn.SelMan := ((NOT (A02_HMI.Area02.SuperUser.Priority) AND MB2_Pb_Manuale_Area02) OR (A02_HMI.Area02.SuperUser.Priority AND (A02_HMI.Area02.SuperUser.SelManAut = 1)));
+      Area02.DataIn.SelAut := ((NOT (A02_HMI.Area02.SuperUser.Priority) AND MB2_Pb_Automatico_Area02) OR (A02_HMI.Area02.SuperUser.Priority AND (A02_HMI.Area02.SuperUser.SelManAut = 2)));
+      Area02.DataIn.PbStart := NOT (((NOT (A02_HMI.Area02.SuperUser.PbStart) AND NOT (MB2_Pb_Start_Ciclo_Area02)) AND NOT (Areas_ITF.A03.PB.MB3_Area02_PB_Start)));
+      Area02.DataIn.PbStop := NOT (((NOT (A02_HMI.Area02.SuperUser.PbStop) AND NOT (MB2_Pb_Stop_Ciclo_Area02)) AND NOT (Areas_ITF.A03.PB.MB3_Area02_PB_Stop)));
+      Area02.DataIn.PbStopProgrammed := FALSE;
+      Area02.DataIn.PbAckRst := (NOT (((NOT (A02_HMI.Area02.SuperUser.PbReset) AND NOT (MB1_Pb_ResetAlarms)) AND NOT (MB2_Pb_Reset_Anomalie))) OR NOT ((NOT (LB211.PB.ResetAlarms) AND NOT (LB212.PB.ResetAlarms))));
+   END_REGION
+
+   REGION "All the machine controlled by the area are Auto ready"
+      Area02.MachinesStatus.AllMachineAutReady := (((((RollformingMng.MachineInterface.AutReady AND MwFakCalc.MachineInterface.AutReady) AND WeldReg.MachineInterface.AutReady) AND Area02_HU.MachineInterface.AutReady) AND A0201_Profilatrice_RegolazioneFormato.MachineInterface.AutReady) AND PitTable1.MachineInterface.AutReady);
+      Area02.MachinesStatus.AllMachineAutReady := (((((Area02.MachinesStatus.AllMachineAutReady AND Rollformer.MachineInterface.AutReady) AND RollformerLubr.MachineInterface.AutReady) AND FlyingCarriage.MachineInterface.AutReady) AND CarriageLubr_Control.MachineInterface.AutReady) AND FinalCut.MachineInterface.AutReady);
+      Area02.MachinesStatus.AllMachineAutReady := ((((Area02.MachinesStatus.AllMachineAutReady AND FinalCutLub.MachineInterface.AutReady) AND AccRollConveyor.MachineInterface.AutReady) AND Areas_ITF.AG.Area02.AutReady) AND Areas_ITF.A01.Loop1_MachineInterface.AutReady);
+   END_REGION
+
+   REGION "One of machine controlled by the area is aborting"
+      Area02.MachinesStatus.AtLeastOneMachineIsAborting := (NOT ((((((NOT (RollformingMng.MachineInterface.Aborting) AND NOT (MwFakCalc.MachineInterface.Aborting)) AND NOT (WeldReg.MachineInterface.Aborting)) AND NOT (Area02_HU.MachineInterface.Aborting)) AND NOT (A0201_Profilatrice_RegolazioneFormato.MachineInterface.Aborting)) AND NOT (PitTable1.MachineInterface.Aborting))) OR NOT (((((NOT (Rollformer.MachineInterface.Aborting) AND NOT (RollformerLubr.MachineInterface.Aborting)) AND NOT (FlyingCarriage.MachineInterface.Aborting)) AND NOT (CarriageLubr_Control.MachineInterface.Aborting)) AND NOT (FinalCut.MachineInterface.Aborting))) OR NOT ((((NOT (FinalCutLub.MachineInterface.Aborting) AND NOT (AccRollConveyor.MachineInterface.Aborting)) AND NOT (Areas_ITF.AG.Area02.Aborting)) AND NOT (Areas_ITF.A01.Loop1_MachineInterface.Aborting))));
+   END_REGION
+
+   REGION "Debug"
+      IF RollformingMng.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.RollformingMng := TRUE;
+      END_IF;
+
+      IF MwFakCalc.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.FakCalc := TRUE;
+      END_IF;
+
+      IF WeldReg.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.Weldreg := TRUE;
+      END_IF;
+          
+      IF Area02_HU.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.A02_HU := TRUE;
+      END_IF;
+          
+      IF A0201_Profilatrice_RegolazioneFormato.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.RegolazioneFormato := TRUE;
+      END_IF;
+
+      IF PitTable1.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.PitTable := TRUE;
+      END_IF;
+
+      IF Rollformer.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.Rollformer := TRUE;
+      END_IF;
+
+      IF RollformerLubr.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.RollformerLubr := TRUE;
+      END_IF;
+
+      IF FlyingCarriage.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.FlyingCarriage := TRUE;
+      END_IF;
+
+      IF CarriageLubr_Control.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.CarriageLubr := TRUE;
+      END_IF;
+
+      IF FinalCut.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.FinalCut := TRUE;
+      END_IF;
+
+      IF FinalCutLub.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.FinalCutLubr := TRUE;
+      END_IF;
+
+      IF AccRollConveyor.MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.Accroll := TRUE;
+      END_IF;
+
+      IF Areas_ITF.AG.Area02.Aborting THEN
+          A02_DEBUG.MAchineAborting.AreaGen := TRUE;
+      END_IF;
+
+      IF Areas_ITF.A01.Loop1_MachineInterface.Aborting THEN
+          A02_DEBUG.MAchineAborting.Loop1 := TRUE;
+      END_IF;
+
+      IF Area02.MachinesStatus.AtLeastOneMachineIsAborting THEN
+          
+          FOR i := 1 TO 576 DO
+              IF Area02_Messages.A.Msg[i] THEN
+                  A02_DEBUG.MachineAlarm := i;
+                  EXIT;
+              END_IF;
+          END_FOR;
+      END_IF;
+
+      IF Area02.AreaInterface.CycleOneShot THEN
+          A02_DEBUG.MachineAlarm := 0;
+          A02_DEBUG.MAchineAborting.RollformingMng := FALSE;
+          A02_DEBUG.MAchineAborting.FakCalc := FALSE;
+          A02_DEBUG.MAchineAborting.Weldreg := FALSE;
+          A02_DEBUG.MAchineAborting.A02_HU := FALSE;
+          A02_DEBUG.MAchineAborting.RegolazioneFormato := FALSE;
+          A02_DEBUG.MAchineAborting.PitTable := FALSE;
+          A02_DEBUG.MAchineAborting.Rollformer := FALSE;
+          A02_DEBUG.MAchineAborting.RollformerLubr := FALSE;
+          A02_DEBUG.MAchineAborting.FlyingCarriage := FALSE;
+          A02_DEBUG.MAchineAborting.CarriageLubr := FALSE;
+          A02_DEBUG.MAchineAborting.FinalCut := FALSE;
+          A02_DEBUG.MAchineAborting.FinalCutLubr := FALSE;
+          A02_DEBUG.MAchineAborting.Accroll := FALSE;
+          A02_DEBUG.MAchineAborting.AreaGen := FALSE;
+          A02_DEBUG.MAchineAborting.Loop1   := FALSE;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Machines Status - Cumulative ACK stop in phase"
+      Area02.MachinesStatus.AllMachineAckStopInPhase := (((((RollformingMng.MachineInterface.AckStopInPhase AND MwFakCalc.MachineInterface.AckStopInPhase) AND WeldReg.MachineInterface.AckStopInPhase) AND Area02_HU.MachineInterface.AckStopInPhase) AND A0201_Profilatrice_RegolazioneFormato.MachineInterface.AckStopInPhase) AND PitTable1.MachineInterface.AckStopInPhase);
+      Area02.MachinesStatus.AllMachineAckStopInPhase := (((((Area02.MachinesStatus.AllMachineAckStopInPhase AND Rollformer.MachineInterface.AckStopInPhase) AND RollformerLubr.MachineInterface.AckStopInPhase) AND FlyingCarriage.MachineInterface.AckStopInPhase) AND CarriageLubr_Control.MachineInterface.AckStopInPhase) AND FinalCut.MachineInterface.AckStopInPhase);
+      Area02.MachinesStatus.AllMachineAckStopInPhase := ((((Area02.MachinesStatus.AllMachineAckStopInPhase AND FinalCutLub.MachineInterface.AckStopInPhase) AND AccRollConveyor.MachineInterface.AckStopInPhase) AND Areas_ITF.AG.Area02.AckStopInPhase) AND Areas_ITF.A01.Loop1_MachineInterface.AckStopInPhase);
+   END_REGION
+
+   REGION "Machines Status - Cumulative ACK stop programmed"
+      Area02.MachinesStatus.AllMachineAckStopProgrammed := (((((RollformingMng.MachineInterface.AckStopProgrammed AND MwFakCalc.MachineInterface.AckStopProgrammed) AND WeldReg.MachineInterface.AckStopProgrammed) AND Area02_HU.MachineInterface.AckStopProgrammed) AND A0201_Profilatrice_RegolazioneFormato.MachineInterface.AckStopProgrammed) AND PitTable1.MachineInterface.AckStopProgrammed);
+      Area02.MachinesStatus.AllMachineAckStopProgrammed := (((((Area02.MachinesStatus.AllMachineAckStopProgrammed AND Rollformer.MachineInterface.AckStopProgrammed) AND RollformerLubr.MachineInterface.AckStopProgrammed) AND FlyingCarriage.MachineInterface.AckStopProgrammed) AND CarriageLubr_Control.MachineInterface.AckStopProgrammed) AND FinalCut.MachineInterface.AckStopProgrammed);
+      Area02.MachinesStatus.AllMachineAckStopProgrammed := ((((Area02.MachinesStatus.AllMachineAckStopProgrammed AND FinalCutLub.MachineInterface.AckStopProgrammed) AND AccRollConveyor.MachineInterface.AckStopProgrammed) AND Areas_ITF.AG.Area02.AckStopProgrammed) AND Areas_ITF.A01.Loop1_MachineInterface.AckStopProgrammed);
+   END_REGION
+
+   REGION "Machines Status - One of machine controlled by the area have an alarm"
+      Area02.MachinesStatus.AtLeastOneAlrPresence := (NOT ((((((NOT (RollformingMng.MachineInterface.AlarmsPresence) AND NOT (MwFakCalc.MachineInterface.AlarmsPresence)) AND NOT (WeldReg.MachineInterface.AlarmsPresence)) AND NOT (Area02_HU.MachineInterface.AlarmsPresence)) AND NOT (A0201_Profilatrice_RegolazioneFormato.MachineInterface.AlarmsPresence)) AND NOT (PitTable1.MachineInterface.AlarmsPresence))) OR NOT (((((NOT (Rollformer.MachineInterface.AlarmsPresence) AND NOT (RollformerLubr.MachineInterface.AlarmsPresence)) AND NOT (FlyingCarriage.MachineInterface.AlarmsPresence)) AND NOT (CarriageLubr_Control.MachineInterface.AlarmsPresence)) AND NOT (FinalCut.MachineInterface.AlarmsPresence))) OR NOT ((((NOT (FinalCutLub.MachineInterface.AlarmsPresence) AND NOT (AccRollConveyor.MachineInterface.AlarmsPresence)) AND NOT (Areas_ITF.AG.Area02.AlarmsPresence)) AND NOT (Areas_ITF.A01.Loop1_MachineInterface.AlarmsPresence))));
+   END_REGION
+
+   REGION "Machines Status - One of machine controlled by the area have a warning"
+      Area02.MachinesStatus.AtLeastOneWngPresence := (NOT ((((((NOT (RollformingMng.MachineInterface.WarningPresence) AND NOT (MwFakCalc.MachineInterface.WarningPresence)) AND NOT (WeldReg.MachineInterface.WarningPresence)) AND NOT (Area02_HU.MachineInterface.WarningPresence)) AND NOT (A0201_Profilatrice_RegolazioneFormato.MachineInterface.WarningPresence)) AND NOT (PitTable1.MachineInterface.WarningPresence))) OR NOT (((((NOT (Rollformer.MachineInterface.WarningPresence) AND NOT (RollformerLubr.MachineInterface.WarningPresence)) AND NOT (FlyingCarriage.MachineInterface.WarningPresence)) AND NOT (CarriageLubr_Control.MachineInterface.WarningPresence)) AND NOT (FinalCut.MachineInterface.WarningPresence))) OR NOT ((((NOT (FinalCutLub.MachineInterface.WarningPresence) AND NOT (AccRollConveyor.MachineInterface.WarningPresence)) AND NOT (Areas_ITF.AG.Area02.WarningPresence)) AND NOT (Areas_ITF.A01.Loop1_MachineInterface.WarningPresence))));
+   END_REGION
+
+   REGION "Main"
+      #Area02(
+         en := TRUE,
+         Estop := (NOT (F_DB.A02_Estop) OR Areas_ITF.AG.CC1_PorteAperte),
+         Config := A02_Config.Area02_Main,
+         ForceStopInPhase := FALSE,
+         ForceStopProgrammed := FALSE,
+         ResetTimersTimeoutStops := FALSE,
+         HMI_StatusDinamicText => A02_HMI.Area02.Status.Status
+      );
+
+      #Area02.Q;
+   END_REGION
+
+   REGION "Alarms collect Area 02 (001...850)"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A  0 2     POST PUNCHING
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle OR A02_HMI.Area02.SuperUser.PbReset THEN
+          FOR AlrIndex := 1 TO 576 DO
+              Area02_Messages.A.Msg[AlrIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+      // Main HU
+      // 
+      AlrIndex := 1;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := Area02_HU.Pump.Alarm.PumpFilterClogged;
+      Area02_Messages.A.Msg[AlrIndex + 1] := Area02_HU.Pump.Alarm.MainPump.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 2] := Area02_HU.Pump.Alarm.MainPump.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 4] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 5] := Area02_HU.Tank.Alarm.LowTankLevel;
+      Area02_Messages.A.Msg[AlrIndex + 6] := Area02_HU.Tank.Alarm.OilMaxTemperature;
+      Area02_Messages.A.Msg[AlrIndex + 7] := Area02_HU.Tank.Alarm.RecircFilterClogged;
+      Area02_Messages.A.Msg[AlrIndex + 8] := Area02_HU.Tank.Alarm.RecirculationPump.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 9] := Area02_HU.Tank.Alarm.RecirculationPump.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 10] := Area02_HU.Tank.Alarm.HeatExchangerFan.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 11] := Area02_HU.Tank.Alarm.HeatExchangerFan.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 12] := Area02_HU.Tank.Alarm.HeatingUnit1.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 13] := Area02_HU.Tank.Alarm.HeatingUnit1.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 14] := Area02_HU.Tank.Alarm.HeatingUnit2.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 15] := Area02_HU.Tank.Alarm.HeatingUnit2.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 16] := 
+      Area02_Messages.A.Msg[AlrIndex + 17] :=
+      Area02_Messages.A.Msg[AlrIndex + 18] := 
+      Area02_Messages.A.Msg[AlrIndex + 19] := 
+      Area02_Messages.A.Msg[AlrIndex + 20] := 
+      Area02_Messages.A.Msg[AlrIndex + 21] := 
+      Area02_Messages.A.Msg[AlrIndex + 22] := 
+      Area02_Messages.A.Msg[AlrIndex + 23] := 
+      Area02_Messages.A.Msg[AlrIndex + 24] := FALSE;
+
+
+      // Profilatura Taglio
+      // 
+      AlrIndex := 70;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := RollformingMng.Alarm.MaterialMissing;
+      Area02_Messages.A.Msg[AlrIndex + 1] := RollformingMng.Alarm.MatCounterAlrPresence;
+      Area02_Messages.A.Msg[AlrIndex + 2] := RollformingMng.Alarm.NoTargetReady;
+      Area02_Messages.A.Msg[AlrIndex + 3] := RollformingMng.Alarm.ThreadingNotComplete;
+      Area02_Messages.A.Msg[AlrIndex + 4] := RollformingMng.Alarm.TooMuchNegativeMovRequired;
+      Area02_Messages.A.Msg[AlrIndex + 5] := RollformingMng.Alarm.PartCuttedTooShort;
+      Area02_Messages.A.Msg[AlrIndex + 6] := RollformingMng.Alarm.DestinationLost;
+      Area02_Messages.A.Msg[AlrIndex + 7] := RollformingMng.Alarm.HeadingCutDone;
+      Area02_Messages.A.Msg[AlrIndex + 8] := RollformingMng.Alarm.PartCuttedManualTest;
+
+      Area02_Messages.A.Msg[AlrIndex + 9] := PostPunchingMatCounter.Alr.CounterNotInOperation;
+      Area02_Messages.A.Msg[AlrIndex + 10] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 11] := MwFakCalc.Alarm.PushAx_UnvalidStateLsZeroRest;
+      Area02_Messages.A.Msg[AlrIndex + 12] := MwFakCalc.Alarm.PushAx_UnvalidStateLsLow;
+      Area02_Messages.A.Msg[AlrIndex + 13] := MwFakCalc.Alarm.PushAx_LowSpeedHome_NotEngaged;
+      Area02_Messages.A.Msg[AlrIndex + 14] := MwFakCalc.Alarm.PushAx_LowSpeedRest_NotEngaged;
+      Area02_Messages.A.Msg[AlrIndex + 15] := MwFakCalc.Alarm.PushAx_TimeoutFwd;
+      Area02_Messages.A.Msg[AlrIndex + 16] := MwFakCalc.Alarm.PushAx_TimeoutBwd;
+      Area02_Messages.A.Msg[AlrIndex + 17] := MwFakCalc.Alarm.MaterialNoPresence;
+      Area02_Messages.A.Msg[AlrIndex + 18] := MwFakCalc.Alarm.MaterialJamEntry;
+      Area02_Messages.A.Msg[AlrIndex + 19] := MwFakCalc.Alarm.Meas1RegNotGet;
+      Area02_Messages.A.Msg[AlrIndex + 20] := MwFakCalc.Alarm.Meas2RegNotGet;
+      Area02_Messages.A.Msg[AlrIndex + 21] := MwFakCalc.Alarm.Gripper_MaxPosExceed;
+      Area02_Messages.A.Msg[AlrIndex + 22] := MwFakCalc.Alarm.PushAx.BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 23] := MwFakCalc.Alarm.PushAx.S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 25] := MwFakCalc.Alarm.PushAx.Ax.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 26] := MwFakCalc.Alarm.PushAx.Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 27] := MwFakCalc.Alarm.PushAx.Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 28] := MwFakCalc.Alarm.Gripper.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 29] := MwFakCalc.Alarm.Gripper.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 30] := MwFakCalc.Alarm.Gripper.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 31] := MwFakCalc.Alarm.Gripper_Encoder.TOEncoder;
+      Area02_Messages.A.Msg[AlrIndex + 32] := MwFakCalc.Alarm.Gripper_Encoder.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 33] := MwFakCalc.Alarm.Gripper_Encoder.TimeOutExecution;
+      Area02_Messages.A.Msg[AlrIndex + 34] := MwFakCalc.Alarm.Gripper_MeasInput.TOMeasuring;
+      Area02_Messages.A.Msg[AlrIndex + 35] := MwFakCalc.Alarm.Gripper_MeasInput.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 36] := MwFakCalc.Alarm.Gripper_MeasInput.TimeOutActivation;
+      Area02_Messages.A.Msg[AlrIndex + 37] := MwFakCalc.Alarm.Wheel_MeasInput.TOMeasuring;
+      Area02_Messages.A.Msg[AlrIndex + 38] := MwFakCalc.Alarm.Wheel_MeasInput.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 39] := MwFakCalc.Alarm.Wheel_MeasInput.TimeOutActivation;
+      Area02_Messages.A.Msg[AlrIndex + 40] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 41] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 42] := RollformingMng.Alarm.STOP_FineTurno;
+      Area02_Messages.A.Msg[AlrIndex + 43] := RollformingMng.Alarm.STOP_End_Of_Proroduction;
+      Area02_Messages.A.Msg[AlrIndex + 44] := RollformingMng.Alarm.STOP_Part_Recondition;
+      Area02_Messages.A.Msg[AlrIndex + 45] := RollformingMng.Alarm.STOP_Order_Complete;
+      Area02_Messages.A.Msg[AlrIndex + 46] := RollformingMng.Alarm.STOP_O_ACT_Empty;
+      Area02_Messages.A.Msg[AlrIndex + 47] := RollformingMng.Alarm.STOP_ControlloQualita;
+      Area02_Messages.A.Msg[AlrIndex + 48] := RollformingMng.Alarm.STOP_Matrice_Colata_Coil;
+      Area02_Messages.A.Msg[AlrIndex + 49] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 50] := FALSE;
+
+      // Wrld Reg
+      // 
+      AlrIndex := 130;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := WeldReg.Alarms.WeldMeasInput.TOMeasuring;
+      Area02_Messages.A.Msg[AlrIndex + 1] := WeldReg.Alarms.WeldMeasInput.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 2] := WeldReg.Alarms.WeldMeasInput.TimeOutActivation;
+      Area02_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 4] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 5] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 6] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 9] := FALSE;
+
+
+      // Regolazione Formato
+      // 
+      AlrIndex := 150;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[1].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 1] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[1].SensorFault; 
+      Area02_Messages.A.Msg[AlrIndex + 2] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[1].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 3] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[1].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 4] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[2].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 5] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[2].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 6] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[2].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 7] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[2].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 8] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[3].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 9] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[3].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 10] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[3].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 11] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[3].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 12] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[4].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 13] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[4].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 14] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[4].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 15] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[4].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 16] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[5].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 17] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[5].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 18] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[5].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 19] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[5].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 20] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[6].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 21] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[6].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 22] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[6].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 23] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[6].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 24] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[7].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 25] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[7].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 26] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[7].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 27] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[7].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 28] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[8].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 29] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[8].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 30] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[8].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 31] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[8].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 32] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[9].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 33] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[9].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 34] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[9].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 35] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[9].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 36] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[10].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 37] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[10].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 38] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[10].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 39] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[10].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 40] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[11].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 41] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[11].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 42] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[11].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 43] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[11].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 44] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[12].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 45] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[12].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 46] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[12].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 47] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[12].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 48] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[13].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 49] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[13].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 50] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[13].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 51] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[13].Resolution;
+      Area02_Messages.A.Msg[AlrIndex + 52] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[14].CommFault;
+      Area02_Messages.A.Msg[AlrIndex + 53] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[14].SensorFault;
+      Area02_Messages.A.Msg[AlrIndex + 54] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[14].NoRef;
+      Area02_Messages.A.Msg[AlrIndex + 55] := A0201_Profilatrice_RegolazioneFormato.Alarm.Enc[14].Resolution;;
+      Area02_Messages.A.Msg[AlrIndex + 56] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 57] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 58] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 59] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 60] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 61] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 62] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 63] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 64] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 65] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 66] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 67] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 68] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[1].Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 69] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 70] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 71] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 72] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 73] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 74] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 75] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 76] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 77] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 78] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 79] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 80] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 81] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[2].Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 82] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 83] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 84] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 85] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 86] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 87] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 88] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 89] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 90] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 91] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 92] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 93] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 94] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[3].Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 95] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 96] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 97] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 98] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 99] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 100] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 101] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 102] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 103] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 104] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 105] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 106] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 107] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[4].Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 108] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 109] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 110] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 111] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 112] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 113] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 114] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 115] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 116] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 117] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 118] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 119] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 120] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[5].Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 121] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 122] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 123] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 124] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 125] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 126] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 127] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 128] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 129] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].S120.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 130] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 131] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 132] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 133] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_D[6].Fan_M.Feedback;;
+      Area02_Messages.A.Msg[AlrIndex + 134] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 135] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 136] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 137] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 138] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 139] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 140] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 141] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 142] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 143] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 144] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[7].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 145] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 146] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 147] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 148] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 149] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 150] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 151] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 152] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 153] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 154] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 155] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[8].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 156] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 157] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 158] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 159] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 160] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 161] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 162] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 163] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 164] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 165] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 166] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[9].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 167] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 168] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 169] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 170] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 171] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 172] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 173] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 174] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 175] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 176] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 177] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[10].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 178] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 179] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 180] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 181] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 182] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 183] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 184] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 185] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 186] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 187] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 188] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[11].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 189] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 190] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 191] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 192] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 193] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 194] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 195] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 196] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 197] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 198] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 199] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[12].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 200] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 201] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 202] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 203] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 204] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 205] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 206] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 207] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 208] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 209] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 210] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[13].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 211] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax_NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 212] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.TargetPosIncorrect;
+      Area02_Messages.A.Msg[AlrIndex + 213] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.PosOutTolerance;
+      Area02_Messages.A.Msg[AlrIndex + 214] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.WrongDirection;
+      Area02_Messages.A.Msg[AlrIndex + 215] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.WrongNotIncrease;
+      Area02_Messages.A.Msg[AlrIndex + 216] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.HwLimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 217] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.HwLimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 218] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Ax.TimeoutPreset;
+      Area02_Messages.A.Msg[AlrIndex + 219] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Motor.ThermalProtectionA;
+      Area02_Messages.A.Msg[AlrIndex + 220] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Motor.ThermalProtectionB;
+      Area02_Messages.A.Msg[AlrIndex + 221] := A0201_Profilatrice_RegolazioneFormato.Alarm.Ax_M[14].Motor.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 222] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 223] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 224] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 225] := FALSE;
+
+      // PitTable1
+      // 
+      AlrIndex := 380;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := PitTable1.Alarm.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 1] := PitTable1.Alarm.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 2] := PitTable1.Alarm.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 4] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 5] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 6] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 9] := FALSE;
+
+      // Rollformer + Lubr
+      // 
+      AlrIndex := 390;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := Rollformer.Alarms.Feed.AxisNotInOperation;
+      Area02_Messages.A.Msg[AlrIndex + 1] := Rollformer.Alarms.Feed.BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 2] := Rollformer.Alarms.Feed.AxisTorqueLim.Error;
+      Area02_Messages.A.Msg[AlrIndex + 3] := Rollformer.Alarms.Feed.Ax.TOAxis;
+      Area02_Messages.A.Msg[AlrIndex + 4] := Rollformer.Alarms.Feed.Ax.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 5] := Rollformer.Alarms.Feed.Ax.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 6] := Rollformer.Alarms.Feed.Ax.LimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 7] := Rollformer.Alarms.Feed.Ax.LimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 8] := Rollformer.Alarms.Feed.Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 9] := Rollformer.Alarms.Feed.Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 10] := Rollformer.Alarms.ConnectorNotPlugged1;
+      Area02_Messages.A.Msg[AlrIndex + 11] := Rollformer.Alarms.ConnectorNotPlugged2;
+      Area02_Messages.A.Msg[AlrIndex + 12] := Rollformer.Alarms.ConnectorNotPlugged3Side1;
+      Area02_Messages.A.Msg[AlrIndex + 13] := Rollformer.Alarms.ConnectorNotPlugged3Side2;
+      Area02_Messages.A.Msg[AlrIndex + 14] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 15] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 16] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 17] := RollformerLubr.Pump.Alarm.RotationFeedback;
+      Area02_Messages.A.Msg[AlrIndex + 18] := RollformerLubr.Pump.Alarm.LowLevelLubrication;
+      Area02_Messages.A.Msg[AlrIndex + 19] := RollformerLubr.Pump.Alarm.MotorAlr.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 20] := RollformerLubr.Pump.Alarm.MotorAlr.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 21] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 22] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 23] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 24] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 25] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 26] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 27] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 28] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 29] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 30] := FALSE;
+
+
+      // Final Cut
+      // 
+      AlrIndex := 430;
+
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := FinalCut.Alarm.CutHead.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 1] := FinalCut.Alarm.CutHead.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 2] := FinalCut.Alarm.CutHead.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 3] := FinalCut.Alarm.DrawHead.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 4] := FinalCut.Alarm.DrawHead.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 5] := FinalCut.Alarm.DrawHead.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 6] := FinalCut.Alarm.MarkHead.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 7] := FinalCut.Alarm.MarkHead.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 8] := FinalCut.Alarm.MarkHead.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 9] := FinalCut.Alarm.Locking.TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 10] := FinalCut.Alarm.Locking.TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 11] := FinalCut.Alarm.Locking.LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 12] := FinalCut.Alarm.Locking_NotAWork;
+      Area02_Messages.A.Msg[AlrIndex + 13] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 14] := FinalCutLub.Alarm.LowTankLevel;
+      Area02_Messages.A.Msg[AlrIndex + 15] := FinalCutLub.Alarm.ConnectorUnplugged;
+      Area02_Messages.A.Msg[AlrIndex + 16] :=
+      Area02_Messages.A.Msg[AlrIndex + 17] :=
+      Area02_Messages.A.Msg[AlrIndex + 18] :=
+      Area02_Messages.A.Msg[AlrIndex + 19] := FALSE;
+
+      // Flying Carriage
+      // 
+      AlrIndex := 450;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := FlyingCarriage.Alarm.NotHomed;
+      Area02_Messages.A.Msg[AlrIndex + 1] := FlyingCarriage.Alarm.ZeroChkFailed;
+      Area02_Messages.A.Msg[AlrIndex + 2] := FlyingCarriage.Alarm.ZeroChk_NotCatched;
+      Area02_Messages.A.Msg[AlrIndex + 3] := FlyingCarriage.Alarm.ZeroChk_NotReleased;
+      Area02_Messages.A.Msg[AlrIndex + 4] := FlyingCarriage.Alarm.TargetPosition_OutOfRange;
+      Area02_Messages.A.Msg[AlrIndex + 5] := FlyingCarriage.Alarm.Axis.TOAxis;
+      Area02_Messages.A.Msg[AlrIndex + 6] := FlyingCarriage.Alarm.Axis.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 7] := FlyingCarriage.Alarm.Axis.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 8] := FlyingCarriage.Alarm.Axis.LimitMinus;
+      Area02_Messages.A.Msg[AlrIndex + 9] := FlyingCarriage.Alarm.Axis.LimitPlus;
+      Area02_Messages.A.Msg[AlrIndex + 10] := FlyingCarriage.Alarm.ZeroChk.TOMeasuring;
+      Area02_Messages.A.Msg[AlrIndex + 11] := FlyingCarriage.Alarm.ZeroChk.MCFunction;
+      Area02_Messages.A.Msg[AlrIndex + 12] := FlyingCarriage.Alarm.ZeroChk.TimeOutActivation;
+      Area02_Messages.A.Msg[AlrIndex + 13] := FlyingCarriage.Alarm.Fan.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 14] := FlyingCarriage.Alarm.Fan.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 15] := 
+      Area02_Messages.A.Msg[AlrIndex + 16] :=
+      Area02_Messages.A.Msg[AlrIndex + 17] :=
+      Area02_Messages.A.Msg[AlrIndex + 18] :=
+      Area02_Messages.A.Msg[AlrIndex + 19] := FALSE;
+
+
+
+      // AccRoll Conveyor
+      // 
+      AlrIndex := 470;
+
+      Area02_Messages.A.Msg[AlrIndex + 0] := AccRollConveyor.Alarm.Roll1.BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 1] := AccRollConveyor.Alarm.Roll1.S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 2] := AccRollConveyor.Alarm.Roll1.Ax.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 3] := AccRollConveyor.Alarm.Roll1.Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 4] := AccRollConveyor.Alarm.Roll1.Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 5] := AccRollConveyor.Alarm.Roll2.BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 6] := AccRollConveyor.Alarm.Roll2.S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 7] := AccRollConveyor.Alarm.Roll2.Ax.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 8] := AccRollConveyor.Alarm.Roll2.Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 9] := AccRollConveyor.Alarm.Roll2.Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 10] := AccRollConveyor.Alarm.Roll3.BrakeTimeOut;
+      Area02_Messages.A.Msg[AlrIndex + 11] := AccRollConveyor.Alarm.Roll3.S120_ComErr;
+      Area02_Messages.A.Msg[AlrIndex + 12] := AccRollConveyor.Alarm.Roll3.Ax.Drive;
+      Area02_Messages.A.Msg[AlrIndex + 13] := AccRollConveyor.Alarm.Roll3.Fan_M.ThermalProtection;
+      Area02_Messages.A.Msg[AlrIndex + 14] := AccRollConveyor.Alarm.Roll3.Fan_M.Feedback;
+      Area02_Messages.A.Msg[AlrIndex + 15] := AccRollConveyor.Alarm.PusherVert[1].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 16] := AccRollConveyor.Alarm.PusherVert[1].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 17] := AccRollConveyor.Alarm.PusherVert[1].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 18] := AccRollConveyor.Alarm.PusherVert[2].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 19] := AccRollConveyor.Alarm.PusherVert[2].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 20] := AccRollConveyor.Alarm.PusherVert[2].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 21] := AccRollConveyor.Alarm.PusherVert[3].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 22] := AccRollConveyor.Alarm.PusherVert[3].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 23] := AccRollConveyor.Alarm.PusherVert[3].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 24] := AccRollConveyor.Alarm.PusherVert[4].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 25] := AccRollConveyor.Alarm.PusherVert[4].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 26] := AccRollConveyor.Alarm.PusherVert[4].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 27] := AccRollConveyor.Alarm.PusherVert[5].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 28] := AccRollConveyor.Alarm.PusherVert[5].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 29] := AccRollConveyor.Alarm.PusherVert[5].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 30] := AccRollConveyor.Alarm.PusherVert[6].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 31] := AccRollConveyor.Alarm.PusherVert[6].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 32] := AccRollConveyor.Alarm.PusherVert[6].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 33] := AccRollConveyor.Alarm.PusherHoriz[1].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 34] := AccRollConveyor.Alarm.PusherHoriz[1].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 35] := AccRollConveyor.Alarm.PusherHoriz[1].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 36] := AccRollConveyor.Alarm.PusherHoriz[2].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 37] := AccRollConveyor.Alarm.PusherHoriz[2].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 38] := AccRollConveyor.Alarm.PusherHoriz[2].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 39] := AccRollConveyor.Alarm.PusherHoriz[3].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 40] := AccRollConveyor.Alarm.PusherHoriz[3].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 41] := AccRollConveyor.Alarm.PusherHoriz[3].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 42] := AccRollConveyor.Alarm.PusherHoriz[4].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 43] := AccRollConveyor.Alarm.PusherHoriz[4].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 44] := AccRollConveyor.Alarm.PusherHoriz[4].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 45] := AccRollConveyor.Alarm.PusherHoriz[5].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 46] := AccRollConveyor.Alarm.PusherHoriz[5].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 47] := AccRollConveyor.Alarm.PusherHoriz[5].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 48] := AccRollConveyor.Alarm.PusherHoriz[6].TimeOutRest;
+      Area02_Messages.A.Msg[AlrIndex + 49] := AccRollConveyor.Alarm.PusherHoriz[6].TimeOutWork;
+      Area02_Messages.A.Msg[AlrIndex + 50] := AccRollConveyor.Alarm.PusherHoriz[6].LimitSwitches;
+      Area02_Messages.A.Msg[AlrIndex + 51] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 52] := FALSE;
+      Area02_Messages.A.Msg[AlrIndex + 53] := AccRollConveyor.Alarm.TrkCloggedLeftExit;
+      Area02_Messages.A.Msg[AlrIndex + 54] := AccRollConveyor.Alarm.TrkCloggedRightA03;
+      Area02_Messages.A.Msg[AlrIndex + 55] := AccRollConveyor.Alarm.TrkCloggedRollway;
+      Area02_Messages.A.Msg[AlrIndex + 56] := AccRollConveyor.Alarm.TrkWrongMismatch_P0;
+      Area02_Messages.A.Msg[AlrIndex + 57] := AccRollConveyor.Alarm.TrkExitFullToChek;
+      Area02_Messages.A.Msg[AlrIndex + 58] :=
+      Area02_Messages.A.Msg[AlrIndex + 59] :=
+      Area02_Messages.A.Msg[AlrIndex + 60] := FALSE;
+
+
+
+
+   END_REGION
+
+   REGION "Alarms manager"
+      #Area02_Msg_Alarms(
+         en := TRUE,
+         Ack := Area02.DataIn.PbAckRst,
+         Messages := Area02_Messages.A.Msg,
+         MessagesHMI := Area02_Messages.A.Hmi,
+         MessagesACK := Area02_Messages.A.Ack,
+         MessageCount => A02_HMI.Area02.Status.AlarmsNumber
+      );
+
+      #Area02_Msg_Alarms.Q;
+   END_REGION
+
+   REGION "Warnings collect Area 02 (001..784)"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A  02      POST PUNCHING
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle OR A02_HMI.Area02.SuperUser.PbReset THEN
+          FOR WngIndex := 1 TO 370 DO
+              Area02_Messages.W.Msg[WngIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+      //Generic
+      WngIndex := 1;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := RollformingMng.Warning.SlowDownFromMes.SLOW_End_Of_Production;
+      Area02_Messages.W.Msg[WngIndex + 1] := RollformingMng.Warning.SlowDownFromMes.SLOW_Order_Approach_To_Complete;
+      Area02_Messages.W.Msg[WngIndex + 2] := RollformingMng.Warning.SlowDownFromMes.SLOW_Part_Recondition;
+      Area02_Messages.W.Msg[WngIndex + 3] := RollformingMng.Warning.StopFromMes.STOP_ControlloQualita;
+      Area02_Messages.W.Msg[WngIndex + 4] := RollformingMng.Warning.StopFromMes.STOP_End_Of_Proroduction;
+      Area02_Messages.W.Msg[WngIndex + 5] := RollformingMng.Warning.StopFromMes.STOP_FineTurno;
+      Area02_Messages.W.Msg[WngIndex + 6] := RollformingMng.Warning.StopFromMes.STOP_Matrice_Colata_Coil;
+      Area02_Messages.W.Msg[WngIndex + 7] := RollformingMng.Warning.StopFromMes.STOP_O_ACT_Empty;
+      Area02_Messages.W.Msg[WngIndex + 8] := RollformingMng.Warning.StopFromMes.STOP_Order_Complete;
+      Area02_Messages.W.Msg[WngIndex + 9] := RollformingMng.Warning.StopFromMes.STOP_Part_Recondition;
+      Area02_Messages.W.Msg[WngIndex + 10] := RollformingMng.Warning.StopInactivity;
+      Area02_Messages.W.Msg[WngIndex + 11] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 12] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 13] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 16] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 17] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 18] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 19] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 20] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 21] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 22] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 23] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 24] := FALSE;
+
+
+       // Rollforming Manager
+       //
+       WngIndex := 60;
+       
+       Area02_Messages.W.Msg[WngIndex + 0] := RollformingMng.Warning.NotAutReady;
+       Area02_Messages.W.Msg[WngIndex + 1] := RollformingMng.Warning.MatCounterWngPresence;
+       Area02_Messages.W.Msg[WngIndex + 2] := RollformingMng.Warning.RollformerLimitToPushMin;
+       Area02_Messages.W.Msg[WngIndex + 3] := RollformingMng.Warning.RollformerStopAwaitJobPerform;
+       Area02_Messages.W.Msg[WngIndex + 4] := RollformingMng.Warning.HeadingNotDone;
+       Area02_Messages.W.Msg[WngIndex + 5] := RollformingMng.Warning.FlyingShear.NotReachable;
+       Area02_Messages.W.Msg[WngIndex + 6] := RollformingMng.Warning.FlyingShear.NotSynched;
+       Area02_Messages.W.Msg[WngIndex + 7] := RollformingMng.Warning.FlyingShear.WorkByTimeout;
+      Area02_Messages.W.Msg[WngIndex + 8] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 9] := FALSE;
+
+      // Post punching MatCounter
+      //
+      WngIndex := 70;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := PostPunchingMatCounter.Wng.EncoderNotValid;
+      Area02_Messages.W.Msg[WngIndex + 1] := PostPunchingMatCounter.Wng.EncoderPosNotValid;
+      Area02_Messages.W.Msg[WngIndex + 2] := PostPunchingMatCounter.Wng.PresetRunning;
+      Area02_Messages.W.Msg[WngIndex + 3] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 4] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 5] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 8] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 9] := FALSE;
+
+      // Meas Wheel FakCalc & WeldReg
+      //
+      WngIndex := 80;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := MwFakCalc.Warning.PushAx.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := MwFakCalc.Warning.PushAx.MissingCnd_Bkw;
+      Area02_Messages.W.Msg[WngIndex + 2] := MwFakCalc.Warning.PushAx.MissingCnd_Fwd;
+      Area02_Messages.W.Msg[WngIndex + 3] := MwFakCalc.Warning.PushAx.Ax.Drive;
+      Area02_Messages.W.Msg[WngIndex + 4] := MwFakCalc.Warning.Gripper.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 5] := MwFakCalc.Warning.Gripper.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 6] := MwFakCalc.Warning.Gripper.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 7] := MwFakCalc.Warning.Gripper.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 8] := MwFakCalc.Warning.MaterialNoPrresence;
+      Area02_Messages.W.Msg[WngIndex + 9] := WeldReg.Warnings.NoAutReady;
+       
+
+      // Regolazione Formato Profilatrice
+      //
+      WngIndex := 90;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 2] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 3] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 4] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 5] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 6] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[1].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 7] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 8] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 9] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 10] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 11] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 12] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 13] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[2].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 14] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 15] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 16] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 17] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 18] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 19] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 20] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[3].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 21] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 22] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 23] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 24] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 25] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 26] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 27] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[4].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 28] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 29] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 30] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 31] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 32] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 33] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 34] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[5].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 35] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 36] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].MissingCnd_Minus;
+      Area02_Messages.W.Msg[WngIndex + 37] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].MissingCnd_Plus;
+      Area02_Messages.W.Msg[WngIndex + 38] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 39] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 40] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 41] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_D[6].S120.Drive;
+      Area02_Messages.W.Msg[WngIndex + 42] :=
+      Area02_Messages.W.Msg[WngIndex + 43] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 44] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 45] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 46] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 47] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 48] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[7].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 49] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 50] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 51] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 52] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 53] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 54] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[8].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 55] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 56] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 57] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 58] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 59] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 60] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[9].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 61] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 62] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 63] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 64] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 65] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 66] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[10].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 67] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 68] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 69] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 70] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 71] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 72] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[11].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 73] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 74] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 75] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 76] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 77] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 78] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[12].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 79] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 80] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 81] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 82] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 83] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 84] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[13].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 85] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 86] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].Minus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 87] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].Plus_CndMissing;
+      Area02_Messages.W.Msg[WngIndex + 88] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].Ax_NotHomed;
+      Area02_Messages.W.Msg[WngIndex + 89] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].Ax.SwLimitMinus;
+      Area02_Messages.W.Msg[WngIndex + 90] := A0201_Profilatrice_RegolazioneFormato.Warning.Ax_M[14].Ax.SwLimitPlus;
+      Area02_Messages.W.Msg[WngIndex + 91] := A0201_Profilatrice_RegolazioneFormato.Warning.Passaggio02_MaxDisallineamentoAXs;
+      Area02_Messages.W.Msg[WngIndex + 92] := A0201_Profilatrice_RegolazioneFormato.Warning.Passaggio14_MaxDisallineamentoAXs;
+      Area02_Messages.W.Msg[WngIndex + 93] := A0201_Profilatrice_RegolazioneFormato.Warning.Passaggio17_MaxDisallineamentoAXs;
+      Area02_Messages.W.Msg[WngIndex + 94] := A0201_Profilatrice_RegolazioneFormato.Warning.Passaggio18_MaxDisallineamentoAXs;
+      Area02_Messages.W.Msg[WngIndex + 95] :=
+      Area02_Messages.W.Msg[WngIndex + 96] :=
+      Area02_Messages.W.Msg[WngIndex + 97] :=
+      Area02_Messages.W.Msg[WngIndex + 98] :=
+      Area02_Messages.W.Msg[WngIndex + 99] := FALSE;
+
+      // PitTable 1
+      //
+      WngIndex := 190;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := PitTable1.Warning.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := PitTable1.Warning.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 2] := PitTable1.Warning.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 3] := PitTable1.Warning.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 4] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 5] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 8] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 9] := FALSE;
+
+      // Rollformer & Rollformer Lubr.
+      //
+      WngIndex := 200;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := Rollformer.Warnings.Feed.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := Rollformer.Warnings.Feed.AxisNotInOperation;
+      Area02_Messages.W.Msg[WngIndex + 2] := Rollformer.Warnings.Feed.MissingCnd_BWD;
+      Area02_Messages.W.Msg[WngIndex + 3] := Rollformer.Warnings.Feed.MissingCnd_FWD;
+      Area02_Messages.W.Msg[WngIndex + 4] := Rollformer.Warnings.Feed.Ax.TOAxis;
+      Area02_Messages.W.Msg[WngIndex + 5] := Rollformer.Warnings.Feed.Ax.Drive;
+      Area02_Messages.W.Msg[WngIndex + 6] := Rollformer.Warnings.ExtraLowIsON;
+      Area02_Messages.W.Msg[WngIndex + 7] := Rollformer.Warnings.MissingCnd.FlyingShare;
+      Area02_Messages.W.Msg[WngIndex + 8] := Rollformer.Warnings.MissingCnd.MaterialCounter;
+      Area02_Messages.W.Msg[WngIndex + 9] := Rollformer.Warnings.MissingCnd.UnloadRollway;
+      Area02_Messages.W.Msg[WngIndex + 10] := Rollformer.Warnings.MissingCnd.MwFakClac;
+      Area02_Messages.W.Msg[WngIndex + 11] := Rollformer.Warnings.MissingCnd.Loop1_Enable_BWD;
+      Area02_Messages.W.Msg[WngIndex + 12] := Rollformer.Warnings.MissingCnd.Loop1_Enable_FWD;
+      Area02_Messages.W.Msg[WngIndex + 13] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 16] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 17] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 18] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 19] := FALSE;
+
+      // Flying Carriage
+      //
+      WngIndex := 220;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := FlyingCarriage.Warning.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := FlyingCarriage.Warning.ZeroChkRequest;
+      Area02_Messages.W.Msg[WngIndex + 2] := FlyingCarriage.Warning.Axis.TOAxis;
+      Area02_Messages.W.Msg[WngIndex + 3] := FlyingCarriage.Warning.Axis.Drive;
+      Area02_Messages.W.Msg[WngIndex + 4] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 5] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 8] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 9] := FALSE;
+
+      // Final Cut & Lub
+      //
+      WngIndex := 230;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := FinalCut.Warning.CutHead.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := FinalCut.Warning.CutHead.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 2] := FinalCut.Warning.CutHead.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 3] := FinalCut.Warning.CutHead.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 4] := FinalCut.Warning.DrawHead.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 5] := FinalCut.Warning.DrawHead.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 6] := FinalCut.Warning.DrawHead.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 7] := FinalCut.Warning.DrawHead.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 8] := FinalCut.Warning.MarkHead.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 9] := FinalCut.Warning.MarkHead.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 10] := FinalCut.Warning.MarkHead.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 11] := FinalCut.Warning.MarkHead.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 12] := FinalCut.Warning.Locking.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 13] := FinalCut.Warning.Locking.PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 14] := FinalCut.Warning.Locking.Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 15] := FinalCut.Warning.Locking.Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 16] := FinalCut.Warning.CutHead_NotAtRest;
+      Area02_Messages.W.Msg[WngIndex + 17] := FinalCut.Warning.DrawHead_NotAtRest;
+      Area02_Messages.W.Msg[WngIndex + 18] := FinalCut.Warning.MarkHead_NotAtRest;
+      Area02_Messages.W.Msg[WngIndex + 19] := FinalCut.Warning.Locking_NotAWork;
+      Area02_Messages.W.Msg[WngIndex + 20] := FinalCut.Warning.MaterialNotStandstill;
+      Area02_Messages.W.Msg[WngIndex + 21] := FALSE;
+      Area02_Messages.W.Msg[WngIndex + 22] := FinalCutLub.Warning.NoAutReady;
+      Area02_Messages.W.Msg[WngIndex + 23] := FinalCutLub.Warning.SystemOff;
+      Area02_Messages.W.Msg[WngIndex + 24] := FALSE;
+
+
+      // Acc Roll Conveyor
+      //
+      WngIndex := 270;
+
+      Area02_Messages.W.Msg[WngIndex + 0] := AccRollConveyor.Warning.Roll1.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 1] := AccRollConveyor.Warning.Roll1.MissingCnd_Bkw;
+      Area02_Messages.W.Msg[WngIndex + 2] := AccRollConveyor.Warning.Roll1.MissingCnd_Fwd;
+      Area02_Messages.W.Msg[WngIndex + 3] := AccRollConveyor.Warning.Roll1.Ax.Drive;
+      Area02_Messages.W.Msg[WngIndex + 4] := AccRollConveyor.Warning.Roll2.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 5] := AccRollConveyor.Warning.Roll2.MissingCnd_Bkw;
+      Area02_Messages.W.Msg[WngIndex + 6] := AccRollConveyor.Warning.Roll2.MissingCnd_Fwd;
+      Area02_Messages.W.Msg[WngIndex + 7] := AccRollConveyor.Warning.Roll2.Ax.Drive;
+      Area02_Messages.W.Msg[WngIndex + 8] := AccRollConveyor.Warning.Roll3.NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 9] := AccRollConveyor.Warning.Roll3.MissingCnd_Bkw;
+      Area02_Messages.W.Msg[WngIndex + 10] := AccRollConveyor.Warning.Roll3.MissingCnd_Fwd;
+      Area02_Messages.W.Msg[WngIndex + 11] := AccRollConveyor.Warning.Roll3.Ax.Drive;
+      Area02_Messages.W.Msg[WngIndex + 12] := AccRollConveyor.Warning.PusherVert[1].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 13] := AccRollConveyor.Warning.PusherVert[1].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 14] := AccRollConveyor.Warning.PusherVert[1].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 15] := AccRollConveyor.Warning.PusherVert[1].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 16] := AccRollConveyor.Warning.PusherVert[2].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 17] := AccRollConveyor.Warning.PusherVert[2].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 18] := AccRollConveyor.Warning.PusherVert[2].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 19] := AccRollConveyor.Warning.PusherVert[2].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 20] := AccRollConveyor.Warning.PusherVert[3].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 21] := AccRollConveyor.Warning.PusherVert[3].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 22] := AccRollConveyor.Warning.PusherVert[3].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 23] := AccRollConveyor.Warning.PusherVert[3].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 24] := AccRollConveyor.Warning.PusherVert[4].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 25] := AccRollConveyor.Warning.PusherVert[4].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 26] := AccRollConveyor.Warning.PusherVert[4].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 27] := AccRollConveyor.Warning.PusherVert[4].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 28] := AccRollConveyor.Warning.PusherVert[5].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 29] := AccRollConveyor.Warning.PusherVert[5].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 30] := AccRollConveyor.Warning.PusherVert[5].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 31] := AccRollConveyor.Warning.PusherVert[5].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 32] := AccRollConveyor.Warning.PusherVert[6].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 33] := AccRollConveyor.Warning.PusherVert[6].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 34] := AccRollConveyor.Warning.PusherVert[6].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 35] := AccRollConveyor.Warning.PusherVert[6].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 36] := AccRollConveyor.Warning.PusherHoriz[1].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 37] := AccRollConveyor.Warning.PusherHoriz[1].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 38] := AccRollConveyor.Warning.PusherHoriz[1].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 39] := AccRollConveyor.Warning.PusherHoriz[1].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 40] := AccRollConveyor.Warning.PusherHoriz[2].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 41] := AccRollConveyor.Warning.PusherHoriz[2].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 42] := AccRollConveyor.Warning.PusherHoriz[2].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 43] := AccRollConveyor.Warning.PusherHoriz[2].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 44] := AccRollConveyor.Warning.PusherHoriz[3].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 45] := AccRollConveyor.Warning.PusherHoriz[3].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 46] := AccRollConveyor.Warning.PusherHoriz[3].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 47] := AccRollConveyor.Warning.PusherHoriz[3].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 48] := AccRollConveyor.Warning.PusherHoriz[4].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 49] := AccRollConveyor.Warning.PusherHoriz[4].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 50] := AccRollConveyor.Warning.PusherHoriz[4].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 51] := AccRollConveyor.Warning.PusherHoriz[4].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 52] := AccRollConveyor.Warning.PusherHoriz[5].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 53] := AccRollConveyor.Warning.PusherHoriz[5].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 54] := AccRollConveyor.Warning.PusherHoriz[5].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 55] := AccRollConveyor.Warning.PusherHoriz[5].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 56] := AccRollConveyor.Warning.PusherHoriz[6].NotAutReady;
+      Area02_Messages.W.Msg[WngIndex + 57] := AccRollConveyor.Warning.PusherHoriz[6].PressureRunning_Timeout;
+      Area02_Messages.W.Msg[WngIndex + 58] := AccRollConveyor.Warning.PusherHoriz[6].Rest_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 59] := AccRollConveyor.Warning.PusherHoriz[6].Work_MissingExtEnable;
+      Area02_Messages.W.Msg[WngIndex + 60] := FALSE;
+
+
+
+   END_REGION
+
+   REGION "Warnings manager"
+      #Area02_Msg_Warnings(
+         en := TRUE,
+         Ack := Area02.DataIn.PbAckRst,
+         Messages := Area02_Messages.W.Msg,
+         MessagesHMI := Area02_Messages.W.Hmi,
+         MessagesACK := Area02_Messages.W.Ack,
+         MessageCount => A02_HMI.Area02.Status.WarningsNumber
+      );
+
+      #Area02_Msg_Warnings.Q;
+   END_REGION
+
+   REGION "MB lamp indicators"
+      MB2_Lp_Abilitazione_Automatico_Area02 := Area02.DataOut.lampReady;
+      MB2_Lp_Start_Ciclo_Area02 := Area02.DataOut.lampCycle;
+      MB2_Lp_Reset_Anomalie := ((NOT ((NOT (Area02.DataOut.LampAlarmPresence) AND NOT (Area02.DataOut.LampWarningPresence))) AND Sys.Clock_1S) OR (NOT ((NOT (Area02.DataOut.LampAlarmPresence) AND NOT (Area02.DataOut.LampWarningPresence))) AND NOT (Area02_Msg_Alarms.NewMessage)));
+   END_REGION
+
+   REGION "Tower lamp"
+      A02_TowerHorn_SL201 := Area02.DataOut.horn;
+      A02_TowerLampYellow_SL201 := Area02.DataOut.LampAlarmPresence;
+      A02_TowerLampWhite_SL201 := Area02.DataOut.lampCycle;
+   END_REGION
+
+   REGION "Super User"
+      A02_HMI.Area02.SuperUser.SgnMan := Area02.AreaInterface.Man;
+      A02_HMI.Area02.SuperUser.SgnAut := Area02.AreaInterface.Aut;
+      A02_HMI.Area02.SuperUser.SgnReset := A02_HMI.Area02.SuperUser.PbReset;
+      A02_HMI.Area02.SuperUser.SgnStart := Area02.AreaInterface.Cycle;
+      A02_HMI.Area02.SuperUser.SgnWngPresence := (A02_HMI.Area02.Status.WarningsNumber > 0);
+      A02_HMI.Area02.SuperUser.SgnAlrPresence := (A02_HMI.Area02.Status.AlarmsNumber > 0);
+      A02_HMI.Area02.SuperUser.SgnMessagePresence := false;
+      A02_HMI.Area02.SuperUser.SgnStop := NOT ((NOT (Area02.AreaInterface.StopInPhase) AND NOT (Area02.AreaInterface.StopProgrammed)));
+   END_REGION
+
+   REGION "<<< MACHINES AREA 02 >>>"
+      A02_HMI_CALL();
+
+      A02_ButtonSafe_CALL();
+
+      RollformingMng_CALL();
+
+      PostPunchingMatCounter_CALL();
+
+      MwFakCalc_CALL();
+
+      WeldReg_CALL();
+
+      Area02_HU_CALL();
+
+      A0201_Profilatrice_RegolazioneFormato_OB1_CALL();
+
+      PitTable1_CALL();
+
+      Rollformer_CALL();
+
+      RollfomrerLubr_CALL();
+
+      FlyingCarriage_CALL();
+
+      CarriageLub_CALL();
+
+      FinalCut_CALL();
+
+      FinalCutLub_CALL();
+
+      AccRollConveyor_CALL();
+
+      A02_TrkManager_CALL();
+
+
+   END_REGION
+
+   REGION "Area ITF Orchestrator"
+      "Area02_ITF"(
+         en := TRUE
+      );
+
+      "Area02_ITF"();
+   END_REGION
+
+
+END_FUNCTION

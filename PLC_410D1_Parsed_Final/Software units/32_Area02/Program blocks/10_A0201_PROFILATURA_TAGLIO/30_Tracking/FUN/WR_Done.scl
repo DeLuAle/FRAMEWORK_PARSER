@@ -1,0 +1,27 @@
+﻿// Block: WR_Done
+
+FUNCTION "WR_Done" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      done : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      empty : Date_And_Time;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      IF done THEN 
+          WR_Done := Now();
+      ELSE
+          WR_Done := empty;
+      END_IF;
+      ENO := TRUE;
+
+   END_REGION
+
+
+END_FUNCTION

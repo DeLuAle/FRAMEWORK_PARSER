@@ -1,0 +1,89 @@
+﻿FUNCTION "PTrk_Single_Item_Update" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PTrk : "PTrk_Item";
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      NOT_FOUND : Int := -1;
+      DONE : Int := 0;
+   END_VAR
+
+
+BEGIN
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	// AGGIORNAMENTO VALORE TRACKING PARTE
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+	#PTrk_Single_Item_Update := #NOT_FOUND;
+	
+	REGION Ricerca su tracking Area 02 rulliera di accelerazione
+	    
+	    FOR #i := 1 TO "PTRK_A0202_ITEMS" DO
+	        
+	        IF "PTrk".A0202.P[#i].P_ID = #PTrk.P_ID THEN
+	            "PTrk".A0202.P[#i] := #PTrk;
+	            #PTrk_Single_Item_Update := #DONE;
+	            EXIT;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    IF #PTrk_Single_Item_Update = #DONE THEN
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	REGION Ricerca su tracking Area 02 scivolo uscita parti da rulliera di accelerazione
+	    
+	    FOR #i := 1 TO "PTRK_A0202_EXIT_TOCHECK_ITEMS" DO
+	        
+	        IF "PTrk".A02_EXIT_TOCHECK[#i].P_ID = #PTrk.P_ID THEN
+	            "PTrk".A02_EXIT_TOCHECK[#i] := #PTrk;
+	            #PTrk_Single_Item_Update := #DONE;
+	            EXIT;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    IF #PTrk_Single_Item_Update = #DONE THEN
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	REGION Ricerca su tracking Area 03 stazione di ribaltamento
+	    
+	    FOR #i := 1 TO "PTRK_A0301_ITEMS" DO
+	        
+	        IF "PTrk".A0301.P[#i].P_ID = #PTrk.P_ID THEN
+	            "PTrk".A0301.P[#i] := #PTrk;
+	            #PTrk_Single_Item_Update := #DONE;
+	            EXIT;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    IF #PTrk_Single_Item_Update = #DONE THEN
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	// Se si arriva qua si esce con retval = NOT_FOUND
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

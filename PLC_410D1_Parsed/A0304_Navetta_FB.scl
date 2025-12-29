@@ -1,0 +1,1059 @@
+﻿// Block: A0304_Navetta_FB
+// Title: Reset allarmi 
+
+FUNCTION_BLOCK "A0304_Navetta_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset allarmi 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI_Feed_Testa : udt_DeviceSafetyInterface;
+      DSI_Feed_Coda : udt_DeviceSafetyInterface;
+      DSI_Valve : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         OP_Vai_A_Prelievo : Bool;
+         OP_Vai_A_Deposito : Bool;
+         OP_Prelievo : Bool;
+         OP_Deposito : Bool;
+         UnloadBenchCaricoMatPres1 : Bool;
+         UnloadBenchCaricoMatPres2 : Bool;
+         UnloadBenchScaricoMatPres1 : Bool;
+         UnloadBenchScaricoMatPres2 : Bool;
+         PalettoInternoCoda_LsRest : Bool;
+         PalettoInternoCoda_LsWork : Bool;
+         PalettoInternoTesta_LsRest : Bool;
+         PalettoInternoTesta_LsWork : Bool;
+         PalettoEsternoCoda_LsRest : Bool;
+         PalettoEsternoCoda_LsWork : Bool;
+         PalettoEsternoTesta_LsRest : Bool;
+         PalettoEsternoTesta_LsWork : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+            Control_ON : Bool;
+            CanMoveFreely : Bool;
+            Phase : Struct
+               VAI_A_PRELIEVO : Bool;
+               PRELIEVO : Bool;
+               VAI_A_DEPOSITO : Bool;
+               DEPOSITO : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         Sostegno : Struct
+            ReadyForDeposito : Bool;
+         END_STRUCT;
+         Sollevatori : Struct
+            Testa : Struct
+               InPosDeposito : Bool;
+               ActualPos : LReal;
+            END_STRUCT;
+            Coda : Struct
+               InPosDeposito : Bool;
+               ActualPos : LReal;
+            END_STRUCT;
+         END_STRUCT;
+         AirOk : Bool;
+         CycleModeShortPiece : Bool;
+      END_STRUCT;
+      Config : Struct
+         Navetta : Struct
+            Testa : Struct
+               Ax : Positioning_DOL_Machine_Config;
+               PalettiEsterni : ValveMachine_Config;
+               PalettiInterni : ValveMachine_Config;
+            END_STRUCT;
+            Coda : Struct
+               Ax : Positioning_DOL_Machine_Config;
+               PalettiEsterni : ValveMachine_Config;
+               PalettiInterni : ValveMachine_Config;
+            END_STRUCT;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Testa : Struct
+            Ax : Positioning_DOL_Machine_COut;
+            PalettiEsterni : ValveMachine_COut;
+            PalettiInterni : ValveMachine_COut;
+         END_STRUCT;
+         Coda : Struct
+            Ax : Positioning_DOL_Machine_COut;
+            PalettiEsterni : ValveMachine_COut;
+            PalettiInterni : ValveMachine_COut;
+         END_STRUCT;
+         Cumulativo : Struct
+            PalettiEsterni : ValveMachine_COut;
+            PalettiInterni : ValveMachine_COut;
+         END_STRUCT;
+         ReadyToRecive : Bool;
+      END_STRUCT;
+      DataOut : Struct
+         Testa : Struct
+            PalettoEsterno : Struct
+               SbloccaggioStelo : Bool;
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+            PalettoInterno : Struct
+               SbloccaggioStelo : Bool;
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         Coda : Struct
+            PalettoEsterno : Struct
+               SbloccaggioStelo : Bool;
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+            PalettoInterno : Struct
+               SbloccaggioStelo : Bool;
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : Struct
+         Ax_Man : Positioning_DOL_Machine_Par;
+         Ax_Testa_Pers : Positioning_DOL_Machine_Pers_Data;
+         Ax_Coda_Pers : Positioning_DOL_Machine_Pers_Data;
+         Enc : Struct
+            Testa : PosFbk_RTN;
+            Coda : PosFbk_RTN;
+         END_STRUCT;
+      END_STRUCT;
+      Par_Mach : Struct
+         PosPrePrelievo : LReal;
+         PosPrelievo : LReal;
+         PosDeposito : LReal;
+         ToleranceWindow : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Testa : Struct
+            Ax : Positioning_DOL_Machine_Alr;
+            Enc : PosFbk_Encoder_Alr;
+            PalettiEsterni : ValveAlr;
+            PalettiInterni : ValveAlr;
+         END_STRUCT;
+         Coda : Struct
+            Ax : Positioning_DOL_Machine_Alr;
+            Enc : PosFbk_Encoder_Alr;
+            PalettiEsterni : ValveAlr;
+            PalettiInterni : ValveAlr;
+         END_STRUCT;
+         CheckBothShutMove : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Testa : Struct
+            Ax : Positioning_DOL_Machine_Wng;
+            PalettiEsterni : ValveMachine_Wng;
+            PalettiInterni : ValveMachine_Wng;
+         END_STRUCT;
+         Coda : Struct
+            Ax : Positioning_DOL_Machine_Wng;
+            PalettiEsterni : ValveMachine_Wng;
+            PalettiInterni : ValveMachine_Wng;
+         END_STRUCT;
+         MissingCnd : Struct
+            OP_VAI_A_PRELIEVO : Bool;
+            OP_PRELIEVO : Bool;
+            OP_VAI_A_DEPOSITO : Bool;
+            OP_DEPOSITO : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      HMI : Struct
+         Selection : Struct
+            Ax : Int;
+            PalettiEsterni : Int;
+            PalettiInterni : Int;
+         END_STRUCT;
+         Testa : Struct
+            PbPreset : Bool;
+            PresetValue : LReal;
+         END_STRUCT;
+         Coda : Struct
+            PbPreset : Bool;
+            PresetValue : LReal;
+         END_STRUCT;
+      END_STRUCT;
+      Sts : Struct
+         OP_CanMoveFreely : Bool;
+         OP_Vai_A_Prelievo_Cnd : Bool;
+         OP_Prelievo_Cnd : Bool;
+         OP_Vai_A_Deposito_Cnd : Bool;
+         OP_Deposito_Cnd : Bool;
+         Coda_PermessoDaSynchOk : Bool;
+         Testa_PermessoDaSynchOk : Bool;
+         OutOfWorkSpace : Bool;
+         GenCndFwd : Bool;
+         GenCndBkw : Bool;
+         ReloadAirRequest : Bool;
+         InPosPrelievo : Bool;
+         InPosPrePrelievo : Bool;
+         InPosDeposito : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Man : Struct
+            OP_Vai_A_Prelievo : Bool;
+            OP_Prelievo : Bool;
+            OP_Vai_A_Deposito : Bool;
+            OP_Deposito : Bool;
+         END_STRUCT;
+         Aut : Struct
+            OP_Vai_A_Prelievo : Bool;
+            OP_Prelievo : Bool;
+            OP_Vai_A_Deposito : Bool;
+            OP_Deposito : Bool;
+         END_STRUCT;
+         OP_Vai_A_Prelievo : Bool;
+         OP_Prelievo : Bool;
+         OP_Vai_A_Deposito : Bool;
+         OP_Deposito : Bool;
+         ReloadAir : Bool;
+      END_STRUCT;
+      Ax_Testa : Positioning_DOL_Machine_FB;
+      Ax_Coda : Positioning_DOL_Machine_FB;
+      PalettiEsterni_Testa : ValveMachine_FB;
+      PalettiEsterni_Coda : ValveMachine_FB;
+      PalettiInterni_Testa : ValveMachine_FB;
+      PalettiInterni_Coda : ValveMachine_FB;
+      BloccaggioStelo_PalettoEsterno_Testa : Valve;
+      BloccaggioStelo_PalettoEsterno_Coda : Valve;
+      Enc_Testa : PosFbk_SickAFM60;
+      Enc_Testa_ITF : PosFbk_ITF;
+      Enc_Coda : PosFbk_SickAFM60;
+      Enc_Coda_ITF : PosFbk_ITF;
+      AUX : Struct
+         OP_Vai_A_Prelievo : Bool;
+         OP_Prelievo : Bool;
+         OP_Vai_A_Deposito : Bool;
+         OP_Deposito : Bool;
+         AirOk : Bool;
+         Clock250 : Bool;
+      END_STRUCT;
+      TON_OP_VAI_A_PRELIEVO_MissingCnd : IEC_TIMER;
+      TON_OP_PRELIEVO_MissingCnd : IEC_TIMER;
+      TON_OP_VAI_A_DEPOSITO_MissingCnd : IEC_TIMER;
+      TON_OP_DEPOSITO_MissingCnd : IEC_TIMER;
+      TON_CheckShuttleMove : IEC_TIMER;
+      TON_ReloadAir : IEC_TIMER;
+      TON_CheckAxis : IEC_TIMER;
+      CheckAxisSynch : CheckAxisSynch;
+      Sts_PosAxis : Int;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Vai_A_Prelievo : Bool;
+         OP_Prelievo : Bool;
+         OP_Vai_A_Deposito : Bool;
+         OP_Deposito : Bool;
+         Clock250 : Bool;
+      END_STRUCT;
+      NE : Struct
+         AirOk : Bool;
+      END_STRUCT;
+      AxTesta_InPosDeposito : Bool;
+      AxCoda_InPosDeposito : Bool;
+      AxTesta_InPosPrelievo : Bool;
+      AxCoda_InPosPrelievo : Bool;
+      AxCoda_InPosPrePrelievo : Bool;
+      AxTesta_InPosPrePrelievo : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      "Ax_Fuori Ingombro" : LReal;
+      MaxDistance : LReal;
+      MinDistance : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset allarmi"
+      IF AreaInterface.RstAlarms THEN
+          Alarm.CheckBothShutMove := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_CanMoveFreely := (CIn.Manager.CanMoveFreely OR NOT (Sys.ByPass));
+   END_REGION
+
+   REGION "Comando Operazione fasi (AUT)"
+      Ctrl.Aut.OP_Vai_A_Prelievo := (CIn.Manager.Control_ON AND CIn.Manager.Phase.VAI_A_PRELIEVO);
+      Ctrl.Aut.OP_Prelievo := (CIn.Manager.Control_ON AND CIn.Manager.Phase.PRELIEVO);
+      Ctrl.Aut.OP_Vai_A_Deposito := (CIn.Manager.Control_ON AND CIn.Manager.Phase.VAI_A_DEPOSITO);
+      Ctrl.Aut.OP_Deposito := (CIn.Manager.Control_ON AND CIn.Manager.Phase.DEPOSITO);
+   END_REGION
+
+   REGION "Comando Operazione vai a Prelievo (MAN)"
+      PE.OP_Vai_A_Prelievo := PosEdge(DataIn.OP_Vai_A_Prelievo);
+      Ctrl.Man.OP_Vai_A_Prelievo := (((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Vai_A_Prelievo) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Vai_A_Prelievo)) AND DataIn.OP_Vai_A_Prelievo) AND NOT (DataIn.OP_Prelievo)) AND NOT (DataIn.OP_Vai_A_Deposito)) AND NOT (DataIn.OP_Deposito));
+   END_REGION
+
+   REGION "Comando Operazione Prelievo (MAN)"
+      PE.OP_Prelievo := PosEdge(DataIn.OP_Prelievo);
+      Ctrl.Man.OP_Prelievo := ((((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Prelievo) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Prelievo)) AND DataIn.OP_Prelievo) AND NOT (DataIn.OP_Vai_A_Prelievo)) AND NOT (DataIn.OP_Vai_A_Deposito)) AND NOT (DataIn.OP_Vai_A_Deposito)) AND NOT (DataIn.OP_Deposito));
+   END_REGION
+
+   REGION "Comando Operazione vai a Deposito (MAN)"
+      PE.OP_Vai_A_Deposito := PosEdge(DataIn.OP_Vai_A_Deposito);
+      Ctrl.Man.OP_Vai_A_Deposito := (((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Vai_A_Deposito) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Vai_A_Deposito)) AND DataIn.OP_Vai_A_Deposito) AND NOT (DataIn.OP_Vai_A_Prelievo)) AND NOT (DataIn.OP_Prelievo)) AND NOT (DataIn.OP_Deposito));
+   END_REGION
+
+   REGION "Comando Operazione Deposito (MAN)"
+      PE.OP_Deposito := PosEdge(DataIn.OP_Deposito);
+      Ctrl.Man.OP_Deposito := (((((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Deposito) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Man.OP_Deposito)) AND DataIn.OP_Deposito) AND NOT (DataIn.OP_Vai_A_Prelievo)) AND NOT (DataIn.OP_Prelievo)) AND NOT (DataIn.OP_Vai_A_Deposito));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Vai_A_Prelievo := NOT ((NOT (Ctrl.Man.OP_Vai_A_Prelievo) AND NOT (Ctrl.Aut.OP_Vai_A_Prelievo)));
+      Ctrl.OP_Prelievo := NOT ((NOT (Ctrl.Man.OP_Prelievo) AND NOT (Ctrl.Aut.OP_Prelievo)));
+      Ctrl.OP_Vai_A_Deposito := NOT ((NOT (Ctrl.Man.OP_Vai_A_Deposito) AND NOT (Ctrl.Aut.OP_Vai_A_Deposito)));
+      Ctrl.OP_Deposito := NOT ((NOT (Ctrl.Man.OP_Deposito) AND NOT (Ctrl.Aut.OP_Deposito)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Vai_A_Prelievo_Cnd := (CIn.Manager.Phase.VAI_A_PRELIEVO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Prelievo_Cnd := (CIn.Manager.Phase.PRELIEVO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Vai_A_Deposito_Cnd := (CIn.Manager.Phase.VAI_A_DEPOSITO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Deposito_Cnd := (CIn.Manager.Phase.DEPOSITO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Ax Navetta in posizione"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosDeposito,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosDeposito
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosPrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrelievo
+      );
+
+      "TolWindow"(
+         en := NOT (CIn.CycleModeShortPiece),
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := Par_Mach.PosPrePrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := Par_Mach.PosPrePrelievo,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := CIn.CycleModeShortPiece,
+         ActPos := Ax_Coda.Sts.ActualPosition,
+         Target := 320.0,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxCoda_InPosPrePrelievo
+      );
+
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax_Testa.Sts.ActualPosition,
+         Target := 320.0,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => AxTesta_InPosPrePrelievo
+      );
+
+      AxTesta_InPosDeposito := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      AxCoda_InPosDeposito := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosDeposito, PosWin := Par_Mach.ToleranceWindow);
+      AxTesta_InPosPrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
+      AxCoda_InPosPrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrelievo, PosWin := Par_Mach.ToleranceWindow);
+      IF NOT (CIn.CycleModeShortPiece) THEN
+         AxCoda_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      AxTesta_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := Par_Mach.PosPrePrelievo, PosWin := Par_Mach.ToleranceWindow);
+      IF CIn.CycleModeShortPiece THEN
+         AxCoda_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Coda.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow);
+      END_IF;
+      AxTesta_InPosPrePrelievo := "TolWindow"(ActPos := Ax_Testa.Sts.ActualPosition, Target := 320.0, PosWin := Par_Mach.ToleranceWindow);
+      Sts.InPosPrelievo := (AxCoda_InPosPrelievo AND AxTesta_InPosPrelievo);
+      Sts.InPosPrePrelievo := (AxCoda_InPosPrePrelievo AND AxTesta_InPosPrePrelievo);
+      Sts.InPosDeposito := (AxCoda_InPosDeposito AND AxTesta_InPosDeposito);
+   END_REGION
+
+   REGION "Sincronizzazione tra asse testa e asse coda"
+      CheckAxisSynch(Ax1_Pos:=Ax_Testa.Sts.ActualPosition,
+                      Ax2_Pos:=Ax_Coda.Sts.ActualPosition,
+                      TargetPos:=Ax_Testa.Ctrl.Pos,
+                      MaxDistance:=MaxDistance,
+                      MinDistance:=MinDistance,
+                      Ax1_SynchOk=> Sts.Testa_PermessoDaSynchOk,
+                      Ax2_SynchOk=> Sts.Coda_PermessoDaSynchOk);
+
+   END_REGION
+
+   REGION "CIn Abilitazioni Manager"
+      //Stop Door Opening Request
+      Ax_Testa.CIn.Manager.EnableStopDoorOpeningReq := Ax_Coda.CIn.Manager.EnableStopDoorOpeningReq :=
+      PalettiEsterni_Testa.Cin.Manager.EnableStopDoorOpeningReq := PalettiEsterni_Coda.Cin.Manager.EnableStopDoorOpeningReq :=
+      PalettiInterni_Testa.Cin.Manager.EnableStopDoorOpeningReq := PalettiInterni_Coda.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+
+      //Stop In Phase
+      Ax_Testa.CIn.Manager.EnableStopInPhase := Ax_Coda.CIn.Manager.EnableStopInPhase :=
+      PalettiEsterni_Testa.Cin.Manager.EnableStopInPhase := PalettiEsterni_Coda.Cin.Manager.EnableStopInPhase :=
+      PalettiInterni_Testa.Cin.Manager.EnableStopInPhase := PalettiInterni_Coda.Cin.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+
+      //Stop Programmed
+      Ax_Testa.CIn.Manager.EnableStopProgrammed := Ax_Coda.CIn.Manager.EnableStopProgrammed :=
+      PalettiEsterni_Testa.Cin.Manager.EnableStopProgrammed := PalettiEsterni_Coda.Cin.Manager.EnableStopProgrammed :=
+      PalettiInterni_Testa.Cin.Manager.EnableStopProgrammed := PalettiInterni_Coda.Cin.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+   END_REGION
+
+   REGION "Cin Manager (Esecuzione sequenza comandi)"
+      //CTRL ON
+      Ax_Testa.CIn.Manager.Control_ON := Ax_Coda.CIn.Manager.Control_ON :=
+      PalettiEsterni_Testa.Cin.Manager.Control_ON := PalettiEsterni_Coda.Cin.Manager.Control_ON :=
+      PalettiInterni_Testa.Cin.Manager.Control_ON := PalettiInterni_Coda.Cin.Manager.Control_ON := Ctrl.OP_Prelievo OR Ctrl.OP_Vai_A_Deposito OR Ctrl.OP_Vai_A_Prelievo OR  Ctrl.OP_Deposito;
+
+      Ax_Testa.CIn.Manager.Speed := Ax_Coda.CIn.Manager.Speed :=100;
+
+      TON_CheckAxis.(IN := Sts_PosAxis = 2 OR Sts_PosAxis = 3,
+                         PT := T#1S);
+
+
+      //Power On Assi
+      Ax_Coda.CIn.ExternalPowerOn := Ax_Testa.CIn.ExternalPowerOn := Ctrl.OP_Vai_A_Prelievo OR Ctrl.OP_Vai_A_Deposito OR Ctrl.OP_Prelievo;
+
+      IF Sts_PosAxis = 3 AND  (Ax_Testa.Sts.ActualPosition - Ax_Coda.Sts.ActualPosition) > MaxDistance THEN
+          Sts_PosAxis := 0;
+      END_IF;
+
+      IF NOT Ctrl.OP_Vai_A_Deposito AND NOT Ctrl.OP_Vai_A_Prelievo AND NOT Ctrl.OP_Prelievo THEN
+          Sts_PosAxis := 0;
+      END_IF;
+
+      IF Sts_PosAxis = 0 THEN
+          
+          Ax_Testa.CIn.Manager.MoveToPos := Ax_Coda.CIn.Manager.MoveToPos := FALSE;
+          
+          IF Ctrl.OP_Vai_A_Deposito OR Ctrl.OP_Vai_A_Prelievo OR Ctrl.OP_Prelievo THEN
+              IF (Ax_Testa.Sts.ActualPosition - Ax_Coda.Sts.ActualPosition) > MaxDistance THEN
+                  
+                  Ax_Testa.CIn.Manager.Pos := Ax_Coda.Sts.ActualPosition;
+                  Ax_Coda.CIn.Manager.Pos := Ax_Coda.Sts.ActualPosition;
+                  Ax_Coda.CIn.Manager.MoveToPos := TRUE;
+                  Ax_Testa.CIn.Manager.MoveToPos := TRUE;
+                  
+                  
+                  Sts_PosAxis := 1;
+              ELSE
+                  Sts_PosAxis := 3;
+              END_IF;
+              
+          END_IF;
+      END_IF;
+
+      IF Sts_PosAxis = 1 THEN
+          
+          IF (Ax_Testa.Sts.ActualPosition - Ax_Coda.Sts.ActualPosition) <MinDistance THEN
+              Ax_Testa.CIn.Manager.MoveToPos := FALSE;
+              Ax_Coda.CIn.Manager.MoveToPos := FALSE;
+              
+              Sts_PosAxis := 2;
+
+          END_IF;
+
+      END_IF;
+
+      IF Sts_PosAxis = 2 THEN
+          
+
+              Ax_Testa.CIn.Manager.MoveToPos := FALSE;
+              Ax_Coda.CIn.Manager.MoveToPos := FALSE;
+              
+              IF Ax_Coda.COut.Standstill AND Ax_Testa.COut.Standstill AND TON_CheckAxis.Q THEN
+                  
+                  Sts_PosAxis := 3;
+              END_IF;
+
+      END_IF;
+
+      IF Sts_PosAxis = 3 AND NOT Alarm.CheckBothShutMove THEN
+          
+          Ax_Testa.CIn.Manager.MoveToPos := FALSE;
+          Ax_Coda.CIn.Manager.MoveToPos := FALSE;
+
+          
+          IF Ctrl.OP_Vai_A_Prelievo AND Sts.OP_Vai_A_Prelievo_Cnd THEN
+              
+              Ax_Testa.CIn.Manager.Speed := Ax_Coda.CIn.Manager.Speed := 100;
+              
+              // Paletti Interni
+              PalettiInterni_Testa.Cin.Manager.Rest := NOT PalettiInterni_Testa.COut.Rest;
+              PalettiInterni_Coda.Cin.Manager.Rest := NOT PalettiInterni_Coda.COut.Rest;
+              
+              // Paletti Esterni
+              PalettiEsterni_Testa.Cin.Manager.Rest := NOT PalettiEsterni_Testa.COut.Rest;
+              PalettiEsterni_Coda.Cin.Manager.Rest := NOT PalettiEsterni_Coda.COut.Rest;
+              
+              // Trasporto in posizione di Prelievo
+              IF NOT CIn.CycleModeShortPiece THEN
+                  Ax_Coda.CIn.Manager.Pos := Ax_Testa.CIn.Manager.Pos := Par_Mach.PosPrePrelievo;
+              ELSE
+                  Ax_Coda.CIn.Manager.Pos := Ax_Testa.CIn.Manager.Pos := 320;
+              END_IF;
+              
+              
+              Ax_Testa.CIn.Manager.MoveToPos := NOT AxTesta_InPosPrePrelievo AND PalettiInterni_Testa.COut.Rest AND PalettiInterni_Coda.COut.Rest
+              AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Coda.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+              
+              
+              Ax_Coda.CIn.Manager.MoveToPos := NOT AxCoda_InPosPrePrelievo AND PalettiInterni_Testa.COut.Rest AND PalettiInterni_Coda.COut.Rest
+              AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Coda.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+              
+
+              
+              
+          ELSIF Ctrl.OP_Vai_A_Deposito AND Sts.OP_Vai_A_Deposito_Cnd THEN
+              
+              Ax_Testa.CIn.Manager.Speed := Ax_Coda.CIn.Manager.Speed := 100;
+              
+              
+              
+              
+              // Paletti Interni
+              PalettiInterni_Testa.Cin.Manager.Work := NOT PalettiInterni_Testa.COut.Work;
+              PalettiInterni_Coda.Cin.Manager.Work := NOT PalettiInterni_Coda.COut.Work;
+              
+              // Paletti Esterni
+              PalettiEsterni_Testa.Cin.Manager.Work := NOT PalettiEsterni_Testa.COut.Work;
+              PalettiEsterni_Coda.Cin.Manager.Work := NOT PalettiEsterni_Coda.COut.Work;
+              
+              
+              // Trasporto in posizione di Trasporto
+              Ax_Testa.CIn.Manager.MoveToPos := PalettiInterni_Testa.COut.Work AND PalettiEsterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work AND PalettiEsterni_Coda.COut.Work AND NOT AxTesta_InPosDeposito
+              AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+              Ax_Coda.CIn.Manager.MoveToPos := PalettiInterni_Testa.COut.Work AND PalettiEsterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work AND PalettiEsterni_Coda.COut.Work AND NOT AxCoda_InPosDeposito
+              AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+              
+              Ax_Coda.CIn.Manager.Pos := Ax_Testa.CIn.Manager.Pos := Par_Mach.PosDeposito;
+              
+              
+              
+              
+          ELSIF Ctrl.OP_Prelievo AND Sts.OP_Prelievo_Cnd THEN
+              Ax_Testa.CIn.Manager.Speed := Ax_Coda.CIn.Manager.Speed := 100;
+              IF NOT CIn.CycleModeShortPiece THEN
+                  
+                  // Paletti Interni
+                  PalettiInterni_Testa.Cin.Manager.Work := NOT PalettiInterni_Testa.COut.Work;
+                  PalettiInterni_Coda.Cin.Manager.Work := NOT PalettiInterni_Coda.COut.Work;
+                  
+                  Ax_Coda.CIn.Manager.Pos := Ax_Testa.CIn.Manager.Pos := Par_Mach.PosPrelievo;
+                  
+                  Ax_Testa.CIn.Manager.MoveToPos := NOT AxTesta_InPosPrelievo AND PalettiInterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work
+                  AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Testa.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled;
+                  ;
+                  
+                  Ax_Coda.CIn.Manager.MoveToPos := NOT AxCoda_InPosPrelievo AND PalettiInterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work
+                  AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Testa.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled;
+                  ;
+                  
+                  // Paletti Esterni
+                  PalettiEsterni_Testa.Cin.Manager.Work := Sts.InPosPrelievo AND PalettiInterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work AND NOT PalettiEsterni_Testa.COut.Work;
+                  PalettiEsterni_Coda.Cin.Manager.Work := Sts.InPosPrelievo AND PalettiInterni_Coda.COut.Work AND PalettiInterni_Testa.COut.Work AND NOT PalettiEsterni_Coda.COut.Work;
+                  
+              ELSE
+                  Ax_Coda.CIn.Manager.Pos := Ax_Testa.CIn.Manager.Pos := Par_Mach.PosPrelievo;
+                  
+                  Ax_Testa.CIn.Manager.MoveToPos := NOT AxTesta_InPosPrelievo AND PalettiInterni_Testa.COut.Rest AND PalettiInterni_Coda.COut.Rest
+                  AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Testa.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+                  ;
+                  
+                  Ax_Coda.CIn.Manager.MoveToPos := NOT AxCoda_InPosPrelievo AND PalettiInterni_Testa.COut.Rest AND PalettiInterni_Coda.COut.Rest
+                  AND PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Testa.COut.Rest AND Ax_Testa.S120.Sts.AxisEnabled AND Ax_Coda.S120.Sts.AxisEnabled AND TON_CheckAxis.Q;
+                  ;
+                  
+              END_IF;
+          END_IF;
+          
+      END_IF;
+
+
+          
+      IF Ctrl.OP_Deposito AND Sts.OP_Deposito_Cnd THEN
+          PalettiEsterni_Testa.Cin.Manager.Rest := NOT  PalettiEsterni_Testa.COut.Rest;
+          PalettiEsterni_Coda.Cin.Manager.Rest := NOT PalettiEsterni_Coda.COut.Rest;
+          PalettiInterni_Testa.Cin.Manager.Rest := NOT PalettiInterni_Testa.COut.Rest;
+          PalettiInterni_Coda.Cin.Manager.Rest := NOT PalettiInterni_Coda.COut.Rest;
+          
+      ELSIF NOT Ctrl.OP_Deposito AND NOT Ctrl.OP_Prelievo AND NOT Ctrl.OP_Vai_A_Prelievo AND NOT Ctrl.OP_Vai_A_Deposito THEN
+          // Reset Cmd
+          Ax_Testa.CIn.Manager.Minus := FALSE;
+          Ax_Coda.CIn.Manager.Minus := FALSE;
+          PalettiEsterni_Testa.Cin.Manager.Rest := FALSE;
+          PalettiEsterni_Coda.Cin.Manager.Rest := FALSE;
+          PalettiInterni_Testa.Cin.Manager.Rest := FALSE;
+          PalettiInterni_Coda.Cin.Manager.Rest := FALSE;
+          
+          Ax_Testa.CIn.Manager.Plus := FALSE;
+          Ax_Coda.CIn.Manager.Plus := FALSE;
+          Ax_Testa.CIn.Manager.MoveToPos := FALSE;
+          Ax_Coda.CIn.Manager.MoveToPos := FALSE;
+          PalettiEsterni_Testa.Cin.Manager.Work := FALSE;
+          PalettiEsterni_Coda.Cin.Manager.Work := FALSE;
+          PalettiInterni_Testa.Cin.Manager.Work := FALSE;
+          PalettiInterni_Coda.Cin.Manager.Work := FALSE;
+          
+      END_IF;
+          
+
+          
+          
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione OperazionI"
+      #TON_OP_VAI_A_PRELIEVO_MissingCnd(
+         IN := Ctrl.OP_Vai_A_Prelievo,
+         PT := Config.Navetta.DelayMissingCondition
+      );
+
+      #TON_OP_PRELIEVO_MissingCnd(
+         IN := Ctrl.OP_Prelievo,
+         PT := Config.Navetta.DelayMissingCondition
+      );
+
+      #TON_OP_VAI_A_DEPOSITO_MissingCnd(
+         IN := Ctrl.OP_Vai_A_Deposito,
+         PT := Config.Navetta.DelayMissingCondition
+      );
+
+      #TON_OP_DEPOSITO_MissingCnd(
+         IN := Ctrl.OP_Deposito,
+         PT := Config.Navetta.DelayMissingCondition
+      );
+
+      #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q;
+      IF (Sts.OP_Vai_A_Prelievo_Cnd OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_VAI_A_PRELIEVO := FALSE;
+      ELSIF #TON_OP_VAI_A_PRELIEVO_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_VAI_A_PRELIEVO := TRUE;
+      END_IF;
+      #TON_OP_PRELIEVO_MissingCnd.Q;
+      IF (Sts.OP_Prelievo_Cnd OR Ctrl.OP_Prelievo OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_PRELIEVO := FALSE;
+      ELSIF #TON_OP_PRELIEVO_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_PRELIEVO := TRUE;
+      END_IF;
+      #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q;
+      IF (Sts.OP_Vai_A_Deposito_Cnd OR Ctrl.OP_Vai_A_Deposito OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_VAI_A_DEPOSITO := FALSE;
+      ELSIF #TON_OP_VAI_A_DEPOSITO_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_VAI_A_DEPOSITO := TRUE;
+      END_IF;
+      #TON_OP_DEPOSITO_MissingCnd.Q;
+      IF (Sts.OP_Deposito_Cnd OR Ctrl.OP_Deposito OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_DEPOSITO := FALSE;
+      ELSIF #TON_OP_DEPOSITO_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_DEPOSITO := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Shuttle Out of Workspace"
+      IF Ax_Coda.COut.ActualPosition > Ax_Fuori Ingombro AND Ax_Testa.COut.ActualPosition > Ax_Fuori Ingombro THEN
+          Sts.OutOfWorkSpace := TRUE;
+      ELSE
+          Sts.OutOfWorkSpace := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Check Shuttle Movement"
+      #TON_CheckShuttleMove(
+         IN := ((((((AreaInterface.Cycle OR (Ctrl.OP_Vai_A_Deposito AND Ctrl.OP_Vai_A_Prelievo)) AND Ax_Coda.COut.Standstill) AND NOT (Ax_Testa.COut.Standstill)) OR (((AreaInterface.Cycle OR (Ctrl.OP_Vai_A_Deposito AND Ctrl.OP_Vai_A_Prelievo)) AND NOT (Ax_Coda.COut.Standstill)) AND Ax_Testa.COut.Standstill)) AND (Sts_PosAxis <> 1)) AND (Sts_PosAxis <> 2)),
+         PT := T#2S
+      );
+
+      #TON_CheckShuttleMove.Q;
+      IF #TON_CheckShuttleMove.Q THEN
+         Alarm.CheckBothShutMove := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Dynamic Limit (AXIS SYNCH)"
+      Ax_Testa.CIn.PositionLimits.EnableMin := FALSE;
+      Ax_Testa.CIn.PositionLimits.EnableMax := FALSE;
+      Ax_Coda.CIn.PositionLimits.EnableMin := FALSE;
+      Ax_Coda.CIn.PositionLimits.EnableMax := FALSE;
+      IF FALSE THEN
+         Ax_Coda.CIn.PositionLimits.PosMax := Ax_Testa.Ax.AxisSts.ActualPosition;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax] - Gen Cnd Bkw"
+      Sts.GenCndBkw := ((((((((NOT (BTrk.A0303.Stacker.Empty) AND PalettiInterni_Testa.COut.Rest) AND PalettiEsterni_Testa.COut.Rest) OR BTrk.A0303.Stacker.Empty OR Sts.OutOfWorkSpace) AND BTrk.A0304.Empty) AND NOT (DataIn.UnloadBenchCaricoMatPres1)) AND NOT (DataIn.UnloadBenchCaricoMatPres2)) AND (CIn.Sollevatori.Coda.ActualPos < 500.0)) OR (((((((((NOT (BTrk.A0303.Stacker.Empty) AND PalettiInterni_Testa.COut.Rest) AND PalettiEsterni_Testa.COut.Rest) OR BTrk.A0303.Stacker.Empty OR Sts.OutOfWorkSpace) AND BTrk.A0304.Empty) AND NOT (DataIn.UnloadBenchCaricoMatPres1)) AND NOT (DataIn.UnloadBenchCaricoMatPres2)) AND BTrk.A0304.Empty) AND NOT (DataIn.UnloadBenchCaricoMatPres1)) AND NOT (DataIn.UnloadBenchCaricoMatPres2)));
+   END_REGION
+
+   REGION "[Ax] - Gen Cnd Fwd"
+      Sts.GenCndFwd := ((((((NOT (BTrk.A0304.Empty) AND CIn.Sollevatori.Coda.InPosDeposito) AND CIn.Sollevatori.Testa.InPosDeposito) OR (NOT (BTrk.A0304.Empty) AND Sts.OutOfWorkSpace)) AND COut.Cumulativo.PalettiInterni.Work) AND COut.Cumulativo.PalettiEsterni.Work) OR ((((NOT (BTrk.A0304.Empty) AND CIn.Sollevatori.Coda.InPosDeposito) AND CIn.Sollevatori.Testa.InPosDeposito) OR (NOT (BTrk.A0304.Empty) AND Sts.OutOfWorkSpace)) AND CIn.Manager.Phase.PRELIEVO) OR ((BTrk.A0304.Empty AND NOT (DataIn.UnloadBenchCaricoMatPres1)) AND NOT (DataIn.UnloadBenchCaricoMatPres2)));
+   END_REGION
+
+   REGION "Axis - CIn External alarm"
+      Ax_Testa.CIn.ExternalAlarms := Alarm.CheckBothShutMove;
+   END_REGION
+
+   REGION "Axis- Cin Ext Enable"
+      Ax_Testa.CIn.MinusExtEnable := ((CIn.Manager.Control_ON OR Ctrl.OP_Vai_A_Prelievo OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND NOT (Ctrl.OP_Vai_A_Prelievo))) AND Sts.GenCndBkw);
+      Ax_Testa.CIn.PlusExtEnable := ((CIn.Manager.Control_ON OR (Ctrl.OP_Vai_A_Deposito AND Ctrl.OP_Prelievo) OR ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND NOT (Ctrl.OP_Vai_A_Deposito)) AND NOT (Ctrl.OP_Prelievo))) AND Sts.GenCndFwd);
+   END_REGION
+
+   REGION "HMI preset position"
+      Ax_Testa.HMI.B_Preset := HMI.Testa.PbPreset;
+
+      Ax_Testa.HMI.PresetPosition := HMI.Testa.PresetValue;
+
+   END_REGION
+
+   REGION "[Ax] - Encoder - Main"
+      #Enc_Testa(
+         en := TRUE,
+         Interface := Enc_Testa_ITF,
+         Retain := Par.Enc.Testa,
+         Alarm := Alarm.Testa.Enc
+      );
+
+      #Enc_Testa.Q;
+   END_REGION
+
+   REGION "[Ax] - Axis 1 Manger"
+      #Ax_Testa(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed_Testa,
+         Config := Config.Navetta.Testa.Ax,
+         PosFeedback := Enc_Testa_ITF,
+         Par := Par.Ax_Man,
+         Pers_Data := Par.Ax_Testa_Pers,
+         Warning := Warning.Testa.Ax,
+         Alarm := Alarm.Testa.Ax,
+         COut => COut.Testa.Ax
+      );
+
+      #Ax_Testa.Q;
+   END_REGION
+
+   REGION "Paletti Interni - CIn External alarm"
+      PalettiInterni_Testa.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Paletti Interni - Cin Ext Enable"
+      PalettiInterni_Testa.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      PalettiInterni_Testa.Cin.Work_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Paletti Interni - Data In"
+      PalettiInterni_Testa.DataIn.Rest_Ls[1] := DataIn.PalettoInternoTesta_LsRest;
+      PalettiInterni_Testa.DataIn.Work_Ls[1] := DataIn.PalettoInternoTesta_LsWork;
+   END_REGION
+
+   REGION "Valve Manager"
+      #PalettiInterni_Testa(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Navetta.Testa.PalettiInterni,
+         Alarm := Alarm.Testa.PalettiInterni,
+         Warning := Warning.Testa.PalettiInterni,
+         COut => COut.Testa.PalettiInterni
+      );
+
+      #PalettiInterni_Testa.Q;
+   END_REGION
+
+   REGION "Paletti Esterni - CIn External alarm"
+      PalettiEsterni_Testa.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Paletti Esterni - Cin Ext Enable"
+      PalettiEsterni_Testa.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      PalettiEsterni_Testa.Cin.Work_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Paletti Esterni - Data In"
+      PalettiEsterni_Testa.DataIn.Rest_Ls[1] := DataIn.PalettoEsternoTesta_LsRest;
+      PalettiEsterni_Testa.DataIn.Work_Ls[1] := DataIn.PalettoEsternoTesta_LsWork;
+   END_REGION
+
+   REGION "Valve Manager"
+      #PalettiEsterni_Testa(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Navetta.Testa.PalettiEsterni,
+         Alarm := Alarm.Testa.PalettiEsterni,
+         Warning := Warning.Testa.PalettiEsterni,
+         COut => COut.Testa.PalettiEsterni
+      );
+
+      #PalettiEsterni_Testa.Q;
+   END_REGION
+
+   REGION "Axis - CIn External alarm"
+      Ax_Coda.CIn.ExternalAlarms := Alarm.CheckBothShutMove;
+   END_REGION
+
+   REGION "Axis- Cin Ext Enable"
+      Ax_Coda.CIn.MinusExtEnable := ((CIn.Manager.Control_ON OR Ctrl.OP_Vai_A_Prelievo OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND NOT (Ctrl.OP_Vai_A_Prelievo))) AND Sts.GenCndBkw);
+      Ax_Coda.CIn.PlusExtEnable := ((CIn.Manager.Control_ON OR (Ctrl.OP_Vai_A_Deposito AND Ctrl.OP_Prelievo) OR ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND NOT (Ctrl.OP_Vai_A_Deposito)) AND NOT (Ctrl.OP_Prelievo))) AND Sts.GenCndFwd);
+   END_REGION
+
+   REGION "HMI preset position"
+      Ax_Coda.HMI.B_Preset := HMI.Coda.PbPreset;
+
+      Ax_Coda.HMI.PresetPosition := HMI.Coda.PresetValue;
+
+   END_REGION
+
+   REGION "[Ax] - Encoder - Main"
+      #Enc_Coda(
+         en := TRUE,
+         Interface := Enc_Coda_ITF,
+         Retain := Par.Enc.Coda,
+         Alarm := Alarm.Coda.Enc
+      );
+
+      #Enc_Coda.Q;
+   END_REGION
+
+   REGION "[Ax] - Axis 2 Manger"
+      #Ax_Coda(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed_Coda,
+         Config := Config.Navetta.Coda.Ax,
+         PosFeedback := Enc_Coda_ITF,
+         Par := Par.Ax_Man,
+         Pers_Data := Par.Ax_Coda_Pers,
+         Warning := Warning.Coda.Ax,
+         Alarm := Alarm.Coda.Ax,
+         COut => COut.Coda.Ax
+      );
+
+      #Ax_Coda.Q;
+   END_REGION
+
+   REGION "Paletti Interni - CIn External alarm"
+      PalettiInterni_Coda.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Paletti Interni - Cin Ext Enable"
+      PalettiInterni_Coda.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      PalettiInterni_Coda.Cin.Work_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Paletti Interni - Data In"
+      PalettiInterni_Coda.DataIn.Rest_Ls[1] := DataIn.PalettoInternoCoda_LsRest;
+      PalettiInterni_Coda.DataIn.Work_Ls[1] := DataIn.PalettoInternoCoda_LsWork;
+   END_REGION
+
+   REGION "Valve Manager"
+      #PalettiInterni_Coda(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Navetta.Coda.PalettiInterni,
+         Alarm := Alarm.Coda.PalettiInterni,
+         Warning := Warning.Coda.PalettiInterni,
+         COut => COut.Coda.PalettiInterni
+      );
+
+      #PalettiInterni_Coda.Q;
+   END_REGION
+
+   REGION "Paletti Esterni - CIn External alarm"
+      PalettiEsterni_Coda.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Paletti Esterni - Cin Ext Enable"
+      PalettiEsterni_Coda.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      PalettiEsterni_Coda.Cin.Work_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Paletti Esterni - Data In"
+      PalettiEsterni_Coda.DataIn.Rest_Ls[1] := DataIn.PalettoEsternoCoda_LsRest;
+      PalettiEsterni_Coda.DataIn.Work_Ls[1] := DataIn.PalettoEsternoCoda_LsWork;
+   END_REGION
+
+   REGION "Valve Manager"
+      #PalettiEsterni_Coda(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Navetta.Coda.PalettiEsterni,
+         Alarm := Alarm.Coda.PalettiEsterni,
+         Warning := Warning.Coda.PalettiEsterni,
+         COut => COut.Coda.PalettiEsterni
+      );
+
+      #PalettiEsterni_Coda.Q;
+   END_REGION
+
+   REGION "Request Reload Air"
+      // Serve perche al primo comando dopo che viene a mancare l'aria il cilindro uscirebbe troppo velocemente quindi vengono riempite le due camera d'aria del cilindro con il blocco stelo inserito in modo da riempirle senza muovere nulla
+
+      #TON_ReloadAir(
+         IN := Ctrl.ReloadAir,
+         PT := T#6s
+      );
+
+      NE.AirOk := (NegEdge(CIn.AirOk) OR Sys.FirstPLCCycle);
+      PE.Clock250 := PosEdge(Sys.Clock_250MS);
+      IF NE.AirOk THEN
+         Sts.ReloadAirRequest := TRUE;
+      END_IF;
+      Ctrl.ReloadAir := (((NOT (DSI_Valve.SafeStop) AND NOT (DSI_Valve.DevicesInSafeState)) AND Sts.ReloadAirRequest) AND CIn.AirOk);
+      #TON_ReloadAir.Q;
+      IF #TON_ReloadAir.Q THEN
+         Sts.ReloadAirRequest := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Paletti Interni - COut"
+      COut.Cumulativo.PalettiInterni.Rest := (PalettiInterni_Testa.COut.Rest AND PalettiInterni_Coda.COut.Rest);
+      COut.Cumulativo.PalettiInterni.Work := (PalettiInterni_Testa.COut.Work AND PalettiInterni_Coda.COut.Work);
+      COut.Cumulativo.PalettiInterni.Standstill := (PalettiInterni_Testa.COut.Standstill AND PalettiInterni_Coda.COut.Standstill);
+   END_REGION
+
+   REGION "Paletti Esterni - COut"
+      COut.Cumulativo.PalettiEsterni.Rest := (PalettiEsterni_Testa.COut.Rest AND PalettiEsterni_Coda.COut.Rest);
+      COut.Cumulativo.PalettiEsterni.Work := (PalettiEsterni_Testa.COut.Work AND PalettiEsterni_Coda.COut.Work);
+      COut.Cumulativo.PalettiEsterni.Standstill := (PalettiEsterni_Testa.COut.Standstill AND PalettiEsterni_Coda.COut.Standstill);
+   END_REGION
+
+   REGION "ReadyToRecive"
+      COut.ReadyToRecive := ((((((COut.Testa.PalettiEsterni.Work AND COut.Testa.PalettiInterni.Work) AND COut.Coda.PalettiEsterni.Work) AND COut.Coda.PalettiInterni.Work) AND Sts.InPosPrelievo) AND Ax_Coda.Ax.AxisSts.StandStill) AND Ax_Testa.Ax.AxisSts.StandStill);
+   END_REGION
+
+   REGION "Paletto Esterno- Testa"
+      DataOut.Testa.PalettoEsterno.SbloccaggioStelo := ((PalettiEsterni_Testa.DataOut.RestSolenoid OR PalettiEsterni_Testa.DataOut.WorkSolenoid) AND NOT (Sts.ReloadAirRequest));
+      DataOut.Testa.PalettoEsterno.Rest := ((PalettiEsterni_Testa.DataOut.RestSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoEsternoTesta_LsRest) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoEsternoTesta_LsRest)) AND NOT (DataIn.PalettoEsternoTesta_LsWork))) AND Sys.Clock_250MS));
+      DataOut.Testa.PalettoEsterno.Work := ((PalettiEsterni_Testa.DataOut.WorkSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoEsternoTesta_LsWork) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoEsternoTesta_LsRest)) AND NOT (DataIn.PalettoEsternoTesta_LsWork))) AND Sys.Clock_250MS));
+   END_REGION
+
+   REGION "Paletto Esterno- Coda"
+      DataOut.Coda.PalettoEsterno.SbloccaggioStelo := ((PalettiEsterni_Coda.DataOut.RestSolenoid OR PalettiEsterni_Coda.DataOut.WorkSolenoid) AND NOT (Sts.ReloadAirRequest));
+      DataOut.Coda.PalettoEsterno.Rest := ((PalettiEsterni_Coda.DataOut.RestSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoEsternoCoda_LsRest) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoEsternoCoda_LsRest)) AND NOT (DataIn.PalettoEsternoCoda_LsWork))) AND Sys.Clock_250MS));
+      DataOut.Coda.PalettoEsterno.Work := ((PalettiEsterni_Coda.DataOut.WorkSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoEsternoCoda_LsWork) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoEsternoCoda_LsWork)) AND NOT (DataIn.PalettoEsternoCoda_LsRest))) AND Sys.Clock_250MS));
+   END_REGION
+
+   REGION "Paletto Interno- Testa"
+      DataOut.Testa.PalettoInterno.SbloccaggioStelo := ((PalettiInterni_Testa.DataOut.RestSolenoid OR PalettiInterni_Testa.DataOut.WorkSolenoid) AND NOT (Sts.ReloadAirRequest));
+      DataOut.Testa.PalettoInterno.Rest := ((PalettiInterni_Testa.DataOut.RestSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoInternoTesta_LsRest) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoInternoTesta_LsRest)) AND NOT (DataIn.PalettoInternoTesta_LsWork))) AND Sys.Clock_250MS));
+      DataOut.Testa.PalettoInterno.Work := ((PalettiInterni_Testa.DataOut.WorkSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoInternoTesta_LsWork) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoInternoTesta_LsWork)) AND NOT (DataIn.PalettoInternoTesta_LsRest))) AND Sys.Clock_250MS));
+   END_REGION
+
+   REGION "Paletto Interno- Coda"
+      DataOut.Coda.PalettoInterno.SbloccaggioStelo := ((PalettiInterni_Coda.DataOut.RestSolenoid OR PalettiInterni_Coda.DataOut.WorkSolenoid) AND NOT (Sts.ReloadAirRequest));
+      DataOut.Coda.PalettoInterno.Rest := ((PalettiInterni_Coda.DataOut.RestSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoInternoCoda_LsRest) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoInternoCoda_LsRest)) AND NOT (DataIn.PalettoInternoCoda_LsWork))) AND Sys.Clock_250MS));
+      DataOut.Coda.PalettoInterno.Work := ((PalettiInterni_Coda.DataOut.WorkSolenoid AND NOT (Sts.ReloadAirRequest)) OR (((Ctrl.ReloadAir AND DataIn.PalettoInternoCoda_LsWork) OR ((Ctrl.ReloadAir AND NOT (DataIn.PalettoInternoCoda_LsRest)) AND NOT (DataIn.PalettoInternoCoda_LsWork))) AND Sys.Clock_250MS));
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax_Testa.MachineInterface,
+         MachineInterface_2 := Ax_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiEsterni_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiEsterni_Coda.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiInterni_Testa.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := NOT (NOT (Alarm.CheckBothShutMove)),
+         AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PalettiInterni_Coda.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax_Testa.MachineInterface, MachineInterface_2 := Ax_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiEsterni_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiEsterni_Coda.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiInterni_Testa.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := NOT (NOT (Alarm.CheckBothShutMove)), AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_VAI_A_PRELIEVO) AND NOT (Warning.MissingCnd.OP_PRELIEVO)) AND NOT (Warning.MissingCnd.OP_VAI_A_DEPOSITO))), MachineInterface_1 := MachineInterface, MachineInterface_2 := PalettiInterni_Coda.MachineInterface);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

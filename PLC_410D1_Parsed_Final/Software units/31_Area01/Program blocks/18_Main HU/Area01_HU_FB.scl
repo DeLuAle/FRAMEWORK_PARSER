@@ -1,0 +1,127 @@
+﻿// Block: Area01_HU_FB
+// Title: <<< PUMP >>>
+
+FUNCTION_BLOCK "Area01_HU_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< PUMP >>>
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+   END_VAR
+
+   VAR
+      Pump : HU_Pump;
+      Tank : HU_Tank;
+      HMI : Struct
+         Pressure_CoilCar : Real;
+         Pressure_Peeler : Real;
+         Pressure_JB_Cut : Real;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      retval : Int;
+      OilTemperature : Real;
+      AnalTemperature_Real : Real;
+      Delta : Real;
+      Delta2 : Real;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      Pump.DataIn.PbStop := NOT (NOT (A01_HMI.MB1.Button.CoilHandling.Area01HU.Stop));
+      Pump.DataIn.PbStart := NOT (NOT (A01_HMI.MB1.Button.CoilHandling.Area01HU.Start));
+      Pump.DataIn.MainPump_FdbkRunning := HU_Area01_Pump_Fdbk;
+   END_REGION
+
+   REGION "Network 3"
+      IF (Area01.CycleOn AND NOT (Peeler.CIn.Manager.Extension.Control_ON)) THEN
+         Peeler.COut.Extension.CtrlSafe := FALSE;
+      END_IF;
+      IF (Area01.CycleOn AND NOT (Peeler.CIn.Manager.Lift.Control_ON)) THEN
+         Peeler.COut.Lift.CtrlSafe := FALSE;
+      END_IF;
+      IF (Area01.CycleOn AND NOT (JB.CIn.Manager.CutHead.Control_ON)) THEN
+         JB.CutHead.COut.CtrlSafe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Coordination In"
+      Pump.CIn.PumpRunPermitted := (Tank.COut.PumpRunPermitted AND F_DB.A01_EstopDelay);
+      Pump.CIn.EnableCheckFilter := Tank.COut.EnableCheckFIler;
+      Pump.CIn.PressureReq := (NOT (((((((((NOT (Peeler.COut.Lift.ReqOilPressure) AND NOT (Peeler.COut.Extension.ReqOilPressure)) AND NOT (JB.COut.CutHead.ReqOilPressure)) AND NOT (Coilcar.COut.Lift1.ReqOilPressure)) AND NOT (Coilcar.COut.Lift2.ReqOilPressure)) AND NOT (JB.CutHead.COut.CtrlSafe)) AND NOT (Peeler.COut.Lift.CtrlSafe)) AND NOT (Coilcar.COut.Lift1.CtrlSafe)) AND NOT (Coilcar.COut.Lift2.CtrlSafe))) AND F_DB.A01_EstopDelay);
+   END_REGION
+
+   REGION "Manager"
+      #Pump(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         DSI := F_DB.DSI_HU_Area01_Pump,
+         Config := A01_Config.Area01_HU.Pump,
+         Par := Area01_HU_PERS.PersistentValues.Par_Pump
+      );
+
+      #Pump.Q;
+   END_REGION
+
+   REGION "Data out"
+      HU_Area01_Pump_C := Pump.DataOut.KmOilPump;
+   END_REGION
+
+   REGION "Data In"
+      Tank.DataIn.SensorLevelOk_Alarm := HU_Area01_S_LowLowLevel;
+      Tank.DataIn.SensorLevelOk_Warning := HU_Area01_S_LowLevel;
+      Tank.DataIn.SensorOilMaxTempOk := HU_Area01_S_ThermostatMax;
+      Tank.DataIn.SensorRecircFilterClogged := NOT (HU_Area01_S_ReturnFilterClogged);
+      Area01_HU.Tank.DataIn.SwThermostatCooling := FALSE;
+      Area01_HU.Tank.DataIn.RecircPump_FdbkRunning := Area01_HU.Tank.DataOut.KmRecirculationPump;
+      Tank.DataIn.HeatExchangeFan_FdbkRunning := Tank.DataOut.KmHeatExchangerFan;
+      Tank.DataIn.HeatingUnit1_FdbkRunning := Area01_HU.Tank.DataOut.KmHeatingUnit1;
+      Area01_HU.Tank.DataIn.HeatingUnit2_FdbkRunning := Area01_HU.Tank.DataOut.KmHeatingUnit2;
+      Area01_HU.Tank.DataIn.ChillerWaterFluxOk := TRUE;
+      Area01_HU.Tank.DataIn.ChillerAlarmPresence := FALSE;
+      Area01_HU.Tank.DataIn.Anl_OilTemperature := HU_Area01_AI_Temperature;
+   END_REGION
+
+   REGION "Force Par"
+      Area01_HU_PERS.PersistentValues.Par_Tank.HeatingSetpoint := 40.0;
+   END_REGION
+
+   REGION "HMI pressure"
+   END_REGION
+
+   REGION "Coordination In"
+      Tank.CIn.PumpRunning := Pump.COut.PumpRunning;
+   END_REGION
+
+   REGION "Manager"
+      #Tank(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         Config := A01_Config.Area01_HU.Tank,
+         Par := Area01_HU_PERS.PersistentValues.Par_Tank
+      );
+
+      #Tank.Q;
+   END_REGION
+
+   REGION "Machine interface (machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := Pump.MachineInterface,
+         MachineInterface_2 := Tank.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := Pump.MachineInterface, MachineInterface_2 := Tank.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

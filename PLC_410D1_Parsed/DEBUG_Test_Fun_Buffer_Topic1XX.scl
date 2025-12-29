@@ -1,0 +1,57 @@
+﻿// Block: DEBUG_Test_Fun_Buffer_Topic1XX
+
+FUNCTION "DEBUG_Test_Fun_Buffer_Topic1XX" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      "MES_Buffer_Clear_GAP"(
+         en := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.ClearGap,
+         Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg,
+         Ret_Val => DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL
+      );
+
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.ClearGap THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.ClearGap := FALSE;
+      END_IF;
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.ClearGap THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL := "MES_Buffer_Clear_GAP"(Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg);
+      END_IF;
+   END_REGION
+
+   REGION "Network 2"
+      "MES_Buffer_Push"(
+         en := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Push,
+         Evaluate_FULL := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Evaluate_FULL,
+         Msg := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Msg,
+         Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg,
+         Ret_Val => DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL
+      );
+
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Push THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Push := FALSE;
+      END_IF;
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Push THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL := "MES_Buffer_Push"(Evaluate_FULL := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Evaluate_FULL, Msg := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Msg, Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg);
+      END_IF;
+   END_REGION
+
+   REGION "Network 3"
+      "MES_Buffer_Pop"(
+         en := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Pop,
+         Index := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Index,
+         Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg,
+         Ret_Val => DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL
+      );
+
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Pop THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Pop := FALSE;
+      END_IF;
+      IF DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Pop THEN
+         DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.RETVAL := "MES_Buffer_Pop"(Index := DEBUG_MES_Send_Msg_1XX.TEST_FUN_BUFFER.Index, Buffer_msg := MES_Send_Buffer_Msg_Topic1XX.msg);
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

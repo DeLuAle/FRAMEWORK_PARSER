@@ -1,0 +1,733 @@
+﻿// Block: AreaGen_CALL
+// Title: System call
+
+FUNCTION "AreaGen_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// System call
+   VAR_TEMP
+      AlrIndex : Int;
+      WngIndex : Int;
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "System call"
+      "System_CALL"(
+         en := TRUE
+      );
+
+      "System_CALL"();
+   END_REGION
+
+   REGION "HW constant value"
+      "Update_HW_Const_Value"(
+         en := Sys.FirstPLCCycle
+      );
+
+      IF Sys.FirstPLCCycle THEN
+         "Update_HW_Const_Value"();
+      END_IF;
+   END_REGION
+
+   REGION "HMI"
+      "HMI_Call"(
+         en := TRUE
+      );
+
+      "HMI_Call"();
+   END_REGION
+
+   REGION "Generic"
+      "Generic_CALL"(
+         en := TRUE
+      );
+
+      "Generic_CALL"();
+   END_REGION
+
+   REGION "Safety interface"
+      "AreaGen_SafetyInterface_Call"(
+         en := TRUE
+      );
+
+      "AreaGen_SafetyInterface_Call"();
+   END_REGION
+
+   REGION "PAC 320"
+      "PAC3220"(
+         en := TRUE
+      );
+
+      "PAC3220"();
+   END_REGION
+
+   REGION "Call PPrg"
+      "PPrg_Call"(
+         en := TRUE
+      );
+
+      "PPrg_Call"();
+   END_REGION
+
+   REGION "Call PPRF"
+      "PPrf_CALL"(
+         en := TRUE
+      );
+
+      "PPrf_CALL"();
+   END_REGION
+
+   REGION "Call Consumi"
+      "Consumi"(
+         en := TRUE
+      );
+
+      "Consumi"();
+   END_REGION
+
+   REGION "Alarms collect"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A   GEN    
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle THEN
+          FOR AlrIndex := 1 TO 304 DO
+              AreaGen_Messages.A.Msg[AlrIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+
+
+      // GENERIC
+      AlrIndex := 1;
+
+      AreaGen_Messages.A.Msg[AlrIndex + 0] := Generic.Alarm.CC1_ThermalTrip_24Vdc_PLC_SINAMICS;
+      AreaGen_Messages.A.Msg[AlrIndex + 1] := Generic.Alarm.CC1_ThermalTrip_24Vdc_Valves;
+      AreaGen_Messages.A.Msg[AlrIndex + 2] := Generic.Alarm.CC1_LowAirPressure;
+      AreaGen_Messages.A.Msg[AlrIndex + 3] := Generic.Alarm.CC1_PorteAperte;
+      AreaGen_Messages.A.Msg[AlrIndex + 4] := Generic.Alarm.CC1_ProtezioneElettronicaSitop;
+      AreaGen_Messages.A.Msg[AlrIndex + 5] := Generic.Alarm.Area01_Aspo_LowAirPressure;
+      AreaGen_Messages.A.Msg[AlrIndex + 6] := Generic.Alarm.Area02_03_Accopiamento_LowAirPressure;
+      AreaGen_Messages.A.Msg[AlrIndex + 7] := Generic.Alarm.Area03_Pareggiamneto_LowAirPressure;
+      AreaGen_Messages.A.Msg[AlrIndex + 8] := Generic.Alarm.Area04_Navetta_LowAirPressure;
+      AreaGen_Messages.A.Msg[AlrIndex + 9] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 10] := Generic.Alarm.INFEED_640A1.InfeedFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 11] := Generic.Alarm.INFEED_640A1.ComunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 12] := Generic.Alarm.INFEED_640A1.TimeoutActivation;
+      AreaGen_Messages.A.Msg[AlrIndex + 13] := Generic.Alarm.INFEED_640A1.GeneralError;
+      AreaGen_Messages.A.Msg[AlrIndex + 14] := Generic.Alarm.CU_580A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 15] := Generic.Alarm.CU_580A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := Generic.Alarm.CU_585A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := Generic.Alarm.CU_585A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 18] := Generic.Alarm.CU_590A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 19] := Generic.Alarm.CU_590A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 20] := Generic.Alarm.CU_595A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 21] := Generic.Alarm.CU_595A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 22] := Generic.Alarm.CU_600A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 23] := Generic.Alarm.CU_600A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 24] := Generic.Alarm.CU_605A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 25] := Generic.Alarm.CU_605A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 26] := Generic.Alarm.CU_610A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 27] := Generic.Alarm.CU_610A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 28] := Generic.Alarm.CU_615A1.CUFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 29] := Generic.Alarm.CU_615A1.CommunicationFault;
+      AreaGen_Messages.A.Msg[AlrIndex + 30] := Generic.Alarm.PNDiag_ET200S_460A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 31] := Generic.Alarm.PNDiag_ET200S_460A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 32] := Generic.Alarm.PNDiag_ET200S_490A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 33] := Generic.Alarm.PNDiag_ET200S_490A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 34] := Generic.Alarm.PNDiag_ET200S_510A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 35] := Generic.Alarm.PNDiag_ET200S_510A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 36] := Generic.Alarm.PNDiag_ET200S_530A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 37] := Generic.Alarm.PNDiag_ET200S_530A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 38] := Generic.Alarm.PNDiag_ET200S_550A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 39] := Generic.Alarm.PNDiag_ET200S_550A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 40] := Generic.Alarm.PNDiag_CU_580A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 41] := Generic.Alarm.PNDiag_CU_580A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 42] := Generic.Alarm.PNDiag_CU_585A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 43] := Generic.Alarm.PNDiag_CU_585A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 44] := Generic.Alarm.PNDiag_CU_590A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 45] := Generic.Alarm.PNDiag_CU_590A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 46] := Generic.Alarm.PNDiag_CU_595A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 47] := Generic.Alarm.PNDiag_CU_595A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 48] := Generic.Alarm.PNDiag_CU_600A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 49] := Generic.Alarm.PNDiag_CU_600A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 50] := Generic.Alarm.PNDiag_CU_605A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 51] := Generic.Alarm.PNDiag_CU_605A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 52] := Generic.Alarm.PNDiag_CU_610A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 53] := Generic.Alarm.PNDiag_CU_610A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 54] := Generic.Alarm.PNDiag_CU_615A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 55] := Generic.Alarm.PNDiag_CU_615A1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 56] := Generic.Alarm.PnDiag_ENC_694P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 57] := Generic.Alarm.PnDiag_ENC_694P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 58] := Generic.Alarm.PnDiag_ENC_894P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 59] := Generic.Alarm.PnDiag_ENC_894P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 60] := Generic.Alarm.PnDiag_ENC_984P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 61] := Generic.Alarm.PnDiag_ENC_984P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 62] := Generic.Alarm.PnDiag_ENC_994P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 63] := Generic.Alarm.PnDiag_ENC_994P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 64] := Generic.Alarm.PnDiag_ENC_1004P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 65] := Generic.Alarm.PnDiag_ENC_1004P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 66] := Generic.Alarm.PnDiag_ENC_1008P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 67] := Generic.Alarm.PnDiag_ENC_1008P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 68] := Generic.Alarm.PnDiag_ENC_1034P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 69] := Generic.Alarm.PnDiag_ENC_1034P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 70] := Generic.Alarm.PnDiag_ENC_1044P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 71] := Generic.Alarm.PnDiag_ENC_1044P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 72] := Generic.Alarm.PnDiag_ENC_1074P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 73] := Generic.Alarm.PnDiag_ENC_1074P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 74] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 75] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 76] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 77] := Generic.Alarm.PnDiag_ENC_1088P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 78] := Generic.Alarm.PnDiag_ENC_1088P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 79] := Generic.Alarm.PnDiag_ENC_1093P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 80] := Generic.Alarm.PnDiag_ENC_1093P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 81] := Generic.Alarm.PnDiag_ENC_1124P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 82] := Generic.Alarm.PnDiag_ENC_1124P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 83] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 84] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 85] := Generic.Alarm.PnDiag_ENC_1138P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 86] := Generic.Alarm.PnDiag_ENC_1138P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 87] := Generic.Alarm.PnDiag_ENC_1143P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 88] := Generic.Alarm.PnDiag_ENC_1143P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 89] := Generic.Alarm.PnDiag_ENC_1844P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 90] := Generic.Alarm.PnDiag_ENC_1844P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 91] := Generic.Alarm.PnDiag_ENC_1853P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 92] := Generic.Alarm.PnDiag_ENC_1853P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 93] := Generic.Alarm.PnDiag_ENC_1858P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 94] := Generic.Alarm.PnDiag_ENC_1858P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 95] := Generic.Alarm.PnDiag_ENC_1863P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 96] := Generic.Alarm.PnDiag_ENC_1863P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 97] := Generic.Alarm.PnDiag_ENC_1868P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 98] := Generic.Alarm.PnDiag_ENC_1868P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 99] := Generic.Alarm.PnDiag_ENC_1903P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 100] := Generic.Alarm.PnDiag_ENC_1903P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 101] := Generic.Alarm.PnDiag_ENC_1908P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 102] := Generic.Alarm.PnDiag_ENC_1908P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 103] := Generic.Alarm.PnDiag_ENC_1913P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 104] := Generic.Alarm.PnDiag_ENC_1913P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 105] := Generic.Alarm.PnDiag_ENC_1918P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 106] := Generic.Alarm.PnDiag_ENC_1918P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 107] := Generic.Alarm.PnDiag_ENC_2264P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 108] := Generic.Alarm.PnDiag_ENC_2264P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 109] := Generic.Alarm.PnDiag_ENC_2284P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 110] := Generic.Alarm.PnDiag_ENC_2284P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 111] := Generic.Alarm.PnDiag_ENC_2374P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 112] := Generic.Alarm.PnDiag_ENC_2374P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 113] := Generic.Alarm.PnDiag_ENC_2394P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 114] := Generic.Alarm.PnDiag_ENC_2394P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 115] := Generic.Alarm.PnDiag_ENC_2404P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 116] := Generic.Alarm.PnDiag_ENC_2404P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 117] := Generic.Alarm.PnDiag_ENC_2434P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 118] := Generic.Alarm.PnDiag_ENC_2434P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 119] := Generic.Alarm.PnDiag_ENC_2464P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 120] := Generic.Alarm.PnDiag_ENC_2464P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 121] := Generic.Alarm.PnDiag_ENC_2534P1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 122] := Generic.Alarm.PnDiag_ENC_2534P1.Module_Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 123] := Generic.Alarm.PnDiag_PAC_100A1.Error;
+      AreaGen_Messages.A.Msg[AlrIndex + 124] := Generic.Alarm.PnDiag_PAC_100A1.Module_Error;
+
+
+
+      //Area Gen Safety Interface
+      AlrIndex := 130;
+      AreaGen_Messages.A.Msg[AlrIndex + 0] := AreaGen_Safetyinterface.Alarm.G.EStop.Area01;
+      AreaGen_Messages.A.Msg[AlrIndex + 1] := AreaGen_Safetyinterface.Alarm.G.EStop.Area02;
+      AreaGen_Messages.A.Msg[AlrIndex + 2] := AreaGen_Safetyinterface.Alarm.G.EStop.Area03;
+      AreaGen_Messages.A.Msg[AlrIndex + 3] := AreaGen_Safetyinterface.Alarm.G.FDBACK_Error.F_Valve_Air_Gen_Contattore;
+      AreaGen_Messages.A.Msg[AlrIndex + 4] := AreaGen_Safetyinterface.Alarm.G.FDBACK_Error.F_Valve_Air_Gen_Cursore;
+      AreaGen_Messages.A.Msg[AlrIndex + 5] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 6] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 9] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_412A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 10] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 11] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 12] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A3;
+      AreaGen_Messages.A.Msg[AlrIndex + 13] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A4;
+      AreaGen_Messages.A.Msg[AlrIndex + 14] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A5;
+      AreaGen_Messages.A.Msg[AlrIndex + 15] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A6;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A7;
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_468A8;
+      AreaGen_Messages.A.Msg[AlrIndex + 18] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_470A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 19] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_470A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 20] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_471A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 21] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_471A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 22] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_472A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 23] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_495A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 24] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_495A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 25] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_515A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 26] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_515A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 27] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_495A3;
+      AreaGen_Messages.A.Msg[AlrIndex + 28] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_535A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 29] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_535A2;
+      AreaGen_Messages.A.Msg[AlrIndex + 30] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_536A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 31] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_555A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 32] := AreaGen_Safetyinterface.Alarm.G.FIO_Passivation.Module_556A1;
+      AreaGen_Messages.A.Msg[AlrIndex + 33] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 34] := FALSE;
+
+      //Area 01 Safety interface
+      AlrIndex := 170;
+
+      AreaGen_Messages.A.Msg[AlrIndex + 0] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_CoilCar.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 1] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_CoilCar.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 2] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_DecoilersHorizRotation.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 3] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_DecoilersHorizRotation.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 4] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Decoiler1.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 5] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Decoiler1.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 6] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Decoiler2.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 7] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Decoiler2.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 8] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Peeler.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 9] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_Peeler.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 10] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_JB_Cut_Rest.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 11] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_JB_Cut_Rest.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 12] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_JB_Cut_Work.FDO_FBK_ERROR;
+      AreaGen_Messages.A.Msg[AlrIndex + 13] := AreaGen_Safetyinterface.Alarm.Area01.FDBACK_Error.SafetyValve_JB_Cut_Work.EV_SAFETY_FBK_WARNING;
+      AreaGen_Messages.A.Msg[AlrIndex + 14] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 15] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 18] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.CoilCar;
+      AreaGen_Messages.A.Msg[AlrIndex + 19] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.DecoilersTranslation;
+      AreaGen_Messages.A.Msg[AlrIndex + 20] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.Decoiler1;
+      AreaGen_Messages.A.Msg[AlrIndex + 21] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.Decoiler2;
+      AreaGen_Messages.A.Msg[AlrIndex + 22] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.Straightener;
+      AreaGen_Messages.A.Msg[AlrIndex + 23] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.JBTorch;
+      AreaGen_Messages.A.Msg[AlrIndex + 24] := AreaGen_Safetyinterface.Alarm.Area01.S120_SafetyFaultActive.JBPinchRoll;
+      AreaGen_Messages.A.Msg[AlrIndex + 25] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 26] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 27] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D01;
+      AreaGen_Messages.A.Msg[AlrIndex + 28] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D02;
+      AreaGen_Messages.A.Msg[AlrIndex + 29] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D03;
+      AreaGen_Messages.A.Msg[AlrIndex + 30] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D04;
+      AreaGen_Messages.A.Msg[AlrIndex + 31] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D05;
+      AreaGen_Messages.A.Msg[AlrIndex + 32] := AreaGen_Safetyinterface.Alarm.Area01.UnathorizedOpen.D07;
+      AreaGen_Messages.A.Msg[AlrIndex + 33] := FALSE;
+
+
+      //Area 02 Safety interface
+
+      AlrIndex := 210;
+
+      AreaGen_Messages.A.Msg[AlrIndex + 0] := AreaGen_Safetyinterface.Alarm.Area02.FDBACK_Error.F_Contactor_Rollformer_CambioFormato;
+      AreaGen_Messages.A.Msg[AlrIndex + 1] := AreaGen_Safetyinterface.Alarm.Area02.FDBACK_Error.F_Contactor_FinalCut_HU_Motor;
+      AreaGen_Messages.A.Msg[AlrIndex + 2] := AreaGen_Safetyinterface.Alarm.Area02.FDBACK_Error.F_Contactor_FinalCut_HU_Valve;
+      AreaGen_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 4] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 5] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 6] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 9] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta1_OP;
+      AreaGen_Messages.A.Msg[AlrIndex + 10] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta1_MOT;
+      AreaGen_Messages.A.Msg[AlrIndex + 11] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta2_OP;
+      AreaGen_Messages.A.Msg[AlrIndex + 12] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta2_MOT;
+      AreaGen_Messages.A.Msg[AlrIndex + 13] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta3_OP;
+      AreaGen_Messages.A.Msg[AlrIndex + 14] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Cassetta3_MOT;
+      AreaGen_Messages.A.Msg[AlrIndex + 15] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.Rollformer;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.FAK_PusherAx;
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.FlyCarriage;
+      AreaGen_Messages.A.Msg[AlrIndex + 18] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.AccRolls1;
+      AreaGen_Messages.A.Msg[AlrIndex + 19] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.AccRolls2;
+      AreaGen_Messages.A.Msg[AlrIndex + 20] := AreaGen_Safetyinterface.Alarm.Area02.S120_SafetyFaultActive.AccRolls3;
+      AreaGen_Messages.A.Msg[AlrIndex + 21] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 22] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 23] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D10;
+      AreaGen_Messages.A.Msg[AlrIndex + 24] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D11;
+      AreaGen_Messages.A.Msg[AlrIndex + 25] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D12;
+      AreaGen_Messages.A.Msg[AlrIndex + 26] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D14;
+      AreaGen_Messages.A.Msg[AlrIndex + 27] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D15;
+      AreaGen_Messages.A.Msg[AlrIndex + 28] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D16;
+      AreaGen_Messages.A.Msg[AlrIndex + 29] := AreaGen_Safetyinterface.Alarm.Area02.UnathorizedOpen.D18;
+      AreaGen_Messages.A.Msg[AlrIndex + 30] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 31] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 32] := AreaGen_Safetyinterface.Area02_Safety.PathTest_Rollformer.Alarm.TestTimeout;//Da aggiungere sull'excel allarmi
+
+
+
+      //Area 03 04 Safety interface
+
+      AlrIndex := 250;
+
+      AreaGen_Messages.A.Msg[AlrIndex + 0] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0301_A0302_Contattore;
+      AreaGen_Messages.A.Msg[AlrIndex + 1] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0301_A0302_Cursore;
+      AreaGen_Messages.A.Msg[AlrIndex + 2] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Contactor_CambioFormato_Bordatrice;
+      AreaGen_Messages.A.Msg[AlrIndex + 3] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Contactor_Valvole_Pareggiatore_Testa;
+      AreaGen_Messages.A.Msg[AlrIndex + 4] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Contactor_Valvole_Pareggiatore_Coda;
+      AreaGen_Messages.A.Msg[AlrIndex + 5] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0302_A0303_Contattore;
+      AreaGen_Messages.A.Msg[AlrIndex + 6] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0302_A0303_Cursore;
+      AreaGen_Messages.A.Msg[AlrIndex + 7] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0304_Contattore;
+      AreaGen_Messages.A.Msg[AlrIndex + 8] := AreaGen_Safetyinterface.Alarm.Area03_04.FDBACK_Error.F_Valve_Air_A0304_Cursore;
+      AreaGen_Messages.A.Msg[AlrIndex + 9] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Trasporto;
+      AreaGen_Messages.A.Msg[AlrIndex + 10] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Ribaltatore;
+      AreaGen_Messages.A.Msg[AlrIndex + 11] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Spintore;
+      AreaGen_Messages.A.Msg[AlrIndex + 12] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Bordatrice;
+      AreaGen_Messages.A.Msg[AlrIndex + 13] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Rulliera_1;
+      AreaGen_Messages.A.Msg[AlrIndex + 14] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.Rulliera_2;
+      AreaGen_Messages.A.Msg[AlrIndex + 15] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.PareggiatoreCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.PareggiatoreTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.ManipolatoreCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 18] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.ManipolatoreTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 19] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SpallaCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 20] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SpallaTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 21] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.TraslazioneCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 22] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.TraslazioneTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 23] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SollevamentoCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 24] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SollevamentoTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 25] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SostegnoAntiribCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 26] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.SostegnoAntiribTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 27] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.NavettaTesta;
+      AreaGen_Messages.A.Msg[AlrIndex + 28] := AreaGen_Safetyinterface.Alarm.Area03_04.S120_SafetyFaultActive.NavettaCoda;
+      AreaGen_Messages.A.Msg[AlrIndex + 29] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D19;
+      AreaGen_Messages.A.Msg[AlrIndex + 30] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D20;
+      AreaGen_Messages.A.Msg[AlrIndex + 31] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D21;
+      AreaGen_Messages.A.Msg[AlrIndex + 32] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D22;
+      AreaGen_Messages.A.Msg[AlrIndex + 33] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D24;
+      AreaGen_Messages.A.Msg[AlrIndex + 34] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D25;
+      AreaGen_Messages.A.Msg[AlrIndex + 35] := AreaGen_Safetyinterface.Alarm.Area03_04.UnathorizedOpen.D27;
+      AreaGen_Messages.A.Msg[AlrIndex + 36] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 37] := FALSE;
+      AreaGen_Messages.A.Msg[AlrIndex + 38] := AreaGen_Safetyinterface.Area03_04_Safety.PathTest_Bordatrice.Alarm.TestTimeout ;//Da aggiungere sull'excel allarmi
+
+
+
+   END_REGION
+
+   REGION "Alarms manager"
+      #AreaGen_Msg_Alarms(
+         en := TRUE,
+         Ack := NOT (((NOT (Areas_ITF.A01.PB.MB1_PB_Reset) AND NOT (Areas_ITF.A02.PB.MB2_PB_Reset)) AND NOT (Areas_ITF.A03.PB.MB3_PB_Reset))),
+         Messages := AreaGen_Messages.A.Msg,
+         MessagesHMI := AreaGen_Messages.A.Hmi,
+         MessagesACK := AreaGen_Messages.A.Ack,
+         MessageCount => HMI.AreaGen.Status.AlarmsNumber
+      );
+
+      #AreaGen_Msg_Alarms.Q;
+   END_REGION
+
+   REGION "Warnings collect"
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A  01      GEN      
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle  THEN
+          FOR WngIndex := 1 TO 256 DO
+              AreaGen_Messages.W.Msg[WngIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+      // GENERIC
+      WngIndex := 1;
+
+      AreaGen_Messages.W.Msg[WngIndex + 0] := Generic.Warning.NoAutReady;
+      AreaGen_Messages.W.Msg[WngIndex + 1] := Generic.Warning.CC1_MaxTemperature;
+      AreaGen_Messages.W.Msg[WngIndex + 2] := Generic.Warning.CC1_GuastoCondizionatore_1;
+      AreaGen_Messages.W.Msg[WngIndex + 3] := Generic.Warning.CC1_GuastoCondizionatore_2;
+      AreaGen_Messages.W.Msg[WngIndex + 4] := Generic.Warning.CC1_ThermalTrip_Cooling1;
+      AreaGen_Messages.W.Msg[WngIndex + 5] := Generic.Warning.CC1_ThermalTrip_Cooling2;
+      AreaGen_Messages.W.Msg[WngIndex + 6] := Generic.Warning.CC1_ThermalTrip220V_ServiceSockets;
+      AreaGen_Messages.W.Msg[WngIndex + 7] := Generic.Warning.JB001_MaxTemperature;
+      AreaGen_Messages.W.Msg[WngIndex + 8] := Generic.Warning.JB001_ThermalTrip_Cooling;
+      AreaGen_Messages.W.Msg[WngIndex + 9] := Generic.Warning.SitopUp_AllarmeBatteria;
+      AreaGen_Messages.W.Msg[WngIndex + 10] := Generic.Warning.SitopUp_BatteriaScarica;
+      AreaGen_Messages.W.Msg[WngIndex + 11] := Generic.Warning.SitopUp_BatteriaNonCarica;
+      AreaGen_Messages.W.Msg[WngIndex + 12] :=  Generic.Warning.ScalanceXC116_1_NotOk;
+      AreaGen_Messages.W.Msg[WngIndex + 13] := Generic.Warning.ScalanceXC116_2_NotOk;
+      AreaGen_Messages.W.Msg[WngIndex + 14] := Generic.Warning.ScalanceXC216_NotOk;
+      AreaGen_Messages.W.Msg[WngIndex + 15] := Generic.Warning.ScalanceSC632_NotOk;
+      AreaGen_Messages.W.Msg[WngIndex + 16] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 17] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 18] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 19] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 20] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 21] := Generic.Warning.INFEED_640A1.InfeedWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 22] := Generic.Warning.CU_580A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 23] := Generic.Warning.CU_580A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 24] := Generic.Warning.CU_585A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 25] := Generic.Warning.CU_585A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 26] := Generic.Warning.CU_590A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 27] := Generic.Warning.CU_590A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 28] := Generic.Warning.CU_595A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 29] := Generic.Warning.CU_595A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 30] := Generic.Warning.CU_600A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 31] := Generic.Warning.CU_600A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 32] := Generic.Warning.CU_605A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 33] := Generic.Warning.CU_605A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 34] := Generic.Warning.CU_610A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 35] := Generic.Warning.CU_610A1.CUSafetyMessagePresence;
+      AreaGen_Messages.W.Msg[WngIndex + 36] := Generic.Warning.CU_615A1.CUWarning;
+      AreaGen_Messages.W.Msg[WngIndex + 37] := Generic.Warning.CU_615A1.CUSafetyMessagePresence;
+
+
+
+      // SAFETY INTERFACE
+      WngIndex:= 50;
+
+      AreaGen_Messages.W.Msg[WngIndex + 0] := AreaGen_Safetyinterface.Warning.G.EStop_CC;
+      AreaGen_Messages.W.Msg[WngIndex + 1] := AreaGen_Safetyinterface.Warning.G.EStop_A01_Front;
+      AreaGen_Messages.W.Msg[WngIndex + 2] := AreaGen_Safetyinterface.Warning.G.EStop_A01_Rear;
+      AreaGen_Messages.W.Msg[WngIndex + 3] := AreaGen_Safetyinterface.Warning.G.EStop_A02_Front;
+      AreaGen_Messages.W.Msg[WngIndex + 4] := AreaGen_Safetyinterface.Warning.G.EStop_A02_Rear;
+      AreaGen_Messages.W.Msg[WngIndex + 5] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Front_1;
+      AreaGen_Messages.W.Msg[WngIndex + 6] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Front_2;
+      AreaGen_Messages.W.Msg[WngIndex + 7] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Front_3;
+      AreaGen_Messages.W.Msg[WngIndex + 8] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Rear_1;
+      AreaGen_Messages.W.Msg[WngIndex + 9] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Rear_2;
+      AreaGen_Messages.W.Msg[WngIndex + 10] := AreaGen_Safetyinterface.Warning.G.EStop_A03_Rear_3;
+
+
+      //Area 01
+      WngIndex:= 70;
+
+      AreaGen_Messages.W.Msg[WngIndex + 0] := AreaGen_Safetyinterface.Warning.Area01.Selectors.Maintenance_MB1;
+      AreaGen_Messages.W.Msg[WngIndex + 1] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D01;
+      AreaGen_Messages.W.Msg[WngIndex + 2] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D02;
+      AreaGen_Messages.W.Msg[WngIndex + 3] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D03;
+      AreaGen_Messages.W.Msg[WngIndex + 4] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D04;
+      AreaGen_Messages.W.Msg[WngIndex + 5] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D05;
+      AreaGen_Messages.W.Msg[WngIndex + 6] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D06;
+      AreaGen_Messages.W.Msg[WngIndex + 7] := AreaGen_Safetyinterface.Warning.Area01.DoorOpened.D07;
+      AreaGen_Messages.W.Msg[WngIndex + 8] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D01;
+      AreaGen_Messages.W.Msg[WngIndex + 9] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D02;
+      AreaGen_Messages.W.Msg[WngIndex + 10] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D03;
+      AreaGen_Messages.W.Msg[WngIndex + 11] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D04;
+      AreaGen_Messages.W.Msg[WngIndex + 12] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D05;
+      AreaGen_Messages.W.Msg[WngIndex + 13] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D06;
+      AreaGen_Messages.W.Msg[WngIndex + 14] := AreaGen_Safetyinterface.Warning.Area01.DoorOpenRequest.D07;
+      AreaGen_Messages.W.Msg[WngIndex + 15] := AreaGen_Safetyinterface.Warning.Area01.DoorNotLocked.D04;
+      AreaGen_Messages.W.Msg[WngIndex + 16] := AreaGen_Safetyinterface.Warning.Area01.DoorNotLocked.D05;
+      AreaGen_Messages.W.Msg[WngIndex + 17] := AreaGen_Safetyinterface.Warning.Area01.DoorNotLocked.D07;
+
+
+      //Area 02
+      WngIndex := 100;
+
+      AreaGen_Messages.W.Msg[WngIndex + 0] := AreaGen_Safetyinterface.Warning.Area02.Selectors.Maintenance_MB2;
+      AreaGen_Messages.W.Msg[WngIndex + 1] := AreaGen_Safetyinterface.Warning.Area02.Feedback.F_Valve_Area02_HU;
+      AreaGen_Messages.W.Msg[WngIndex + 2] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D10;
+      AreaGen_Messages.W.Msg[WngIndex + 3] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D11;
+      AreaGen_Messages.W.Msg[WngIndex + 4] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D12;
+      AreaGen_Messages.W.Msg[WngIndex + 5] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D14;
+      AreaGen_Messages.W.Msg[WngIndex + 6] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D15;
+      AreaGen_Messages.W.Msg[WngIndex + 7] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D16;
+      AreaGen_Messages.W.Msg[WngIndex + 8] := AreaGen_Safetyinterface.Warning.Area02.DoorOpened.D18;
+      AreaGen_Messages.W.Msg[WngIndex + 9] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D10;
+      AreaGen_Messages.W.Msg[WngIndex + 10] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D11;
+      AreaGen_Messages.W.Msg[WngIndex + 11] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D12;
+      AreaGen_Messages.W.Msg[WngIndex + 12] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D14;
+      AreaGen_Messages.W.Msg[WngIndex + 13] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D15;
+      AreaGen_Messages.W.Msg[WngIndex + 14] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D16;
+      AreaGen_Messages.W.Msg[WngIndex + 15] := AreaGen_Safetyinterface.Warning.Area02.DoorOpenRequest.D18;
+      AreaGen_Messages.A.Msg[AlrIndex + 16] := AreaGen_Safetyinterface.Area02_Safety.PathTest_Rollformer.Warning.TestRequired;//Da aggiungere sull'excel allarmi
+      AreaGen_Messages.A.Msg[AlrIndex + 17] := AreaGen_Safetyinterface.Area02_Safety.PathTest_Rollformer.Warning.MaxRetry;//Da aggiungere sull'excel allarmi
+
+      //Area 03_04
+      WngIndex := 130;
+
+
+      AreaGen_Messages.W.Msg[WngIndex + 0] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 1] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D18;
+      AreaGen_Messages.W.Msg[WngIndex + 2] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D19;
+      AreaGen_Messages.W.Msg[WngIndex + 3] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D20;
+      AreaGen_Messages.W.Msg[WngIndex + 4] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D21;
+      AreaGen_Messages.W.Msg[WngIndex + 5] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D22;
+      AreaGen_Messages.W.Msg[WngIndex + 6] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D24;
+      AreaGen_Messages.W.Msg[WngIndex + 7] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D25;
+      AreaGen_Messages.W.Msg[WngIndex + 8] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpened.D27;
+      AreaGen_Messages.W.Msg[WngIndex + 9] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D16;
+      AreaGen_Messages.W.Msg[WngIndex + 10] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D18;
+      AreaGen_Messages.W.Msg[WngIndex + 11] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D19;
+      AreaGen_Messages.W.Msg[WngIndex + 12] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D20;
+      AreaGen_Messages.W.Msg[WngIndex + 13] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D21;
+      AreaGen_Messages.W.Msg[WngIndex + 14] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D22;
+      AreaGen_Messages.W.Msg[WngIndex + 15] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D24;
+      AreaGen_Messages.W.Msg[WngIndex + 16] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D25;
+      AreaGen_Messages.W.Msg[WngIndex + 17] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorOpenRequest.D27;
+      AreaGen_Messages.W.Msg[WngIndex + 18] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D16;
+      AreaGen_Messages.W.Msg[WngIndex + 19] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D19;
+      AreaGen_Messages.W.Msg[WngIndex + 20] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D20;
+      AreaGen_Messages.W.Msg[WngIndex + 21] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D21;
+      AreaGen_Messages.W.Msg[WngIndex + 22] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D25;
+      AreaGen_Messages.W.Msg[WngIndex + 23] :=  AreaGen_Safetyinterface.Warning.Area03_04.DoorNotLocked.D27;
+      AreaGen_Messages.W.Msg[WngIndex + 24] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 25] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 26] := AreaGen_Safetyinterface.Area03_04_Safety.PathTest_Bordatrice.Warning.TestRequired; //Da aggiungere su excel 
+      AreaGen_Messages.W.Msg[WngIndex + 27] := AreaGen_Safetyinterface.Area03_04_Safety.PathTest_Bordatrice.Warning.MaxRetry;//Da aggiungere su excel 
+
+
+
+
+
+      // Produzione
+      // 
+      WngIndex := 160;
+      AreaGen_Messages.W.Msg[WngIndex + 0] := FALSE;
+      AreaGen_Messages.W.Msg[WngIndex + 1] := Areas_ITF.Prod.GEN.Warnings.SetUp.Errore_Invio_MSG101_InizioSetup;
+      AreaGen_Messages.W.Msg[WngIndex + 2] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_Load_PPrf;
+      AreaGen_Messages.W.Msg[WngIndex + 3] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_Load_Timeout;
+      AreaGen_Messages.W.Msg[WngIndex + 4] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NumeroProgrammaNonValido;
+      AreaGen_Messages.W.Msg[WngIndex + 5] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_W_A;
+      AreaGen_Messages.W.Msg[WngIndex + 6] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_H_B;
+      AreaGen_Messages.W.Msg[WngIndex + 7] := Areas_ITF.Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_Spessore;
+      AreaGen_Messages.W.Msg[WngIndex + 8] := Areas_ITF.Prod.GEN.Warnings.SetUp.SetUp_Automatico_Avviato;
+      AreaGen_Messages.W.Msg[WngIndex + 9] := Areas_ITF.Prod.GEN.Warnings.SetUp.Attesa_SetUp_Manuale;
+      AreaGen_Messages.W.Msg[WngIndex + 10] := Areas_ITF.Prod.GEN.Warnings.SetUp.Attesa_Avvio_Inserimento_lamiera;
+      AreaGen_Messages.W.Msg[WngIndex + 11] := Areas_ITF.Prod.GEN.Warnings.SetUp.Attesa_Fine_inserimento_lamiera;
+      AreaGen_Messages.W.Msg[WngIndex + 12] := Areas_ITF.Prod.GEN.Warnings.SetUp.Attesa_Taglio_di_Intestazione;
+      AreaGen_Messages.W.Msg[WngIndex + 13] := Areas_ITF.Prod.GEN.Warnings.SetUp.Errore_Invio_MSG102_FineSetup;
+      AreaGen_Messages.W.Msg[WngIndex + 14] := Areas_ITF.Prod.GEN.Warnings.Err_Movimento_Ordine_InFaseDiCompletamento;
+      AreaGen_Messages.W.Msg[WngIndex + 15] := Areas_ITF.Prod.GEN.Warnings.Err_Movimento_Ordine_InEsecuzioneSemiGusci;
+      AreaGen_Messages.W.Msg[WngIndex + 16] := Areas_ITF.Prod.GEN.Warnings.Nessun_Ordine_InEsecuzioneSemiGusci;
+      AreaGen_Messages.W.Msg[WngIndex + 17] := Areas_ITF.Prod.GEN.Warnings.Nessun_Ordine_InEsecuzione;
+      AreaGen_Messages.W.Msg[WngIndex + 18] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Part_GOOD;
+      AreaGen_Messages.W.Msg[WngIndex + 19] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Part_NG;
+      AreaGen_Messages.W.Msg[WngIndex + 20] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Part_GOOD_R;
+      AreaGen_Messages.W.Msg[WngIndex + 21] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Part_NG_R;
+      AreaGen_Messages.W.Msg[WngIndex + 22] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Part_DELETE;
+      AreaGen_Messages.W.Msg[WngIndex + 23] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Beam_GOOD;
+      AreaGen_Messages.W.Msg[WngIndex + 24] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Beam_GOOD_R;
+      AreaGen_Messages.W.Msg[WngIndex + 25] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Beam_NG_R;
+      AreaGen_Messages.W.Msg[WngIndex + 26] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_Beam_DELETE;
+      AreaGen_Messages.W.Msg[WngIndex + 27] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_O_ACT_Status_Update;
+      AreaGen_Messages.W.Msg[WngIndex + 28] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_O_TODO_Status_Update;
+      AreaGen_Messages.W.Msg[WngIndex + 29] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_O_ENDING_Status_Update;
+      AreaGen_Messages.W.Msg[WngIndex + 30] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG131_O_OUT_Status_Update;
+      AreaGen_Messages.W.Msg[WngIndex + 31] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg201;
+      AreaGen_Messages.W.Msg[WngIndex + 32] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg211;
+      AreaGen_Messages.W.Msg[WngIndex + 33] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ACT;
+      AreaGen_Messages.W.Msg[WngIndex + 34] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ENDING[1];
+      AreaGen_Messages.W.Msg[WngIndex + 35] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ENDING[2];
+      AreaGen_Messages.W.Msg[WngIndex + 36] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ENDING[3];
+      AreaGen_Messages.W.Msg[WngIndex + 37] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ENDING[4];
+      AreaGen_Messages.W.Msg[WngIndex + 38] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg310_O_ENDING[5];
+      AreaGen_Messages.W.Msg[WngIndex + 39] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ACT;
+      AreaGen_Messages.W.Msg[WngIndex + 40] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ENDING[1];
+      AreaGen_Messages.W.Msg[WngIndex + 41] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ENDING[2];
+      AreaGen_Messages.W.Msg[WngIndex + 42] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ENDING[3];
+      AreaGen_Messages.W.Msg[WngIndex + 43] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ENDING[4];
+      AreaGen_Messages.W.Msg[WngIndex + 44] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg311_O_ENDING[5];
+      AreaGen_Messages.W.Msg[WngIndex + 45] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg411;
+      AreaGen_Messages.W.Msg[WngIndex + 46] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg413;
+      AreaGen_Messages.W.Msg[WngIndex + 47] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg423;
+      AreaGen_Messages.W.Msg[WngIndex + 48] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Part_BAD;
+      AreaGen_Messages.W.Msg[WngIndex + 49] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Part_NG;
+      AreaGen_Messages.W.Msg[WngIndex + 50] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Part_NG_R;
+      AreaGen_Messages.W.Msg[WngIndex + 51] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Part_DELETE;
+      AreaGen_Messages.W.Msg[WngIndex + 52] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Beam_NG_R;
+      AreaGen_Messages.W.Msg[WngIndex + 53] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_MSG431_Beam_DELETE;
+      AreaGen_Messages.W.Msg[WngIndex + 54] := Areas_ITF.Prod.GEN.Warnings.Messages.Err_Msg431_FineLamieraRF;
+      //
+      "AreaGen_Messages".W.Msg[#WngIndex +55] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +56] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +57] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +58] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +59] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +60] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +61] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +62] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +63] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +64] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +65] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +66] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +67] :=
+      "AreaGen_Messages".W.Msg[#WngIndex +68] :=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Warnings manager"
+      #AreaGen_Msg_Warnings(
+         en := TRUE,
+         Ack := NOT (((NOT (Areas_ITF.A01.PB.MB1_PB_Reset) AND NOT (Areas_ITF.A02.PB.MB2_PB_Reset)) AND NOT (Areas_ITF.A03.PB.MB3_PB_Reset))),
+         Messages := AreaGen_Messages.W.Msg,
+         MessagesHMI := AreaGen_Messages.W.Hmi,
+         MessagesACK := AreaGen_Messages.W.Ack,
+         MessageCount => HMI.AreaGen.Status.WarningsNumber
+      );
+
+      #AreaGen_Msg_Warnings.Q;
+   END_REGION
+
+   REGION "ITF Area 01"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface1,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface1,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area01
+      );
+
+      Areas_ITF.AG.Area01 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface1, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface1, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+   END_REGION
+
+   REGION "ITF Area 02"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface2,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface2,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area02
+      );
+
+      Areas_ITF.AG.Area02 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface2, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface2, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+   END_REGION
+
+   REGION "ITF Area 03"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface3,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface3,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area03
+      );
+
+      Areas_ITF.AG.Area03 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface3, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface3, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+   END_REGION
+
+   REGION "ITF Area 04"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Generic.MachineInterface4,
+         MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface4,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => Areas_ITF.AG.Area04
+      );
+
+      Areas_ITF.AG.Area04 := "MachineInterface_2_To_1"(MachineInterface_1 := Generic.MachineInterface4, MachineInterface_2 := AreaGen_Safetyinterface.MachineInterface4, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+   END_REGION
+
+
+END_FUNCTION

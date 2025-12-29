@@ -1,0 +1,122 @@
+﻿// Block: A0303_Spintore_CALL
+// Title: <<< LATO TESTA >>>
+
+FUNCTION "A0303_Spintore_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< LATO TESTA >>>
+
+BEGIN
+   REGION "Data In - Spintore Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Vrt_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0303_Spintore.Vrt_Testa.DataIn.Rest_Ls[1] := A0303_Spintore_Testa_Verticale_Ls_Rest;
+      A0303_Spintore.Vrt_Testa.DataIn.Work_Ls[1] := A0303_Spintore_Testa_Verticale_Ls_Work;
+   END_REGION
+
+   REGION "Data In - Spintore Orizzontale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Orz_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 1)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0303_Spintore.Orz_Testa.DataIn.Rest_Ls[1] := A0303_Spintore_Testa_Orizzontale_Ls_Rest;
+      A0303_Spintore.Orz_Testa.DataIn.Work_Ls[1] := A0303_Spintore_Testa_Orizzontale_Ls_Work;
+   END_REGION
+
+   REGION "Data In - Spintore Verticale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Vrt_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Vrt = 0) OR (A0303_Spintore.HMI.Selection.Vrt = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0303_Spintore.Vrt_Coda.DataIn.Rest_Ls[1] := A0303_Spintore_Coda_Verticale_Ls_Rest;
+      A0303_Spintore.Vrt_Coda.DataIn.Work_Ls[1] := A0303_Spintore_Coda_Verticale_Ls_Work;
+   END_REGION
+
+   REGION "Data In - Spintore Orizzontale"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0303_Spintore.Orz_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0303_Spintore.HMI.Selection.Orz = 0) OR (A0303_Spintore.HMI.Selection.Orz = 2)), HMI_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0303_Spintore.Orz_Coda.DataIn.Rest_Ls[1] := A0303_Spintore_Coda_Orizzontale_Ls_Rest;
+      A0303_Spintore.Orz_Coda.DataIn.Work_Ls[1] := A0303_Spintore_Coda_Orizzontale_Ls_Work;
+   END_REGION
+
+   REGION "Data In - OP"
+      A0303_Spintore.DataIn.OP_Rest_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.OP_Rest;
+      A0303_Spintore.DataIn.OP_Work_PB := A04_HMI.MB3.Button.A0303.SpintoreStrato.OP_Work;
+   END_REGION
+
+   REGION "CIn"
+      // Per muovere la spalla deve esserci il sostegno antiribaltamento tutto fuori per non collidere con i sollevatori
+
+      A0303_Spintore.CIn.Manager := A0303_Manager.COut.Spintore;
+      A0303_Spintore.CIn.Manip.OutOfWorkspace := Areas_ITF.A03.ManipOutOfWorkSpace;
+   END_REGION
+
+   REGION "Machine Call"
+      #A0303_Spintore(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone25,
+         DSI := F_DB.DSI_V_Air_A0302_A0303
+      );
+
+      #A0303_Spintore.Q;
+   END_REGION
+
+   REGION "DataOut - Spintore Verticale"
+      A0303_Spintore_Testa_Verticale_V_Rest := A0303_Spintore.Vrt_Testa.DataOut.RestSolenoid;
+      A0303_Spintore_Testa_Verticale_V_Work := A0303_Spintore.Vrt_Testa.DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Spintore Orizzontale"
+      A0303_Spintore_Testa_Orizzontale_V_Rest := A0303_Spintore.Orz_Testa.DataOut.RestSolenoid;
+      A0303_Spintore_Testa_Orizzontale_V_Work := A0303_Spintore.Orz_Testa.DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Spintore Verticale"
+      A0303_Spintore_Coda_Verticale_V_Rest := A0303_Spintore.Vrt_Coda.DataOut.RestSolenoid;
+      A0303_Spintore_Coda_Verticale_V_Work := A0303_Spintore.Vrt_Coda.DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Spintore Orizzontale"
+      A0303_Spintore_Coda_Orizzontale_V_Rest := A0303_Spintore.Orz_Coda.DataOut.RestSolenoid;
+      A0303_Spintore_Coda_Orizzontale_V_Work := A0303_Spintore.Orz_Coda.DataOut.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

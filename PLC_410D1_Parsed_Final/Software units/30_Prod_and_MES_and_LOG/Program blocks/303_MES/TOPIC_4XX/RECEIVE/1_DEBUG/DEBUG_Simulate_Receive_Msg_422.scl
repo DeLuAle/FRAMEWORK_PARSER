@@ -1,0 +1,47 @@
+﻿FUNCTION "DEBUG_Simulate_Receive_Msg_422" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_TEMP 
+      payload : String;
+   END_VAR
+
+
+BEGIN
+	
+	
+	REGION simulazione ricezione msg Topic 422
+	    
+	    IF "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.EXE_MSG THEN
+	        
+	        
+	        #payload := "DEBUG_WritePayLoad_Msg422"();
+	        
+	        
+	        "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG.Id := "MES_Manager".Receive_Msg_Topic4XX.Save_Msg_ID + 1;
+	        "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG.timestamp := 'interrogazione stato rotolo aspo carico';
+	        "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG.topic := 422;
+	        "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG.payLoad := #payload;
+	        
+	        
+	        "MES_Com_Channel_Topic4XX".RECEIVE.msg := "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG;
+	        
+	        "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.EXE_MSG := false;
+	        ;
+	    END_IF;
+	    
+	    
+	    IF "MES_Com_Channel_Topic4XX".RECEIVE.ack = "DEBUG_MES_Receive_Msg_Topic4XX".NEW_MSG_422.MSG.Id
+	        AND
+	        "DEBUG_MES_Receive_Msg_Topic4XX".ACK_MSG_enable
+	    THEN
+	        "MES_Com_Channel_Topic4XX".RECEIVE.msg := "MES_Msg_Delete"();
+	        
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+END_FUNCTION
+

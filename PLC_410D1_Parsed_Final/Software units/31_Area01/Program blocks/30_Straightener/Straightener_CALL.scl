@@ -1,0 +1,140 @@
+﻿// Block: Straightener_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "Straightener_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := NOT ((((NOT (LB112.PB.Straightner_Bwd) AND NOT (LB113.PB.Straightener_Bwd)) AND NOT (LB114_FeedA01.PB.Straightner_Bwd)) AND NOT (LB131.PB.Straightner_Bwd))),
+         LB_PB_Fwd_Plus := NOT ((((NOT (LB112.PB.Straightner_Fwd) AND NOT (LB113.PB.Straightener_Fwd)) AND NOT (LB114_FeedA01.PB.Straightner_Fwd)) AND NOT (LB131.PB.Straightner_Fwd))),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Straightener.DataIn.Feed.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := NOT ((((NOT (LB112.PB.Straightner_Bwd) AND NOT (LB113.PB.Straightener_Bwd)) AND NOT (LB114_FeedA01.PB.Straightner_Bwd)) AND NOT (LB131.PB.Straightner_Bwd))), LB_PB_Fwd_Plus := NOT ((((NOT (LB112.PB.Straightner_Fwd) AND NOT (LB113.PB.Straightener_Fwd)) AND NOT (LB114_FeedA01.PB.Straightner_Fwd)) AND NOT (LB131.PB.Straightner_Fwd))), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+   END_REGION
+
+   REGION "Data In - PB Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := NOT ((NOT (LB112_Straightener_Sel_Open) AND NOT (LB131_Straightener_Lift_Pb_Open))),
+         LB_PB_Work := NOT ((NOT (LB112_Straightener_Sel_Close) AND NOT (LB131_Straightener_Lift_Pb_Close))),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Straightener.DataIn.Lift_Entry.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := FALSE,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Straightener.DataIn.Lift_Exit.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := NOT ((NOT (LB112_Straightener_Sel_Open) AND NOT (LB131_Straightener_Lift_Pb_Open))), LB_PB_Work := NOT ((NOT (LB112_Straightener_Sel_Close) AND NOT (LB131_Straightener_Lift_Pb_Close))), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := FALSE, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+   END_REGION
+
+   REGION "Data In - Sensori"
+
+      //Feed
+      Straightener.DataIn.Feed.Fan_M_Feedback := Straightener_MotorFan_FdbkKM;
+
+      // Lift entry
+      Straightener.DataIn.Lift_Entry.Rest_Ls[1] := Raddrizzatrice_Ls_Rullo_Aperto;
+
+   END_REGION
+
+   REGION "C.In - Manager"
+      Straightener.CIn.Manager := CoilHandling.COut.Straightener;
+   END_REGION
+
+   REGION "CIn  - Init BWD & FWD enable"
+      FOR i := 1 TO 8 DO
+          
+          Straightener.CIn.Feed_BwdEnable[i] := TRUE;
+          Straightener.CIn.Feed_FwdEnable[i] := TRUE;
+      END_FOR;
+
+   END_REGION
+
+   REGION "C.In - BWD enable"
+      Straightener.CIn.Feed_BwdEnable[1] := Loop1.COut.Entry_EnableFeedBkw;
+      Straightener.CIn.Feed_BwdEnable[2] := NOT (CoilHandlingMatCounter.COut.StopFeeding);
+   END_REGION
+
+   REGION "C.In - FWD enable"
+      Straightener.CIn.Feed_FwdEnable[1] := Loop1.COut.Entry_EnableFeedFwd;
+      Straightener.CIn.Feed_FwdEnable[2] := NOT (CoilHandlingMatCounter.COut.StopFeeding);
+   END_REGION
+
+   REGION "DSI"
+      Straightener.DSI.Feed := F_DB.DSI_S120_Straightener;
+
+      Straightener.DSI.Lift_Entry :=
+      Straightener.DSI.Lift_Exit := F_DB.DSI_V_Air_Gen;
+
+   END_REGION
+
+   REGION "Drive"
+      Straightener.Drive.Feed.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      Straightener.Drive.Feed.AccessPoint := HW_Const_Values.CU2_PN_830A1_ModuleAccessPoint;
+      Straightener.Drive.Feed.AxisID := CU2_ID_4_830A1_830M1;
+      Straightener.Drive.Feed.TokenChain := TOKENCHAIN_CU2;
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #Straightener(
+         en := TRUE,
+         AreaInterface := Area01.AreaInterface,
+         ZSI := F_DB.ZSI_Zone10,
+         Config := A01_Config.Straightener,
+         TO_Ax := A01_Straightener_Ax,
+         PersistentValues := Straightener_PERS.PersistentValues
+      );
+
+      #Straightener.Q;
+   END_REGION
+
+   REGION "Delete Warning missing forward"
+      IF ((Area01.AreaInterface.Cycle AND Straightener.Warning.Feed.MissingCnd_FWD) AND CoilHandling.CIn.Loop.MaxLength_Reeached) THEN
+         Straightener.Warning.Feed.MissingCnd_FWD := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Data Out"
+      Straightener_MotorFan_KM := Straightener.DataOut.Feed.Fan_M_Contactor;
+
+      //Lift Entry
+      Straightener_LiftEntry_V_Open := Straightener.DataOut.Lift_Entry.RestSolenoid;
+      Straightener_LiftEntry_V_Close := Straightener.DataOut.Lift_Entry.WorkSolenoid;
+
+      //
+      //Lift Exit
+      "Straightener_LiftExit_V_Open" := "Straightener".DataOut.Lift_Exit.RestSolenoid;
+      "Straightener_LiftExit_V_Close" := "Straightener".DataOut.Lift_Exit.WorkSolenoid;
+
+
+   END_REGION
+
+
+END_FUNCTION

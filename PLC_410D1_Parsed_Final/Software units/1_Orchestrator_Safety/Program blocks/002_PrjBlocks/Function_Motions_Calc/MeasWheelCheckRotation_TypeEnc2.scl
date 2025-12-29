@@ -1,0 +1,88 @@
+﻿// Block: MeasWheelCheckRotation_TypeEnc2
+// Title: Out error percentage
+
+FUNCTION "MeasWheelCheckRotation_TypeEnc2" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Out error percentage
+   VAR_INPUT
+      TO_Ax : TO_PositioningAxis;
+      VelMaterialMover : LReal;
+      VelMin : LReal;
+      ErrPercentageMax : LReal;
+   END_VAR
+
+   VAR_OUTPUT
+      Err : LReal;
+   END_VAR
+
+   VAR_TEMP
+      MeasWheelIsActive : Bool;
+      MotorVelocity : LReal;
+      MotorVelocityABS : LReal;
+      ErrorPercentage : LReal;
+      Check : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      RET_NULL : Int;
+      RET_VEL_OK : Int;
+      RET_VEL_BELOW_MIN : Int;
+      RET_ERR_ENC_NOT_VALID : Int;
+      RET_VEL_DELTA_EXCEED : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Out error percentage"
+      Err := 0.0;
+   END_REGION
+
+   REGION "Measuring wheel encoder is active"
+      MeasWheelIsActive := ((TO_Ax.OperativeSensor = 2) AND (TO_Ax.StatusSensor[2].State = 2));
+   END_REGION
+
+   REGION "Return ENCODER NOT VALID"
+      IF NOT (MeasWheelIsActive) THEN
+         MeasWheelCheckRotation_TypeEnc2 := #RET_ERR_ENC_NOT_VALID;
+      END_IF;
+   END_REGION
+
+   REGION "Motor velocity calculation"
+      MotorVelocity := VelMaterialMover;
+   END_REGION
+
+   REGION "Motor velocity can be compared with encoder velocity"
+      MotorVelocityABS := ABS(IN:=MotorVelocity);
+      Check := (MotorVelocityABS > VelMin);
+   END_REGION
+
+   REGION "Return VELCITY BELOW MIN VALUE"
+      IF NOT (Check) THEN
+         MeasWheelCheckRotation_TypeEnc2 := #RET_VEL_BELOW_MIN;
+      END_IF;
+   END_REGION
+
+   REGION "Error percentale between motor and encoder"
+
+      ErrorPercentage := (100.0 * (TO_Ax.StatusExtrapolation.ExtrapolatedVelocity - MotorVelocity) / MotorVelocity);
+
+      Err := ErrorPercentage;
+
+
+   END_REGION
+
+   REGION "Return VELOCITY DELTA EXCEED LIMIT"
+      IF (ErrorPercentage > ErrPercentageMax) THEN
+         MeasWheelCheckRotation_TypeEnc2 := #RET_VEL_DELTA_EXCEED;
+      END_IF;
+   END_REGION
+
+   REGION "Return VELOCITY OK"
+      IF (ErrorPercentage <= ErrPercentageMax) THEN
+         MeasWheelCheckRotation_TypeEnc2 := #RET_VEL_OK;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

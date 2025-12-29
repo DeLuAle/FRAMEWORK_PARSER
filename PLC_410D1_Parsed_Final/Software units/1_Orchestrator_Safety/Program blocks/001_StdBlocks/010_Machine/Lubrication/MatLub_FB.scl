@@ -1,0 +1,207 @@
+﻿// Block: MatLub_FB
+// Title: Reset alarms command
+
+FUNCTION_BLOCK "MatLub_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms command
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         Pb_Stop : Bool;
+         Pb_Start : Bool;
+         SensorLevel : Bool;
+      END_STRUCT;
+      CoordinationIn : Struct
+         MaterialMoving : Bool;
+      END_STRUCT;
+      Config : Struct
+         EnableWngSystemOff : Bool;
+         LowTankLevelDly : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         SolenoidValve : Bool;
+         Lamp : Bool;
+      END_STRUCT;
+      CoordinationOut : Struct
+         IsRunning : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Parameter : Struct
+         SystemOnOff : Bool;
+         DelayOff : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         IsStandstill : Bool;
+         RunReq : Bool;
+         GenCondition : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         RstAlarms : Bool;
+         StopDueDoorOpeningRequest : Bool;
+         StopSafeStandstill : Bool;
+         SafeMotion : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         ManStart : Bool;
+         AutStart : Bool;
+      END_STRUCT;
+      Alr : Struct
+         LowTankLevel : Bool;
+      END_STRUCT;
+      Wng : Struct
+         NoAutReady : Bool;
+         SystemOff : Bool;
+      END_STRUCT;
+      TON_DelayBlowerStop : IEC_TIMER;
+      TON_LowTankLevel : IEC_TIMER;
+      AckRstAlarms : Bool;
+      PbStart_PEAux : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms command"
+      Ctrl.RstAlarms := AreaInterface.RstAlarms AND NOT AckRstAlarms; 
+      AckRstAlarms := AreaInterface.RstAlarms;
+
+      IF    Ctrl.RstAlarms THEN
+          Wng.NoAutReady := FALSE;
+          Alr.LowTankLevel := FALSE;
+        END_IF;
+
+   END_REGION
+
+   REGION "Warning Pump / Blower off"
+      Wng.SystemOff := (Config.EnableWngSystemOff AND NOT (Parameter.SystemOnOff));
+   END_REGION
+
+   REGION "Alarm low tank level"
+      #TON_LowTankLevel(
+         IN := NOT (DataIn.SensorLevel),
+         PT := Config.LowTankLevelDly
+      );
+
+      #TON_LowTankLevel.Q;
+      IF NOT (Parameter.SystemOnOff) THEN
+         Alr.LowTankLevel := FALSE;
+      ELSIF #TON_LowTankLevel.Q THEN
+         Alr.LowTankLevel := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Safety stops"
+      Ctrl.StopDueDoorOpeningRequest := Sys.Bit0;
+      Ctrl.StopSafeStandstill := NOT ((NOT (AreaInterface.EStop) AND NOT (DSI.DevicesInSafeState)));
+   END_REGION
+
+   REGION "Cycle stops"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF AreaInterface.StopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF AreaInterface.StopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cmd run request"
+      #TON_DelayBlowerStop(
+         IN := (Sts.RunReq AND NOT (CoordinationIn.MaterialMoving)),
+         PT := Parameter.DelayOff
+      );
+
+      #TON_DelayBlowerStop.Q;
+      IF #TON_DelayBlowerStop.Q THEN
+         Sts.RunReq := FALSE;
+      ELSIF CoordinationIn.MaterialMoving THEN
+         Sts.RunReq := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cmd condition"
+      Sts.GenCondition := ((((Parameter.SystemOnOff AND NOT (Ctrl.StopSafeStandstill)) AND NOT (Ctrl.StopDueDoorOpeningRequest)) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed));
+   END_REGION
+
+   REGION "blower automatc start"
+      Ctrl.AutStart := (((Sts.RunReq AND Sts.GenCondition) AND AreaInterface.Man) OR ((Sts.RunReq AND Sts.GenCondition) AND AreaInterface.Aut));
+   END_REGION
+
+   REGION "Blower manual start"
+      IF (DataIn.Pb_Stop OR Ctrl.AutStart OR NOT (Sts.GenCondition) OR NOT (AreaInterface.Man)) THEN
+         Ctrl.ManStart := FALSE;
+      ELSIF PosEdge(DataIn.Pb_Start) THEN
+         Ctrl.ManStart := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Blower solenoid valve command"
+      DataOut.SolenoidValve := NOT ((NOT (Ctrl.ManStart) AND NOT (Ctrl.AutStart)));
+   END_REGION
+
+   REGION "Machine is standtill"
+      Sts.IsStandstill := ((NOT (Ctrl.ManStart) AND NOT (Ctrl.AutStart)) OR NOT (((NOT (Ctrl.StopAborting) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed))));
+   END_REGION
+
+   REGION "Alarm presence"
+      Sts.AlarmsPresence := NOT (NOT (Alr.LowTankLevel));
+   END_REGION
+
+   REGION "Warning presence"
+      Sts.WarningsPresence := NOT ((NOT (Wng.NoAutReady) AND NOT (Wng.SystemOff)));
+   END_REGION
+
+   REGION "Stop for aborting"
+      Ctrl.StopAborting := (Sts.AlarmsPresence OR AreaInterface.EStop);
+   END_REGION
+
+   REGION "Collect machine to area interface"
+      // Status machine ready
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      // Status machine aborting
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      // Status Ack Stop in phase
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      // Status Motion standtill
+      MachineInterface.MotionsStandStill := Sts.IsStandstill;
+      // Status Alarm presence
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+      // Warning machine not automatic ready
+      IF AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady THEN
+        Wng.NoAutReady := false;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Data Out - Lamps"
+      DataOut.Lamp := ((DataOut.SolenoidValve AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+   END_REGION
+
+   REGION "Coordination out"
+      CoordinationOut.IsRunning := DataOut.SolenoidValve;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

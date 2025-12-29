@@ -1,0 +1,67 @@
+﻿FUNCTION "Fs_CalcSyncPositions" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 1.05
+   VAR_IN_OUT 
+      Core : "FsCore";
+   END_VAR
+
+   VAR_TEMP 
+      isTimeToGo : Bool;
+      deltaV : LReal;
+      Tsync : LReal;
+      Tramp : LReal;
+      Tsmooth : LReal;
+   END_VAR
+
+   VAR CONSTANT 
+      K_m_to_mm : LReal := 1000.0;
+   END_VAR
+
+
+BEGIN
+	// Version 0.9
+	
+	    // Acc + Jerk
+	    IF #Core.Par_SI.Jerk > 0.0 AND #Core.Sts.Standstill THEN
+	        #Tsmooth := #Core.Par_SI.Acc / #Core.Par_SI.Jerk;
+	    ELSE
+	        #Tsmooth := 0.0;
+	    END_IF;
+	    #deltaV := #Core.MasterVelocity - #Core.SlaveVelocity;
+	    #Tramp := #deltaV / #Core.Par_SI.Acc;
+	    #Tsync := #Tramp + #Tsmooth;
+	    // Spazio necessario allo slave per raggiungere la velocità del master
+	    #Core.iSlaveSynchSpace := (#Core.SlaveVelocity * #Tsync + #deltaV * #Tsync / 2 ) * #K_m_to_mm;
+	    // Spazio percorso dal master nel tempo necessario allo slave per raggiungerlo
+	    #Core.iMasterSynchSpace := #Core.MasterVelocity * #Tsync * #K_m_to_mm;
+	
+	    // Spazio mancante all'inizio della sincronizzazione
+	    #Core.iMasterLag := #Core.iWorkPosition - #Core.MaterialPosition + #Core.iSlaveSynchSpace;
+	    IF #Core.AxMODULO > 0.0  AND (#Core.iMasterLag < (-#Core.AxMODULO / 2.0)) THEN
+	        #Core.iMasterLag += #Core.AxMODULO;     
+	    END_IF;
+	    // Spazio mancante al punto di sincronizzazione
+	    #Core.iSpaceToGo:=#Core.iWorkPosition-#Core.MaterialPosition;
+	    IF #Core.AxMODULO > 0.0  AND (#Core.iSpaceToGo < (-#Core.AxMODULO / 2.0)) THEN
+	        #Core.iSpaceToGo += #Core.AxMODULO;     
+	    END_IF;    
+	    // Confronto per determinare il momento di inizio sincronizzazione
+	    #isTimeToGo :=(#Core.iMasterLag <= (#Core.iMasterSynchSpace + #Core.StartAdvance));
+	    IF #isTimeToGo THEN
+	        #Core.iSlaveSynchPos := #Core.SlavePosition + #Core.iSlaveSynchSpace + #Core.SyncDelay;
+	        #Core.iMasterSyncPos := #Core.iWorkPosition + (#Core.iSlaveSynchPos / #Core.FAK);
+	            "DEBUG".Core_iSlaveSynchPos := #Core.iSlaveSynchPos;
+	            "DEBUG"."Core.iMasterSyncPos" := #Core.iMasterSyncPos;
+	            "DEBUG"."Core.iWorkPosition" := #Core.iWorkPosition;
+	            "DEBUG"."Core.SlavePosition" := #Core.SlavePosition;
+	            
+	            
+	            IF #Core.AxMODULO > 0.0 AND #Core.iMasterSyncPos >= #Core.AxMODULO THEN
+	                #Core.iMasterSyncPos -= #Core.AxMODULO;      
+	            END_IF;
+	            #Core.iJerkToUse := SEL(G:=#Core.Sts.Standstill,IN1:= #Core.Par_SI.Jerk,IN0 := 0.0);
+	    END_IF;
+	    #Fs_CalcSyncPositions := #isTimeToGo;
+	
+END_FUNCTION
+

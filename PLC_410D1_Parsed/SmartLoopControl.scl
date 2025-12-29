@@ -1,0 +1,1385 @@
+﻿// Block: SmartLoopControl
+// Title: Reset alarms 
+
+FUNCTION_BLOCK "SmartLoopControl"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms 
+   VAR_INPUT
+      AreaInterfaceEntry : AreaInterface;
+      AreaInterfaceExit : AreaInterface;
+      DataIn : Struct
+         Pb_StartStop : Bool;
+         Pb_Start : Bool;
+         Pb_Stop : Bool;
+         SensorEntryMaterialPresence : Bool;
+         SensorExitMaterialPresence : Bool;
+         SensorExitEnableUseEncoder : Bool;
+         SensorNotLoopMinHigh : Bool;
+         SensorLoopMaxLow_Or_TPEntry : Bool;
+         SensorLoopMaxLow_Or_TPExit : Bool;
+         PlugConnected : Bool;
+      END_STRUCT;
+      CIn : SmartLoopControl_CIn;
+      Config : Struct
+         PitTables_Exist : Bool;
+         Entry_PercentagePosError : LReal;
+         Exit_PercentagePosError : LReal;
+         Delay_CheckNoEntryBkwEnable : Time;
+         Delay_CheckNoEntryFwdEnable : Time;
+         Delay_CheckNoExitBkwEnable : Time;
+         Delay_CheckNoExitFwdEnable : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterfaceEntry : MachineInterface;
+      MachineInterfaceExit : MachineInterface;
+      COut : SmartLoopControl_COut;
+      DataOut : Struct
+         LampSystemOn : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Struct
+         Par : SmartLoopControl_Par;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Ctrl : Struct
+         RstAlarms : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         ForceSyncFirstStart : Bool;
+         ForceSyncMinHigh : Bool;
+         ForceSyncCyclic : Bool;
+         ForceSyncExt : Bool;
+         ForceSync : Bool;
+         Sync_Exe : Bool;
+         Sync_EntryReduceOrStopFeed : Bool;
+         Sync_ExitReduceOrStopFeed : Bool;
+         MeasuringEnable : Bool;
+         Entry_EnableFeedBkw : Bool;
+         Entry_EnableFeedFwd : Bool;
+         Exit_EnableFeedBkw : Bool;
+         Exit_EnableFeedFwd : Bool;
+         Entry_VelocityOverride : LReal;
+         Exit_VelocityOverride : LReal;
+         Exit_MaxAllowableFeedFwd : LReal;
+      END_STRUCT;
+      Sts : Struct
+         IsStandstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         SensorsMaxLow_OFF : Bool;
+         SensorsMaxLow_ON : Bool;
+         LoopMaterialCounterValid : Bool;
+         SynchroRunning : Bool;
+         CheckSensorCatchIsOn : Bool;
+         CheckSensorLooseIsOn : Bool;
+         WorkModeMatCounter : Bool;
+         WorkModeSensors : Bool;
+         SystemOn : Bool;
+         MinHighReached : Bool;
+         SynchroDone : Bool;
+         CntFeedIncValid : Bool;
+         AntiRepetitionForceSyncExt : Bool;
+         Entry_MeasuringValuePosAxValid : Bool;
+         Exit_MeasuringValuePosAxValid : Bool;
+         Entry_MeasuringValueMatCounterValid : Bool;
+         Exit_MeasuringValueMatCounterValid : Bool;
+         SynchroDoneTof2s : Bool;
+         MaxLowReached : Bool;
+         SelectedPosStopMaxLow : LReal;
+         SelectedOverrideScaling : LReal;
+         LoopMaterialCounter : LReal;
+         DifferenceInc : LReal;
+         CntFeedIncPrevious : LReal;
+         MissingToCyclicSync : LReal;
+         SyncroMemLoopMaterialCounter : LReal;
+         AntiRepetitionForceSyncExtSaveEntryMatCounter : LReal;
+         AntiRepetitionForceSyncExtSaveExitMatCounter : LReal;
+         EncEntry_MeasuringValuePosAx : LReal;
+         EncExit_MeasuringValuePosAx : LReal;
+         EncEntry_MeasuringValueMatCounter : LReal;
+         EncExit_MeasuringValueMatCounter : LReal;
+         LoopMaterialCounterOffset : LReal;
+         LoopMaterialMissingToMaxLow : LReal;
+         LoopMaterialMissingToMinHigh : LReal;
+         Cases_Entry_VelocityOverride : UInt;
+         Cases_Exit_VelocityOverride : UInt;
+         Cases_Exit_MaxFeed : UInt;
+         WorkMode : UInt;
+      END_STRUCT;
+      Wng : Struct
+         NoAutReady : Bool;
+         MeasInputsXORMeasuringValue : Bool;
+         TimeOutCalculateLoopCounterOffset : Bool;
+         SensorEnableEncIsOff : Bool;
+         Entry_MatCounterNotValid : Bool;
+         Exit_MatCounterNotValid : Bool;
+         NotSystemOn : Bool;
+         MinHighReached : Bool;
+         SyncNeedToLooseSensor : Bool;
+         SyncNeedToCatchSensor : Bool;
+         Entry_NoBkwEnable : Bool;
+         Entry_NoFwdEnable : Bool;
+         Exit_NoBkwEnable : Bool;
+         Exit_NoFwdEnable : Bool;
+      END_STRUCT;
+      Alr : Struct
+         MeasInputsXORInputState : Bool;
+         Entry_MatCounterLooseOfValidState : Bool;
+         Exit_MatCounterLooseOfValidState : Bool;
+         SensorError : Bool;
+         PlugNotConnected : Bool;
+         SyncSensorNotCatch : Bool;
+         SyncSensorNotLoose : Bool;
+         Entry_NoCounterMove : Bool;
+         Exit_NoCounterMove : Bool;
+      END_STRUCT;
+      tonCheckMeasInputStateXOR : TON_TIME;
+      tonDelaySensorMaxLowLoose : TON_TIME;
+      tonDelaySensorMaxLowCatch : TON_TIME;
+      tonCheckNoEntryCounterMove : TON_TIME;
+      tonCheckNoExitCounterMove : TON_TIME;
+      tonEnableForceSyncCyclic : TON_TIME;
+      tonSynchIdle : TON_TIME;
+      tonCheckBothMeasuringDone : TON_TIME;
+      tonTimeOutCalculateCounterOffset : TON_TIME;
+      tonSynchAutoReset : TON_TIME;
+      tof2sSynchroDone : TON_TIME;
+      tonRstMaterialCounterValid : TON_TIME;
+      tonSetMaxLow : TON_TIME;
+      tonRstMaxLow : TON_TIME;
+      tonCheckNoEntryBkwEnable : TON_TIME;
+      tonCheckNoEntryFwdEnable : TON_TIME;
+      tonCheckNoExitBkwEnable : TON_TIME;
+      tonCheckNoExitFwdEnable : TON_TIME;
+      SynchCycle : UInt;
+      CheckSensorCatchSaveLoopMaterialCounter : LReal;
+      CheckSensorCatchFeeding : LReal;
+      CheckSensorLooseSaveLoopMaterialCounter : LReal;
+      CheckSensorLooseFeeding : LReal;
+      AuxPbStartStopOneShot : Bool;
+      AuxSyncFirstStartOneShot : Bool;
+      ModeMatCounterAndSystemOn : Bool;
+      MinHighCumulative : Bool;
+      AuxSyncMinHighOneShot : Bool;
+      Entry_SaveMesInpID : UInt;
+      Exit_SaveMesInpID : UInt;
+      Check_Entry_Velocity : Check_Axis_Velocity;
+      Check_Exit_Velocity : Check_Axis_Velocity;
+   END_VAR
+
+   VAR_TEMP
+      PosMax : LReal;
+      MaxMaterialInsideLoop : LReal;
+      DeltaPosSync : LReal;
+      DeltaPos : LReal;
+      PbStartOneShot : Bool;
+      PbStopOneShot : Bool;
+      OK : Bool;
+      Req : Bool;
+      MinHighOverride : Bool;
+      RstSynchro : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      DELTA_POS_LOOP_OVER_LOW_TABLE : LReal;
+      SYNCH_00_INIT : UInt;
+      SYNCH_01_ACTIVATE_MEASINPUTS : UInt;
+      SYNCH_10_IDLE : UInt;
+      SYNCH_11_CATCH_SENSOR : UInt;
+      SYNCH_12_LOOSE_SENSOR : UInt;
+      SYNCH_13_LAST_CATCH_SENSOR : UInt;
+      SYNCH_14_CALCULATE_COUNTER_OFFSET : UInt;
+      SYNCH_90_ERROR : UInt;
+      MODE_00_USE_SENSOR : UInt;
+      MODE_01_USE_MATERIAL_COUNTERS : UInt;
+      ENTRY_CASE_01_V0_ALARM_PRESENCE : UInt;
+      ENTRY_CASE_02_V0_MAX_LOW : UInt;
+      ENTRY_CASE_03_VMin_MAX_LOW_OVERRIDE : UInt;
+      ENTRY_CASE_04_V100_SYSTEM_OFF : UInt;
+      ENTRY_CASE_11_VMin_MODE_SENSORS : UInt;
+      ENTRY_CASE_12_VMax_MODE_SENSORS : UInt;
+      ENTRY_CASE_13_V100_MODE_SENSORS : UInt;
+      ENTRY_CASE_21_V100_SYNCHRO_RUNNING : UInt;
+      ENTRY_CASE_22_V0_SYNCHRO_RUNNING : UInt;
+      ENTRY_CASE_23_VMin_SYNCHRO_RUNNING : UInt;
+      ENTRY_CASE_24_VMin_MODE_COUNTERS : UInt;
+      ENTRY_CASE_25_VMed_MODE_COUNTERS : UInt;
+      ENTRY_CASE_26_VMax_MODE_COUNTERS : UInt;
+      ENTRY_CASE_27_VMaxMax_MODE_COUNTERS : UInt;
+      ENTRY_CASE_30_V100_UNKNOW : UInt;
+      EXIT_CASE_01_V0_ALARM_PRESENCE : UInt;
+      EXIT_CASE_02_0_MIN_HIGH : UInt;
+      EXIT_CASE_03_VMin_SYSTEM_OFF : UInt;
+      EXIT_CASE_04_VMin_NEXT_EMPTYING : UInt;
+      EXIT_CASE_05_VMax_EMPTYING : UInt;
+      EXIT_CASE_11_V100_MODE_SENSORS_OR_EXIT_MAN : UInt;
+      EXIT_CASE_12_VMIN_MODE_SENSORS_TEMPORARY : UInt;
+      EXIT_CASE_20_100_SYNCRO_RUNNING : UInt;
+      EXIT_CASE_21_0_SYNCRO_RUNNING : UInt;
+      EXIT_CASE_22_VMin_SYNCRO_RUNNING : UInt;
+      EXIT_CASE_23_VMin_MODE_COUNTERS : UInt;
+      EXIT_CASE_24_VMed_MODE_COUNTERS : UInt;
+      EXIT_CASE_25_VMax_MODE_COUNTERS : UInt;
+      EXIT_CASE_26_100_MODE_COUNTERS : UInt;
+      EXIT_MAX_FEED_CASE_1_NO_LIMIT : UInt;
+      EXIT_MAX_FEED_CASE_2_SYSTEM_OFF : UInt;
+      EXIT_MAX_FEED_CASE_3_NEXT_END_OF_MATERIAL : UInt;
+      EXIT_MAX_FEED_CASE_4_LOOP_MAT_COUNTER_NOT_VALID : UInt;
+      EXIT_MAX_FEED_CASE_5_LOOP_MAT_COUNTER_VALID : UInt;
+      EXIT_MAX_FEED_CASE_6_ALARM : UInt;
+      EXIT_MAX_FEED_CASE_7_MIN_HIGH_REACHED : UInt;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms"
+      Ctrl.RstAlarms := NOT ((NOT (AreaInterfaceEntry.RstAlarms) AND NOT (AreaInterfaceExit.RstAlarms)));
+   END_REGION
+
+   REGION "Reset alarms execution"
+      IF Ctrl.RstAlarms THEN
+          Wng.NoAutReady := FALSE;
+          Wng.MeasInputsXORMeasuringValue := FALSE;
+          Wng.TimeOutCalculateLoopCounterOffset := FALSE;
+          Wng.SensorEnableEncIsOff := FALSE;
+          Wng.Entry_MatCounterNotValid := FALSE;
+          Wng.Exit_MatCounterNotValid := FALSE;
+          Wng.NotSystemOn := FALSE;
+          Wng.MinHighReached := FALSE;
+          Wng.SyncNeedToLooseSensor := FALSE;
+          Wng.SyncNeedToCatchSensor := FALSE;
+          Wng.Entry_NoBkwEnable := FALSE;
+          Wng.Entry_NoFwdEnable := FALSE;
+          Wng.Exit_NoBkwEnable := FALSE;
+          Wng.Exit_NoFwdEnable := FALSE;
+          
+          Alr.MeasInputsXORInputState := FALSE;
+          Alr.Entry_MatCounterLooseOfValidState := FALSE;
+          Alr.Exit_MatCounterLooseOfValidState := FALSE;
+          Alr.SensorError := FALSE;
+          Alr.SyncSensorNotCatch := FALSE;
+          Alr.SyncSensorNotLoose := FALSE;
+          Alr.Entry_NoCounterMove := FALSE;
+          Alr.Exit_NoCounterMove := FALSE;
+          Alr.PlugNotConnected := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Alarm same meas input with different values"
+      #tonCheckMeasInputStateXOR(
+         IN := ((DataIn.SensorLoopMaxLow_Or_TPEntry AND NOT (DataIn.SensorLoopMaxLow_Or_TPExit)) OR (NOT (DataIn.SensorLoopMaxLow_Or_TPEntry) AND DataIn.SensorLoopMaxLow_Or_TPExit)),
+         PT := T#500MS
+      );
+
+      #tonCheckMeasInputStateXOR.Q;
+      IF #tonCheckMeasInputStateXOR.Q THEN
+         Alr.MeasInputsXORInputState := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Sensor max low On/Off Delay"
+      #tonDelaySensorMaxLowLoose(
+         IN := (NOT (DataIn.SensorLoopMaxLow_Or_TPEntry) AND NOT (DataIn.SensorLoopMaxLow_Or_TPExit)),
+         PT := T#3s
+      );
+
+      #tonDelaySensorMaxLowCatch(
+         IN := (DataIn.SensorLoopMaxLow_Or_TPEntry OR DataIn.SensorLoopMaxLow_Or_TPExit),
+         PT := T#50MS
+      );
+
+      #tonDelaySensorMaxLowLoose.Q;
+      Sts.SensorsMaxLow_OFF := #tonDelaySensorMaxLowLoose.Q;
+      #tonDelaySensorMaxLowCatch.Q;
+      Sts.SensorsMaxLow_ON := #tonDelaySensorMaxLowCatch.Q;
+   END_REGION
+
+   REGION "Alarm sensor error"
+      IF (((NOT (DataIn.SensorNotLoopMinHigh) AND Sts.SensorsMaxLow_ON) AND DataIn.SensorEntryMaterialPresence) AND DataIn.SensorExitMaterialPresence) THEN
+         Alr.SensorError := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm plug not connected"
+      IF NOT (DataIn.PlugConnected) THEN
+         Alr.PlugNotConnected := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Switch position Max Low / Middle as used Max Low"
+      IF  NOT CIn.MaterialMiddlePos_Request
+      THEN
+          Sts.SelectedPosStopMaxLow := PersistentValues.Par.PosStopMaxLow;
+          Sts.SelectedOverrideScaling := 1.0;
+          
+      ELSE
+          // Force value of middle position if is not properly setting
+          IF NOT (PersistentValues.Par.PosStopMiddle > PersistentValues.Par.PosStopMinHigh
+              AND
+              PersistentValues.Par.PosStopMiddle < PersistentValues.Par.PosStopMaxLow)
+          THEN
+              PersistentValues.Par.PosStopMiddle := PersistentValues.Par.PosStopMinHigh + ((PersistentValues.Par.PosStopMaxLow - PersistentValues.Par.PosStopMinHigh) / 2.0);
+          END_IF;
+          
+          // the new position for max low is the middle pistion
+          Sts.SelectedPosStopMaxLow := PersistentValues.Par.PosStopMiddle;
+          
+          // this ratio is apply to all the position refered to max low (e.g. the limits for change exit velocity override)
+          Sts.SelectedOverrideScaling := PersistentValues.Par.PosStopMiddle / PersistentValues.Par.PosStopMaxLow;
+          
+          
+          
+          
+          
+          
+      END_IF;
+          
+
+   END_REGION
+
+   REGION "Alarms Synch sensor (table) NOT catch / loose"
+      // !!! Se per qualche motivo il sensore di ansa bassa rimane sempre ON o sempre OFF c'è il rischio che durante il sincronismo dell'ansa no si verifichi mai l'evento di "sensore catturato" o "sensore perso" con conseguente riempimento eccessivo della
+// lamiera in ansa..Questi allami allarmi verificano se la quantità di lamiera rispetto al momento in cui è iniziato il controllo ha un valore coerente con la massima quantità possibile.
+
+      PosMax := (IN1 := Sts.SelectedPosStopMaxLow, IN2 := PersistentValues.Par.PosSynch);
+      MaxMaterialInsideLoop := PosMax - PersistentValues.Par.PosStopMinHigh;
+
+
+      IF Sts.LoopMaterialCounterValid AND Sts.SynchroRunning THEN
+          IF ((SynchCycle = SYNCH_11_CATCH_SENSOR) OR (SynchCycle = SYNCH_13_LAST_CATCH_SENSOR))
+              AND NOT Alr.SyncSensorNotCatch AND NOT Sts.CheckSensorCatchIsOn
+          THEN
+              Sts.CheckSensorCatchIsOn := TRUE;
+              CheckSensorCatchSaveLoopMaterialCounter := Sts.LoopMaterialCounter;
+          ELSIF ((SynchCycle = SYNCH_11_CATCH_SENSOR) OR (SynchCycle = SYNCH_13_LAST_CATCH_SENSOR))
+              AND NOT Alr.SyncSensorNotCatch AND Sts.CheckSensorCatchIsOn
+          THEN
+              CheckSensorCatchFeeding := (Sts.LoopMaterialCounter - CheckSensorCatchSaveLoopMaterialCounter);
+              IF CheckSensorCatchFeeding > (1.5 * MaxMaterialInsideLoop) THEN
+                  Alr.SyncSensorNotCatch := TRUE;
+              END_IF;
+          ELSE
+              Sts.CheckSensorCatchIsOn := FALSE;
+          END_IF;
+          
+          IF SynchCycle = SYNCH_12_LOOSE_SENSOR AND
+              NOT Alr.SyncSensorNotLoose AND NOT Sts.CheckSensorLooseIsOn
+          THEN
+              Sts.CheckSensorLooseIsOn := TRUE;
+              CheckSensorLooseSaveLoopMaterialCounter := Sts.LoopMaterialCounter;
+          ELSIF SynchCycle = SYNCH_12_LOOSE_SENSOR
+              AND NOT Alr.SyncSensorNotLoose AND Sts.CheckSensorLooseIsOn
+          THEN
+              CheckSensorLooseFeeding := (Sts.LoopMaterialCounter - CheckSensorLooseSaveLoopMaterialCounter);
+              IF CheckSensorLooseFeeding > (1.5 * MaxMaterialInsideLoop)
+              THEN
+                  Alr.SyncSensorNotLoose := TRUE;
+              END_IF;
+          ELSE
+              Sts.CheckSensorLooseIsOn := FALSE;
+          END_IF;
+      ELSE
+          Sts.CheckSensorCatchIsOn := FALSE;
+          Sts.CheckSensorLooseIsOn := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Alarm lost of material counter valid state"
+      IF NOT (DataIn.SensorEntryMaterialPresence) THEN
+         Alr.Entry_MatCounterLooseOfValidState := FALSE;
+      ELSIF (Sts.WorkModeMatCounter AND NOT (CIn.Entry_MatCounterValid)) THEN
+         Alr.Entry_MatCounterLooseOfValidState := TRUE;
+      END_IF;
+      IF NOT (DataIn.SensorExitEnableUseEncoder) THEN
+         Alr.Exit_MatCounterLooseOfValidState := FALSE;
+      ELSIF (Sts.WorkModeMatCounter AND NOT (CIn.Exit_MatCounterValid)) THEN
+         Alr.Exit_MatCounterLooseOfValidState := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm no Entry counter move"
+      // sys.bypass = cambiare #Config.Entry_PercentagePosError in un 0/1 oppure valore time per il timer #tonCheckNoEntryCounterMove
+
+      #Check_Entry_Velocity(
+         en := TRUE,
+         AcualPosition := CIn.Entry_MatCounter,
+         PositionModule := #MATERIAL_COUNTERS_MODULE,
+         StandstillVelocityThreshold := 200.0
+      );
+
+      #tonCheckNoEntryCounterMove(
+         IN := ((((((Sts.SystemOn AND Sts.WorkModeMatCounter) AND NOT (CIn.Entry_MaterialStandstill)) AND (CIn.Entry_ActualVelocity > 200.0)) AND Check_Entry_Velocity.LessThanStandstillThreshold) AND (Config.Entry_PercentagePosError > 0.0)) AND Sys.ByPass),
+         PT := T#5S
+      );
+
+      #Check_Entry_Velocity.Q;
+      #tonCheckNoEntryCounterMove.Q;
+      IF #tonCheckNoEntryCounterMove.Q THEN
+         Alr.Entry_NoCounterMove := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm no Exit counter move"
+      // sys.bypass = cambiare#Config.Exit_PercentagePosError in un 0/1 oppure valore time per il timer #tonCheckNoExitCounterMove
+
+      #Check_Exit_Velocity(
+         en := TRUE,
+         AcualPosition := CIn.Exit_MatCounter,
+         PositionModule := #MATERIAL_COUNTERS_MODULE,
+         StandstillVelocityThreshold := 200.0
+      );
+
+      #tonCheckNoExitCounterMove(
+         IN := ((((((Sts.SystemOn AND Sts.WorkModeMatCounter) AND NOT (CIn.Exit_MaterialStandstill)) AND (CIn.Exit_ActualVelocity > 200.0)) AND Check_Exit_Velocity.LessThanStandstillThreshold) AND (Config.Exit_PercentagePosError > 0.0)) AND Sys.ByPass),
+         PT := T#5S
+      );
+
+      #Check_Exit_Velocity.Q;
+      #tonCheckNoExitCounterMove.Q;
+      IF #tonCheckNoExitCounterMove.Q THEN
+         Alr.Exit_NoCounterMove := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning missing condition for work mode wih material counters"
+      Wng.SensorEnableEncIsOff := (((Sts.SystemOn AND NOT (Sts.WorkModeMatCounter)) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND NOT (DataIn.SensorExitEnableUseEncoder));
+      Wng.Entry_MatCounterNotValid := (((((Sts.SystemOn AND NOT (Sts.WorkModeMatCounter)) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND DataIn.SensorEntryMaterialPresence) AND NOT (CIn.Entry_MatCounterValid)) AND NOT (Alr.Entry_MatCounterLooseOfValidState));
+      Wng.Exit_MatCounterNotValid := (((((Sts.SystemOn AND NOT (Sts.WorkModeMatCounter)) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND DataIn.SensorExitEnableUseEncoder) AND NOT (CIn.Exit_MatCounterValid)) AND NOT (Alr.Exit_MatCounterLooseOfValidState));
+   END_REGION
+
+   REGION "Decoder working mode"
+      Sts.WorkModeMatCounter := ((((((PersistentValues.Par.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS) AND DataIn.SensorEntryMaterialPresence) AND DataIn.SensorExitMaterialPresence) AND DataIn.SensorExitEnableUseEncoder) AND CIn.Entry_MatCounterValid) AND CIn.Exit_MatCounterValid);
+      IF ((((((PersistentValues.Par.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS) AND DataIn.SensorEntryMaterialPresence) AND DataIn.SensorExitMaterialPresence) AND DataIn.SensorExitEnableUseEncoder) AND CIn.Entry_MatCounterValid) AND CIn.Exit_MatCounterValid) THEN
+         Sts.WorkMode := #MODE_01_USE_MATERIAL_COUNTERS;
+      END_IF;
+      Sts.WorkModeSensors := TRUE;
+   END_REGION
+
+   REGION "Start/Stop"
+      PbStopOneShot := (PosEdge(DataIn.Pb_StartStop) AND Sts.SystemOn);
+      PbStartOneShot := (PosEdge(DataIn.Pb_StartStop) AND NOT (Sts.SystemOn));
+      IF (NOT (((NOT (PbStopOneShot) AND NOT (DataIn.Pb_Stop)) AND NOT (Ctrl.StopAborting))) OR NOT (((DataIn.SensorEntryMaterialPresence AND DataIn.SensorExitMaterialPresence) AND NOT (CIn.Entry_EmptyingConfirmed)))) THEN
+         Sts.SystemOn := FALSE;
+      ELSIF (NOT ((NOT (PbStartOneShot) AND NOT (DataIn.Pb_Start))) OR (CIn.ON_Request AND AreaInterfaceEntry.Cycle)) THEN
+         Sts.SystemOn := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning not system on"
+      Wng.NotSystemOn := (((DataIn.SensorEntryMaterialPresence AND DataIn.SensorExitMaterialPresence) AND NOT (Ctrl.StopAborting)) AND NOT (Sts.SystemOn));
+   END_REGION
+
+   REGION "Force loop synch (At every system On)"
+      ModeMatCounterAndSystemOn := (((Sts.SystemOn AND Sts.WorkModeMatCounter) AND NOT (Config.PitTables_Exist)) OR ((Sts.SystemOn AND Sts.WorkModeMatCounter) AND CIn.PitTables.Sts_PosDown));
+      IF PosEdge(ModeMatCounterAndSystemOn) THEN
+         Ctrl.ForceSyncFirstStart := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Force loop synch each time min high sensor is engaged"
+      MinHighCumulative := (NOT (DataIn.SensorNotLoopMinHigh) OR ((NOT (AreaInterfaceEntry.Aut) OR NOT (AreaInterfaceExit.Aut)) AND Sts.MinHighReached));
+      IF PosEdge(MinHighCumulative) THEN
+         Ctrl.ForceSyncMinHigh := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Force Loop material Synchornization Cyclically"
+      tonEnableForceSyncCyclic(IN:=NOT Sts.SynchroDone AND NOT Sts.SynchroRunning AND NOT Ctrl.ForceSyncCyclic,PT:=T#1M);
+
+      IF Sts.SystemOn AND Sts.WorkModeMatCounter AND PersistentValues.Par.PosIntervalSynchroCyclic > 0.0 AND tonEnableForceSyncCyclic.Q THEN
+          
+          // Detect increments of material loop Counter
+          IF NOT Sts.LoopMaterialCounterValid THEN
+              Sts.CntFeedIncValid := FALSE;
+          ELSIF NOT Sts.CntFeedIncValid THEN
+              Sts.CntFeedIncValid := TRUE;
+              Sts.DifferenceInc := 0.0;
+              Sts.CntFeedIncPrevious := CIn.Exit_MatCounter;
+          ELSIF Sts.CntFeedIncValid THEN
+              Sts.DifferenceInc := M_PosAMinusPosB(PosA := CIn.Exit_MatCounter, PosB := Sts.CntFeedIncPrevious, MODULE := MATERIAL_COUNTERS_MODULE);
+              Sts.CntFeedIncPrevious := CIn.Exit_MatCounter;
+              IF Sts.DifferenceInc < 0.0 THEN
+                  Sts.DifferenceInc := 0.0;
+              END_IF;
+          END_IF;
+          
+          // Filter of not possible increments
+          IF Sts.DifferenceInc > 0 AND Sts.DifferenceInc <= 200.0 THEN
+              Sts.MissingToCyclicSync := Sts.MissingToCyclicSync - Sts.DifferenceInc;
+          END_IF;
+          
+          // Trigger request
+          IF (Sts.MissingToCyclicSync < 0.0 OR Sts.MissingToCyclicSync > PersistentValues.Par.PosIntervalSynchroCyclic)
+              AND NOT CIn.Exit_MaterialStandstill AND NOT CIn.Entry_MaterialStandstill
+          THEN
+              Ctrl.ForceSyncCyclic := TRUE;
+          END_IF;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Force Loop material Synchornization from external (e.g. tracking)"
+      IF Sts.SynchroDone THEN
+          
+          Sts.AntiRepetitionForceSyncExt := TRUE;
+          Sts.AntiRepetitionForceSyncExtSaveEntryMatCounter := CIn.Entry_MatCounter;
+          Sts.AntiRepetitionForceSyncExtSaveExitMatCounter := CIn.Exit_MatCounter;
+          Ctrl.ForceSyncExt := FALSE;
+          
+      ELSIF Sts.AntiRepetitionForceSyncExt THEN
+          
+          IF CIn.Entry_MatCounterValid THEN
+              IF M_CmpGT(Xa := CIn.Entry_MatCounter, Xb := M_PosAPlusCostB(PosA := Sts.AntiRepetitionForceSyncExtSaveEntryMatCounter, CostB := PersistentValues.Par.HysteresysSynchroExt, MODULE := MATERIAL_COUNTERS_MODULE), MODULE := MATERIAL_COUNTERS_MODULE)
+                  AND
+                  M_CmpGT(Xa := CIn.Exit_MatCounter, Xb := M_PosAPlusCostB(PosA := Sts.AntiRepetitionForceSyncExtSaveExitMatCounter, CostB := PersistentValues.Par.HysteresysSynchroExt, MODULE := MATERIAL_COUNTERS_MODULE), MODULE := MATERIAL_COUNTERS_MODULE)
+              THEN
+                  Sts.AntiRepetitionForceSyncExt := FALSE;
+              END_IF;
+          ELSE
+              Sts.AntiRepetitionForceSyncExt := FALSE;
+          END_IF;
+          
+      ELSIF CIn.Synchro_Request AND NOT Ctrl.ForceSyncExt THEN
+          Ctrl.ForceSyncExt := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Reset requests of Force Loop material Synchronization (1)"
+      RstSynchro := (NOT (ModeMatCounterAndSystemOn) OR Sts.SynchroDone);
+   END_REGION
+
+   REGION "Reset requests of Force Loop material Synchronization (2)"
+      IF RstSynchro THEN
+          
+          Ctrl.ForceSyncFirstStart := FALSE;
+          Ctrl.ForceSyncMinHigh := FALSE;
+          Ctrl.ForceSyncCyclic := FALSE;
+          Ctrl.ForceSyncExt := FALSE;
+          Sts.SynchroDone := FALSE;
+          Sts.MissingToCyclicSync := PersistentValues.Par.PosIntervalSynchroCyclic;
+          
+          IF SynchCycle > 10 THEN
+              SynchCycle := 0;
+          END_IF;
+          
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Cumulative Force Loop material Synchornization"
+      #tonSynchIdle(
+         IN := (SynchCycle = #SYNCH_10_IDLE),
+         PT := T#1S
+      );
+
+      #tonSynchIdle.Q;
+      Ctrl.Sync_Exe := (NOT ((((NOT (Ctrl.ForceSyncFirstStart) AND NOT (Ctrl.ForceSyncMinHigh)) AND NOT (Ctrl.ForceSyncCyclic)) AND NOT (Ctrl.ForceSyncExt))) AND tonSynchIdle.Q);
+   END_REGION
+
+   REGION "Force step of Synchronization cycle"
+      IF NOT (ModeMatCounterAndSystemOn) THEN
+         SynchCycle := #SYNCH_00_INIT;
+      END_IF;
+   END_REGION
+
+   REGION "Loop material Synchronization Cycle"
+      CASE SynchCycle OF
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 00 - INITIALIZATION
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_00_INIT:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+              Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+              Ctrl.MeasuringEnable := FALSE;
+              
+              IF ModeMatCounterAndSystemOn
+                  //
+                  AND NOT #CIn.Entry_MeasInput_InOperation
+                  AND NOT #CIn.Exit_MeasInput_InOperation
+                  
+              THEN
+                  SynchCycle := SYNCH_01_ACTIVATE_MEASINPUTS;
+              END_IF;
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 01 - ACTIVATE MEASURING INPUTS
+          //-----------------------------------------------------------------------------------------------------------------ù
+          //
+          SYNCH_01_ACTIVATE_MEASINPUTS:
+              
+              Ctrl.MeasuringEnable := TRUE;
+              
+              IF CIn.Entry_MeasInput_InOperation AND CIn.Exit_MeasInput_InOperation THEN
+                  SynchCycle := SYNCH_10_IDLE;
+                  
+                //  #Entry_SaveMesInpID := #CIn.Entry_MeasInput_MeasuringDone_ID;
+                //  #Exit_SaveMesInpID := #CIn.Exit_MeasInput_MeasuringDone_ID;
+              END_IF;
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 10 - WAIT SYNCHRO REQUEST
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_10_IDLE:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+              Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+              
+              tonCheckBothMeasuringDone(IN := FALSE, PT := T#1S);
+              tonTimeOutCalculateCounterOffset(IN := FALSE, PT := T#5S);
+              
+              
+              IF Ctrl.Sync_Exe THEN
+                  
+                  SynchCycle := SYNCH_11_CATCH_SENSOR;
+                  
+              END_IF;
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 11 - CATCH TABLE SENSOR (MATERIAL DOWN) 
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_11_CATCH_SENSOR:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+              Ctrl.Sync_ExitReduceOrStopFeed := TRUE;
+              
+              IF Sts.SensorsMaxLow_ON THEN
+                  
+                  Sts.SyncroMemLoopMaterialCounter := Sts.LoopMaterialCounter;
+                  
+                  
+                  SynchCycle := SYNCH_12_LOOSE_SENSOR;
+              END_IF;
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 12 - LOOSE TABLE SENSOR (MATERIAL UP) 
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_12_LOOSE_SENSOR:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := TRUE;
+              Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+              
+              tonCheckBothMeasuringDone(IN := FALSE, PT := T#1S);
+              
+              DeltaPos :=  Sts.SyncroMemLoopMaterialCounter - Sts.LoopMaterialCounter;
+              
+              
+              IF Sts.SensorsMaxLow_OFF AND (DeltaPos > DELTA_POS_LOOP_OVER_LOW_TABLE) THEN
+                  
+                  Entry_SaveMesInpID := CIn.Entry_MeasInput_MeasuringDone_ID;
+                  Exit_SaveMesInpID := CIn.Exit_MeasInput_MeasuringDone_ID;
+                  
+                  Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+                  Sts.Entry_MeasuringValuePosAxValid := FALSE;
+                  Sts.Exit_MeasuringValuePosAxValid := FALSE;
+                  Sts.Entry_MeasuringValueMatCounterValid := FALSE;
+                  Sts.Exit_MeasuringValueMatCounterValid := FALSE;
+                  
+                  SynchCycle := SYNCH_13_LAST_CATCH_SENSOR;
+                  
+              END_IF;
+              
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 13 - LAST CATCH TABLE SENSOR (MATERIAL DOWN)
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_13_LAST_CATCH_SENSOR:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+              Ctrl.Sync_ExitReduceOrStopFeed := TRUE;
+              
+              tonTimeOutCalculateCounterOffset(IN := FALSE, PT := T#5S);
+              
+              IF CIn.Entry_MeasInput_MeasuringDone_ID <> Entry_SaveMesInpID THEN
+                  Sts.Entry_MeasuringValuePosAxValid := TRUE;
+                  Sts.EncEntry_MeasuringValuePosAx := CIn.Entry_MeasInput_MeasuringValue;
+                  
+                  COut.Entry_AtSynch_PosAx := Sts.EncEntry_MeasuringValuePosAx; // Valore in uscita per essere convertito in Pos.Mat.
+                  
+              END_IF;
+              
+              IF CIn.Exit_MeasInput_MeasuringDone_ID <> Exit_SaveMesInpID THEN
+                  Sts.Exit_MeasuringValuePosAxValid := TRUE;
+                  Sts.EncExit_MeasuringValuePosAx := CIn.Exit_MeasInput_MeasuringValue;
+                  
+                  COut.Exit_AtSynch_PosAx := Sts.EncExit_MeasuringValuePosAx; // Valore in uscita per essere convertito in Pos.Mat.
+              END_IF;
+              
+              OK := Sts.Entry_MeasuringValuePosAxValid AND Sts.Exit_MeasuringValuePosAxValid;
+              
+              tonCheckBothMeasuringDone(IN := Sts.SensorsMaxLow_ON AND NOT OK,PT := T#1S);
+              
+              IF Sts.SensorsMaxLow_ON AND OK AND NOT tonTimeOutCalculateCounterOffset.Q THEN
+                  
+                  Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+                  Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+                  SynchCycle := SYNCH_14_CALCULATE_COUNTER_OFFSET;
+                  
+              ELSIF tonCheckBothMeasuringDone.Q THEN
+                  Wng.MeasInputsXORMeasuringValue := TRUE;
+                  SynchCycle := SYNCH_90_ERROR;
+              END_IF;
+              
+          //-----------------------------------------------------------------------------------------------------------------
+          // STATE 14 - CALCULATE LOOP COUNTER OFFSET
+          //-----------------------------------------------------------------------------------------------------------------
+          //
+          SYNCH_14_CALCULATE_COUNTER_OFFSET:
+              
+              Ctrl.Sync_EntryReduceOrStopFeed := FALSE;
+              Ctrl.Sync_ExitReduceOrStopFeed := FALSE;
+              
+              COut.Entry_AtSynch_PosAx := Sts.EncEntry_MeasuringValuePosAx; // Valore in uscita per essere convertito in Pos.Mat.
+              COut.Exit_AtSynch_PosAx := Sts.EncExit_MeasuringValuePosAx; // Valore in uscita per essere convertito in Pos.Mat.
+              
+              // Conversion encoder entry measured position form Pos.Ax to Pos.Material Counter
+              IF CIn.Entry_AtSinch_EchoPosAx = COut.Entry_AtSynch_PosAx THEN
+                  Sts.EncEntry_MeasuringValueMatCounter := CIn.Entry_AtSynch_ConvertedPosMatCounter;
+                  Sts.Entry_MeasuringValueMatCounterValid := TRUE;
+              END_IF;
+              
+              // Conversion encoder exit measured position form Pos.Ax to Pos.Material Counter
+              IF CIn.Exit_AtSynch_ConvEchoPosAx = COut.Exit_AtSynch_PosAx THEN
+                  Sts.EncExit_MeasuringValueMatCounter := CIn.Exit_AtSynch_ConvertedPosMatCounter;
+                  Sts.Exit_MeasuringValueMatCounterValid := TRUE;
+              END_IF;
+              
+              tonTimeOutCalculateCounterOffset(IN := TRUE, PT := T#5S);
+              
+              IF Sts.Entry_MeasuringValueMatCounterValid AND Sts.Exit_MeasuringValueMatCounterValid THEN
+                  DeltaPosSync := M_PosAMinusPosB(PosA := Sts.EncEntry_MeasuringValueMatCounter, PosB := Sts.EncExit_MeasuringValueMatCounter, MODULE := MATERIAL_COUNTERS_MODULE);
+                  Sts.LoopMaterialCounterOffset := PersistentValues.Par.PosSynch - DeltaPosSync;
+                  Sts.SynchroDone := TRUE;
+                  SynchCycle := SYNCH_10_IDLE;
+                  
+              ELSIF tonTimeOutCalculateCounterOffset.Q THEN
+                  Wng.TimeOutCalculateLoopCounterOffset := TRUE;
+                  SynchCycle := SYNCH_90_ERROR;
+              END_IF;
+              
+              
+              
+          //----------------------------------------------
+          // STATE 90 - SYNCH ERROR
+          //----------------------------------------------
+          //
+          SYNCH_90_ERROR:
+              IF NOT Sts.AlarmsPresence AND NOT Wng.MeasInputsXORMeasuringValue AND NOT Wng.TimeOutCalculateLoopCounterOffset THEN
+                  SynchCycle := SYNCH_00_INIT;
+              END_IF;
+      END_CASE;
+
+
+
+      // Autoreset of synch cycle warnings
+      tonSynchAutoReset(IN:=SynchCycle = SYNCH_90_ERROR AND NOT Alr.MeasInputsXORInputState ,PT:=T#3S);
+
+      IF tonSynchAutoReset.Q THEN
+          Wng.MeasInputsXORMeasuringValue := FALSE;
+          Wng.TimeOutCalculateLoopCounterOffset := FALSE;
+      END_IF;
+
+      tof2sSynchroDone(IN:=Sts.SynchroDone, PT:=T#2S);
+      Sts.SynchroDoneTof2s := tof2sSynchroDone.Q;
+
+      Wng.SyncNeedToCatchSensor := Ctrl.Sync_ExitReduceOrStopFeed;
+
+      Wng.SyncNeedToLooseSensor := Ctrl.Sync_EntryReduceOrStopFeed;
+
+      Sts.SynchroRunning := (SynchCycle > SYNCH_10_IDLE) AND (SynchCycle < SYNCH_90_ERROR);
+
+   END_REGION
+
+   REGION "Force reset Loop material counter is valid"
+      #tonRstMaterialCounterValid(
+         IN := DataIn.Pb_StartStop,
+         PT := T#5S
+      );
+
+      #tonRstMaterialCounterValid.Q;
+   END_REGION
+
+   REGION "Loop material counter is valid (after 1st synchronization cycle done well)"
+      IF (CIn.Entry_EmptyingConfirmed OR Sts.AlarmsPresence OR tonRstMaterialCounterValid.Q OR NOT (Sts.WorkModeMatCounter)) THEN
+         Sts.LoopMaterialCounterValid := FALSE;
+      ELSIF (Sts.SynchroDone AND (Sts.LoopMaterialCounter > 0.0)) THEN
+         Sts.LoopMaterialCounterValid := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Loop material counter"
+      // Material quantity inside loop
+      DeltaPos := M_PosAMinusPosB(PosA := CIn.Entry_MatCounter, PosB := CIn.Exit_MatCounter, MODULE := MATERIAL_COUNTERS_MODULE);
+      Sts.LoopMaterialCounter := M_PosAPlusCostB(PosA := DeltaPos, CostB := Sts.LoopMaterialCounterOffset, MODULE := MATERIAL_COUNTERS_MODULE);
+
+      // Material missing to reach stop max low position
+      Sts.LoopMaterialMissingToMaxLow := M_PosAMinusPosB(PosA := Sts.SelectedPosStopMaxLow, PosB := Sts.LoopMaterialCounter, MODULE := MATERIAL_COUNTERS_MODULE);
+
+      // Material missing to reach stop min high position
+      Sts.LoopMaterialMissingToMinHigh := M_PosAMinusPosB(PosA := Sts.LoopMaterialCounter, PosB := PersistentValues.Par.PosStopMinHigh, MODULE := MATERIAL_COUNTERS_MODULE);
+
+      // Set to zero only for HMI visualization
+      IF NOT Sts.LoopMaterialCounterValid THEN
+          Sts.LoopMaterialMissingToMaxLow := 0.0;
+          Sts.LoopMaterialMissingToMinHigh := 0.0;
+      END_IF;
+
+      IF NOT Sts.WorkModeMatCounter THEN
+          Sts.LoopMaterialCounter := 0.0;
+      END_IF;
+
+   END_REGION
+
+   REGION "Material Max Low Reached"
+      tonSetMaxLow(IN:=Sts.SensorsMaxLow_ON, PT:=PersistentValues.Par.DlySetMaxLow);
+
+      tonRstMaxLow(IN:=Sts.SensorsMaxLow_OFF, PT:=PersistentValues.Par.DlyRstMaxLow);
+
+      //
+      IF #CIn.Entry_MaxLowOverride THEN
+          #Sts.MaxLowReached := FALSE;
+        
+
+      IF FALSE THEN
+              ;
+          
+      ELSIF (Sts.WorkModeSensors OR Sts.SynchroRunning OR (Sts.WorkModeMatCounter AND NOT Sts.LoopMaterialCounterValid))
+          AND
+          (tonSetMaxLow.Q OR (NOT Sts.SystemOn AND Sts.SensorsMaxLow_ON)) THEN
+          Sts.MaxLowReached := TRUE;
+          
+      ELSIF (Sts.WorkModeSensors OR Sts.SynchroRunning) AND (tonRstMaxLow.Q OR (NOT Sts.SystemOn AND Sts.SensorsMaxLow_OFF)) THEN
+          Sts.MaxLowReached := FALSE;
+          
+      ELSIF Sts.WorkModeMatCounter AND NOT Sts.SynchroRunning AND Sts.LoopMaterialCounterValid AND Sts.LoopMaterialCounter > Sts.SelectedPosStopMaxLow THEN
+          Sts.MaxLowReached := TRUE;
+          
+      ELSIF Sts.WorkModeMatCounter AND Sts.LoopMaterialCounter < (Sts.SelectedPosStopMaxLow - (PersistentValues.Par.PosDeltaRestartAfterMaxLow * Sts.SelectedOverrideScaling)) THEN
+          Sts.MaxLowReached := FALSE;
+          
+
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Bypass min high reached"
+      MinHighOverride := ((NOT (Sts.SystemOn) AND CIn.PitTables.Sts_PosUp) OR CIn.Entry_EmptyingConfirmed OR NOT (DataIn.SensorExitMaterialPresence) OR NOT (DataIn.SensorEntryMaterialPresence));
+   END_REGION
+
+   REGION "Material Min High Reached"
+      IF MinHighOverride THEN
+          Sts.MinHighReached := FALSE;
+          
+      ELSIF NOT DataIn.SensorNotLoopMinHigh THEN
+          Sts.MinHighReached := TRUE;
+          
+      ELSIF NOT Sts.SystemOn AND AreaInterfaceExit.Man THEN
+          Sts.MinHighReached := FALSE;
+          
+      ELSIF Sts.WorkModeSensors AND Sts.SensorsMaxLow_ON THEN
+          Sts.MinHighReached := FALSE;
+          
+          
+      ELSIF Sts.WorkModeMatCounter AND Sts.SynchroRunning THEN
+          Sts.MinHighReached := FALSE;
+          
+      ELSIF Sts.WorkModeMatCounter AND Sts.LoopMaterialCounterValid
+          AND
+          Sts.LoopMaterialCounter <= PersistentValues.Par.PosStopMinHigh THEN
+          Sts.MinHighReached := TRUE;
+          
+      ELSIF Sts.WorkModeMatCounter AND Sts.LoopMaterialCounterValid
+          AND
+          Sts.LoopMaterialCounter > (PersistentValues.Par.PosStopMinHigh + PersistentValues.Par.PosDeltaRestartAfteMinHigh) THEN
+          Sts.MinHighReached := FALSE;
+          
+      ELSIF Sts.WorkModeMatCounter AND Sts.LoopMaterialCounterValid
+          AND Sts.MaxLowReached THEN
+          Sts.MinHighReached := FALSE;
+          
+      END_IF;
+
+      Wng.MinHighReached := Sts.MinHighReached;
+
+   END_REGION
+
+   REGION "Wng Entry Machine No Bkw Enable to..."
+      #tonCheckNoEntryBkwEnable(
+         IN := CIn.Entry_NxtBkw,
+         PT := Config.Delay_CheckNoEntryBkwEnable
+      );
+
+      #tonCheckNoEntryBkwEnable.Q;
+      IF (Ctrl.Entry_EnableFeedBkw OR (AreaInterfaceEntry.Aut AND NOT (CIn.Entry_NxtBkw))) THEN
+         Wng.Entry_NoBkwEnable := FALSE;
+      ELSIF #tonCheckNoEntryBkwEnable.Q THEN
+         Wng.Entry_NoBkwEnable := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Wng Entry Machine No Fwd Enable to..."
+      #tonCheckNoEntryFwdEnable(
+         IN := CIn.Entry_NxtFwd,
+         PT := Config.Delay_CheckNoEntryFwdEnable
+      );
+
+      #tonCheckNoEntryFwdEnable.Q;
+      IF (Ctrl.Entry_EnableFeedFwd OR (AreaInterfaceEntry.Aut AND NOT (CIn.Entry_NxtFwd))) THEN
+         Wng.Entry_NoFwdEnable := FALSE;
+      ELSIF #tonCheckNoEntryFwdEnable.Q THEN
+         Wng.Entry_NoFwdEnable := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Wng Exit Machine No Bkw Enable to..."
+      #tonCheckNoExitBkwEnable(
+         IN := CIn.Exit_NxtBkw,
+         PT := Config.Delay_CheckNoExitBkwEnable
+      );
+
+      #tonCheckNoExitBkwEnable.Q;
+      IF (Ctrl.Exit_EnableFeedBkw OR (AreaInterfaceExit.Aut AND NOT (CIn.Exit_NxtBkw))) THEN
+         Wng.Exit_NoBkwEnable := FALSE;
+      ELSIF #tonCheckNoExitBkwEnable.Q THEN
+         Wng.Exit_NoBkwEnable := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Wng Exit Machine No Fwd Enable to..."
+      #tonCheckNoExitFwdEnable(
+         IN := CIn.Exit_NxtFwd,
+         PT := Config.Delay_CheckNoExitFwdEnable
+      );
+
+      #tonCheckNoExitFwdEnable.Q;
+      IF (Ctrl.Exit_EnableFeedFwd OR (AreaInterfaceExit.Aut AND NOT (CIn.Exit_NxtFwd))) THEN
+         Wng.Exit_NoFwdEnable := FALSE;
+      ELSIF #tonCheckNoExitFwdEnable.Q THEN
+         Wng.Exit_NoFwdEnable := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cycle stop"
+      // Cycle Stop in phase
+      IF NOT AreaInterfaceEntry.StopInPhase AND NOT AreaInterfaceExit.StopInPhase THEN
+          Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.EnableStopInPhase THEN
+          Ctrl.StopInPhase := TRUE;
+      END_IF;
+
+      // Cycle Stop programmed
+      IF NOT AreaInterfaceEntry.StopProgrammed AND NOT AreaInterfaceExit.StopProgrammed THEN
+          Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.EnableStopProgrammed THEN
+          Ctrl.StopProgrammed := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Entry Enable Feed Fwd"
+      Ctrl.Entry_EnableFeedFwd := ((((((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND NOT (Ctrl.Sync_EntryReduceOrStopFeed)) OR (((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND (PersistentValues.Par.SyncEntryMode = 0))) AND NOT (Config.PitTables_Exist)) OR (((((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND NOT (Ctrl.Sync_EntryReduceOrStopFeed)) OR (((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.PitTables.Sts_PosDown) OR (((((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND NOT (Ctrl.Sync_EntryReduceOrStopFeed)) OR (((Sts.SystemOn AND NOT (Sts.MaxLowReached)) OR (Sts.SystemOn AND CIn.Entry_MaxLowOverride)) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.PitTables.Sts_PosMiddle) OR (NOT (Sts.SystemOn) AND NOT (DataIn.SensorEntryMaterialPresence)) OR (NOT (Sts.SystemOn) AND NOT (DataIn.SensorExitMaterialPresence)) OR (NOT (Sts.SystemOn) AND AreaInterfaceEntry.Man) OR (NOT (Sts.SystemOn) AND AreaInterfaceExit.Man) OR (NOT (Sts.SystemOn) AND CIn.PitTables.Sts_PosUp));
+   END_REGION
+
+   REGION "Entry Enable Feed Bkw"
+      Ctrl.Entry_EnableFeedBkw := (NOT (Sts.MinHighReached) OR NOT (DataIn.SensorExitMaterialPresence) OR (AreaInterfaceEntry.Man AND DataIn.SensorNotLoopMinHigh) OR (AreaInterfaceEntry.Man AND NOT (DataIn.SensorEntryMaterialPresence)));
+   END_REGION
+
+   REGION "Exit machine enable feed forward"
+      Ctrl.Exit_EnableFeedFwd := (((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.SensorsMaxLow_ON) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.MaxLowReached) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND NOT (CIn.Entry_NxtEndOfMaterial)) AND Ctrl.Exit_EnableFeedFwd) OR ((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_00_USE_SENSOR)) AND NOT (Sts.SensorsMaxLow_OFF)) OR (((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND (Sts.LoopMaterialMissingToMinHigh > PersistentValues.Par.Exit_Lim2_VMed)) AND Sts.LoopMaterialCounterValid) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND AreaInterfaceEntry.Man) AND AreaInterfaceExit.Man) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.MaterialMiddlePos_Request)) AND NOT (Config.PitTables_Exist)) OR ((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.SensorsMaxLow_ON) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.MaxLowReached) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND NOT (CIn.Entry_NxtEndOfMaterial)) AND Ctrl.Exit_EnableFeedFwd) OR ((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_00_USE_SENSOR)) AND NOT (Sts.SensorsMaxLow_OFF)) OR (((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND (Sts.LoopMaterialMissingToMinHigh > PersistentValues.Par.Exit_Lim2_VMed)) AND Sts.LoopMaterialCounterValid) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND AreaInterfaceEntry.Man) AND AreaInterfaceExit.Man) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.MaterialMiddlePos_Request)) AND CIn.PitTables.Sts_PosDown) OR (((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.SensorsMaxLow_ON) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND Sts.MaxLowReached) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND NOT (CIn.Entry_NxtEndOfMaterial)) AND Ctrl.Exit_EnableFeedFwd) OR ((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_00_USE_SENSOR)) AND NOT (Sts.SensorsMaxLow_OFF)) OR (((((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.Entry_NxtEndOfMaterial) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND (Sts.LoopMaterialMissingToMinHigh > PersistentValues.Par.Exit_Lim2_VMed)) AND Sts.LoopMaterialCounterValid) OR (((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND AreaInterfaceEntry.Man) AND AreaInterfaceExit.Man) OR ((((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND NOT (Ctrl.Sync_ExitReduceOrStopFeed)) OR ((NOT (Sts.MinHighReached) AND Sts.SystemOn) AND (PersistentValues.Par.SyncEntryMode = 0))) AND CIn.MaterialMiddlePos_Request)) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND CIn.PitTables.Sts_PosMiddle) OR ((NOT (Sts.MinHighReached) AND NOT (Sts.SystemOn)) AND NOT (DataIn.SensorExitMaterialPresence)) OR ((NOT (Sts.MinHighReached) AND NOT (Sts.SystemOn)) AND AreaInterfaceExit.Man) OR ((NOT (Sts.MinHighReached) AND NOT (Sts.SystemOn)) AND CIn.Entry_EmptyingConfirmed));
+   END_REGION
+
+   REGION "Exit machine enable feed backward"
+      Ctrl.Exit_EnableFeedBkw := TRUE;
+   END_REGION
+
+   REGION "Entry Velocity override"
+      //=================================================================================================     
+      // Entry machine velocity override
+      //=================================================================================================     
+
+      // CASE 01 -> 0% when alarm presence
+      // 
+      IF Sts.AlarmsPresence THEN
+          Ctrl.Entry_VelocityOverride := 0.0;
+          Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_01_V0_ALARM_PRESENCE;
+          
+          
+      // CASE 02 -> 0% if Max Low reached and not Max low override 
+      // 
+      ELSIF Sts.MaxLowReached AND NOT CIn.Entry_MaxLowOverride  THEN
+          Ctrl.Entry_VelocityOverride := 0.0;
+          
+          IF NOT tonSetMaxLow.Q THEN
+              Ctrl.Entry_VelocityOverride := 0.1;
+          END_IF;
+          Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_02_V0_MAX_LOW;
+          
+          
+      // CASE 03 -> VMin when max low overriden and system ON
+      // 
+      ELSIF CIn.Entry_MaxLowOverride AND Sts.SystemOn THEN
+          
+          Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override1_VMin;
+          
+          Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_03_VMin_MAX_LOW_OVERRIDE;
+          
+      // CASE 04 -> 100% when system is off
+      // 
+      ELSIF NOT Sts.SystemOn THEN
+          Ctrl.Entry_VelocityOverride := 100.0;
+          Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_04_V100_SYSTEM_OFF;
+          
+          
+          
+      //°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+      // CASES 11..13 When working mode = Sensors
+      //°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+      //
+      ELSIF Sts.WorkModeSensors THEN
+          // CASE 11 -> working mode = Sensors; VMin if table sensor is engagged but time for stop is not elapsed
+          IF Sts.SensorsMaxLow_ON THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override1_VMin;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_11_VMin_MODE_SENSORS;
+              // CASE 12 -> working mode = Sensors; VMax if not Min High Reached
+          ELSIF NOT Sts.MinHighReached THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override3_VMax;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_12_VMax_MODE_SENSORS;
+              // CASE 13 -> working mode = Sensors; 100% Min High Reached
+          ELSIF Sts.MinHighReached THEN
+              Ctrl.Entry_VelocityOverride := 100.0;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_13_V100_MODE_SENSORS;
+          END_IF;
+          
+      //
+      // 
+      //°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+      // CASES 21..26 When working mode = Material Counters
+      //°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°°
+      //
+      ELSIF Sts.WorkModeMatCounter THEN
+          
+          
+          // CASE 21 -> working mode = Material Counters; 100% when syncro running 
+          // 
+          IF Sts.SynchroRunning AND NOT Ctrl.Sync_EntryReduceOrStopFeed THEN
+              Ctrl.Entry_VelocityOverride := 100.0;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_21_V100_SYNCHRO_RUNNING;
+              
+              
+          // CASE 22 -> working mode = Material Counters; 0% when syncro running  & work mode with STOP request 
+          // 
+          ELSIF Sts.SynchroRunning AND Ctrl.Sync_EntryReduceOrStopFeed AND (PersistentValues.Par.SyncEntryMode = 1) THEN
+              Ctrl.Entry_VelocityOverride := 0.0;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_22_V0_SYNCHRO_RUNNING;
+            
+              
+          // CASE 23 -> working mode = Material Counters; VMin when syncro running & work mode with REDUCE request
+          // 
+          ELSIF Sts.SynchroRunning AND Ctrl.Sync_EntryReduceOrStopFeed AND (PersistentValues.Par.SyncEntryMode = 0) THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override1_VMin;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_23_VMin_SYNCHRO_RUNNING;
+              
+              
+          // CASE 24 -> working mode = Material Counters; VMin if less then Limit 1 Position (material near to max loop position)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMaxLow < (PersistentValues.Par.Entry_Lim1_VMin * Sts.SelectedOverrideScaling) THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override1_VMin;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_24_VMin_MODE_COUNTERS;
+              
+              
+          // CASE 25 -> working mode = Material Counters; VMed if less then Limit 2 Position (material in the middle loop position)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMaxLow < (PersistentValues.Par.Entry_Lim2_VMed * Sts.SelectedOverrideScaling) THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override2_VMed;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_25_VMed_MODE_COUNTERS;
+             
+              
+          // CASE 26 -> working mode = Material Counters; VMax if less then Limit 3 Position (material far from the max loop position)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMaxLow < (PersistentValues.Par.Entry_Lim3_VMax * Sts.SelectedOverrideScaling) THEN
+              Ctrl.Entry_VelocityOverride := PersistentValues.Par.Entry_Override3_VMax;
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_26_VMax_MODE_COUNTERS;
+              
+          // CASE 27 -> working mode = Material Counters; VMax + 10% if greater then Limit 3 Position (material far from the max loop position)
+          //     
+          ELSE
+              Ctrl.Entry_VelocityOverride := (IN1:=100.0,IN2:=(PersistentValues.Par.Entry_Override3_VMax * 1.1));
+              Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_27_VMaxMax_MODE_COUNTERS;
+          END_IF;
+          
+          
+      // CASE 30 -> 100% if Unknown case
+      // 
+      ELSE
+          Ctrl.Entry_VelocityOverride := 100.0;
+          Sts.Cases_Entry_VelocityOverride := ENTRY_CASE_30_V100_UNKNOW;
+      END_IF;
+
+   END_REGION
+
+   REGION "Exit machine velocity override"
+      // CASE 01 -> 0% when alarm presence
+      // 
+      IF Sts.AlarmsPresence THEN
+          
+          Ctrl.Exit_VelocityOverride := 0.0;
+          Sts.Cases_Exit_VelocityOverride := EXIT_CASE_01_V0_ALARM_PRESENCE;
+          
+          
+      // CASE 05 -> VMax when system is off and emptying confirmed
+      // 
+      ELSIF NOT Sts.SystemOn
+          AND
+          (CIn.Entry_EmptyingConfirmed
+          OR
+          ((NOT DataIn.SensorEntryMaterialPresence OR AreaInterfaceEntry.Man) AND NOT DataIn.SensorExitMaterialPresence)
+          )
+      THEN
+          Ctrl.Exit_VelocityOverride := 100.0;
+          Sts.Cases_Exit_VelocityOverride := EXIT_CASE_05_VMax_EMPTYING;
+          
+          
+      // CASE 02 -> 0% when min high reached
+      // 
+      ELSIF Sts.MinHighReached THEN
+          Ctrl.Exit_VelocityOverride := 0.0;
+          Sts.Cases_Exit_VelocityOverride := EXIT_CASE_02_0_MIN_HIGH;
+          
+          
+          
+      // CASE 03 -> VMin when system is off
+      // 
+      ELSIF NOT Sts.SystemOn AND NOT CIn.Entry_EmptyingConfirmed THEN
+          
+          Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override1_VMin;
+          
+          IF AreaInterfaceExit.Man THEN
+              Ctrl.Exit_VelocityOverride := 100.0;
+          END_IF;
+          
+         
+          Sts.Cases_Exit_VelocityOverride := EXIT_CASE_03_VMin_SYSTEM_OFF;
+          
+          
+          
+      // CASE 04 -> VMin when entry next emptying 
+      // 
+      ELSIF CIn.Entry_NxtEndOfMaterial THEN
+          
+          Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override1_VMin;
+          Sts.Cases_Exit_VelocityOverride := EXIT_CASE_04_VMin_NEXT_EMPTYING;
+          
+          
+          
+      //    
+      //#################################################################################################################################
+      // CASES When working mode = Sensors
+      //#################################################################################################################################
+      //
+      ELSIF Sts.WorkModeSensors THEN
+          
+          IF NOT (PersistentValues.Par.WorkMode = MODE_01_USE_MATERIAL_COUNTERS) OR AreaInterfaceExit.Man THEN
+              
+              //CASE 11 -> working mode = Sensors; 100% if not the previous 
+              Ctrl.Exit_VelocityOverride := 100.0;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_11_V100_MODE_SENSORS_OR_EXIT_MAN;
+          ELSE
+              //CASE 11 -> working mode = Sensors; 100% if not the previous 
+              Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override1_VMin;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_12_VMIN_MODE_SENSORS_TEMPORARY;
+          END_IF;
+          
+          
+          
+          
+      //    
+      //#################################################################################################################################
+      // CASES  When working mode = Material Counters
+      //#################################################################################################################################
+      //
+          
+      ELSIF Sts.WorkModeMatCounter THEN
+          
+          // CASE 20 -> working mode = Material Counters; 100% when syncro running and no reduce/stop request & work mode with stop request 
+          // 
+          IF Sts.SynchroRunning AND NOT Ctrl.Sync_ExitReduceOrStopFeed AND (PersistentValues.Par.SyncExitMode = 1) THEN
+              Ctrl.Exit_VelocityOverride := 100.0;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_20_100_SYNCRO_RUNNING;
+              
+          // CASE 21 -> working mode = Material Counters; 0% when syncro running & work mode with stop request 
+          // 
+          ELSIF Sts.SynchroRunning AND Ctrl.Sync_ExitReduceOrStopFeed AND (PersistentValues.Par.SyncExitMode = 1) THEN
+              Ctrl.Exit_VelocityOverride := 0.0;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_21_0_SYNCRO_RUNNING;
+              
+              
+          // CASE 22 -> working mode = Material Counters; 100% when syncro running and work mode with reduce request
+          // !!! RALLENTAMENTO GESTITO ESTERNAMENTE !!!
+          ELSIF Sts.SynchroRunning //AND Ctrl.Sync_ExitReduceOrStopFeedAND (PersistentValues.Par.SyncExitMode = 0) THEN
+              Ctrl.Exit_VelocityOverride := 100.0; // PersistentValue.Par.Exit_Override1_VMin; 
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_22_VMin_SYNCRO_RUNNING;
+              
+              
+              
+          // CASE 23 -> working mode = Material Counters; VMin IF less THEN Limit 1 Position (material near TO the min loop)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMinHigh <= PersistentValues.Par.Exit_Lim1_VMin  THEN
+              Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override1_VMin;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_23_VMin_MODE_COUNTERS;
+              
+          // CASE 24 -> working mode = Material Counters; VMed if less then Limit 2 Position (material in the middle loop position)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMinHigh <= PersistentValues.Par.Exit_Lim2_VMed THEN
+              Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override2_VMed;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_24_VMed_MODE_COUNTERS;
+              
+          // CASE 25 -> working mode = Material Counters; VMax if less then Limit 3 Position (material far from the min loop)
+          // 
+          ELSIF Sts.LoopMaterialMissingToMinHigh <= PersistentValues.Par.Exit_Lim3_VMax THEN
+              Ctrl.Exit_VelocityOverride := PersistentValues.Par.Exit_Override3_VMax;
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_25_VMax_MODE_COUNTERS;
+              
+          // CASE 26 -> working mode = Material Counters; 100% if not the previous  
+          // 
+          ELSE
+              Ctrl.Exit_VelocityOverride := (IN1:=100.0,IN2:=PersistentValues.Par.Exit_Override3_VMax);
+              Sts.Cases_Exit_VelocityOverride := EXIT_CASE_26_100_MODE_COUNTERS;
+          END_IF;
+          
+          // CASE 00 -> 0%
+      ELSE
+          Ctrl.Exit_VelocityOverride := 0.0;
+          Sts.Cases_Exit_VelocityOverride := 0;
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Exit max allowable feeding"
+      Ctrl.Exit_MaxAllowableFeedFwd := 99999.9;
+   END_REGION
+
+   REGION "Standstill"
+      Sts.IsStandstill := (CIn.Entry_MaterialStandstill AND CIn.Exit_MaterialStandstill);
+   END_REGION
+
+   REGION "Alarms presence"
+      Sts.AlarmsPresence := (NOT (((((NOT (Alr.MeasInputsXORInputState) AND NOT (Alr.Entry_MatCounterLooseOfValidState)) AND NOT (Alr.Exit_MatCounterLooseOfValidState)) AND NOT (Alr.SensorError)) AND NOT (Alr.PlugNotConnected))) OR NOT ((((NOT (Alr.SyncSensorNotCatch) AND NOT (Alr.SyncSensorNotLoose)) AND NOT (Alr.Entry_NoCounterMove)) AND NOT (Alr.Exit_NoCounterMove))) OR (NOT ((NOT (CIn.Entry_MeasInput_ErrorPresence) AND NOT (CIn.Exit_MeasInput_ErrorPresence))) AND Sts.WorkModeMatCounter));
+   END_REGION
+
+   REGION "Warning presence"
+      Sts.WarningsPresence := (NOT ((((((NOT (Wng.NoAutReady) AND NOT (Wng.MeasInputsXORMeasuringValue)) AND NOT (Wng.TimeOutCalculateLoopCounterOffset)) AND NOT (Wng.SensorEnableEncIsOff)) AND NOT (Wng.Entry_MatCounterNotValid)) AND NOT (Wng.Exit_MatCounterNotValid))) OR NOT ((((((NOT (Wng.NotSystemOn) AND NOT (Wng.MinHighReached)) AND NOT (Wng.SyncNeedToLooseSensor)) AND NOT (Wng.SyncNeedToCatchSensor)) AND NOT (Wng.Entry_NoBkwEnable)) AND NOT (Wng.Entry_NoFwdEnable))) OR NOT ((NOT (Wng.Exit_NoBkwEnable) AND NOT (Wng.Exit_NoFwdEnable))));
+   END_REGION
+
+   REGION "Stop for aborting"
+      Ctrl.StopAborting := Sts.AlarmsPresence;
+   END_REGION
+
+   REGION "Coordination out"
+      COut.SystemOn := Sts.SystemOn;
+      COut.LoopMaterialCounterValid := Sts.LoopMaterialCounterValid;
+      COut.MaxLowReached := Sts.MaxLowReached;
+      COut.MinHighReached := Sts.MinHighReached;
+      COut.SynchroRunning := Sts.SynchroRunning;
+      COut.SynchroDone := Sts.SynchroDoneTof2s;
+      COut.Sync_EntryReduceOrStopFeed := Ctrl.Sync_EntryReduceOrStopFeed;
+      COut.Sync_ExitReduceOrStopFeed := Ctrl.Sync_ExitReduceOrStopFeed;
+      COut.Entry_EnableFeedBkw := Ctrl.Entry_EnableFeedBkw;
+      COut.Entry_EnableFeedFwd := Ctrl.Entry_EnableFeedFwd;
+      COut.Exit_EnableFeedBkw := Ctrl.Exit_EnableFeedBkw;
+      COut.Exit_EnableFeedFwd := Ctrl.Exit_EnableFeedFwd;
+      COut.EnableMeasuringInputs := Ctrl.MeasuringEnable;
+
+      COut.LoopMaterialCounter := Sts.LoopMaterialCounter;
+      COut.LoopMaterialMissingToSynch := Sts.MissingToCyclicSync;
+      COut.LoopMaterialMissingToMaxLow := Sts.LoopMaterialMissingToMaxLow;
+      COut.LoopMaterialMissingToMinHigh := Sts.LoopMaterialMissingToMinHigh;
+      COut.Entry_ActVelocityOverride := Sts.Cases_Entry_VelocityOverride;
+      COut.Exit_ActVelocityOverride := Sts.Cases_Exit_VelocityOverride;
+      COut.Entry_VelocityOverride := Ctrl.Entry_VelocityOverride;
+      COut.Exit_VelocityOverride := Ctrl.Exit_VelocityOverride;
+      COut.Exit_MaxAllowableFeedFwd := Ctrl.Exit_MaxAllowableFeedFwd;
+
+   END_REGION
+
+   REGION "Coordination out (enable pit table to rise in middle position)"
+      COut.EnableMovePitTablesOnMiddlePos := (((CIn.MaterialMiddlePos_Request AND Sts.LoopMaterialCounterValid) AND (Sts.WorkMode = #MODE_01_USE_MATERIAL_COUNTERS)) AND (Sts.LoopMaterialMissingToMinHigh < PersistentValues.Par.Exit_Lim2_VMed));
+   END_REGION
+
+   REGION "Data Out"
+      DataOut.LampSystemOn := (((((tonRstMaterialCounterValid.Q AND Sys.Clock_500MS) AND NOT (Sts.SynchroRunning)) OR ((NOT (tonRstMaterialCounterValid.Q) AND Sts.SystemOn) AND Sts.WorkModeSensors) OR (((NOT (tonRstMaterialCounterValid.Q) AND Sts.SystemOn) AND Sts.WorkModeMatCounter) AND Sts.LoopMaterialCounterValid) OR (((NOT (tonRstMaterialCounterValid.Q) AND Sts.SystemOn) AND Sts.WorkModeMatCounter) AND Sys.Clock_500MS)) AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+   END_REGION
+
+   REGION "Entry machine interface"
+      // Status machine ready
+      MachineInterfaceEntry.AutReady := AreaInterfaceEntry.Aut AND NOT Sts.AlarmsPresence;
+      // Status machine aborting
+      MachineInterfaceEntry.Aborting := Ctrl.StopAborting;
+      // Status Ack Stop in phase
+      MachineInterfaceEntry.AckStopInPhase := Ctrl.StopInPhase AND MachineInterfaceEntry.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterfaceEntry.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterfaceEntry.MotionsStandStill;
+      // Status Motion standtill
+      MachineInterfaceEntry.MotionsStandStill := Sts.IsStandstill;
+      // Status Alarm presence
+      MachineInterfaceEntry.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterfaceEntry.WarningPresence := Sts.WarningsPresence;
+
+
+      // Warning machine not automatic ready
+      IF AreaInterfaceEntry.CheckAutReady AND NOT MachineInterfaceEntry.AutReady THEN
+          Wng.NoAutReady := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Exit machine interface"
+      // Status machine ready
+      MachineInterfaceExit.AutReady := AreaInterfaceExit.Aut AND NOT Sts.AlarmsPresence;
+      // Status machine auto
+      // Status machine aborting
+      MachineInterfaceExit.Aborting := Ctrl.StopAborting;
+      // Status Ack Stop in phase
+      MachineInterfaceExit.AckStopInPhase := Ctrl.StopInPhase AND MachineInterfaceExit.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterfaceExit.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterfaceExit.MotionsStandStill;
+      // Status Motion standtill
+      MachineInterfaceExit.MotionsStandStill := Sts.IsStandstill;
+      // Status Alarm presence
+      MachineInterfaceExit.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterfaceExit.WarningPresence := Sts.WarningsPresence;
+
+
+      // Warning machine not automatic ready
+      IF AreaInterfaceExit.CheckAutReady AND NOT MachineInterfaceExit.AutReady THEN
+          Wng.NoAutReady := TRUE;
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

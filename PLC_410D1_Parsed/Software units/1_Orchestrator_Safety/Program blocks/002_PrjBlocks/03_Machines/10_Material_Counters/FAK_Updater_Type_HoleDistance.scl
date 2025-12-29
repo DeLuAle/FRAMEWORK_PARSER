@@ -288,7 +288,7 @@ BEGIN
    END_REGION
 
    REGION "Check binding of TP and reference - Start"
-      CheckTP := ((??? OR New_TP_Val) AND Data.Status_Operating);
+      CheckTP := ((PosEdge(Sys.Clock_1S, Aux.CheckTP_PE) OR New_TP_Val) AND Data.Status_Operating);
    END_REGION
 
    REGION "Check binding of TP and reference - Exe"

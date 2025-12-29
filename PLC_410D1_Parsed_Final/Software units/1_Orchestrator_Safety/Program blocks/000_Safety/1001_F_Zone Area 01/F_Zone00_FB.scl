@@ -1,0 +1,43 @@
+﻿// Block: F_Zone00_FB
+// Title: < < < < < < < < < <  ZONE SAFETY INTERFACE  > > > > > > > > > >
+
+FUNCTION_BLOCK "F_Zone00_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// < < < < < < < < < <  ZONE SAFETY INTERFACE  > > > > > > > > > >
+   VAR
+      F_Sinamics_CoilCar : FDevice_Sinamics_FB;
+   END_VAR
+
+   VAR CONSTANT
+      COILCAR_S120_STOPPING_TIME : Time;
+   END_VAR
+
+
+BEGIN
+   REGION "Cumulative Zone Safety"
+      F_DB.ZSI_Zone00.Door_NormalStop := FALSE;
+      F_DB.ZSI_Zone00.Door_SafeStop := TRUE;
+      F_DB.ZSI_Zone00.Door_Opened := TRUE;
+      F_DB.ZSI_Zone00.Door_EntryEnable := FALSE;
+   END_REGION
+
+   REGION "(Zone 01) S120 - Coil Car"
+      #F_Sinamics_CoilCar(
+         en := TRUE,
+         Estop := F_DB.A01_Estop,
+         Two_Hand_CMD := F_DB.LB111.SafeMotion,
+         Door_SafeStop := F_DB.ZSI_Zone00.Door_SafeStop,
+         CtrlSafe := Areas_ITF.A01.Safety_CtrlSafe.Sinamics_CoilCar,
+         Reset := NOT ((NOT (F_DB.SafetyReset) AND NOT (F_DB.SuperUserReset))),
+         Tlg30_IN := CoilCar_StsIn,
+         StoppingTime := #COILCAR_S120_STOPPING_TIME,
+         DSI := F_DB.DSI_S120_CoilCar,
+         Tlg30_OUT => CoilCar_CtrlOut
+      );
+
+      #F_Sinamics_CoilCar.Q;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

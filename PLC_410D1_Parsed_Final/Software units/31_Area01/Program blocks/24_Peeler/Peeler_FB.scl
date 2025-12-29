@@ -1,0 +1,144 @@
+﻿// Block: Peeler_FB
+// Title: Aut move
+
+FUNCTION_BLOCK "Peeler_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Aut move
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         LIft : udt_DeviceSafetyInterface;
+         Extension : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      DataIn : Struct
+         Lift : ValveMachine_DataIn;
+         Extension : ValveMachine_DataIn;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Peeler_Manager;
+         PressureRunning : Bool;
+      END_STRUCT;
+      Config : Struct
+         Lift : ValveMachine_Config;
+         Extension : ValveMachine_Config;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         Lift : ValveMachine_DataOut;
+         Extension : ValveMachine_DataOut;
+      END_STRUCT;
+      COut : Peeler_Status;
+   END_VAR
+
+   VAR
+      Warning : Struct
+         Lift : ValveMachine_Wng;
+         Extension : ValveMachine_Wng;
+      END_STRUCT;
+      Alarm : Struct
+         Lift : ValveAlr;
+         Extension : ValveAlr;
+      END_STRUCT;
+      Sts : Struct
+         dummy : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Move_Dwn_Aut : Bool;
+         Move_Up_Aut : Bool;
+      END_STRUCT;
+      Lift : ValveMachine_FB;
+      Extension : ValveMachine_FB;
+   END_VAR
+
+
+BEGIN
+   REGION "Aut move"
+      Ctrl.Move_Dwn_Aut := ((NOT ((NOT (CIn.Manager.Lift.Control_ON) AND NOT (CIn.Manager.Extension.Control_ON))) AND CIn.Manager.Move_Dwn_MaterialFeed) AND NOT (COut.Is_Dwn));
+      Ctrl.Move_Up_Aut := ((NOT ((NOT (CIn.Manager.Lift.Control_ON) AND NOT (CIn.Manager.Extension.Control_ON))) AND CIn.Manager.Move_Up_DecoilerChange) AND NOT (COut.Is_Up));
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      Lift.Cin.Manager := CIn.Manager.Lift;
+      Lift.Cin.Manager.Control_ON := NOT ((NOT (Ctrl.Move_Dwn_Aut) AND NOT (Ctrl.Move_Up_Aut)));
+      Lift.Cin.Manager.Rest := Ctrl.Move_Dwn_Aut;
+      Lift.Cin.Manager.Work := Ctrl.Move_Up_Aut;
+   END_REGION
+
+   REGION "CIn (external enables)"
+      Lift.Cin.Rest_ExtEnable := (((Lift.Cin.Manager.Control_ON AND Lift.Cin.Manager.Rest) AND Extension.COut.Rest) OR (NOT (Lift.Cin.Manager.Control_ON) AND CIn.Manager.FreeMovementAllowed));
+      Lift.Cin.Work_ExtEnable := (((Lift.Cin.Manager.Control_ON AND Lift.Cin.Manager.Work) AND Extension.COut.Rest) OR (NOT (Lift.Cin.Manager.Control_ON) AND CIn.Manager.FreeMovementAllowed));
+      Lift.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve machine manager"
+      #Lift(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.LIft,
+         DataIn := DataIn.Lift,
+         Config := Config.Lift,
+         Alarm := Alarm.Lift,
+         Warning := Warning.Lift,
+         COut => COut.Lift,
+         DataOut => DataOut.Lift
+      );
+
+      #Lift.Q;
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      Extension.Cin.Manager := CIn.Manager.Extension;
+      Extension.Cin.Manager.Control_ON := NOT ((NOT (Ctrl.Move_Dwn_Aut) AND NOT (Ctrl.Move_Up_Aut)));
+      Extension.Cin.Manager.Rest := NOT ((NOT (Ctrl.Move_Dwn_Aut) AND NOT (Ctrl.Move_Up_Aut)));
+      Extension.Cin.Manager.Work := FALSE;
+   END_REGION
+
+   REGION "CIn (external enable)"
+      Extension.Cin.Rest_ExtEnable := TRUE;
+      Extension.Cin.Work_ExtEnable := (NOT (Extension.Cin.Manager.Control_ON) AND CIn.Manager.FreeMovementAllowed);
+      Extension.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve machine manager"
+      #Extension(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Extension,
+         DataIn := DataIn.Extension,
+         Config := Config.Extension,
+         Alarm := Alarm.Extension,
+         Warning := Warning.Extension,
+         COut => COut.Extension,
+         DataOut => DataOut.Extension
+      );
+
+      #Extension.Q;
+   END_REGION
+
+   REGION "COut machine"
+      COut.Is_Dwn := (COut.Extension.Rest AND COut.Lift.Rest);
+      COut.Is_Up := (COut.Extension.Rest AND COut.Lift.Work);
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Lift.MachineInterface,
+         MachineInterface_2 := Extension.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := false,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Lift.MachineInterface, MachineInterface_2 := Extension.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := false);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,368 @@
+﻿// Block: Decoiler1_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "Decoiler1_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+   VAR_TEMP
+      Feed_PB_InLine : Ax_PB;
+      Feed_PB_OutLine : Ax_PB;
+      Jaws_PB_InLine : ValveMachine_PB;
+      Jaws_PB_OutLine : ValveMachine_PB;
+      Coupling_PB_InLine : ValveMachine_PB;
+      Coupling_PB_OutLine : ValveMachine_PB;
+      SnubberLift_PB_InLine : ValveMachine_PB;
+      SnubberLift_PB_OutLine : ValveMachine_PB;
+      SnubberRoll_PB_InLine : ValveMachine_PB;
+      SnubberRoll_PB_OutLine : ValveMachine_PB;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler1_InLine,
+         LB_PB_Bwd_Minus := NOT ((NOT (LB112.PB.Decoiler_Bwd) AND NOT (LB131.PB.Decoiler_Bwd))),
+         LB_PB_Fwd_Plus := NOT ((NOT (LB112.PB.Decoiler_Fwd) AND NOT (LB131.PB.Decoiler_Fwd))),
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Feed_PB_InLine
+      );
+
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler2_InLine,
+         LB_PB_Bwd_Minus := LB111.PB.Decoiler_Bwd,
+         LB_PB_Fwd_Plus := LB111.PB.Decoiler_Fwd,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Feed_PB_OutLine
+      );
+
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND NOT (DecoilersHRot.COut.Decoiler2_InLine))),
+         HMI_PB := Feed_PB_InLine,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := Feed_PB_OutLine,
+         PB => Decoiler1.DataIn.Feed.PB
+      );
+
+      "Ax_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler1_InLine, LB_PB_Bwd_Minus := NOT ((NOT (LB112.PB.Decoiler_Bwd) AND NOT (LB131.PB.Decoiler_Bwd))), LB_PB_Fwd_Plus := NOT ((NOT (LB112.PB.Decoiler_Fwd) AND NOT (LB131.PB.Decoiler_Fwd))), HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+      "Ax_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler2_InLine, LB_PB_Bwd_Minus := LB111.PB.Decoiler_Bwd, LB_PB_Fwd_Plus := LB111.PB.Decoiler_Fwd, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+      "Ax_PB_Connector"(Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND NOT (DecoilersHRot.COut.Decoiler2_InLine))), HMI_PB := Feed_PB_InLine, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := Feed_PB_OutLine);
+   END_REGION
+
+   REGION "Data In - PB Jaws"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler1_InLine,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Jaws,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Jaws_PB_InLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler2_InLine,
+         LB_PB_Rest := LB111.PB.Jaws_Close,
+         LB_PB_Work := LB111.PB.Jaws_Open,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Jaws,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Jaws_PB_OutLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))),
+         HMI_PB := Jaws_PB_InLine,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := Jaws_PB_OutLine,
+         PB => Decoiler1.DataIn.Jaws.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler1_InLine, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Jaws, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler2_InLine, LB_PB_Rest := LB111.PB.Jaws_Close, LB_PB_Work := LB111.PB.Jaws_Open, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Jaws, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))), HMI_PB := Jaws_PB_InLine, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := Jaws_PB_OutLine);
+   END_REGION
+
+   REGION "Data In - PB Couplung"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler1_InLine,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Coupling_PB_InLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler2_InLine,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Coupling,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => Coupling_PB_OutLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))),
+         HMI_PB := Coupling_PB_InLine,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := Coupling_PB_OutLine,
+         PB => Decoiler1.DataIn.Coupling.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler1_InLine, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler2_InLine, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Coupling, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))), HMI_PB := Coupling_PB_InLine, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := Coupling_PB_OutLine);
+   END_REGION
+
+   REGION "Data In - PB Snubber Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler1_InLine,
+         LB_PB_Rest := NOT ((NOT (LB112.PB.SnubberLift_Up) AND NOT (LB131.PB.SnubberLift_Up))),
+         LB_PB_Work := NOT ((NOT (LB112.PB.SnubberLift_Down) AND NOT (LB131.PB.SnubberLift_Down))),
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => SnubberLift_PB_InLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler2_InLine,
+         LB_PB_Rest := LB111.PB.SnubberLift_Up,
+         LB_PB_Work := LB111.PB.SnubberLift_Down,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => SnubberLift_PB_OutLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))),
+         HMI_PB := SnubberLift_PB_InLine,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := SnubberLift_PB_OutLine,
+         PB => Decoiler1.DataIn.SnubberLift.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler1_InLine, LB_PB_Rest := NOT ((NOT (LB112.PB.SnubberLift_Up) AND NOT (LB131.PB.SnubberLift_Up))), LB_PB_Work := NOT ((NOT (LB112.PB.SnubberLift_Down) AND NOT (LB131.PB.SnubberLift_Down))), HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler2_InLine, LB_PB_Rest := LB111.PB.SnubberLift_Up, LB_PB_Work := LB111.PB.SnubberLift_Down, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))), HMI_PB := SnubberLift_PB_InLine, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := SnubberLift_PB_OutLine);
+   END_REGION
+
+   REGION "Data In - Snubber Roll"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler1_InLine,
+         LB_PB_Rest := NOT ((NOT (LB112.PB.SnubberRoll_Bwd) AND NOT (LB131.PB.SnubberRoll_Bwd))),
+         LB_PB_Work := NOT ((NOT (LB112.PB.SnubberRoll_Fwd) AND NOT (LB131.PB.SnubberRoll_Fwd))),
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberRoll,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => SnubberRoll_PB_InLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := DecoilersHRot.COut.Decoiler2_InLine,
+         LB_PB_Rest := LB111.PB.SnubberRoll_Bwd,
+         LB_PB_Work := LB111.PB.SnubberRoll_Fwd,
+         HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve,
+         PB => SnubberRoll_PB_OutLine
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))),
+         HMI_PB := SnubberRoll_PB_InLine,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := SnubberRoll_PB_OutLine,
+         PB => Decoiler1.DataIn.SnubberRoll.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler1_InLine, LB_PB_Rest := NOT ((NOT (LB112.PB.SnubberRoll_Bwd) AND NOT (LB131.PB.SnubberRoll_Bwd))), LB_PB_Work := NOT ((NOT (LB112.PB.SnubberRoll_Fwd) AND NOT (LB131.PB.SnubberRoll_Fwd))), HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberRoll, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := DecoilersHRot.COut.Decoiler2_InLine, LB_PB_Rest := LB111.PB.SnubberRoll_Bwd, LB_PB_Work := LB111.PB.SnubberRoll_Fwd, HMI_PB := A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := NOT ((NOT (DecoilersHRot.COut.Decoiler2_InLine) AND NOT (DecoilersHRot.COut.Decoiler1_InLine))), HMI_PB := SnubberRoll_PB_InLine, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := SnubberRoll_PB_OutLine);
+   END_REGION
+
+   REGION "Data In - Pneumatic Brake"
+      Decoiler1.DataIn.PneumaticBrake.PbOpenClose := ((A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.BrakeOpenClose AND DecoilersHRot.COut.Decoiler1_InLine) OR (A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.BrakeOpenClose AND DecoilersHRot.COut.Decoiler2_InLine));
+      Decoiler1.DataIn.PneumaticBrake.PbPartialOpenClose := ((A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.PartialOpenClose AND DecoilersHRot.COut.Decoiler1_InLine) OR (NOT ((NOT (A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.PartialOpenClose) AND NOT (LB101_PbPartialBracking))) AND DecoilersHRot.COut.Decoiler2_InLine));
+   END_REGION
+
+   REGION "Data In - Sensors"
+      //Loop
+      Decoiler1.DataIn.DiameterSensor := DecoilerX_AI_Coil_Diameter;
+      Decoiler1.DataIn.Loop.Connector := TRUE;
+
+
+
+      Decoiler1.DataIn.Loop.S_MinHigh := FALSE;
+      Decoiler1.DataIn.Loop.S_MaxLow := FALSE; 
+      Decoiler1.DataIn.Loop.S_SpeedAsjust := FALSE;
+
+
+      IF  A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Enable
+      THEN
+          
+          Decoiler1.DataIn.Loop.S_MinHigh := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_Min;
+          Decoiler1.DataIn.Loop.S_MaxLow := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_Max;
+        Decoiler1.DataIn.Loop.S_SpeedAsjust := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_SpeedAdjust;
+
+
+      END_IF;
+
+
+
+
+      //Feed 
+      Decoiler1.DataIn.Feed.Fan_M_Feedback := Decoiler1_M_Fan_Fdbk;
+
+
+
+      //COupling
+      Decoiler1.DataIn.Coupling.Rest_Ls[1] := Decoier1_Coupling_Ls_Rest;
+      Decoiler1.DataIn.Coupling.Work_Ls[1] := Decoier1_Coupling_Ls_Work;
+
+      //Snubber Lift
+      Decoiler1.DataIn.SnubberLift.Rest_Ls[1] := Decoiler1_Snubber_Lift_Ls_UP;
+
+
+   END_REGION
+
+   REGION "Cin - Manager"
+      Decoiler1.CIn.Manager := CoilHandling.COut.Decoiler1;
+   END_REGION
+
+   REGION "Cin - Pressure running"
+      Decoiler1.CIn.PressureRunning := ((DecoilersHU.COut.PressureRunning AND FDo_V_Aspo_1) AND NOT (Fdbk_C_Aspo01));
+   END_REGION
+
+   REGION "Area interface"
+
+      Decoiler1.AreaInterface := Area01.AreaInterface;
+          
+      // Case IN-LINE
+      IF DecoilersHRot.COut.Decoiler1_InLine THEN
+          
+          Decoiler1.AreaInterface := Area01.AreaInterface;
+          
+      // Case OUT-LINE
+      ELSIF DecoilersHRot.COut.Decoiler2_InLine THEN
+          
+          
+          Decoiler1.AreaInterface.Man := NOT Area01.AreaInterface.EStop;
+          Decoiler1.AreaInterface.Aut := FALSE;
+          Decoiler1.AreaInterface.Cycle := FALSE;
+          Decoiler1.AreaInterface.StopInPhase := FALSE;
+          Decoiler1.AreaInterface.StopProgrammed := FALSE;
+          Decoiler1.AreaInterface.CheckAutReady := FALSE;
+          
+      // Case UNKNOW
+      // 
+      ELSE
+          
+          Decoiler1.AreaInterface.EStop := TRUE;
+          Decoiler1.AreaInterface.Man := FALSE;
+          Decoiler1.AreaInterface.Aut := FALSE;
+          Decoiler1.AreaInterface.Cycle := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "DSI"
+      Decoiler1.DSI.Feed := F_DB.DSI_S120_Decoiler1;
+
+      Decoiler1.DSI.Jaws :=
+      Decoiler1.DSI.Coupling :=
+      Decoiler1.DSI.SnubberLift :=
+      Decoiler1.DSI.SnubberRoll := F_DB.DSI_V_Decoiler1;
+
+   END_REGION
+
+   REGION "Drive"
+      Decoiler1.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      Decoiler1.Drive.AccessPoint := HW_Const_Values.CU1_PN_740A1_1_ModuleAccessPoint;
+      Decoiler1.Drive.AxisID := CU1_ID_3_740A1_1_740M1;
+      Decoiler1.Drive.TokenChain := TOKENCHAIN_CU1;
+
+   END_REGION
+
+   REGION "HW ID"
+      Decoiler1.HW_ID_TEL1 := HW_Const_Values.CU1_PN_740A1_1_Standard_telegram_1;
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #Decoiler1(
+         en := TRUE,
+         ZSI := F_DB.ZSI_Zone02,
+         Config := A01_Config.Decoiler_1_2,
+         PersistentValues := Decoiler1_PERS.PersistentValues
+      );
+
+      #Decoiler1.Q;
+   END_REGION
+
+   REGION "Data out - Motor fan"
+      Decoiler1_M_Fan_C := Decoiler1.Feed.Fan_M.Ctrl_RunContactor;
+   END_REGION
+
+   REGION "Data out - Jaws"
+      Decoiler1_Jaws_V_Close := Decoiler1.DataOut.Jaws.RestSolenoid;
+      Decoiler1_Jaws_V_Open := Decoiler1.DataOut.Jaws.WorkSolenoid;
+   END_REGION
+
+   REGION "Data out - Motor coupling"
+      Decoiler1_Coupling_V_Rest := Decoiler1.DataOut.Coupling.RestSolenoid;
+      Decoiler1_Coupling_V_Work := Decoiler1.DataOut.Coupling.WorkSolenoid;
+   END_REGION
+
+   REGION "Data out - Pneumatic brake"
+      Decoiler1_PneuBrake_1_V_Open := (Decoiler1.PneumaticBrake.V_Open OR Decoiler1.PneumaticBrake.V_PartialLow);
+      Decoiler1_PneuBrake_1_V_Partial := Decoiler1.PneumaticBrake.V_PartialHigh;
+      Decoiler1_PneuBrake_2_V_Close := FALSE;
+      Decoiler1_PneuBrake_2_V_Partial := Decoiler1.PneumaticBrake.V_PartialLow;
+      LB101_LpPartialBracking := ((DecoilersHRot.COut.Decoiler1_InLine AND Decoiler2.DataOut.PneumaticBrake.Lp_PbPartialBrake) OR (DecoilersHRot.COut.Decoiler2_InLine AND Decoiler1.DataOut.PneumaticBrake.Lp_PbPartialBrake));
+   END_REGION
+
+   REGION "Data out - Snubber"
+      Decoiler1_Snubber_Lift_V_UP := Decoiler1.DataOut.SnubberLift.RestSolenoid;
+      Decoiler1_Snubber_Lift_V_DOWN := Decoiler1.DataOut.SnubberLift.WorkSolenoid;
+      Decoiler1_Snubber_Roll_V_BWD := Decoiler1.DataOut.SnubberRoll.RestSolenoid;
+      Decoiler1_Snubber_Roll_V_FWD := Decoiler1.DataOut.SnubberRoll.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

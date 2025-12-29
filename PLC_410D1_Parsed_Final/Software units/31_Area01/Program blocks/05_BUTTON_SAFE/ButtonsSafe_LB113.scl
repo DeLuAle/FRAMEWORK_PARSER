@@ -1,0 +1,167 @@
+﻿// Block: ButtonsSafe_LB113
+// Title: Interlocks between operations selected
+
+FUNCTION_BLOCK "ButtonsSafe_LB113"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Interlocks between operations selected
+   VAR_INPUT
+      Reset_OthersPBs_Activation_IN : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Reset_OthersPBs_Activation_OUT : Bool;
+   END_VAR
+
+   VAR
+      i : Int;
+      iOperation : Int;
+      iConcurrentOperation : Int;
+      SettingWriteDone : Bool;
+      PbPanel : Buttons2Hands;
+      PB : Struct
+         ResetAlarms : Bool;
+         JBPinchroll_Fwd : Bool;
+         JBPinchroll_Bwd : Bool;
+         JBCutCycle : Bool;
+         Straightener_Fwd : Bool;
+         Straightener_Bwd : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      ITEMS : Int;
+      JB_PINCHROLL_FWD : Int;
+      JB_PINCHROLL_BWD : Int;
+      JB_CUT_CYCLE : Int;
+      MATERIAL_FWD : Int;
+      MATERIAL_BWD : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Interlocks between operations selected"
+      IF Area01.AreaInterface.ManOneShot THEN
+          SettingWriteDone := FALSE;
+      END_IF;
+
+      // Interblocco tra operazioni
+      // 
+      IF NOT SettingWriteDone THEN
+          SettingWriteDone := TRUE;
+          
+          FOR iOperation := 1 TO ITEMS DO
+              FOR iConcurrentOperation := 1 TO ITEMS DO
+                  PbPanel.Enables[iOperation, iConcurrentOperation] := FALSE;
+              END_FOR;
+          END_FOR;
+          
+
+          // Straightner Bwd
+          PbPanel.Enables[MATERIAL_BWD, JB_PINCHROLL_BWD] := TRUE;
+          PbPanel.Enables[JB_PINCHROLL_BWD, MATERIAL_BWD] := TRUE;
+          
+          // Straightner Fwd
+          PbPanel.Enables[MATERIAL_FWD, JB_PINCHROLL_FWD] := TRUE;
+          PbPanel.Enables[JB_PINCHROLL_FWD, MATERIAL_FWD] := TRUE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Buttons for Op selection"
+      PbPanel.Buttons[JB_PINCHROLL_FWD] := LB113_JB_Pichroll_Pb_Fwd;
+      PbPanel.Buttons[JB_PINCHROLL_BWD] := LB113_JB_Pichroll_Pb_Bwd;
+      PbPanel.Buttons[JB_CUT_CYCLE] := LB113_JB_Cut_Pb_Cycle;
+      PbPanel.Buttons[MATERIAL_FWD] := LB113_Straightener_Pb_Fwd;
+      PbPanel.Buttons[MATERIAL_BWD] := LB113_Straightener_Pb_Bwd;
+
+
+   END_REGION
+
+   REGION "Operation enable"
+
+      PbPanel.OpEnabled[JB_PINCHROLL_FWD] := JB.COut.Pinchroll_Feed.Fwd_CheckNext;
+      PbPanel.OpEnabled[JB_PINCHROLL_BWD] := JB.COut.Pinchroll_Feed.Bwd_CheckNext;
+
+      PbPanel.OpEnabled[JB_CUT_CYCLE] := JB.COut.CutHead.Rest_CheckNext OR JB.COut.CutHead.Work_CheckNext;
+
+      PbPanel.OpEnabled[MATERIAL_FWD] := Straightener.COut.Feed.Fwd_CheckNext;
+      PbPanel.OpEnabled[MATERIAL_BWD] := Straightener.COut.Feed.Bwd_CheckNext;
+
+   END_REGION
+
+   REGION "Operation running"
+
+      PbPanel.OpRunning[JB_PINCHROLL_FWD] := JB.COut.Pinchroll_Feed.Fwd_Running;
+      PbPanel.OpRunning[JB_PINCHROLL_BWD] := JB.COut.Pinchroll_Feed.Bwd_Running;
+
+      PbPanel.OpRunning[JB_CUT_CYCLE] := JB.CutHead.V.ValveSts.RestInProgress OR JB.CutHead.V.ValveSts.WorkInProgress;
+
+      PbPanel.OpRunning[MATERIAL_FWD] := Straightener.COut.Feed.VelFwd_Running OR Straightener.COut.Feed.PosFwd_Running;
+      PbPanel.OpRunning[MATERIAL_BWD] := Straightener.COut.Feed.VelBwd_Running OR Straightener.COut.Feed.PosBwd_Running;
+
+   END_REGION
+
+   REGION "Operation done"
+      PbPanel.OpDone[JB_PINCHROLL_FWD] := FALSE;
+      PbPanel.OpDone[JB_PINCHROLL_BWD] := FALSE;
+
+      PbPanel.OpDone[JB_CUT_CYCLE] := JB.COut.Cut_ManCycleDone;
+
+      PbPanel.OpDone[MATERIAL_FWD] := FALSE;
+      PbPanel.OpDone[MATERIAL_BWD] := FALSE;
+
+
+   END_REGION
+
+   REGION "Main"
+      #PbPanel(
+         en := TRUE,
+         Activation := (NOT (Reset_OthersPBs_Activation_IN) AND F_DB.LB113.Enable),
+         Items := #ITEMS,
+         TwoHandsPushed := F_DB.LB113.SafeMotion,
+         ResetAlarms => PB.ResetAlarms
+      );
+
+      #PbPanel.Q;
+   END_REGION
+
+   REGION "Safe Buttons"
+      PB.JBPinchroll_Fwd := PbPanel.Operations[JB_PINCHROLL_FWD];
+      PB.JBPinchroll_Bwd := PbPanel.Operations[JB_PINCHROLL_BWD];
+      PB.JBCutCycle := PbPanel.Operations[JB_CUT_CYCLE];
+      PB.Straightener_Fwd := PbPanel.Operations[MATERIAL_FWD];
+      PB.Straightener_Bwd := PbPanel.Operations[MATERIAL_BWD];
+
+
+   END_REGION
+
+   REGION "Lamp selection"
+
+      LB113_JB_Pinchroll_Lp_Fwd := PbPanel.Lamps[JB_PINCHROLL_FWD];
+      LB113_JB_Pinchroll_Lp_Bwd := PbPanel.Lamps[JB_PINCHROLL_BWD];
+
+      LB113_JB_Cut_Lp_Cycle := PbPanel.Lamps[JB_CUT_CYCLE];
+
+      LB113_Straightener_Lp_Fwd := PbPanel.Lamps[MATERIAL_FWD];
+      LB113_Straightener_Lp_Bwd := PbPanel.Lamps[MATERIAL_BWD];
+
+   END_REGION
+
+   REGION "Reset others safe push buttons activation / execution"
+      Reset_OthersPBs_Activation_OUT := FALSE;
+
+      FOR i := 1 TO ITEMS DO
+          
+          IF PbPanel.Buttons[i] OR PbPanel.Operations[i] THEN
+              Reset_OthersPBs_Activation_OUT := TRUE;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

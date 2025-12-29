@@ -1,0 +1,47 @@
+﻿// Block: A0302_Bordatrice_RegolazioneFormato_OB1_CALL
+
+FUNCTION "A0302_Bordatrice_RegolazioneFormato_OB1_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_TEMP
+      RETVAL_SET_CINT : Int;
+      Check_Low : Bool;
+      ChecK_High : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 2"
+      IF ((NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND NOT (A0302_OB30_Status.OB30_Low)) OR (NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND A0302_OB30_Status.OB30_High)) THEN
+         A0302_OB30_Status.RETVAL_SET_CINT_Low := SET_CINT(OB_NR:=30, CYCLE:=100000, PHASE:=0);
+      END_IF;
+      IF (((NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND NOT (A0302_OB30_Status.OB30_Low)) OR (NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND A0302_OB30_Status.OB30_High)) AND (A0302_OB30_Status.RETVAL_SET_CINT_Low = 0)) THEN
+         A0302_OB30_Status.RETVAL_QRY_CINT_Low := QRY_CINT(OB_NR:=30);
+      END_IF;
+      Check_Low := TRUE;
+      IF ((((((((NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND NOT (A0302_OB30_Status.OB30_Low)) OR (NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND A0302_OB30_Status.OB30_High)) AND (A0302_OB30_Status.RETVAL_SET_CINT_Low = 0)) AND (A0302_OB30_Status.RETVAL_QRY_CINT_Low = 0)) AND (A0302_OB30_Status.QRT_OB30_Low_CYCLE = 100000)) AND (A0302_OB30_Status.QRT_OB30_Low_PHASE = 0)) AND NOT (A0302_OB30_Status.QRT_OB30_Low_STATUS)) AND A0302_OB30_Status.QRT_OB30_Low_STATUS) THEN
+         A0302_OB30_Status.OB30_Low := TRUE;
+      END_IF;
+      IF ((((((((NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND NOT (A0302_OB30_Status.OB30_Low)) OR (NOT (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req) AND A0302_OB30_Status.OB30_High)) AND (A0302_OB30_Status.RETVAL_SET_CINT_Low = 0)) AND (A0302_OB30_Status.RETVAL_QRY_CINT_Low = 0)) AND (A0302_OB30_Status.QRT_OB30_Low_CYCLE = 100000)) AND (A0302_OB30_Status.QRT_OB30_Low_PHASE = 0)) AND NOT (A0302_OB30_Status.QRT_OB30_Low_STATUS)) AND A0302_OB30_Status.QRT_OB30_Low_STATUS) THEN
+         A0302_OB30_Status.OB30_High := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 3"
+      IF ((A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND NOT (A0302_OB30_Status.OB30_High)) OR (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND A0302_OB30_Status.OB30_Low)) THEN
+         A0302_OB30_Status.RETVAL_SET_CINT_High := SET_CINT(OB_NR:=30, CYCLE:=10000, PHASE:=0);
+      END_IF;
+      IF (((A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND NOT (A0302_OB30_Status.OB30_High)) OR (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND A0302_OB30_Status.OB30_Low)) AND (A0302_OB30_Status.RETVAL_SET_CINT_High = 0)) THEN
+         A0302_OB30_Status.RETVAL_QRY_CINT_High := QRY_CINT(OB_NR:=30);
+      END_IF;
+      ChecK_High := TRUE;
+      IF ((((((((A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND NOT (A0302_OB30_Status.OB30_High)) OR (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND A0302_OB30_Status.OB30_Low)) AND (A0302_OB30_Status.RETVAL_SET_CINT_High = 0)) AND (A0302_OB30_Status.RETVAL_QRY_CINT_High = 0)) AND (A0302_OB30_Status.QRT_OB30_High_CYCLE = 10000)) AND (A0302_OB30_Status.QRT_OB30_High_PHASE = 0)) AND NOT (A0302_OB30_Status.QRT_OB30_High_STATUS)) AND A0302_OB30_Status.QRT_OB30_High_STATUS) THEN
+         A0302_OB30_Status.OB30_High := TRUE;
+      END_IF;
+      IF ((((((((A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND NOT (A0302_OB30_Status.OB30_High)) OR (A0302_Bordatrice_RegolazioneFormato.Cout.OB30_High_Req AND A0302_OB30_Status.OB30_Low)) AND (A0302_OB30_Status.RETVAL_SET_CINT_High = 0)) AND (A0302_OB30_Status.RETVAL_QRY_CINT_High = 0)) AND (A0302_OB30_Status.QRT_OB30_High_CYCLE = 10000)) AND (A0302_OB30_Status.QRT_OB30_High_PHASE = 0)) AND NOT (A0302_OB30_Status.QRT_OB30_High_STATUS)) AND A0302_OB30_Status.QRT_OB30_High_STATUS) THEN
+         A0302_OB30_Status.OB30_Low := FALSE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

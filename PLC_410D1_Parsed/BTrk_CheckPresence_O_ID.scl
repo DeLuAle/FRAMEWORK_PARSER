@@ -1,0 +1,42 @@
+﻿// Block: BTrk_CheckPresence_O_ID
+// Title: 0 = Non trovato; >= 1 Trovato
+
+FUNCTION "BTrk_CheckPresence_O_ID" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// 0 = Non trovato; >= 1 Trovato
+   VAR_INPUT
+      O_ID : DInt;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "0 = Non trovato; >= 1 Trovato"
+      BTrk_CheckPresence_O_ID := 0;
+
+      BTrk_CheckPresence_O_ID.%X0 := O_ID = BTrk.A0301.O_ID;
+      BTrk_CheckPresence_O_ID.%X1 := O_ID = BTrk.A0302_ENTRY.O_ID;
+      BTrk_CheckPresence_O_ID.%X2 := O_ID = BTrk.A0302_EXIT.O_ID;
+
+      FOR i := 1 TO BTRK_A03_EXIT_TOCHECK_ITEMS DO
+          IF O_ID = BTrk.A03_EXIT_TOCHECK.B[i].O_ID THEN
+              BTrk_CheckPresence_O_ID.%X3 := TRUE;
+              EXIT;
+          END_IF;
+      END_FOR;
+
+      BTrk_CheckPresence_O_ID.%X4 := O_ID = BTrk.A0303.Preparation.O_ID;
+      BTrk_CheckPresence_O_ID.%X5 := O_ID = BTrk.A0303.Transfert.O_ID;
+      BTrk_CheckPresence_O_ID.%X6 := O_ID = BTrk.A0303.Stacker.O_ID;
+      BTrk_CheckPresence_O_ID.%X7 := O_ID = BTrk.A0304.O_ID;
+
+          
+
+   END_REGION
+
+
+END_FUNCTION

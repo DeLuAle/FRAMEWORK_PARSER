@@ -1,0 +1,121 @@
+﻿// Block: Coilcar_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "Coilcar_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+
+BEGIN
+   REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_Bwd_Minus := LB111.PB.Coilcar_Bwd,
+         LB_PB_Fwd_Plus := LB111.PB.Coilcar_Fwd,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Move.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_Bwd_Minus := LB111.PB.Coilcar_Bwd, LB_PB_Fwd_Plus := LB111.PB.Coilcar_Fwd, LB_PB_MoveToPos := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+   END_REGION
+
+   REGION "Data In - PB Lift"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := (LB111.PB.Coilcar_Down AND Coilcar_Lift2_Ls_Down),
+         LB_PB_Work := LB111.PB.Coilcar_Up,
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Lift1.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         LB_PB_Rest := LB111.PB.Coilcar_Down,
+         LB_PB_Work := (LB111.PB.Coilcar_Up AND Coilcar_Lift1_Ls_Up),
+         Enable := TRUE,
+         HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax,
+         PB => Coilcar.DataIn.Lift2.PB
+      );
+
+      "ValveMachine_PB_Connector"(LB_PB_Rest := (LB111.PB.Coilcar_Down AND Coilcar_Lift2_Ls_Down), LB_PB_Work := LB111.PB.Coilcar_Up, Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+      "ValveMachine_PB_Connector"(LB_PB_Rest := LB111.PB.Coilcar_Down, LB_PB_Work := (LB111.PB.Coilcar_Up AND Coilcar_Lift1_Ls_Up), Enable := TRUE, HMI_PB := A01_HMI.MB1.Button.PB_Empty.Ax, LB_PB_StartStop := FALSE, Other_PB := A01_HMI.MB1.Button.PB_Empty.Ax);
+   END_REGION
+
+   REGION "Data In - Sensors"
+
+      //Move
+      Coilcar.DataIn.Move_Ls_Inline := NOT Culla_Ls_Avanti_Massimo_In_Linea;
+      Coilcar.DataIn.Move_Ls_Outline := NOT Culla_Ls_Indietro_Minimo_Fuori_Linea;
+      Coilcar.DataIn.Move_Ls_LowSpeedInline := Culla_Ls_Rallentamento_Avanti;
+      Coilcar.DataIn.Move_Ls_LowSpeedOutline := Culla_Ls_Rallentamento_Indietro;
+      Coilcar.DataIn.Move_Ls_CoilInserted := Culla_Ls_Coil_Inserito_Togliere_Perni;
+
+      //Lift
+
+
+      Coilcar.Lift1.DataIn.Rest_Ls[1] := Coilcar_Lift1_Ls_Down;
+      Coilcar.Lift1.DataIn.Work_Ls[1] := Coilcar_Lift1_Ls_Up;
+
+      Coilcar.Lift2.DataIn.Rest_Ls[1] := Coilcar_Lift2_Ls_Down;
+      Coilcar.Lift2.DataIn.Work_Ls[1] := Coilcar_Lift2_Ls_Up;
+
+      // Supports
+      Coilcar.DataIn.Supports_Ls_FixPoleLeft_Plugged := Culla_Controllo_Perni_Inseriti_Phc_3;
+      Coilcar.DataIn.Supports_Ls_FixPoleRight_Plugged := Culla_Controllo_Perni_Inseriti_Phc_4;
+      Coilcar.DataIn.Supports_Ls_MobilePoleLeft_Plugged := Culla_Controllo_Perni_Inseriti_Phc_1;
+      Coilcar.DataIn.Supports_Ls_MobilePoleRight_Plugged := Culla_Controllo_Perni_Inseriti_Phc_2;
+
+   END_REGION
+
+   REGION "Cin - Pressure Running"
+      Coilcar.CIn.PressureRunning := ((Area01_HU.Pump.COut.PressureRunning AND FDo_V_CoilCar) AND NOT (Fdbk_C_CoilCar));
+   END_REGION
+
+   REGION "DSI"
+      Coilcar.DSI.Move := F_DB.DSI_S120_CoilCar;
+      Coilcar.DSI.LIft := F_DB.DSI_V_CoilCar;
+
+   END_REGION
+
+   REGION "Drive"
+      Coilcar.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      Coilcar.Drive.AccessPoint :=HW_Const_Values.CU1_PN_690A1_2_ModuleAccessPoint;
+      Coilcar.Drive.AxisID := CU1_ID_6_690A1_2_790M1;
+      Coilcar.Drive.TokenChain := TOKENCHAIN_CU1;
+
+   END_REGION
+
+   REGION "HW ID"
+      Coilcar.HW_ID_TEL1 := HW_Const_Values.CU1_PN_690A1_2_Standard_telegram_1;
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #Coilcar(
+         en := TRUE,
+         AreaInterface := Area01.AreaInterface,
+         ZSI := F_DB.ZSI_Zone00,
+         Config := A01_Config.Coilcar,
+         PersistentValues := Coilcar_PERS.PersistentValues
+      );
+
+      #Coilcar.Q;
+   END_REGION
+
+   REGION "Data Out"
+      Coilcar_Lift1_V_Down := Coilcar.DataOut.Lift1.RestSolenoid;
+      Coilcar_Lift1_V_Up := Coilcar.DataOut.Lift1.WorkSolenoid;
+      Coilcar_Lift2_V_Down := Coilcar.DataOut.Lift2.RestSolenoid;
+      Coilcar_Lift2_V_Up := Coilcar.DataOut.Lift2.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

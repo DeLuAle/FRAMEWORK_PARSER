@@ -1,0 +1,13 @@
+﻿FUNCTION "IPC_Msg_Delete" : "IPC_Msg_Generico"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+// Utility function: Inizializza/cancella una struttura IPC_Msg azzerando tutti i campi
+
+BEGIN
+	// Reset completo messaggio: Id=0 indica cella buffer vuota/disponibile
+	#IPC_Msg_Delete.Id := 0;
+	#IPC_Msg_Delete.timestamp := '';
+	#IPC_Msg_Delete.topic := 0;
+	#IPC_Msg_Delete.payLoad := '';
+END_FUNCTION
+

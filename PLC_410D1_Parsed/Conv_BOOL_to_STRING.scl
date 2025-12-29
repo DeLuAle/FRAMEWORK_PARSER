@@ -1,0 +1,44 @@
+﻿// Block: Conv_BOOL_to_STRING
+// Title: BOOL -> STRING
+
+FUNCTION "Conv_BOOL_to_STRING" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// BOOL -> STRING
+   VAR_INPUT
+      BooleanValue : Bool;
+      sType : UInt;
+   END_VAR
+
+
+BEGIN
+   REGION "BOOL -> STRING"
+      IF BooleanValue THEN
+          
+          CASE sType OF
+              1:
+                  Conv_BOOL_to_STRING := 'ON';
+              ELSE
+                  Conv_BOOL_to_STRING := 'TRUE';
+          END_CASE;
+          
+          
+          
+          
+      ELSE
+          CASE sType OF
+              1:
+                  Conv_BOOL_to_STRING := 'OFF';
+              ELSE
+                  Conv_BOOL_to_STRING := 'FALSE';
+          END_CASE;
+          
+          
+          
+      END_IF;
+
+
+   END_REGION
+
+
+END_FUNCTION

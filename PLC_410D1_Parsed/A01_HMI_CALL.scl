@@ -1,0 +1,17 @@
+﻿// Block: A01_HMI_CALL
+
+FUNCTION "A01_HMI_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      #A01_HMI_IDB(
+         en := TRUE
+      );
+
+      #A01_HMI_IDB.Q;
+   END_REGION
+
+
+END_FUNCTION

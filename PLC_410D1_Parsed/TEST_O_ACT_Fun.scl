@@ -1,0 +1,67 @@
+﻿// Block: TEST_O_ACT_Fun
+
+FUNCTION "TEST_O_ACT_Fun" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      "Prod_O_ACT_Push"(
+         en := TEST_Production.O_ACT.Push,
+         Item := TEST_Production.O_ACT.Ordine,
+         Check_PPrf_ON_WORK_Matching := TRUE,
+         Ret_Val => TEST_Production.O_ACT.RETVAL
+      );
+
+      IF TEST_Production.O_ACT.Push THEN
+         TEST_Production.O_ACT.Push := FALSE;
+      END_IF;
+      IF TEST_Production.O_ACT.Push THEN
+         TEST_Production.O_ACT.RETVAL := "Prod_O_ACT_Push"(Item := TEST_Production.O_ACT.Ordine, Check_PPrf_ON_WORK_Matching := TRUE);
+      END_IF;
+   END_REGION
+
+   REGION "Network 2"
+      "Prod_O_ACT_Pop"(
+         en := TEST_Production.O_ACT.Pop,
+         Ret_Val => TEST_Production.O_ACT.RETVAL
+      );
+
+      IF TEST_Production.O_ACT.Pop THEN
+         TEST_Production.O_ACT.Pop := FALSE;
+      END_IF;
+      IF TEST_Production.O_ACT.Pop THEN
+         TEST_Production.O_ACT.RETVAL := "Prod_O_ACT_Pop"();
+      END_IF;
+   END_REGION
+
+   REGION "Network 3"
+      "Prod_O_ACT_Pop_&_O_TODO_Push"(
+         en := TEST_Production.O_ACT.Pop_To_TODO,
+         Ret_Val => TEST_Production.O_ACT.RETVAL
+      );
+
+      IF TEST_Production.O_ACT.Pop_To_TODO THEN
+         TEST_Production.O_ACT.Pop_To_TODO := FALSE;
+      END_IF;
+      IF TEST_Production.O_ACT.Pop_To_TODO THEN
+         TEST_Production.O_ACT.RETVAL := "Prod_O_ACT_Pop_&_O_TODO_Push"();
+      END_IF;
+   END_REGION
+
+   REGION "Network 4"
+      "Prod_O_ACT_Pop_&_O_ENDING_Push"(
+         en := TEST_Production.O_ACT.Pop_To_ENDING,
+         Ret_Val => TEST_Production.O_ACT.RETVAL
+      );
+
+      IF TEST_Production.O_ACT.Pop_To_ENDING THEN
+         TEST_Production.O_ACT.Pop_To_ENDING := FALSE;
+      END_IF;
+      IF TEST_Production.O_ACT.Pop_To_ENDING THEN
+         TEST_Production.O_ACT.RETVAL := "Prod_O_ACT_Pop_&_O_ENDING_Push"();
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

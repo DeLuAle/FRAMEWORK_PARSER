@@ -1,0 +1,85 @@
+﻿// Block: A0302_HU_Cytropack_CALL
+// Title: << HU Bosch Rexroth CALL >>
+
+FUNCTION "A0302_HU_Cytropack_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << HU Bosch Rexroth CALL >>
+   VAR_TEMP
+      Missing_Input : Bool;
+      Missing_Output : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "CIn"
+      // TRASFERIMENTO COMANDI CIn MANAGER
+      A0302_HU_Cytropack.CIn.Manager := A0302_Manager.COut.HU;
+      //
+      A0302_HU_Cytropack.CIn.SemiAut_Pb := A0302_Manager.DataIn.SemiAut_Pb;
+
+      REGION TRASFERIMENTO STATI CIn ALTRE STAZIONI
+          // CARRO PAREGGIATORE TESTA
+          A0302_HU_Cytropack.CIn.CarroPareggTesta.Bloccaggio := A0302_PareggiatoreTesta.COut.Bloccaggio;
+          
+          // CARRO PAREGGIATORE CODA
+          A0302_HU_Cytropack.CIn.CarroPareggCoda.Bloccaggio := A0302_PareggiatoreCoda.COut.Bloccaggio;
+          A0302_HU_Cytropack.CIn.CarroPareggCoda.PareggiatoreLong := A0302_PareggiatoreCoda.COut.PareggiatoreLong;
+          
+      END_REGION
+
+   END_REGION
+
+   REGION "Cin - Pressure running"
+      A0302_HU_Cytropack.COut.PressureRunning := (((FDo_C_HU_Pareggiatore_STO_CYTROPACK AND NOT (Fdbk_C_HU_Pareggiatore_STO_CYTROPACK)) AND TIA_PN_FcP5020_DB.InOperation) AND TIA_PN_FcP5020_DB.MotorStarted);
+   END_REGION
+
+   REGION "DataIn"
+      A0302_HU_Cytropack.DataIn.Pb_Stop := NOT (NOT (A03_HMI.MB3.Button.A0302.HU_Cytropack.Stop));
+      A0302_HU_Cytropack.DataIn.Pb_Start := NOT (((((((NOT (A03_HMI.MB3.Button.A0302.HU_Cytropack.Start) AND NOT (A0302_PareggiatoreCoda.PareggiatoreLong.DataIn.PB.Work)) AND NOT (A0302_PareggiatoreCoda.Bloccaggio.DataIn.PB.Work)) AND NOT (A0302_PareggiatoreTesta.Bloccaggio.DataIn.PB.Work)) AND NOT (A0302_PareggiatoreCoda.PareggiatoreLong.DataIn.PB.Rest)) AND NOT (A0302_PareggiatoreCoda.Bloccaggio.DataIn.PB.Rest)) AND NOT (A0302_PareggiatoreTesta.Bloccaggio.DataIn.PB.Rest)));
+   END_REGION
+
+   REGION "Coordination In"
+      A0302_HU_Cytropack.M_Chiller.FdbkRunning := A0302_HU_Cytropack_Chiller_Ok;
+      A0302_HU_Cytropack.CIn.PressureReq := ((NOT (((NOT (A0302_PareggiatoreCoda.Bloccaggio.V.ReqOilPressure) AND NOT (A0302_PareggiatoreCoda.PareggiatoreLong.V.ReqOilPressure)) AND NOT (A0302_PareggiatoreTesta.Bloccaggio.V.ReqOilPressure))) OR (((NOT ((NOT (A0302_Manager.COut.CarroPareggCoda.PareggLong.Work) AND NOT (A0302_Manager.COut.CarroPareggCoda.PareggLong.Rest))) OR NOT ((NOT (A0302_Manager.COut.CarroPareggCoda.Bloccaggio.Work) AND NOT (A0302_Manager.COut.CarroPareggCoda.Bloccaggio.Rest))) OR NOT ((NOT (A0302_Manager.COut.CarroPareggTesta.Bloccaggio.Work) AND NOT (A0302_Manager.COut.CarroPareggTesta.Bloccaggio.Rest)))) AND A0302_Manager.COut.HU.Control_ON) AND A0302_Manager.COut.HU.Work)) AND F_DB.A03_EstopDelay);
+   END_REGION
+
+   REGION "Target Pareggiamento"
+      // Trasferimento Target pressione se in automatico da programma profilo
+      // 
+      IF PPrf_MAIN.GET_ITF.PrgNo <> 0 AND Area03.AreaInterface.Aut AND Area03.AreaInterface.Cycle AND A0302_HU_Cytropack.Aux.ReqParParegg THEN
+          
+          A0302_HU_Cytropack.Target.Pressure_Value := PPrf_MAIN.ON_WORK.A0301_A0302.HU_Cytropack.Target_PressureParegg;
+          A0302_HU_Cytropack.Target.MaxSpeed_Value := PPrf_MAIN.ON_WORK.A0301_A0302.HU_Cytropack.Target_MaxSpeedLimit;
+          
+      ELSIF (PPrf_MAIN.GET_ITF.PrgNo = 0 OR Area03.AreaInterface.Man) AND A0302_HU_Cytropack.Aux.ReqParParegg THEN
+          
+          A0302_HU_Cytropack.Target.Pressure_Value := A0302_HU_Cytropack_PERS.Par.Pareggiamento.TargetPressure;
+          A0302_HU_Cytropack.Target.MaxSpeed_Value := A0302_HU_Cytropack_PERS.Par.Pareggiamento.TargetMaxSpeed;
+          
+      END_IF;
+      //
+
+   END_REGION
+
+   REGION "HW"
+      //
+      A0302_HU_Cytropack.InputADDR := HW_Const_Values.HU_Cytropac_Input_08_Words_1;
+      A0302_HU_Cytropack.OutputADDR := HW_Const_Values.HU_Cytropac_Output_04_Words_1;
+
+   END_REGION
+
+   REGION "Machine call"
+      #A0302_HU_Cytropack(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone25,
+         DSI := F_DB.DSI_HU_CYTROPAC_STO,
+         Par := A0302_HU_Cytropack_PERS.Par
+      );
+
+      #A0302_HU_Cytropack.Q;
+   END_REGION
+
+
+END_FUNCTION

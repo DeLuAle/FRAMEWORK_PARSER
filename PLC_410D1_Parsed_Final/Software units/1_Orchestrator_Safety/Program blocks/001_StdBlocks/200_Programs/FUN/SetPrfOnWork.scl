@@ -1,0 +1,65 @@
+﻿// Block: SetPrfOnWork
+// Title: Get Profile
+
+FUNCTION_BLOCK "SetPrfOnWork"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Get Profile
+   VAR_INPUT
+      Enable : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      HMI : Prg_HMI;
+      GET_ITF : Prg_GetITF;
+      GET_Data : Variant;
+      PRG_Data : Variant;
+   END_VAR
+
+   VAR
+      GetPrf : GetPrg;
+      tonDone : IEC_TIMER;
+   END_VAR
+
+
+BEGIN
+   REGION "Get Profile"
+      #GetPrf(
+         en := TRUE,
+         Execute := (HMI.Activate.ButtonExecute AND Enable),
+         PrgNo := HMI.ProgramNumber,
+         GET_ITF := GET_ITF,
+         GET_Data := GET_Data,
+         PRG_Data := PRG_Data
+      );
+
+      #GetPrf.Q;
+   END_REGION
+
+   REGION "ButtonColor"
+      "HmiButtonColor"(
+         en := TRUE,
+         Permit := (NOT (GetPrf.Busy) AND Enable),
+         InProgress := GetPrf.Busy,
+         Done := GetPrf.Done,
+         Error := GetPrf.Error,
+         Ret_Val => HMI.Activate.ButtonColor
+      );
+
+      HMI.Activate.ButtonColor := "HmiButtonColor"(Permit := (NOT (GetPrf.Busy) AND Enable), InProgress := GetPrf.Busy, Done := GetPrf.Done, Error := GetPrf.Error);
+   END_REGION
+
+   REGION "Reset Done"
+      #tonDone(
+         IN := NOT ((NOT (GetPrf.Done) AND NOT (GetPrf.Error))),
+         PT := T#1S
+      );
+
+      #tonDone.Q;
+      IF #tonDone.Q THEN
+         HMI.Activate.ButtonExecute := FALSE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,606 @@
+﻿// Block: A0301_Fermi_P3_FB
+
+FUNCTION_BLOCK "A0301_Fermi_P3_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : ValveMachine_Manager;
+         SemiAut : Bool;
+         P2 : Struct
+            Fermi : ValveMachine_COut;
+            Sollevatore : ValveMachine_COut;
+         END_STRUCT;
+         Trasporto : SpeedMachine_COut;
+      END_STRUCT;
+      Config : Struct
+         Fermi : Array[1..6] of ValveMachine_Config;
+         DelayMissingCondition : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Fermi : ValveMachine_COut;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Fermi : Array[1..6] of ValveAlr;
+      END_STRUCT;
+      Warning : Struct
+         OP_REST_MissingCnd : Bool;
+         OP_WORK_MissingCnd : Bool;
+         Fermi : Array[1..6] of ValveMachine_Wng;
+      END_STRUCT;
+      HMI : Struct
+         Selection : Array[1..6] of Bool;
+         FermiSts : "UDT_HMI-Sts_ValvePosA0301";
+         B_ResetShiftDone : Bool;
+      END_STRUCT;
+      Sts : Struct
+         Fermi_AlarmPresence : Bool;
+         OP_CanMoveFreely : Bool;
+         OP_Rest_Cnd : Bool;
+         Op_Work_Cnd : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         OP_Rest_Man : Bool;
+         OP_Work_Man : Bool;
+         OP_Rest_Aut : Bool;
+         OP_Work_Aut : Bool;
+         OP_Rest : Bool;
+         OP_Work : Bool;
+      END_STRUCT;
+      Fermi : Array[1..6] of ValveMachine_FB;
+      AUX : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+      TON_OP_REST_MissingCnd : TON_TIME;
+      TON_OP_WORK_MissingCnd : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+      Ctrl_OLD : Struct
+         CheckCndz1_ToRibalta : Bool;
+         CheckCndz2_ToRibalta : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM o SEMI-GUSCIO"
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := (TRUE OR (CIn.P2.Fermi.Work AND CIn.P2.Sollevatore.Rest) OR CIn.P2.Sollevatore.Work),
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := TRUE;
+      IF Sts.OP_CanMoveFreely THEN
+         "PTrk_Absence"(Item := PTrk.A0301.P);
+      END_IF;
+      Sts.OP_CanMoveFreely := (TRUE OR (Sts.OP_CanMoveFreely AND CIn.Trasporto.Standstill));
+   END_REGION
+
+   REGION "P[1...6] Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.OP_Rest_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Rest);
+      Ctrl.OP_Work_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Work);
+   END_REGION
+
+   REGION "P[1...6] Comando Operazione Lavoro / Riposo (MAN)"
+      PE.OP_Rest_PB := PosEdge(DataIn.OP_Rest_PB);
+      PE.OP_Work_PB := PosEdge(DataIn.OP_Work_PB);
+      Ctrl.OP_Rest_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Rest_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Rest_Man)) AND DataIn.OP_Rest_PB) AND NOT (DataIn.OP_Work_PB));
+      Ctrl.OP_Work_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Work_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Work_Man)) AND DataIn.OP_Work_PB) AND NOT (DataIn.OP_Rest_PB));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Rest := NOT ((NOT (Ctrl.OP_Rest_Man) AND NOT (Ctrl.OP_Rest_Aut)));
+      Ctrl.OP_Work := NOT ((NOT (Ctrl.OP_Work_Man) AND NOT (Ctrl.OP_Work_Aut)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Rest_Cnd := (CIn.Manager.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.Op_Work_Cnd := (CIn.Manager.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Fermi  -  Cin Manager (Esecuzione sequenza comandi)"
+      //
+      Fermi[1].Cin.Manager.Rest := FALSE;
+      Fermi[2].Cin.Manager.Rest := FALSE;
+      Fermi[3].Cin.Manager.Rest := FALSE;
+      Fermi[4].Cin.Manager.Rest := FALSE;
+      Fermi[5].Cin.Manager.Rest := FALSE;
+      Fermi[6].Cin.Manager.Rest := FALSE;
+
+      //************************************
+      Fermi[1].Cin.Manager.Work := FALSE;
+      Fermi[2].Cin.Manager.Work := FALSE;
+      Fermi[3].Cin.Manager.Work := FALSE;
+      Fermi[4].Cin.Manager.Work := FALSE;
+      Fermi[5].Cin.Manager.Work := FALSE;
+      Fermi[6].Cin.Manager.Work := FALSE;
+
+      //
+      // CIn Manager  Control ON se ho un richiesta di comando attiva
+      IF AreaInterface.Aut OR CIn.SemiAut THEN
+          Fermi[1].Cin.Manager.Control_ON := TRUE;
+          Fermi[2].Cin.Manager.Control_ON := TRUE;
+          Fermi[3].Cin.Manager.Control_ON := TRUE;
+          Fermi[4].Cin.Manager.Control_ON := TRUE;
+          Fermi[5].Cin.Manager.Control_ON := TRUE;
+          Fermi[6].Cin.Manager.Control_ON := TRUE;
+      ELSE
+          Fermi[1].Cin.Manager.Control_ON := FALSE;
+          Fermi[2].Cin.Manager.Control_ON := FALSE;
+          Fermi[3].Cin.Manager.Control_ON := FALSE;
+          Fermi[4].Cin.Manager.Control_ON := FALSE;
+          Fermi[5].Cin.Manager.Control_ON := FALSE;
+          Fermi[6].Cin.Manager.Control_ON := FALSE;
+      END_IF;
+
+      // Comando CIn Manager Work FERMI se Sfalsatore indietro
+      IF Ctrl.OP_Work AND Sts.Op_Work_Cnd THEN
+          
+          Fermi[1].Cin.Manager.Work := TRUE;
+          Fermi[2].Cin.Manager.Work := TRUE;
+          Fermi[3].Cin.Manager.Work := TRUE;
+          Fermi[4].Cin.Manager.Work := TRUE;
+          Fermi[5].Cin.Manager.Work := TRUE;
+          Fermi[6].Cin.Manager.Work := TRUE;
+          
+      END_IF;
+
+      // Comando CIn Manager Rest FERMI se Sfalsatore è basso
+      IF Ctrl.OP_Rest AND Sts.OP_Rest_Cnd THEN
+
+      Fermi[1].Cin.Manager.Rest := TRUE;
+      Fermi[2].Cin.Manager.Rest := TRUE;
+      Fermi[3].Cin.Manager.Rest := TRUE;
+      Fermi[4].Cin.Manager.Rest := TRUE;
+      Fermi[5].Cin.Manager.Rest := TRUE;
+      Fermi[6].Cin.Manager.Rest := TRUE;
+
+      END_IF;
+
+
+   END_REGION
+
+   REGION "P[1...6] Cin Manager Comando arresto / lavoro"
+      //
+      Fermi[1].Cin.Manager.Rest := FALSE;
+      Fermi[2].Cin.Manager.Rest := FALSE;
+      Fermi[3].Cin.Manager.Rest := FALSE;
+      Fermi[4].Cin.Manager.Rest := FALSE;
+      Fermi[5].Cin.Manager.Rest := FALSE;
+      Fermi[6].Cin.Manager.Rest := FALSE;
+      //************************************
+      Fermi[1].Cin.Manager.Work := FALSE;
+      Fermi[2].Cin.Manager.Work := FALSE;
+      Fermi[3].Cin.Manager.Work := FALSE;
+      Fermi[4].Cin.Manager.Work := FALSE;
+      Fermi[5].Cin.Manager.Work := FALSE;
+      Fermi[6].Cin.Manager.Work := FALSE;
+      //
+      // CIn Manager  Control ON se ho un richiesta di comando attiva
+      IF Ctrl.OP_Rest_Aut OR Ctrl.OP_Work_Aut THEN
+          Fermi[1].Cin.Manager.Control_ON := TRUE;
+          Fermi[2].Cin.Manager.Control_ON := TRUE;
+          Fermi[3].Cin.Manager.Control_ON := TRUE;
+          Fermi[4].Cin.Manager.Control_ON := TRUE;
+          Fermi[5].Cin.Manager.Control_ON := TRUE;
+          Fermi[6].Cin.Manager.Control_ON := TRUE;
+      ELSE
+          Fermi[1].Cin.Manager.Control_ON := FALSE;
+          Fermi[2].Cin.Manager.Control_ON := FALSE;
+          Fermi[3].Cin.Manager.Control_ON := FALSE;
+          Fermi[4].Cin.Manager.Control_ON := FALSE;
+          Fermi[5].Cin.Manager.Control_ON := FALSE;
+          Fermi[6].Cin.Manager.Control_ON := FALSE;
+      END_IF;
+
+      // CIn Manager Rest se ho un richiesta di comando arresto attiva
+      IF Ctrl.OP_Rest AND Sts.OP_Rest_Cnd THEN
+          
+          Fermi[1].Cin.Manager.Rest := TRUE;
+          Fermi[2].Cin.Manager.Rest := TRUE;
+          Fermi[3].Cin.Manager.Rest := TRUE;
+          Fermi[4].Cin.Manager.Rest := TRUE;
+          Fermi[5].Cin.Manager.Rest := TRUE;
+          Fermi[6].Cin.Manager.Rest := TRUE;
+          
+          // CIn Manager Work se ho un richiesta di comando lavoro attiva   
+      ELSIF Ctrl.OP_Work AND Sts.Op_Work_Cnd THEN
+          
+          Fermi[1].Cin.Manager.Work := TRUE;
+          Fermi[2].Cin.Manager.Work := TRUE;
+          Fermi[3].Cin.Manager.Work := TRUE;
+          Fermi[4].Cin.Manager.Work := TRUE;
+          Fermi[5].Cin.Manager.Work := TRUE;
+          Fermi[6].Cin.Manager.Work := TRUE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "P[1...6] CIn Abilitazioni Stop Manager"
+      //
+      // CIn Manager Stop per richiesta apertura safety
+      IF CIn.Manager.EnableStopDoorOpeningReq THEN
+          Fermi[1].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Fermi[2].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Fermi[3].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Fermi[4].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Fermi[5].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Fermi[6].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+      ELSE
+          Fermi[1].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Fermi[2].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Fermi[3].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Fermi[4].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Fermi[5].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Fermi[6].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+      END_IF;
+      // CIn Manager Stop in fase delle macchine precedenti
+      IF CIn.Manager.EnableStopInPhase THEN
+          Fermi[1].Cin.Manager.EnableStopInPhase := TRUE;
+          Fermi[2].Cin.Manager.EnableStopInPhase := TRUE;
+          Fermi[3].Cin.Manager.EnableStopInPhase := TRUE;
+          Fermi[4].Cin.Manager.EnableStopInPhase := TRUE;
+          Fermi[5].Cin.Manager.EnableStopInPhase := TRUE;
+          Fermi[6].Cin.Manager.EnableStopInPhase := TRUE;
+      ELSE
+          Fermi[1].Cin.Manager.EnableStopInPhase := FALSE;
+          Fermi[2].Cin.Manager.EnableStopInPhase := FALSE;
+          Fermi[3].Cin.Manager.EnableStopInPhase := FALSE;
+          Fermi[4].Cin.Manager.EnableStopInPhase := FALSE;
+          Fermi[5].Cin.Manager.EnableStopInPhase := FALSE;
+          Fermi[6].Cin.Manager.EnableStopInPhase := FALSE;
+      END_IF;
+
+      // CIn Manager Stop programmato configurabile a piacere
+      IF CIn.Manager.EnableStopProgrammed THEN
+          Fermi[1].Cin.Manager.EnableStopProgrammed := TRUE;
+          Fermi[2].Cin.Manager.EnableStopProgrammed := TRUE;
+          Fermi[3].Cin.Manager.EnableStopProgrammed := TRUE;
+          Fermi[4].Cin.Manager.EnableStopProgrammed := TRUE;
+          Fermi[5].Cin.Manager.EnableStopProgrammed := TRUE;
+          Fermi[6].Cin.Manager.EnableStopProgrammed := TRUE;
+      ELSE
+          Fermi[1].Cin.Manager.EnableStopProgrammed := FALSE;
+          Fermi[2].Cin.Manager.EnableStopProgrammed := FALSE;
+          Fermi[3].Cin.Manager.EnableStopProgrammed := FALSE;
+          Fermi[4].Cin.Manager.EnableStopProgrammed := FALSE;
+          Fermi[5].Cin.Manager.EnableStopProgrammed := FALSE;
+          Fermi[6].Cin.Manager.EnableStopProgrammed := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_OP_REST_MissingCnd(
+         IN := Ctrl.OP_Rest,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_WORK_MissingCnd(
+         IN := Ctrl.OP_Work,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_REST_MissingCnd.Q;
+      IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
+         Warning.OP_REST_MissingCnd := FALSE;
+      ELSIF #TON_OP_REST_MissingCnd.Q THEN
+         Warning.OP_REST_MissingCnd := TRUE;
+      END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
+      IF (Sts.Op_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
+         Warning.OP_WORK_MissingCnd := FALSE;
+      ELSIF #TON_OP_WORK_MissingCnd.Q THEN
+         Warning.OP_WORK_MissingCnd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "P[1...6] DataIn"
+      IF NOT (HMI.Selection[1]) THEN
+         Fermi[1].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[1]) THEN
+         Fermi[1].DataIn.PB.Work := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[2]) THEN
+         Fermi[2].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[2]) THEN
+         Fermi[2].DataIn.PB.Work := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[3]) THEN
+         Fermi[3].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[3]) THEN
+         Fermi[3].DataIn.PB.Work := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[4]) THEN
+         Fermi[4].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[4]) THEN
+         Fermi[4].DataIn.PB.Work := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[5]) THEN
+         Fermi[5].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[5]) THEN
+         Fermi[5].DataIn.PB.Work := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[6]) THEN
+         Fermi[6].DataIn.PB.Rest := FALSE;
+      END_IF;
+      IF NOT (HMI.Selection[6]) THEN
+         Fermi[6].DataIn.PB.Work := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "P[1...6] CIn External alarm"
+      Fermi[1].Cin.ExternalAlarms := FALSE;
+      Fermi[2].Cin.ExternalAlarms := FALSE;
+      Fermi[3].Cin.ExternalAlarms := FALSE;
+      Fermi[4].Cin.ExternalAlarms := FALSE;
+      Fermi[5].Cin.ExternalAlarms := FALSE;
+      Fermi[6].Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "P[1...6] Cin REST Ext Enable"
+      Fermi[1].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[2].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[3].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[4].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[5].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[6].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "P[1...6] Cin WORK Ext Enable"
+      Fermi[1].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[2].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[3].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[4].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[5].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Fermi[6].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "P[1] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[1],
+         Alarm := Alarm.Fermi[1],
+         Warning := Warning.Fermi[1]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[2] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[2],
+         Alarm := Alarm.Fermi[2],
+         Warning := Warning.Fermi[2]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[3] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[3],
+         Alarm := Alarm.Fermi[3],
+         Warning := Warning.Fermi[3]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[4] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[4],
+         Alarm := Alarm.Fermi[4],
+         Warning := Warning.Fermi[4]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[5] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[5],
+         Alarm := Alarm.Fermi[5],
+         Warning := Warning.Fermi[5]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[6] Valve Manager"
+      #Fermi(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Fermi[6],
+         Alarm := Alarm.Fermi[6],
+         Warning := Warning.Fermi[6]
+      );
+
+      #Fermi.Q;
+   END_REGION
+
+   REGION "P[1...6]  COut Fermi"
+      REGION COut STANDSTILL Fermi
+          // Controllo uscita COut STANDSTILL in base allo stato di tutti i Pin
+          IF  Fermi[1].Sts.Standstill AND
+              Fermi[2].Sts.Standstill AND
+              Fermi[3].Sts.Standstill AND
+              Fermi[4].Sts.Standstill AND
+              Fermi[5].Sts.Standstill AND
+              Fermi[6].Sts.Standstill THEN
+              COut.Fermi.Standstill := TRUE;
+          ELSE
+              COut.Fermi.Standstill := FALSE;
+          END_IF;
+      END_REGION ;
+
+
+      REGION COut AT REST #Fermi
+          // Controllo uscita COut AT_REST in base allo stato di tutti i Pin
+          IF  Fermi[1].COut.Rest OR Fermi[1].DataIn.Rest_Ls[1] AND
+              Fermi[2].COut.Rest OR Fermi[2].DataIn.Rest_Ls[1] AND
+              Fermi[3].COut.Rest OR Fermi[3].DataIn.Rest_Ls[1] AND
+              Fermi[4].COut.Rest OR Fermi[4].DataIn.Rest_Ls[1] AND
+              Fermi[5].COut.Rest OR Fermi[5].DataIn.Rest_Ls[1] AND
+              Fermi[6].COut.Rest OR Fermi[6].DataIn.Rest_Ls[1] THEN
+              COut.Fermi.Rest := 1;
+          ELSE
+              COut.Fermi.Rest := 0;
+          END_IF;
+      END_REGION ;
+
+      REGION COut AT WORK Fermi
+          // Controllo uscita COut AT_WORK in base allo stato di tutti i Pin
+          IF Fermi[1].COut.Work AND
+              Fermi[2].COut.Work AND
+              Fermi[3].COut.Work AND
+              Fermi[4].COut.Work AND
+              Fermi[5].COut.Work AND
+              Fermi[6].COut.Work THEN
+              COut.Fermi.Work := 1;
+          ELSE
+              COut.Fermi.Work := 0;
+          END_IF;
+      END_REGION ;
+
+   END_REGION
+
+   REGION "Fermi - Accumulativo status Alarm"
+      Sts.Fermi_AlarmPresence := NOT ((((((NOT (Fermi[1].V.ValveSts.AlarmPresence) AND NOT (Fermi[2].V.ValveSts.AlarmPresence)) AND NOT (Fermi[3].V.ValveSts.AlarmPresence)) AND NOT (Fermi[4].V.ValveSts.AlarmPresence)) AND NOT (Fermi[5].V.ValveSts.AlarmPresence)) AND NOT (Fermi[6].V.ValveSts.AlarmPresence)));
+   END_REGION
+
+   REGION "HMI STATUS - Postazione"
+      // Area dati appoggio per HMI
+      // FERMI POS.3
+      HMI.FermiSts.Standstill := COut.Fermi.Standstill;
+      HMI.FermiSts.Rest := COut.Fermi.Rest;
+      HMI.FermiSts.Work := COut.Fermi.Work;
+      HMI.FermiSts.AlarmPresence := Sts.Fermi_AlarmPresence;
+
+
+
+   END_REGION
+
+   REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Fermi[1].MachineInterface,
+         MachineInterface_2 := Fermi[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[4].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[5].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Fermi[6].MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Fermi[1].MachineInterface, MachineInterface_2 := Fermi[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[5].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Fermi[6].MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

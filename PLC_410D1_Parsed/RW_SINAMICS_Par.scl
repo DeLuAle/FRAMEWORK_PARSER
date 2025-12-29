@@ -1,0 +1,61 @@
+﻿// Block: RW_SINAMICS_Par
+// Title: Main
+
+FUNCTION_BLOCK "RW_SINAMICS_Par"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Main
+   VAR_INPUT
+      Enable : Bool;
+      ReadWrite : Bool;
+      ParNo : UInt;
+      Index : UInt;
+      AxisNo : USInt;
+      HW_ID : HW_IO;
+      TokenChain : Int;
+      ValueWriteReal : Real;
+      ValueWriteDint : DInt;
+   END_VAR
+
+   VAR_OUTPUT
+      Done : Bool;
+      Error : Bool;
+      ValueReadReal : Real;
+      ValueReadDint : DInt;
+   END_VAR
+
+   VAR
+      SinaParaS : SinaParaS;
+   END_VAR
+
+   VAR_TEMP
+      ReadWriteReq : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Main"
+      ReadWriteReq := (Enable OR SinaParaS.Busy)
+                   AND NOT ((SinaParaS.Done OR SinaParaS.Error) AND SinaParaS.Start);
+                  
+      SinaParaS.Start := GetToken(Enable := ReadWriteReq , Chain := TokenChain);
+
+      SinaParaS(ReadWrite := ReadWrite,
+                  Parameter := ParNo,
+                  Index := Index,
+                  AxisNo := AxisNo,
+                  hardwareId := HW_ID,
+                  ValueWrite1 := ValueWriteReal,
+                  ValueWrite2 := ValueWriteDint,
+                  ValueRead1 => ValueReadReal,
+                  ValueRead2 => ValueReadDint);
+       
+       Done := SinaParaS.Done AND SinaParaS.Start;
+       Error := SinaParaS.Error AND SinaParaS.Start;
+                 
+                 
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

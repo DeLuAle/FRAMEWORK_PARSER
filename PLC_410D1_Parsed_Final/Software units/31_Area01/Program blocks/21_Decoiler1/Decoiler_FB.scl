@@ -1,0 +1,540 @@
+﻿// Block: Decoiler_FB
+// Title: <<<  MATERIAL FEEDING - PAY-OFF BKW / FWD  >>>
+
+FUNCTION_BLOCK "Decoiler_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<<  MATERIAL FEEDING - PAY-OFF BKW / FWD  >>>
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         Feed : udt_DeviceSafetyInterface;
+         Jaws : udt_DeviceSafetyInterface;
+         Coupling : udt_DeviceSafetyInterface;
+         SnubberLift : udt_DeviceSafetyInterface;
+         SnubberRoll : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : TAx_DriveInterface;
+      HW_ID_TEL1 : HW_SUBMODULE;
+      DataIn : Struct
+         DiameterSensor : Int;
+         LsPosizioneRazza : Bool;
+         Feed : SpeedMachine_DataIn;
+         Jaws : ValveMachine_DataIn;
+         Coupling : ValveMachine_DataIn;
+         SnubberLift : ValveMachine_DataIn;
+         SnubberRoll : ValveMachine_DataIn;
+         Loop : Struct
+            Connector : Bool;
+            S_MinHigh : Bool;
+            S_SpeedAsjust : Bool;
+            S_MaxLow : Bool;
+         END_STRUCT;
+         PneumaticBrake : Struct
+            PbOpenClose : Bool;
+            PbPartialOpenClose : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Decoiler_Manager;
+         PressureRunning : Bool;
+      END_STRUCT;
+      Config : Struct
+         Loop : Struct
+            Exist_S_MinHigh : Bool;
+            Exist_S_SpeedAdjust : Bool;
+         END_STRUCT;
+         Feed : SpeedMachine_Config;
+         Jaws : ValveMachine_Config;
+         Coupling : ValveMachine_Config;
+         SnubberLift : ValveMachine_Config;
+         SnubberRoll : ValveMachine_Config;
+         Enable_End_Of_Coil_Using_Loop : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         Feed : SpeedMachine_DataOut;
+         Jaws : ValveMachine_DataOut;
+         Coupling : ValveMachine_DataOut;
+         SnubberLift : ValveMachine_DataOut;
+         SnubberRoll : ValveMachine_DataOut;
+         PneumaticBrake : Struct
+            V_Open : Bool;
+            V_PartialHigh : Bool;
+            V_PartialLow : Bool;
+            Lp_PbPartialBrake : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      COut : Decoiler_Status;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Decoiler_Pers;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Feed : SpeedMachine_Alr;
+         Jaws : ValveAlr;
+         Coupling : ValveAlr;
+         SnubberLift : ValveAlr;
+         SnubberRoll : ValveAlr;
+         DimeterSensor : Struct
+            SensorrPresetNeed : Bool;
+         END_STRUCT;
+         Loop : Struct
+            ConnectorUnplugged : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Warning : Struct
+         EndCoilDetect : Bool;
+         Feed : SpeedMachine_Wng;
+         Jaws : ValveMachine_Wng;
+         Coupling : ValveMachine_Wng;
+         SnubberLift : ValveMachine_Wng;
+         SnubberRoll : ValveMachine_Wng;
+         Loop : Struct
+            MinHigh : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      HMI : Struct
+         Diameter_ButtonPreset : Bool;
+         Diameter_PresetValue : Real;
+      END_STRUCT;
+      Sts : Struct
+         StopPosizioneRazza : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Jaws : Struct
+            AutoOpen : Bool;
+            TON_Pause : IEC_TIMER;
+            TON_Duration : IEC_TIMER;
+         END_STRUCT;
+         Brake : Struct
+            Open_ReqByMotor : Bool;
+            TON_PartialOFF : IEC_TIMER;
+            TON_OpenOFF : IEC_TIMER;
+         END_STRUCT;
+      END_STRUCT;
+      DiameterSensor : Decoiler_DiameterSensor_FB;
+      Loop : Decoiler_Loop_FB;
+      Feed : SpeedMachine_FB;
+      PneumaticBrake : Decoiler_PneumaticBrake;
+      Jaws : ValveMachine_FB;
+      SnubberLift : ValveMachine_FB;
+      SnubberRoll : ValveMachine_FB;
+      Coupling : ValveMachine_FB;
+      TON_EndCoilDetect : IEC_TIMER;
+      AuxPE : Struct
+         LsPosizioneRazza : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         LsPosizioneRazza : Bool;
+      END_STRUCT;
+      Req : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      PI : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "< Coil Diameter >"
+      #DiameterSensor(
+         en := TRUE,
+         InLine := CIn.Manager.IsInLine,
+         Preset_Conditions := (NOT (AreaInterface.Aut) AND Feed.COut.Standstill),
+         AnalogSensor := DataIn.DiameterSensor,
+         Preset_Button := HMI.Diameter_ButtonPreset,
+         Preset_Value := HMI.Diameter_PresetValue,
+         PersistentValues := PersistentValues.CoilDiamSensor,
+         Alarm := Alarm.DimeterSensor
+      );
+
+      #DiameterSensor.Q;
+   END_REGION
+
+   REGION "< Loop control >"
+      #Loop(
+         en := TRUE,
+         Enable := ((CIn.Manager.IsInLine AND NOT (CIn.Manager.ModePneumaticBraking)) AND CIn.Manager.Feed.Control_ON),
+         AreaInterface := AreaInterface,
+         DataIn := DataIn.Loop,
+         Config := Config.Loop,
+         PersistentValues := PersistentValues.Loop,
+         Alarm := Alarm.Loop,
+         Warning := Warning.Loop
+      );
+
+      #Loop.Q;
+   END_REGION
+
+   REGION "Alarm End of coil"
+      #TON_EndCoilDetect(
+         IN := (((((((Config.Enable_End_Of_Coil_Using_Loop AND AreaInterface.Aut) AND CIn.Manager.IsInLine) AND DataIn.Loop.Connector) AND NOT (DataIn.Loop.S_SpeedAsjust)) AND NOT (Warning.EndCoilDetect)) AND NOT (CIn.Manager.EmptiyngConfirmed)) AND (PersistentValues.CoilDiamSensor.Par.EndCoil_Diam > DiameterSensor.CoilDiameter)),
+         PT := PersistentValues.CoilDiamSensor.Par.EndCoil_Timer
+      );
+
+      #TON_EndCoilDetect.Q;
+      IF #TON_EndCoilDetect.Q THEN
+         Warning.EndCoilDetect := TRUE;
+      END_IF;
+      IF CIn.Manager.EmptiyngConfirmed THEN
+         Warning.EndCoilDetect := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn Manager"
+      Feed.CIn.Manager := CIn.Manager.Feed;
+   END_REGION
+
+   REGION "Reset control On with pneoumatic bracking"
+      IF CIn.Manager.ModePneumaticBraking THEN
+         Feed.CIn.Manager.Control_ON := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Velocity override with no coupling"
+
+      IF NOT PersistentValues.Coupling.Engaged OR
+          NOT Coupling.COut.Work
+      THEN
+          Feed.CIn.Manager.Vel := PersistentValues.Feed.Man.VelFwdHigh;
+      END_IF;
+          
+
+   END_REGION
+
+   REGION "CIn Velocity Override"
+      Feed.CIn.VelocityOverride.Enable := ((CIn.Manager.IsInLine AND Loop.Enable) OR NOT (PneumaticBrake.Open));
+      IF (CIn.Manager.IsInLine AND Loop.Enable) THEN
+         Feed.CIn.VelocityOverride.Value := LREAL_TO_REAL(Loop.Override);
+      END_IF;
+      IF NOT (PneumaticBrake.Open) THEN
+         Feed.CIn.VelocityOverride.Value := 0.0;
+      END_IF;
+   END_REGION
+
+   REGION "CIn (external enables)"
+      Feed.CIn.Bwd_ExtEnable := NOT (Loop.MinHigh);
+      Feed.CIn.Fwd_ExtEnable := (NOT (Loop.MaxLow) OR (AreaInterface.Cycle AND (Feed.CIn.VelocityOverride.Value = 0.0)) OR (AreaInterface.Man AND DataIn.Feed.PB.Fwd_Plus));
+      Feed.CIn.EnableManChangeVel := PersistentValues.Coupling.Engaged;
+      Feed.CIn.ExternalAlarms := NOT ((NOT (Loop.Sts.AlarmsPresence) AND NOT (DiameterSensor.Sts.AlarmsPresence)));
+   END_REGION
+
+   REGION "Config"
+      Feed.Config := Config.Feed;
+
+
+      Feed.Config.Ax.LeadScrewPitchVal := PI * DiameterSensor.CoilDiameter;
+
+
+
+
+   END_REGION
+
+   REGION "Data In"
+      Feed.DataIn := DataIn.Feed;
+
+      PE.LsPosizioneRazza := DataIn.LsPosizioneRazza AND NOT AuxPE.LsPosizioneRazza;
+      AuxPE.LsPosizioneRazza := DataIn.LsPosizioneRazza;
+
+      IF (DataIn.Feed.PB.Fwd_Plus OR DataIn.Feed.PB.Bwd_Minus) AND
+          PE.LsPosizioneRazza
+      THEN
+          Sts.StopPosizioneRazza := TRUE;
+      ELSIF NOT DataIn.Feed.PB.Fwd_Plus AND
+          NOT DataIn.Feed.PB.Bwd_Minus
+      THEN
+          Sts.StopPosizioneRazza := FALSE;
+      END_IF;
+          
+      Feed.DataIn.PB.Fwd_Plus := DataIn.Feed.PB.Fwd_Plus AND NOT Sts.StopPosizioneRazza;
+      Feed.DataIn.PB.Bwd_Minus := DataIn.Feed.PB.Bwd_Minus AND NOT Sts.StopPosizioneRazza;
+          
+          
+
+   END_REGION
+
+   REGION "Feed machine"
+      #Feed(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Feed,
+         Drive := Drive,
+         HW_ID_TEL1 := HW_ID_TEL1,
+         Par := PersistentValues.Feed,
+         Warning := Warning.Feed,
+         Alarm := Alarm.Feed,
+         DataOut => DataOut.Feed,
+         COut => COut.Feed
+      );
+
+      #Feed.Q;
+   END_REGION
+
+   REGION "< Pneumatic brake >"
+      #Ctrl.Brake.TON_OpenOFF(
+         IN := (NOT (Req) AND Feed.S120.AxisSts.Standstill),
+         PT := Config.Feed.Ax.PowerOffDelay
+      );
+
+      #Ctrl.Brake.TON_PartialOFF(
+         IN := (CIn.Manager.Feed.Control_ON AND NOT (Feed.S120.Sts.AxisEnabled)),
+         PT := T#1s
+      );
+
+      #PneumaticBrake(
+         en := TRUE,
+         Open_Req_FeedMotor := Ctrl.Brake.Open_ReqByMotor,
+         Open_Req_Snubber := (((NOT ((NOT (SnubberRoll.COut.Rest_CheckNext) AND NOT (SnubberRoll.COut.Work_CheckNext))) AND NOT (SnubberLift.COut.Rest)) AND AreaInterface.Man) AND NOT (Feed.CIn.Manager.Control_ON)),
+         Partial_Req := (#Ctrl.Brake.TON_PartialOFF.Q AND CIn.Manager.ModePneumaticBraking),
+         AreaInterface := AreaInterface,
+         PbOpenClose := DataIn.PneumaticBrake.PbOpenClose,
+         PbPartilaOpenClose := DataIn.PneumaticBrake.PbPartialOpenClose,
+         InLine := CIn.Manager.IsInLine,
+         DiameterValue := DiameterSensor.CoilDiameter,
+         PersistentValues := PersistentValues,
+         Lamp_Partial_Forced => DataOut.PneumaticBrake.Lp_PbPartialBrake,
+         V_Open => DataOut.PneumaticBrake.V_Open,
+         V_PartialHigh => DataOut.PneumaticBrake.V_PartialHigh
+      );
+
+      Req := NOT ((NOT (Feed.COut.Bwd_CheckNext) AND NOT (Feed.COut.Fwd_CheckNext)));
+      #Ctrl.Brake.TON_OpenOFF.Q;
+      IF (#Ctrl.Brake.TON_OpenOFF.Q OR NOT (Feed.S120.Sts.AxisEnabled)) THEN
+         Ctrl.Brake.Open_ReqByMotor := FALSE;
+      ELSIF NOT ((NOT (Feed.COut.Bwd_CheckNext) AND NOT (Feed.COut.Fwd_CheckNext))) THEN
+         Ctrl.Brake.Open_ReqByMotor := TRUE;
+      END_IF;
+      #Ctrl.Brake.TON_PartialOFF.Q;
+      #PneumaticBrake.Q;
+   END_REGION
+
+   REGION "Ctrl Automatic Open"
+      #Ctrl.Jaws.TON_Pause(
+         IN := (((((NOT (CIn.Manager.Jaws.Control_ON) AND CIn.Manager.IsInLine) AND (DiameterSensor.CoilDiameter > PersistentValues.Jaws.Par.DiamEnable)) AND (PersistentValues.Jaws.Par.Pause > T#0ms)) AND (PersistentValues.Jaws.Par.Duration > T#0ms)) AND NOT (Jaws.V.WorkSolenoid)),
+         PT := PersistentValues.Jaws.Par.Pause
+      );
+
+      #Ctrl.Jaws.TON_Duration(
+         IN := (((((NOT (CIn.Manager.Jaws.Control_ON) AND CIn.Manager.IsInLine) AND (DiameterSensor.CoilDiameter > PersistentValues.Jaws.Par.DiamEnable)) AND (PersistentValues.Jaws.Par.Pause > T#0ms)) AND (PersistentValues.Jaws.Par.Duration > T#0ms)) AND Jaws.V.WorkSolenoid),
+         PT := PersistentValues.Jaws.Par.Duration
+      );
+
+      #Ctrl.Jaws.TON_Pause.Q;
+      IF #Ctrl.Jaws.TON_Pause.Q THEN
+         Ctrl.Jaws.AutoOpen := TRUE;
+      END_IF;
+      #Ctrl.Jaws.TON_Duration.Q;
+      IF #Ctrl.Jaws.TON_Duration.Q THEN
+         Ctrl.Jaws.AutoOpen := FALSE;
+      END_IF;
+      IF NOT (((((NOT (CIn.Manager.Jaws.Control_ON) AND CIn.Manager.IsInLine) AND (DiameterSensor.CoilDiameter > PersistentValues.Jaws.Par.DiamEnable)) AND (PersistentValues.Jaws.Par.Pause > T#0ms)) AND (PersistentValues.Jaws.Par.Duration > T#0ms))) THEN
+         Ctrl.Jaws.AutoOpen := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn Manager"
+      Jaws.Cin.Manager := CIn.Manager.Jaws;
+
+      IF NOT CIn.Manager.Jaws.Control_ON AND CIn.Manager.IsInLine THEN
+          
+          Jaws.Cin.Manager.Control_ON := Ctrl.Jaws.AutoOpen;
+          Jaws.Cin.Manager.Work := Ctrl.Jaws.AutoOpen;
+          Jaws.Cin.Manager.Rest := FALSE;
+        
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "CIn (external enables)"
+      Jaws.Cin.Rest_ExtEnable := NOT ((NOT (CIn.Manager.IsInLine) AND NOT (CIn.Manager.IsOutLine)));
+      Jaws.Cin.Work_ExtEnable := NOT ((NOT (CIn.Manager.IsInLine) AND NOT (CIn.Manager.IsOutLine)));
+      Jaws.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve machine"
+      #Jaws(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Jaws,
+         DataIn := DataIn.Jaws,
+         Config := Config.Jaws,
+         Alarm := Alarm.Jaws,
+         Warning := Warning.Jaws,
+         COut => COut.Jaws,
+         DataOut => DataOut.Jaws
+      );
+
+      #Jaws.Q;
+   END_REGION
+
+   REGION "CIn Manager"
+      Coupling.Cin.Manager := CIn.Manager.Coupling;
+   END_REGION
+
+   REGION "CIn (external enables)"
+      Coupling.Cin.Rest_ExtEnable := (NOT (PneumaticBrake.Open) AND Feed.S120.AxisSts.Standstill);
+      Coupling.Cin.Work_ExtEnable := true;
+      Coupling.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve manchine"
+      #Coupling(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Coupling,
+         DataIn := DataIn.Coupling,
+         Config := Config.Coupling,
+         Alarm := Alarm.Coupling,
+         Warning := Warning.Coupling,
+         COut => COut.Coupling,
+         DataOut => DataOut.Coupling
+      );
+
+      #Coupling.Q;
+   END_REGION
+
+   REGION "Coupling is engagged"
+      IF (Coupling.V.ValveSts.RestInProgress OR NOT (Coupling.V.IsAtWork) OR Coupling.V.ValveSts.IsAtRest) THEN
+         PersistentValues.Coupling.Engaged := FALSE;
+      ELSIF DataIn.Coupling.Work_Ls[1] THEN
+         PersistentValues.Coupling.Engaged := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn Manager"
+      SnubberLift.Cin.Manager := CIn.Manager.SnubberLift;
+   END_REGION
+
+   REGION "CIn (external enables)"
+      SnubberLift.Cin.Work_ExtEnable := NOT ((NOT (CIn.Manager.IsInLine) AND NOT (CIn.Manager.IsOutLine)));
+      SnubberLift.Cin.Rest_ExtEnable := NOT ((NOT (CIn.Manager.IsInLine) AND NOT (CIn.Manager.IsOutLine)));
+      SnubberLift.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve machine Manager"
+      #SnubberLift(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.SnubberLift,
+         DataIn := DataIn.SnubberLift,
+         Config := Config.SnubberLift,
+         Alarm := Alarm.SnubberLift,
+         Warning := Warning.SnubberLift,
+         COut => COut.SnubberLift,
+         DataOut => DataOut.SnubberLift
+      );
+
+      #SnubberLift.Q;
+   END_REGION
+
+   REGION "CIn Manager"
+      SnubberRoll.Cin.Manager := CIn.Manager.SnubberRoll;
+   END_REGION
+
+   REGION "CIn (external enables)"
+      SnubberRoll.Cin.Rest_ExtEnable := (PneumaticBrake.Open OR SnubberLift.COut.Rest);
+      SnubberRoll.Cin.Work_ExtEnable := (PneumaticBrake.Open OR SnubberLift.COut.Rest);
+      SnubberRoll.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "Valve machine Manager"
+      #SnubberRoll(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.SnubberRoll,
+         DataIn := DataIn.SnubberRoll,
+         Config := Config.SnubberRoll,
+         Alarm := Alarm.SnubberRoll,
+         Warning := Warning.SnubberRoll,
+         COut => COut.SnubberRoll,
+         DataOut => DataOut.SnubberRoll
+      );
+
+      #SnubberRoll.Q;
+   END_REGION
+
+   REGION "COut  machine"
+      COut.CoilDiameter := 0.0;
+      COut.EndOfCoil := Warning.EndCoilDetect;
+      COut.CouplingEngaged := PersistentValues.Coupling.Engaged;
+   END_REGION
+
+   REGION "Collect machine to zone interface in all cases"
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Jaws.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Coupling.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := SnubberLift.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := NOT (CIn.Manager.IsOutLine),
+         AdditionalWarnings := NOT ((NOT (Loop.Sts.WarningsPresence) AND NOT (DiameterSensor.Sts.WarningsPresence))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := SnubberRoll.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_NotExist"(
+         en := CIn.Manager.IsOutLine,
+         MachineInterface => MachineInterface
+      );
+
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Jaws.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Coupling.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := SnubberLift.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      END_IF;
+      IF NOT (CIn.Manager.IsOutLine) THEN
+         MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Loop.Sts.WarningsPresence) AND NOT (DiameterSensor.Sts.WarningsPresence))), MachineInterface_1 := MachineInterface, MachineInterface_2 := SnubberRoll.MachineInterface, AdditionalAlarms := FALSE);
+      END_IF;
+      IF CIn.Manager.IsOutLine THEN
+         "MachineInterface_NotExist"();
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

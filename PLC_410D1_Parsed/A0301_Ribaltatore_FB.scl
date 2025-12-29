@@ -1,0 +1,719 @@
+﻿// Block: A0301_Ribaltatore_FB
+
+FUNCTION_BLOCK "A0301_Ribaltatore_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI_Feed : udt_DeviceSafetyInterface;
+      DSI_Valve : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : Struct
+         OP_MoveToPos_PB : Bool;
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            Ax : Positioning_EPOS_Machine_Manager;
+            Solleva : ValveMachine_Manager;
+         END_STRUCT;
+         SemiAut_PB : Bool;
+         Ax_Req : Struct
+            Pos0 : Bool;
+            Pos1 : Bool;
+            Pos2 : Bool;
+            Pos3 : Bool;
+         END_STRUCT;
+         P2 : Struct
+            Fermi : ValveMachine_COut;
+            Sollevatore : ValveMachine_COut;
+         END_STRUCT;
+         P3 : Struct
+            Fermi : ValveMachine_COut;
+         END_STRUCT;
+         P4 : Struct
+            Fermi : ValveMachine_COut;
+         END_STRUCT;
+         Trasporto : SpeedMachine_COut;
+      END_STRUCT;
+      Config : Struct
+         Ax : Positioning_EPOS_Machine_Config_NEW;
+         Solleva_Rib : Array[1..6] of ValveMachine_Config;
+      END_STRUCT;
+      HWID_Ax_TEL111 : HW_SUBMODULE;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Positioning_EPOS_Machine_DataOut;
+      COut : Struct
+         Solleva_Rib : ValveMachine_COut;
+         Ribaltatore : Positioning_EPOS_Machine_COut;
+         Ribaltatore_Sts : Struct
+            Pos0_Reached : Bool;
+            Pos1_Reached : Bool;
+            Pos2_Reached : Bool;
+            Pos3_Reached : Bool;
+         END_STRUCT;
+         Ribaltatore_AtRest : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par_Manu : Positioning_EPOS_Machine_Par;
+      Par_Aut : A0301_Mach_Ribaltatore_Par;
+      Pers_Data : Struct
+         EncoderAbsolute_Preset_OK : Bool;
+         Persistent_ActualPosition : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Solleva_Rib : Array[1..6] of ValveAlr;
+         Ax : Positioning_EPOS_Machine_Alr;
+      END_STRUCT;
+      Warning : Struct
+         Ax : Positioning_EPOS_Machine_Wng;
+         Solleva_Rib : Array[1..6] of ValveMachine_Wng;
+         OP_REST_MissingCnd : Bool;
+         OP_WORK_MissingCnd : Bool;
+      END_STRUCT;
+      ValueVelOvr : Array[1..10] of Real;
+      Ax : Positioning_EPOS_Machine_FB_NEW;
+      Solleva_Rib : Array[1..6] of ValveMachine_FB;
+      TON : Struct
+         DelayPos1_SG : IEC_TIMER;
+      END_STRUCT;
+      Sts : Struct
+         ReadyForMove : Bool;
+         OP_CanMoveFreely : Bool;
+         OP_MoveToPos_Cnd : Bool;
+         OP_Rest_Cnd : Bool;
+         OP_Work_Cnd : Bool;
+         Solleva_Rib_AlarmPresence : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Ribaltatore : Struct
+            OP_MoveToPos : Bool;
+            Ax_MoveToPos : Bool;
+         END_STRUCT;
+         Solleva : Struct
+            OP_Rest_Man : Bool;
+            OP_Work_Man : Bool;
+            OP_Rest_Aut : Bool;
+            OP_Work_Aut : Bool;
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      HMI : Struct
+         Ax : Struct
+            B_Preset : Bool;
+            PresetPosition : LReal;
+            TargetPosition : LReal;
+         END_STRUCT;
+         SollevaRibSts : "UDT_HMI-Sts_ValvePosA0301";
+         OP_Sel_Pos0 : Bool;
+         OP_Sel_Pos1 : Bool;
+         OP_Sel_Pos2 : Bool;
+         OP_Sel_Pos3 : Bool;
+      END_STRUCT;
+      AUX : Struct
+         Solleva_Rib : Struct
+            OP_Rest_PB : Bool;
+            OP_Work_PB : Bool;
+         END_STRUCT;
+         Ribaltatore : Struct
+            Ax_MoveToPos_PB : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      TON_Anticipi : Struct
+         Rest : Struct
+            SollevaRib : IEC_TIMER;
+         END_STRUCT;
+         Work : Struct
+            SollevaRib : IEC_TIMER;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Solleva : Struct
+            OP_Rest_PB : Bool;
+            OP_Work_PB : Bool;
+         END_STRUCT;
+         Ribaltatore : Struct
+            Ax_MoveToPos_PB : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      VelOvr_Max : Real;
+      i : Int;
+      Anticipi : Struct
+         SollevaRib : Struct
+            COut_Work : Bool;
+            COut_Rest : Bool;
+            Not_Ls_Work : Bool;
+            Not_Ls_Rest : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      CheckAnticipo : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Anticipi Movimento LAVORO"
+      #TON_Anticipi.Work.SollevaRib(
+         IN := (Anticipi.SollevaRib.COut_Work AND NOT (Anticipi.SollevaRib.Not_Ls_Work)),
+         PT := T#200MS
+      );
+
+      Anticipi.SollevaRib.Not_Ls_Work := NOT ((((((NOT (Solleva_Rib[1].DataIn.Work_Ls[1]) AND NOT (Solleva_Rib[2].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[3].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[4].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[5].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[6].DataIn.Work_Ls[1])));
+      Anticipi.SollevaRib.COut_Work := (((((Solleva_Rib[1].COut.Work AND Solleva_Rib[2].COut.Work) AND Solleva_Rib[3].COut.Work) AND Solleva_Rib[4].COut.Work) AND Solleva_Rib[5].COut.Work) AND Solleva_Rib[6].COut.Work);
+      #TON_Anticipi.Work.SollevaRib.Q;
+   END_REGION
+
+   REGION "Anticipi Movimento RIPOSO"
+      #TON_Anticipi.Rest.SollevaRib(
+         IN := (Anticipi.SollevaRib.COut_Rest AND Anticipi.SollevaRib.Not_Ls_Rest),
+         PT := T#100MS
+      );
+
+      Anticipi.SollevaRib.Not_Ls_Rest := (((((NOT (Solleva_Rib[1].DataIn.Work_Ls[1]) AND NOT (Solleva_Rib[2].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[3].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[4].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[5].DataIn.Work_Ls[1])) AND NOT (Solleva_Rib[6].DataIn.Work_Ls[1]));
+      Anticipi.SollevaRib.COut_Rest := (((((Solleva_Rib[1].DataOut.RestSolenoid AND Solleva_Rib[2].DataOut.RestSolenoid) AND Solleva_Rib[3].DataOut.RestSolenoid) AND Solleva_Rib[4].DataOut.RestSolenoid) AND Solleva_Rib[5].DataOut.RestSolenoid) AND Solleva_Rib[6].DataOut.RestSolenoid);
+      #TON_Anticipi.Rest.SollevaRib.Q;
+      IF #TON_Anticipi.Rest.SollevaRib.Q THEN
+         CheckAnticipo := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := PTrk.A0301.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0301.P
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := Sts.OP_CanMoveFreely,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "BTrk_Absence"(
+         en := TRUE,
+         Item := BTrk.A0301.B
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0301.P);
+      Sts.OP_CanMoveFreely := TRUE;
+      "BTrk_Absence"(Item := BTrk.A0301.B);
+      Sts.OP_CanMoveFreely := (TRUE OR (Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) OR ((Sts.OP_CanMoveFreely AND COut.Solleva_Rib.Work) AND CIn.Trasporto.Standstill));
+   END_REGION
+
+   REGION "Comando Operazione Lavoro  (AUT) - RIBALTATORE + SOLLEVA"
+      Ctrl.Ribaltatore.OP_MoveToPos := (CIn.Manager.Ax.Control_ON AND CIn.Manager.Ax.MoveToPos);
+      Ctrl.Solleva.OP_Rest_Aut := (CIn.Manager.Solleva.Control_ON AND CIn.Manager.Solleva.Rest);
+      Ctrl.Solleva.OP_Work_Aut := (CIn.Manager.Solleva.Control_ON AND CIn.Manager.Solleva.Work);
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (MAN) RIBALTATORE + SOLLEVA"
+      PE.Ribaltatore.Ax_MoveToPos_PB := PosEdge(Ax.DataIn.PB.MoveToPos);
+      Ctrl.Ribaltatore.Ax_MoveToPos := (((((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Ribaltatore.Ax_MoveToPos_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos)) AND HMI.OP_Sel_Pos0) AND NOT (COut.Ribaltatore_Sts.Pos0_Reached)) OR ((((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Ribaltatore.Ax_MoveToPos_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos)) AND HMI.OP_Sel_Pos1) AND NOT (COut.Ribaltatore_Sts.Pos1_Reached)) OR ((((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Ribaltatore.Ax_MoveToPos_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos)) AND HMI.OP_Sel_Pos2) AND NOT (COut.Ribaltatore_Sts.Pos2_Reached)) OR ((((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Ribaltatore.Ax_MoveToPos_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos)) AND HMI.OP_Sel_Pos3) AND NOT (COut.Ribaltatore_Sts.Pos3_Reached)));
+      PE.Solleva.OP_Rest_PB := PosEdge(DataIn.OP_Rest_PB);
+      PE.Solleva.OP_Work_PB := PosEdge(DataIn.OP_Work_PB);
+      Ctrl.Solleva.OP_Rest_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Solleva.OP_Rest_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Solleva.OP_Rest_Man)) AND DataIn.OP_Rest_PB) AND NOT (DataIn.OP_Work_PB)) OR (((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos) AND HMI.OP_Sel_Pos0) AND COut.Ribaltatore_Sts.Pos0_Reached));
+      Ctrl.Solleva.OP_Work_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND PE.Solleva.OP_Work_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Solleva.OP_Work_Man)) AND DataIn.OP_Work_PB) AND NOT (DataIn.OP_Rest_PB)) OR ((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos) AND NOT (HMI.OP_Sel_Pos0)) OR (((((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Ctrl.Ribaltatore.Ax_MoveToPos) AND HMI.OP_Sel_Pos0) AND NOT (COut.Ribaltatore_Sts.Pos0_Reached)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_MoveToPos_Cnd := (CIn.Manager.Ax.MoveToPos OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Work_Cnd := ((CIn.Manager.Ax.MoveToPos OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely)) OR TRUE OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Rest_Cnd := (TRUE OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL) SollevaRib"
+      Ctrl.Solleva.OP_Rest := NOT ((NOT (Ctrl.Solleva.OP_Rest_Man) AND NOT (Ctrl.Solleva.OP_Rest_Aut)));
+      Ctrl.Solleva.OP_Work := NOT ((NOT (Ctrl.Solleva.OP_Work_Man) AND NOT (Ctrl.Solleva.OP_Work_Aut)));
+   END_REGION
+
+   REGION "Solleva_Rib  -  Cin Manager (Esecuzione sequenza comandi)"
+      //
+      Solleva_Rib[1].Cin.Manager.Rest := FALSE;
+      Solleva_Rib[2].Cin.Manager.Rest := FALSE;
+      Solleva_Rib[3].Cin.Manager.Rest := FALSE;
+      Solleva_Rib[4].Cin.Manager.Rest := FALSE;
+      Solleva_Rib[5].Cin.Manager.Rest := FALSE;
+      Solleva_Rib[6].Cin.Manager.Rest := FALSE;
+
+      //************************************
+      Solleva_Rib[1].Cin.Manager.Work := FALSE;
+      Solleva_Rib[2].Cin.Manager.Work := FALSE;
+      Solleva_Rib[3].Cin.Manager.Work := FALSE;
+      Solleva_Rib[4].Cin.Manager.Work := FALSE;
+      Solleva_Rib[5].Cin.Manager.Work := FALSE;
+      Solleva_Rib[6].Cin.Manager.Work := FALSE;
+
+      //
+      // CIn Manager  Control ON se ho un richiesta di comando attiva
+      IF AreaInterface.Aut OR CIn.SemiAut_PB THEN
+          Solleva_Rib[1].Cin.Manager.Control_ON := TRUE;
+          Solleva_Rib[2].Cin.Manager.Control_ON := TRUE;
+          Solleva_Rib[3].Cin.Manager.Control_ON := TRUE;
+          Solleva_Rib[4].Cin.Manager.Control_ON := TRUE;
+          Solleva_Rib[5].Cin.Manager.Control_ON := TRUE;
+          Solleva_Rib[6].Cin.Manager.Control_ON := TRUE;
+      ELSE
+          Solleva_Rib[1].Cin.Manager.Control_ON := FALSE;
+          Solleva_Rib[2].Cin.Manager.Control_ON := FALSE;
+          Solleva_Rib[3].Cin.Manager.Control_ON := FALSE;
+          Solleva_Rib[4].Cin.Manager.Control_ON := FALSE;
+          Solleva_Rib[5].Cin.Manager.Control_ON := FALSE;
+          Solleva_Rib[6].Cin.Manager.Control_ON := FALSE;
+      END_IF;
+
+      // Comando CIn Manager Work FERMI se Sfalsatore indietro
+      IF Ctrl.Solleva.OP_Work AND Sts.OP_Work_Cnd THEN
+          
+          Solleva_Rib[1].Cin.Manager.Work := TRUE;
+          Solleva_Rib[2].Cin.Manager.Work := TRUE;
+          Solleva_Rib[3].Cin.Manager.Work := TRUE;
+          Solleva_Rib[4].Cin.Manager.Work := TRUE;
+          Solleva_Rib[5].Cin.Manager.Work := TRUE;
+          Solleva_Rib[6].Cin.Manager.Work := TRUE;
+          
+      END_IF;
+
+      // Comando CIn Manager Rest FERMI se Sfalsatore è basso
+      IF Ctrl.Solleva.OP_Rest AND Sts.OP_Rest_Cnd THEN
+
+          Solleva_Rib[1].Cin.Manager.Rest := TRUE;
+          Solleva_Rib[2].Cin.Manager.Rest := TRUE;
+          Solleva_Rib[3].Cin.Manager.Rest := TRUE;
+          Solleva_Rib[4].Cin.Manager.Rest := TRUE;
+          Solleva_Rib[5].Cin.Manager.Rest := TRUE;
+          Solleva_Rib[6].Cin.Manager.Rest := TRUE;
+
+      END_IF;
+
+
+   END_REGION
+
+   REGION "RIFERIMENTI [AX] - Positioning Manager"
+      // ******************************************************************************************
+          
+          // Rampe in Manuale
+          IF AreaInterface.Man AND NOT CIn.SemiAut_PB THEN
+              Ax.CIn.Manager.Acc := Par_Manu.Man_Acc;
+              Ax.CIn.Manager.Dec := Par_Manu.Man_Dec;
+          END_IF;
+
+
+      // ******************************************************************************************
+      REGION // // CALCOLO DELLA VELOCITA' TRASFERITA DALL'IMPIANTO IN BASE ALLA LUNGHEZZA DEL PEZZO
+          
+          // Inizializzo variabile di appoggio controllo overide massimo a un valore basso rispetto setpoint
+          IF Sys.AuxFirstPLCCycle THEN
+              VelOvr_Max := 100.0;
+          END_IF;
+          
+          // Trasferisco le varibili su un array
+          ValueVelOvr[1] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_1000;
+          ValueVelOvr[2] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_1500;
+          ValueVelOvr[3] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_2000;
+          ValueVelOvr[4] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_2500;
+          ValueVelOvr[5] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_3000;
+          ValueVelOvr[6] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_3500;
+          ValueVelOvr[7] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_4000;
+          ValueVelOvr[8] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_4500;
+          ValueVelOvr[9] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_5000;
+          ValueVelOvr[10] := PPrf_MAIN.ON_WORK.A0301_A0302.Ribaltatore.VelOvr_PLen_UpTo_5500;
+          
+          // Ciclo per verificare la variabile maggiore per prenderla in lavoro
+          FOR i := 1 TO 10 DO
+              IF ValueVelOvr[i] >= VelOvr_Max THEN
+                  VelOvr_Max := ValueVelOvr[i];
+              END_IF;
+          END_FOR;// 
+      END_REGION ;
+
+      IF VelOvr_Max = 0.0 THEN
+          VelOvr_Max := 100.0;
+      END_IF;
+
+      // *****************************************************************************************
+      REGION // CALCOLO DELLA VELOCITA' E TRASFERIMENTO IN BASE ALLO STATO IMPIANTO
+          //
+          Ax.CIn.Manager := CIn.Manager.Ax;
+          //
+          Ax.CIn.VelocityOverride.Enable := TRUE;
+          
+          IF Ax.CIn.Manager.Control_ON THEN
+              // CALCOLO VELOCITA' IN BASE ALL'OVERIDE
+              Ax.CIn.VelocityOverride.Value := VelOvr_Max;
+          ELSE
+              Ax.CIn.VelocityOverride.Value := 100.0;
+          END_IF;
+          
+      END_REGION ;
+
+   END_REGION
+
+   REGION "[Ax] -  Cin External alarm"
+      Ax.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Ax] -  Cin Ext Enable"
+      Ax.CIn.Minus_ExtEnable := TRUE;
+      Ax.CIn.Plus_ExtEnable := (COut.Solleva_Rib.Work OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax.Control_ON)) AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "[Ax] HMI preset position"
+      Ax.HMI.B_Preset := HMI.Ax.B_Preset;
+      Ax.HMI.PresetPosition := HMI.Ax.PresetPosition;
+   END_REGION
+
+   REGION "[Ax] - Positioning Manager"
+      #Ax(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed,
+         Drive := Drive,
+         Config := PrjConfig_A03.A0301.Ribaltatore.Ax,
+         HW_ID_TEL111 := HWID_Ax_TEL111,
+         Par := A0301_Ribaltatore_PERS.Par_Manu,
+         Pers_Data := A0301_Ribaltatore_PERS.Pers_Data,
+         Warning := Warning.Ax,
+         Alarm := Alarm.Ax,
+         DataOut => DataOut,
+         COut => COut.Ribaltatore
+      );
+
+      #Ax.Q;
+   END_REGION
+
+   REGION "Ribaltatore = Setpoint Pos."
+      IF CIn.Ax_Req.Pos0 THEN
+         Ax.CIn.Manager.Pos := Par_Aut.Pos_0;
+      END_IF;
+   END_REGION
+
+   REGION "Ribaltatore = Status / Control - Pos.0"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_0,
+         PosWin := 0.25,
+         Ret_Val => COut.Ribaltatore_Sts.Pos0_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos0_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_0, PosWin := 0.25);
+      COut.Ribaltatore_AtRest := (COut.Ribaltatore_Sts.Pos0_Reached AND CIn.P3.Fermi.Rest);
+   END_REGION
+
+   REGION "Ribaltatore = Status / Control - Pos.1"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_1,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos1_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos1_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_1, PosWin := 0.5);
+   END_REGION
+
+   REGION "Ribaltatore = Status / Control - Pos.2"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_2,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos2_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos2_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_2, PosWin := 0.5);
+   END_REGION
+
+   REGION "Ribaltatore = Status / Control - Pos.3"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := COut.Ribaltatore.ActualPosition,
+         Target := Par_Aut.Pos_3,
+         PosWin := 0.5,
+         Ret_Val => COut.Ribaltatore_Sts.Pos3_Reached
+      );
+
+      COut.Ribaltatore_Sts.Pos3_Reached := "TolWindow"(ActPos := COut.Ribaltatore.ActualPosition, Target := Par_Aut.Pos_3, PosWin := 0.5);
+   END_REGION
+
+   REGION "P[1...6] CIn External alarm"
+      Solleva_Rib[1].Cin.ExternalAlarms := FALSE;
+      Solleva_Rib[2].Cin.ExternalAlarms := FALSE;
+      Solleva_Rib[3].Cin.ExternalAlarms := FALSE;
+      Solleva_Rib[4].Cin.ExternalAlarms := FALSE;
+      Solleva_Rib[5].Cin.ExternalAlarms := FALSE;
+      Solleva_Rib[6].Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "P[1...6] Cin REST Ext Enable"
+      Solleva_Rib[1].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[2].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[3].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[4].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[5].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[6].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "P[1...6] Cin WORK Ext Enable"
+      Solleva_Rib[1].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[2].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[3].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[4].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[5].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Solleva_Rib[6].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Solleva.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Solleva Ribalta - Accumulativo status Alarm"
+      Sts.Solleva_Rib_AlarmPresence := NOT ((((((NOT (Solleva_Rib[1].V.ValveSts.AlarmPresence) AND NOT (Solleva_Rib[2].V.ValveSts.AlarmPresence)) AND NOT (Solleva_Rib[3].V.ValveSts.AlarmPresence)) AND NOT (Solleva_Rib[4].V.ValveSts.AlarmPresence)) AND NOT (Solleva_Rib[5].V.ValveSts.AlarmPresence)) AND NOT (Solleva_Rib[6].V.ValveSts.AlarmPresence)));
+   END_REGION
+
+   REGION "Solleva_Rib [1] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[1],
+         Alarm := Alarm.Solleva_Rib[1],
+         Warning := Warning.Solleva_Rib[1]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "Solleva_Rib [2] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[2],
+         Alarm := Alarm.Solleva_Rib[2],
+         Warning := Warning.Solleva_Rib[2]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "Solleva_Rib [3] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[3],
+         Alarm := Alarm.Solleva_Rib[3],
+         Warning := Warning.Solleva_Rib[3]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "Solleva_Rib [4] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[4],
+         Alarm := Alarm.Solleva_Rib[4],
+         Warning := Warning.Solleva_Rib[4]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "Solleva_Rib [5] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[5],
+         Alarm := Alarm.Solleva_Rib[5],
+         Warning := Warning.Solleva_Rib[5]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "Solleva_Rib [6] Valve Manager"
+      #Solleva_Rib(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.Solleva_Rib[6],
+         Alarm := Alarm.Solleva_Rib[6],
+         Warning := Warning.Solleva_Rib[6]
+      );
+
+      #Solleva_Rib.Q;
+   END_REGION
+
+   REGION "P[Solleva_Rib] COut"
+      COut.Solleva_Rib.Standstill := FALSE;
+      COut.Solleva_Rib.Rest := FALSE;
+      COut.Solleva_Rib.Work := FALSE;
+
+      REGION COut STANDSTILL Solleva_Rib
+          // Controllo uscita COut STANDSTILL in base allo stato di tutti Solleva_Rib
+          IF Solleva_Rib[1].Sts.Standstill AND
+              Solleva_Rib[2].Sts.Standstill AND
+              Solleva_Rib[3].Sts.Standstill AND
+              Solleva_Rib[4].Sts.Standstill AND
+              Solleva_Rib[5].Sts.Standstill AND
+              Solleva_Rib[6].Sts.Standstill THEN
+              COut.Solleva_Rib.Standstill := TRUE;
+          END_IF;
+      END_REGION ;
+
+
+      REGION COut AT REST Solleva_Rib
+          
+          // Controllo uscita COut AT_REST in base allo stato di tutti iSolleva_Rib
+          IF  Solleva_Rib[1].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q AND
+              Solleva_Rib[2].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q AND
+              Solleva_Rib[3].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q AND
+              Solleva_Rib[4].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q AND
+              Solleva_Rib[5].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q AND
+              Solleva_Rib[6].COut.Rest OR TON_Anticipi.Rest.SollevaRib.Q THEN
+              COut.Solleva_Rib.Rest := TRUE;
+          END_IF;
+      END_REGION ;
+
+      REGION COut AT WORK Solleva_Rib
+          // Controllo uscita COut AT_WORK in base allo stato di tutti i Solleva_Rib
+          IF  Solleva_Rib[1].COut.Work AND
+              Solleva_Rib[2].COut.Work AND
+              Solleva_Rib[3].COut.Work AND
+              Solleva_Rib[4].COut.Work AND
+              Solleva_Rib[5].COut.Work AND
+              Solleva_Rib[6].COut.Work THEN
+              COut.Solleva_Rib.Work := TRUE;
+          END_IF;
+      END_REGION ;
+
+   END_REGION
+
+   REGION "HMI STATUS - Postazione"
+      // Area dati appoggio per HMI
+      // SOLLEVA RIBALTA
+      HMI.SollevaRibSts.Standstill := COut.Solleva_Rib.Standstill;
+      HMI.SollevaRibSts.Rest := COut.Solleva_Rib.Rest;
+      HMI.SollevaRibSts.Work := COut.Solleva_Rib.Work;
+      HMI.SollevaRibSts.AlarmPresence := Sts.Solleva_Rib_AlarmPresence;
+
+
+
+
+   END_REGION
+
+   REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := Solleva_Rib[1].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[2].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[3].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[4].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[5].MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Solleva_Rib[6].MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := Solleva_Rib[1].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[2].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[3].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[4].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[5].MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT ((NOT (Warning.OP_REST_MissingCnd) AND NOT (Warning.OP_WORK_MissingCnd))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Solleva_Rib[6].MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

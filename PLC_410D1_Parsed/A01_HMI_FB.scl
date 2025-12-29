@@ -1,0 +1,706 @@
+﻿// Block: A01_HMI_FB
+
+FUNCTION_BLOCK "A01_HMI_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
+   VAR
+      MB1_Decoder : ButtonsHMIDecoder;
+   END_VAR
+
+   VAR CONSTANT
+      "1001_HU_AREA01" : Int;
+      "1002_HU_DECOILER" : Int;
+      "1011_DECOILER_IN_LINE_FEED" : Int;
+      "1012_DECOILER_IN_LINE_JAWS" : Int;
+      "1013_DECOILER_IN_LINE_COUPLING" : Int;
+      "1014_DECOILER_IN_LINE_SNUBBER_LIFT" : Int;
+      "1015_DECOILER_IN_LINE_SNUBBER_ROL" : Int;
+      "1016_DECOILER_IN_LINE_BRAKE_OPEN" : Int;
+      "1017_DECOILER_IN_LINE_BRAKE_PARTIAL" : Int;
+      "1021_DECOILER_OUT_LINE_FEED" : Int;
+      "1022_DECOILER_OUT_LINE_JAWS" : Int;
+      "1023_DECOILER_OUT_LINE_COUPLING" : Int;
+      "1024_DECOILER_OUT_LINE_SNUBBER_LIFT" : Int;
+      "1025_DECOILER_OUT_LINE_SNUBBER_ROL" : Int;
+      "1026_DECOILER_OUT_LINE_BRAKE_OPEN" : Int;
+      "1027_DECOILER_OUT_LINE_BRAKE_PARTIAL" : Int;
+      "1031_DECOILER_ROTATION" : Int;
+      "1032_DECOILER_ROTATION_DIR" : Int;
+      "1033_DECOILER_ROTATION_PIVOT" : Int;
+      "1034_DECOILER_TRASLATION_BWD_FWD" : Int;
+      "1035_DECOILER_TRANSLATION_MOVE_TO_POS" : Int;
+      "1041_PEELER_LIFT" : Int;
+      "1042_PEELER_EXTENSION" : Int;
+      "1051_STRAIGHTENER_MOVE" : Int;
+      "1052_STRAIGHTENER_LIFT_ENTRYROLL" : Int;
+      "1053_STRAIGHTENER_LIFT_EXITROLL" : Int;
+      "1054_STRAIGHTENER_COUPLING" : Int;
+      "1061_JB_CUT" : Int;
+      "1062_JB_TORCH_MOVE" : Int;
+      "1063_JB_ENTRYCLAMP" : Int;
+      "1064_JB_EXITCLAMP" : Int;
+      "1065_JB_WELDER" : Int;
+      "1066_JB_WELD_CYCLE" : Int;
+      "1071_JB_PINCHROLL_MOVE" : Int;
+      "1072_JB_PINCHROLL_LIFT" : Int;
+      "1073_JB_PINCHROLL_COUPLING" : Int;
+      "1081_LOOP1" : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset Op"
+      MB1_Decoder.OpEnabled := FALSE;
+      MB1_Decoder.OpRunning := FALSE;
+      MB1_Decoder.OpDone := FALSE;
+
+   END_REGION
+
+   REGION "MB1 Code 1001 - Area 01 HU"
+      A01_HMI.MB1.Button.CoilHandling.Area01HU.Stop := ((MB1_Decoder.Code = #1001_HU_AREA01) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Area01HU.Start := ((MB1_Decoder.Code = #1001_HU_AREA01) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1001_HU_AREA01) AND Area01_HU.Pump.COut.CheckNext_Run) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1001_HU_AREA01) AND Area01_HU.Pump.COut.PressureRunning) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1001_HU_AREA01) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1002 - Decoiler HU"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHU.Stop := ((MB1_Decoder.Code = #1002_HU_DECOILER) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHU.Start := ((MB1_Decoder.Code = #1002_HU_DECOILER) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1002_HU_DECOILER) AND DecoilersHU.COut.Run_CheckNext) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1002_HU_DECOILER) AND DecoilersHU.COut.PressureRunning) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1002_HU_DECOILER) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1011 - Decoiler In Line bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Feed.Bwd_Minus := ((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Feed.Fwd_Plus := ((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Feed.COut.Bwd_CheckNext) OR (((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Feed.COut.Fwd_CheckNext) OR (((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Feed.COut.Bwd_CheckNext) OR (((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Feed.COut.Fwd_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler1.Feed.Sts.Standstill)) OR (((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.Feed.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1011_DECOILER_IN_LINE_FEED) AND Sys.Bit0) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1012 - Decoiler In Line jaws open / close"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Jaws.Rest := ((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Jaws.Work := ((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Jaws.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Jaws.COut.Work_CheckNext) OR (((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Jaws.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Jaws.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler1.Jaws.Sts.Standstill)) OR (((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.Jaws.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1012_DECOILER_IN_LINE_JAWS) AND Sys.Bit0) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1013 - Decoiler In Line motor coupling rest / work"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Rest := ((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Work := ((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Coupling.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Coupling.COut.Work_CheckNext) OR (((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Coupling.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Coupling.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler1.Coupling.Sts.Standstill)) OR (((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.Coupling.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Rest) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Coupling.V.IsAtRest) OR ((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Rest) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Coupling.V.IsAtRest) OR ((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Work) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.Coupling.V.IsAtWork) OR ((((MB1_Decoder.Code = #1013_DECOILER_IN_LINE_COUPLING) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.Coupling.Work) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.Coupling.V.IsAtWork)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1014 - Decoiler In Line snubber lift up / down"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Rest := ((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Work := ((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberLift.Rest_CheckNext) OR (((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberLift.Work_CheckNext) OR (((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Rest_CheckNext) OR (((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler1.SnubberLift.Sts.Standstill)) OR (((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.SnubberLift.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Rest) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberLift.Rest) OR ((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Rest) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Rest) OR ((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Work) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberLift.Work) OR ((((MB1_Decoder.Code = #1014_DECOILER_IN_LINE_SNUBBER_LIFT) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberLift.Work) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1015 - Decoiler In Line nubber roll bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberRoll.Rest := ((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.SnubberRoll.Work := ((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberRoll.Rest_CheckNext) OR (((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.COut.SnubberRoll.Work_CheckNext) OR (((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberRoll.Rest_CheckNext) OR (((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberRoll.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler1.SnubberRoll.Sts.Standstill)) OR (((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.SnubberRoll.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1015_DECOILER_IN_LINE_SNUBBER_ROL) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1016 - Decoiler In Line pneumatic brake open"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.BrakeOpenClose := ((MB1_Decoder.Code = #1016_DECOILER_IN_LINE_BRAKE_OPEN) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1016_DECOILER_IN_LINE_BRAKE_OPEN) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.BrakeOpenClose) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1016_DECOILER_IN_LINE_BRAKE_OPEN) AND FALSE) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1016_DECOILER_IN_LINE_BRAKE_OPEN) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.PneumaticBrake.Open) OR (((MB1_Decoder.Code = #1016_DECOILER_IN_LINE_BRAKE_OPEN) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.PneumaticBrake.Open)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1017 -  Decoiler In Line pneumatic brake partial"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.PartialOpenClose := ((MB1_Decoder.Code = #1017_DECOILER_IN_LINE_BRAKE_PARTIAL) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1017_DECOILER_IN_LINE_BRAKE_PARTIAL) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.PartialOpenClose) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1017_DECOILER_IN_LINE_BRAKE_PARTIAL) AND FALSE) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1017_DECOILER_IN_LINE_BRAKE_PARTIAL) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler1.PneumaticBrake.Sts.Partial_Req_Pb) OR (((MB1_Decoder.Code = #1017_DECOILER_IN_LINE_BRAKE_PARTIAL) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.PneumaticBrake.Sts.Partial_Req_Pb)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1021 - Decoiler Out Line bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Feed.Bwd_Minus := ((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Feed.Fwd_Plus := ((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Feed.COut.Bwd_CheckNext) OR (((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Feed.COut.Fwd_CheckNext) OR (((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Feed.COut.Bwd_CheckNext) OR (((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Feed.COut.Fwd_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler1.Feed.Sts.Standstill)) OR (((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler2.Feed.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1021_DECOILER_OUT_LINE_FEED) AND Sys.Bit0) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1022 - Decoiler Out Line jaws open / close"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Jaws.Rest := ((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Jaws.Work := ((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Jaws.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Jaws.COut.Work_CheckNext) OR (((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Jaws.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Jaws.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler1.Jaws.Sts.Standstill)) OR (((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler2.Jaws.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1022_DECOILER_OUT_LINE_JAWS) AND Sys.Bit0) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1023 - Decoiler Out Line motor coupling rest / work"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Coupling.Rest := ((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.Coupling.Work := ((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Coupling.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Coupling.COut.Work_CheckNext) OR (((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Coupling.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Coupling.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler1.Coupling.Sts.Standstill)) OR (((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler2.Coupling.Sts.Standstill))) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.Coupling.V.IsAtRest) OR (((MB1_Decoder.Code = #1023_DECOILER_OUT_LINE_COUPLING) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.Coupling.V.IsAtWork)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1024 - Decoiler Out Line snubber lift up / down"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Rest := ((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Work := ((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND MB1_Decoder.OperationPlus);
+      IF (((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Rest) AND Decoiler1.COut.SnubberLift.Rest_CheckNext) OR ((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Work) AND Decoiler1.COut.SnubberLift.Work_CheckNext) OR ((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Rest) AND Decoiler2.COut.SnubberLift.Rest_CheckNext) OR ((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberLift.Work) AND Decoiler2.COut.SnubberLift.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler1.SnubberLift.Sts.Standstill)) OR (((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler2.SnubberLift.Sts.Standstill))) AND MB1_Decoder.OpEnabled) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.COut.SnubberLift.Rest) OR (((MB1_Decoder.Code = #1024_DECOILER_OUT_LINE_SNUBBER_LIFT) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.COut.SnubberLift.Work)) AND MB1_Decoder.OpEnabled) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1025 - Decoiler Out Line nubber roll bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Rest := ((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Work := ((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND MB1_Decoder.OperationPlus);
+      IF (((((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Rest) AND Decoiler1.COut.SnubberRoll.Rest_CheckNext) OR ((((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Work) AND Decoiler1.COut.SnubberRoll.Work_CheckNext) OR ((((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Rest) AND Decoiler2.COut.SnubberRoll.Rest_CheckNext) OR ((((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.SnubberRoll.Work) AND Decoiler2.COut.SnubberRoll.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler1.SnubberRoll.Sts.Standstill)) OR (((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND DecoilersHRot.COut.Decoiler1_InLine) AND NOT (Decoiler2.SnubberRoll.Sts.Standstill))) AND MB1_Decoder.OpEnabled) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1025_DECOILER_OUT_LINE_SNUBBER_ROL) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1025 - Decoiler In Line nubber roll bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.BrakeOpenClose := ((MB1_Decoder.Code = #1026_DECOILER_OUT_LINE_BRAKE_OPEN) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1026_DECOILER_OUT_LINE_BRAKE_OPEN) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.BrakeOpenClose) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1026_DECOILER_OUT_LINE_BRAKE_OPEN) AND FALSE) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1026_DECOILER_OUT_LINE_BRAKE_OPEN) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.PneumaticBrake.Open) OR (((MB1_Decoder.Code = #1026_DECOILER_OUT_LINE_BRAKE_OPEN) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.PneumaticBrake.Open)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1017 -  Decoiler In Line pneumatic brake partial"
+      A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.PartialOpenClose := ((MB1_Decoder.Code = #1027_DECOILER_OUT_LINE_BRAKE_PARTIAL) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1027_DECOILER_OUT_LINE_BRAKE_PARTIAL) AND A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.PartialOpenClose) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1027_DECOILER_OUT_LINE_BRAKE_PARTIAL) AND FALSE) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1027_DECOILER_OUT_LINE_BRAKE_PARTIAL) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.PneumaticBrake.Sts.Partial_Req_Pb) OR (((MB1_Decoder.Code = #1027_DECOILER_OUT_LINE_BRAKE_PARTIAL) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.PneumaticBrake.Sts.Partial_Req_Pb)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1031 - Decoiler Horiz. Rotation -  Move In Line Decoiler 1/2"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler1 := ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler2 := ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND MB1_Decoder.OperationPlus);
+      IF (((((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Rotation.COut.Rest_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Rotation.COut.Work_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Pivot.COut.Rest_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Pivot.COut.Work_CheckNext)) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler1) OR ((((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Rotation.COut.Rest_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Rotation.COut.Work_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Pivot.COut.Rest_CheckNext) OR ((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND DecoilersHRot.Pivot.COut.Work_CheckNext)) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler2)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND NOT (DecoilersHRot.Rotation.Sts.Standstill)) AND NOT (DecoilersHRot.Pivot.Sts.Standstill)) AND MB1_Decoder.OpEnabled) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND MB1_Decoder.OperationMinus) AND DecoilersHRot.COut.Decoiler1_InLine) OR (((MB1_Decoder.Code = #1031_DECOILER_ROTATION) AND MB1_Decoder.OperationPlus) AND DecoilersHRot.COut.Decoiler2_InLine)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1032 - Decoiler Rotation  In Line Direction"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Rest := ((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Work := ((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Rest) AND DecoilersHRot.Rotation.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Work) AND DecoilersHRot.Rotation.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND NOT (DecoilersHRot.Rotation.Sts.Standstill)) AND MB1_Decoder.OpEnabled) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Rest) AND DecoilersHRot.Rotation.V.IsAtRest) OR (((MB1_Decoder.Code = #1032_DECOILER_ROTATION_DIR) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation.Work) AND DecoilersHRot.Rotation.V.IsAtWork)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1033 - Decoiler Pivot rest / work"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Rest := ((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Work := ((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Rest) AND DecoilersHRot.Pivot.COut.Rest_CheckNext) OR (((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Work) AND DecoilersHRot.Pivot.COut.Work_CheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND NOT (DecoilersHRot.Pivot.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Rest) AND DecoilersHRot.Pivot.V.IsAtRest) OR (((MB1_Decoder.Code = #1033_DECOILER_ROTATION_PIVOT) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot.Work) AND DecoilersHRot.Pivot.V.IsAtWork)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1034 - Decoiler traslation BWD / FWD"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Bwd_Minus := ((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Fwd_Plus := ((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Bwd_Minus) AND DecoilersHRot.COut.Traslation.MinusCheckNext) OR (((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Fwd_Plus) AND DecoilersHRot.COut.Traslation.PlusCheckNext)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND NOT (DecoilersHRot.COut.Traslation.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Bwd_Minus) AND DecoilersHRot.COut.Traslation.MinusLimitReached) OR (((MB1_Decoder.Code = #1034_DECOILER_TRASLATION_BWD_FWD) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.Fwd_Plus) AND DecoilersHRot.COut.Traslation.PlusLimitReached)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1034 - Decoiler traslation Move to position"
+      A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.MoveToPos := ((MB1_Decoder.Code = #1035_DECOILER_TRANSLATION_MOVE_TO_POS) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1035_DECOILER_TRANSLATION_MOVE_TO_POS) AND DecoilersHRot.COut.Traslation.PlusCheckNext) OR ((MB1_Decoder.Code = #1035_DECOILER_TRANSLATION_MOVE_TO_POS) AND DecoilersHRot.COut.Traslation.PlusCheckNext)) AND A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation.MoveToPos) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1035_DECOILER_TRANSLATION_MOVE_TO_POS) AND NOT (DecoilersHRot.COut.Traslation.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1035_DECOILER_TRANSLATION_MOVE_TO_POS) AND DecoilersHRot.COut.Traslation.InPosition) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1041 -  Lower Peeler lift up / down"
+      A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Rest := ((MB1_Decoder.Code = #1041_PEELER_LIFT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Work := ((MB1_Decoder.Code = #1041_PEELER_LIFT) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1041_PEELER_LIFT) AND Peeler.Lift.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Rest) OR (((MB1_Decoder.Code = #1041_PEELER_LIFT) AND Peeler.Lift.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1041_PEELER_LIFT) AND NOT (Peeler.Lift.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1041_PEELER_LIFT) AND Peeler.Lift.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Rest) OR (((MB1_Decoder.Code = #1041_PEELER_LIFT) AND Peeler.Lift.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Lift.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1042 -  Lower Peeler extension bwd / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Rest := ((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Work := ((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND Peeler.Extension.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Rest) OR (((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND Peeler.Extension.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND NOT (Peeler.Extension.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND Peeler.Extension.COut.Rest) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Rest) OR (((MB1_Decoder.Code = #1042_PEELER_EXTENSION) AND Peeler.Extension.COut.Work) AND A01_HMI.MB1.Button.CoilHandling.Peeler.Extension.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1051 - Straightener bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.Straightener.Feed.Bwd_Minus := ((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Straightener.Feed.Fwd_Plus := ((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND Straightener.Feed.COut.Bwd_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.Feed.Bwd_Minus) OR (((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND Straightener.Feed.COut.Fwd_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.Feed.Fwd_Plus)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND NOT (Straightener.Feed.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1051_STRAIGHTENER_MOVE) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1052 - Straightener entry roll open / close"
+      A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Rest := ((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Work := ((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND Straightener.Lift_Entry.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Rest) OR (((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND Straightener.Lift_Entry.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND NOT (Straightener.Lift_Entry.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND Straightener.Lift_Entry.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Rest) OR (((MB1_Decoder.Code = #1052_STRAIGHTENER_LIFT_ENTRYROLL) AND Straightener.Lift_Entry.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftEntry.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1053 - Straightener exit roll open / close"
+      A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Rest := ((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Work := ((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND Straightener.Lift_Exit.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Rest) OR (((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND Straightener.Lift_Exit.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND NOT (Straightener.Lift_Exit.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND Straightener.Lift_Exit.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Rest) OR (((MB1_Decoder.Code = #1053_STRAIGHTENER_LIFT_EXITROLL) AND Straightener.Lift_Exit.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.Straightener.LiftExit.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1061- Junction bench cut rest / work"
+      A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Rest := ((MB1_Decoder.Code = #1061_JB_CUT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Work := ((MB1_Decoder.Code = #1061_JB_CUT) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1061_JB_CUT) AND JB.CutHead.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Rest) OR (((MB1_Decoder.Code = #1061_JB_CUT) AND JB.CutHead.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1061_JB_CUT) AND NOT (JB.CutHead.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1061_JB_CUT) AND JB.CutHead.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Rest) OR (((MB1_Decoder.Code = #1061_JB_CUT) AND JB.CutHead.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.JB.CutHead.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1062 - Junction bench torch bkw / fwd"
+      A01_HMI.MB1.Button.CoilHandling.JB.Torch.Bwd_Minus := ((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.Torch.Fwd_Plus := ((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND JB.Torch.COut.MinusCheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Torch.Bwd_Minus) OR (((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND JB.Torch.COut.PlusCheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Torch.Fwd_Plus)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND NOT (JB.Torch.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND JB.Sts.Torch.InParkPosition) AND A01_HMI.MB1.Button.CoilHandling.JB.Torch.Bwd_Minus) OR (((MB1_Decoder.Code = #1062_JB_TORCH_MOVE) AND JB.Sts.Torch.inWeldStop) AND A01_HMI.MB1.Button.CoilHandling.JB.Torch.Fwd_Plus)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1063 - Junction bench entry clamp open / close"
+      A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Rest := ((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Work := ((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND JB.ClampEntry.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Rest) OR (((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND JB.ClampEntry.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND NOT (JB.ClampEntry.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND JB.ClampEntry.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Rest) OR (((MB1_Decoder.Code = #1063_JB_ENTRYCLAMP) AND JB.ClampEntry.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampEntry.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1064 - Junction bench exit clamp open / close"
+      A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Rest := ((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Work := ((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND JB.ClampExit.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Rest) OR (((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND JB.ClampExit.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND NOT (JB.ClampExit.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND JB.ClampExit.V.IsAtRest) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Rest) OR (((MB1_Decoder.Code = #1064_JB_EXITCLAMP) AND JB.ClampExit.V.IsAtWork) AND A01_HMI.MB1.Button.CoilHandling.JB.ClampExit.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1065 - Junction bench welder manual"
+      A01_HMI.MB1.Button.CoilHandling.JB.Welder_Man := ((MB1_Decoder.Code = #1065_JB_WELDER) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1065_JB_WELDER) AND JB.COut.Weld_CheckNext) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1065_JB_WELDER) AND JB.DataOut.WelderON) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1065_JB_WELDER) AND false) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1066 - Junction bench welding cycle"
+      A01_HMI.MB1.Button.CoilHandling.JB.WeldingCycle_Stop := ((MB1_Decoder.Code = #1066_JB_WELD_CYCLE) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.WeldingCycle_Start := ((MB1_Decoder.Code = #1066_JB_WELD_CYCLE) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1066_JB_WELD_CYCLE) AND JB.Sts.WeldCycle.ON2) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1066_JB_WELD_CYCLE) AND JB.Sts.WeldCycle.ON2) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1066_JB_WELD_CYCLE) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1071 -  JB Pinch roll bwd / fwd"
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed.Bwd_Minus := ((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed.Fwd_Plus := ((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND JB.PinchRoll_Feed.COut.Bwd_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed.Bwd_Minus) OR (((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND JB.PinchRoll_Feed.COut.Fwd_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Feed.Fwd_Plus)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND NOT (JB.PinchRoll_Feed.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1071_JB_PINCHROLL_MOVE) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1072 -  JB Pinch roll lift open / close"
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Rest := ((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Work := ((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND JB.PinchRoll_Lift.COut.Rest_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Rest) OR (((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND JB.PinchRoll_Lift.COut.Work_CheckNext) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND NOT (JB.PinchRoll_Lift.Sts.Standstill)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND JB.COut.Pinchroll_Lift.Rest) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Rest) OR (((MB1_Decoder.Code = #1072_JB_PINCHROLL_LIFT) AND JB.COut.Pinchroll_Lift.Work) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Lift.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1073 -  JB Pinch roll coupling rest / work"
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Rest := ((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Work := ((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND MB1_Decoder.OperationPlus);
+      IF ((((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND FALSE) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Rest) OR (((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND FALSE) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Work)) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND NOT (FALSE)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND FALSE) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Rest) OR (((MB1_Decoder.Code = #1073_JB_PINCHROLL_COUPLING) AND FALSE) AND A01_HMI.MB1.Button.CoilHandling.JB.Pinchroll_Coupling.Work)) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Code 1081 - Loop 1 Start / Stop"
+      A01_HMI.MB1.Button.CoilHandling.Loop1.Stop := ((MB1_Decoder.Code = #1081_LOOP1) AND MB1_Decoder.OperationMinus);
+      A01_HMI.MB1.Button.CoilHandling.Loop1.Start := ((MB1_Decoder.Code = #1081_LOOP1) AND MB1_Decoder.OperationPlus);
+      IF ((MB1_Decoder.Code = #1081_LOOP1) AND Loop1.COut.SystemOn) THEN
+         MB1_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB1_Decoder.Code = #1081_LOOP1) AND Loop1.COut.SystemOn) AND NOT (Loop1.COut.SynchroRunning)) THEN
+         MB1_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB1_Decoder.Code = #1081_LOOP1) AND FALSE) THEN
+         MB1_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB1 Decoder"
+      #MB1_Decoder(
+         en := TRUE,
+         ButtonMinus := NOT ((NOT (MB1_PbJogMInus) AND NOT (A01_HMI.Area01.SuperUser.JogMinus))),
+         ButtonPlus := NOT ((NOT (MB1_PbJogPlus) AND NOT (A01_HMI.Area01.SuperUser.JogPlus))),
+         CodeReq := A01_HMI.MB1.ManCode_REQ,
+         Code => A01_HMI.MB1.ManCode_CMD,
+         Lamp => MB1_LpJog
+      );
+
+      #MB1_Decoder.Q;
+   END_REGION
+
+   REGION "Decoiler"
+      A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_DiameterValue := CoilHandling.COut.Gen.CoilDiameter;
+      A01_HMI.SYNOPTIC.Decoiler.Decoiler_Material_Sts := CoilHandling.COut.Gen.Material_STS;
+      A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Number := A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Number;
+
+
+   END_REGION
+
+   REGION "HMI Decoiler in Line"
+      A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Number := 0;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Zero := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Running := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Zero := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Running := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Open := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Partial := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Close := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Rest := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Work := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_RestInProgress := FALSE;
+      END_IF;
+      IF true THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_WorkInPorgress := FALSE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.Feed.Fwd_VelZero) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Zero := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.Feed.Fwd_Running) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Running := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.Feed.Bwd_VelZero) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Zero := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.Feed.Bwd_Running) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Running := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.SnubberLift.Rest) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Rest := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.COut.SnubberLift.Work) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Work := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.SnubberRoll.V.ValveSts.WorkInProgress) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_RestInProgress := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.SnubberRoll.V.ValveSts.WorkInProgress) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_WorkInPorgress := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.DataOut.PneumaticBrake.V_Open) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Open := TRUE;
+      END_IF;
+      IF ((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND Decoiler1.DataOut.PneumaticBrake.V_PartialHigh) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Partial := TRUE;
+      END_IF;
+      IF (((DecoilersHRot.COut.Decoiler1_InLine AND NOT (DecoilersHRot.COut.Decoiler2_InLine)) AND NOT (Decoiler1.DataOut.PneumaticBrake.V_Open)) AND NOT (Decoiler1.DataOut.PneumaticBrake.V_PartialHigh)) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Close := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.Feed.Fwd_VelZero) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Zero := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.Feed.Fwd_Running) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelFwd_Running := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.Feed.Bwd_VelZero) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Zero := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.Feed.Bwd_Running) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Feed_VelBwd_Running := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Rest) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Rest := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.COut.SnubberLift.Work) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Snubber_Lift_Work := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.SnubberRoll.V.ValveSts.WorkInProgress) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_RestInProgress := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.SnubberRoll.V.ValveSts.WorkInProgress) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Roll_WorkInPorgress := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.DataOut.PneumaticBrake.V_Open) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Open := TRUE;
+      END_IF;
+      IF ((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler2.DataOut.PneumaticBrake.V_PartialHigh) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Partial := TRUE;
+      END_IF;
+      IF (((NOT (DecoilersHRot.COut.Decoiler1_InLine) AND DecoilersHRot.COut.Decoiler2_InLine) AND NOT (Decoiler2.DataOut.PneumaticBrake.V_Open)) AND NOT (Decoiler2.DataOut.PneumaticBrake.V_PartialHigh)) THEN
+         A01_HMI.SYNOPTIC.Decoiler.Decoiler_InLine_Brake_Close := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Straightner"
+      A01_HMI.SYNOPTIC.Straightner.Straight_MatPresence_Entry := CoilHandling.DataIn.SensorMatPresence_StraightEntry;
+      A01_HMI.SYNOPTIC.Straightner.Straight_MatPresence_Exit := CoilHandling.DataIn.SensorMatPresence_StraightExit;
+      A01_HMI.SYNOPTIC.Straightner.Straight_ActualVelocity := Straightener.COut.Feed.ActualVelocity;
+
+   END_REGION
+
+   REGION "Loop"
+      A01_HMI.SYNOPTIC.Loop.Loop_Phc_MinHigh := Loop1_LsMinHigh;
+      A01_HMI.SYNOPTIC.Loop.Loop_Phc_MaxLow := Loop1_LsMaxLow;
+      A01_HMI.SYNOPTIC.Loop.Loop_SystemOn := Loop1.COut.SystemOn;
+      A01_HMI.SYNOPTIC.Loop.Loop_MaterialCounterValid := Loop1.COut.LoopMaterialCounterValid;
+      A01_HMI.SYNOPTIC.Loop.Loop_MaterialCounter := Loop1.COut.LoopMaterialCounter;
+      A01_HMI.SYNOPTIC.Loop.Loop_AllowableFeedFwd := Loop1.COut.Exit_MaxAllowableFeedFwd;
+      A01_HMI.SYNOPTIC.Loop.Loop_ActVelOverrideEntry_Code :=Loop1.COut.Entry_ActVelocityOverride;
+      A01_HMI.SYNOPTIC.Loop.Loop_ActVelOverrideExit_Code :=Loop1.COut.Exit_ActVelocityOverride;
+      A01_HMI.SYNOPTIC.Loop.Loop_MatMissToSynch :=Loop1.COut.LoopMaterialMissingToSynch;
+      A01_HMI.SYNOPTIC.Loop.Loop_MatMissToMaxLow :=Loop1.COut.LoopMaterialMissingToMaxLow;
+      A01_HMI.SYNOPTIC.Loop.Loop_MatMissToMinHigh :=Loop1.COut.LoopMaterialMissingToMinHigh;
+      A01_HMI.SYNOPTIC.Loop.Loop_ActVelOverrideEntry :=Loop1.COut.Entry_VelocityOverride;
+      A01_HMI.SYNOPTIC.Loop.Loop_ActVelOverrideExit :=Loop1.COut.Exit_VelocityOverride;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

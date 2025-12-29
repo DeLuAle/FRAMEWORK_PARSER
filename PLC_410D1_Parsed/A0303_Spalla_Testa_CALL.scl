@@ -1,0 +1,77 @@
+﻿// Block: A0303_Spalla_Testa_CALL
+// Title: Data In - Ax 
+
+FUNCTION "A0303_Spalla_Testa_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - Ax 
+   VAR CONSTANT
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A04_HMI.MB3.Button.A0303.Spalla.Testa.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0303_Spalla_Testa.Ax.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A04_HMI.MB3.Button.A0303.Spalla.Testa.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
+      A0303_Spalla_Testa.Ax.DataIn.LS_Minus := NOT (A0303_Spalla_Ax_Testa_Posizionamento_Ls_Minimo);
+      A0303_Spalla_Testa.Ax.DataIn.LS_Plus := NOT (A0303_Spalla_Ax_Testa_Posizionamento_Ls_Massimo);
+      A0303_Spalla_Testa.DataIn.FC_Aticoll_Paregg := NOT (A0302_Ax_Pareggiatore_Coda_AntiCollisione);
+      A0303_Spalla_Testa.Ax.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_SpallaStrato_Testa;
+      A0303_Spalla_Testa.Ax.DataIn.Brake_M_Feedback := Areas_ITF.AG.CU_DI.FbkBrake_SpallaStrato_Testa;
+   END_REGION
+
+   REGION "Data In - OP"
+      A0303_Spalla_Testa.DataIn.OP_Pos := A04_HMI.MB3.Button.A0303.Spalla.Testa.OP_Pos;
+   END_REGION
+
+   REGION "CIn"
+      // Per muovere la spalla deve esserci il sostegno antiribaltamento tutto fuori per non collidere con i sollevatori
+
+      A0303_Spalla_Testa.CIn.Antiribaltamento.OutOfWorkspace := A0303_Manager.Sts.SostegnoTesta.Ax.InRestPos;
+      A0303_Spalla_Testa.CIn.Manager := A0303_Manager.COut.Spalla.Testa;
+   END_REGION
+
+   REGION "HW"
+      A0303_Spalla_Testa.HWID.Ax_TEL1 := HW_Const_Values.CU7_PN_2260A1_1_Standard_telegram_1;
+   END_REGION
+
+   REGION "Drive"
+      A0303_Spalla_Testa.Ax.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0303_Spalla_Testa.Ax.Drive.AccessPoint := HW_Const_Values.CU7_PN_610A1_ModuleAccessPoint;
+      A0303_Spalla_Testa.Ax.Drive.AxisID := CU7_ID_4_2260A1_1_2260M1;
+      A0303_Spalla_Testa.Ax.Drive.TokenChain := TOKENCHAIN_CU7;
+
+
+   END_REGION
+
+   REGION "Config"
+      A0303_Spalla_Testa.Config := PrjConfig_A04.A0303.Spalla.Testa;
+   END_REGION
+
+   REGION "Machine Call"
+      #A0303_Spalla_Testa(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone27,
+         DSI := F_DB.DSI_SpallaTesta,
+         Config := PrjConfig_A04.A0303.Spalla.Testa,
+         Par := A0303_Spalla_Pers.Par.Testa,
+         Par_Mach := A0303_Spalla_Pers.Par_Mach_Testa
+      );
+
+      #A0303_Spalla_Testa.Q;
+   END_REGION
+
+
+END_FUNCTION

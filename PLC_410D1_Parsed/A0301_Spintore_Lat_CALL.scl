@@ -1,0 +1,228 @@
+﻿// Block: A0301_Spintore_Lat_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0301_Spintore_Lat_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      REGION TRASFERIMENTO CIn MANAGER
+          A0301_Spintore_Lat.CIn.Manager_SpinLat_1 := A0301_Manager.COut.P5.Spintore_Lat_1;
+          A0301_Spintore_Lat.CIn.Manager_SpinLat_2 := A0301_Manager.COut.P5.Spintore_Lat_2;
+          A0301_Spintore_Lat.CIn.Manager_Sollevatori := A0301_Manager.COut.P5.Sollevatori;
+          //
+          A0301_Spintore_Lat.CIn.SemiAut_Pb := A0301_Manager.DataIn.SemiAut_Pb;
+      END_REGION ;
+
+      REGION TRASFERIMENTO CIn FERMI POSTAZIONI P4/P5, DEI FERMI SU P4 E DEI SOLLEVATORI SU P5 
+          // Trasferimento status alla Stazione Spintore Laterale 1 da COut a Cin della P4
+          A0301_Spintore_Lat.CIn.P4.Fermi := A0301_Fermi_P4.COut.Fermi;
+      END_REGION ;
+
+      REGION TRASFERIMENTO CIn POSTAZIONI P5
+          // Trasferimento status alla Stazione Spintore Laterale 1 da COut a Cin della P4
+          A0301_Spintore_Lat.CIn.P5.SpintoreLong.Ax := A0302_Spintore.COut.Ax;
+          A0301_Spintore_Lat.CIn.P5.SpintoreLong.Ax_Sts:= A0302_Spintore.COut.Ax_Sts;
+          A0301_Spintore_Lat.CIn.P5.SpintoreLong.Spintore:= A0302_Spintore.COut.Spintore;
+          A0301_Spintore_Lat.CIn.P5.SpintoreLong.Vrt:= A0302_Spintore.COut.Vrt;
+          A0301_Spintore_Lat.CIn.P5.SpintoreLong.Orz:= A0302_Spintore.COut.Orz;
+          
+      END_REGION ;
+
+      REGION TRASFERIMENTO CIn TRASPORTO 
+          // Trasferimenti status lettura posizioni Trasporto al Cin delle stazioni
+          A0301_Spintore_Lat.CIn.Trasporto := A0301_Trasporto.COut.Ax;
+      END_REGION ;
+
+      // Trasferimento BTrk della larghezza dei Beams
+      A0301_Spintore_Lat.Sts.Beam.H_B := BTrk.A0301.Beam_H_B;
+      A0301_Spintore_Lat.Sts.Beam.Len_Meas := A0302_Spintore.Sts.A0302_Beam_BLean;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn  >>"
+      REGION TRASFERIMENTO #DataIn STATI OPERATION BUTTON STAZIONE SPINTORE LATERALE 
+          // PB FERMI VERTICALI
+          A0301_Spintore_Lat.DataIn.OP_Rest_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.OP.Rest;
+          A0301_Spintore_Lat.DataIn.OP_Work_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.OP.Work;
+      END_REGION ;
+
+      REGION TRASFERIMENTO STATO LETTURA SENSORI DELLA STAZIONE SPINTORE LATERALE
+          // Ingresso analogico di controllo Work Pos. Spintore Orizzontale
+          A0301_Spintore_Lat.DataIn.Orz_1_AnalSens:= A0302_AI_SpintoreLaterale_1_Posizionamento;
+          A0301_Spintore_Lat.DataIn.Orz_2_AnalSens := A0302_AI_SpintoreLaterale_2_Posizionamento;
+         
+      END_REGION ;
+
+   END_REGION
+
+   REGION "<< Data In PB - Spintori Vertivale >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Vrt_1.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Vrt_2.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0301_Spintore_Lat.Vrt_1.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_1_Ls_Rest_1;
+      A0301_Spintore_Lat.Vrt_1.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_1_Ls_Work_1;
+      A0301_Spintore_Lat.Vrt_2.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_2_Ls_Rest_1;
+      A0301_Spintore_Lat.Vrt_2.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_2_Ls_Work_1;
+   END_REGION
+
+   REGION "<< Data In PB - Spintore Orizzontale >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Orz_1.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Orz_2.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := ((NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)) AND A0301_Spintore_Lat_PERS.Spin_Lat_2.Par.Enable), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Orz, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0301_Spintore_Lat.Orz_1.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_1_Ls_Rest_2;
+      A0301_Spintore_Lat.Orz_1.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_1_Ls_Work_2;
+      A0301_Spintore_Lat.Orz_2.DataIn.Rest_Ls[1] := A0301_SpintoreLaterale_2_Ls_Rest_2;
+      A0301_Spintore_Lat.Orz_2.DataIn.Work_Ls[1] := A0301_SpintoreLaterale_2_Ls_Work_2;
+   END_REGION
+
+   REGION "<< Data In PB - Sollevatori >>"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)),
+         HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Spintore_Lat.Sollevatori[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := (NOT (Area03.AreaInterface.Aut) AND NOT (Area03.AreaInterface.Cycle)), HMI_PB := A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+   END_REGION
+
+   REGION "DataIn - Ls Sollevatori [1..6]"
+      // Ls Riposo
+      A0301_Spintore_Lat.Sollevatori[1].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_1.2_Ls_Rest_5;
+      A0301_Spintore_Lat.Sollevatori[2].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_2.2_Ls_Rest_5;
+      A0301_Spintore_Lat.Sollevatori[3].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_3.2_Ls_Rest_5;
+      A0301_Spintore_Lat.Sollevatori[4].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_4.2_Ls_Rest_5;
+      A0301_Spintore_Lat.Sollevatori[5].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_5.2_Ls_Rest_5;
+      A0301_Spintore_Lat.Sollevatori[6].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_6.2_Ls_Rest_5;
+
+   END_REGION
+
+   REGION "DataIn - PB Sollevatori [1..6]"
+      // TRASFERIMENTO STATO PULSANTI - Comando manuale diretto
+      A0301_Spintore_Lat.Sollevatori[6].DataIn.PB:=A0301_Spintore_Lat.Sollevatori[5].DataIn.PB:=
+      A0301_Spintore_Lat.Sollevatori[4].DataIn.PB := A0301_Spintore_Lat.Sollevatori[3].DataIn.PB :=
+      A0301_Spintore_Lat.Sollevatori[2].DataIn.PB:= A0301_Spintore_Lat.Sollevatori[1].DataIn.PB;
+
+   END_REGION
+
+   REGION "[Spintore Laterale] - Machine Call"
+      #A0301_Spintore_Lat(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone21,
+         DSI := F_DB.DSI_V_Air_A0301_A0302,
+         Config := PrjConfig_A03.A0301.SpintoreLaterale,
+         Spin_Lat_1 := A0301_Spintore_Lat_PERS.Spin_Lat_1,
+         Spin_Lat_2 := A0301_Spintore_Lat_PERS.Spin_Lat_2
+      );
+
+      #A0301_Spintore_Lat.Q;
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataOut  >>"
+      REGION COMANDO DELLE USCITE SPINTORE LATERALE 1 & 2
+          
+          // Fermi Verticali blocco prodotto SPINTORE LATERALE 1 - RIPOSO
+          A0301_SpintoreLaterale_1_V_Rest_1 := A0301_Spintore_Lat.Vrt_1.DataOut.RestSolenoid;
+          
+          // Fermi Verticali blocco prodotto Stazione SPINTORE LATERALE 1 - LAVORO
+          A0301_SpintoreLaterale_1_V_Work_1 := A0301_Spintore_Lat.Vrt_1.DataOut.WorkSolenoid;
+          
+          // Spintore Orizzontale trasla prodotto SPINTORE LATERALE 1 - RIPOSO
+          A0301_SpintoreLaterale_1_V_Rest_2 := A0301_Spintore_Lat.Orz_1.DataOut.RestSolenoid;
+          
+          // Spintore Orizzontale trasla prodotto SPINTORE LATERALE 1 - LAVORO
+          A0301_SpintoreLaterale_1_V_Work_2 := A0301_Spintore_Lat.Orz_1.DataOut.WorkSolenoid;
+          
+          // ***************************************************************************************    
+          // Fermi Verticali blocco prodotto SPINTORE LATERALE 2 - RIPOSO
+
+          A0301_SpintoreLaterale_2_V_Rest_1 := A0301_Spintore_Lat.Vrt_2.DataOut.RestSolenoid;
+          
+          // Fermi Verticali blocco prodotto Stazione SPINTORE LATERALE 2 - LAVORO
+
+          A0301_SpintoreLaterale_2_V_Work_1 := A0301_Spintore_Lat.Vrt_2.DataOut.WorkSolenoid;
+          
+          // Spintore Orizzontale trasla prodotto SPINTORE LATERALE 2 - RIPOSO
+         
+          A0301_SpintoreLaterale_2_V_Rest_2 := A0301_Spintore_Lat.Orz_2.DataOut.RestSolenoid;
+          
+          // Spintore Orizzontale trasla prodotto SPINTORE LATERALE 2 - LAVORO
+
+          A0301_SpintoreLaterale_2_V_Work_2 := A0301_Spintore_Lat.Orz_2.DataOut.WorkSolenoid;
+          
+          
+      END_REGION ;
+
+      REGION COMANDO USCITE SOLLEVATORI P5
+          A0301_CinghiaTrasporto_1.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[1].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_2.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[2].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_3.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[3].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_4.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[4].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_5.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[5].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_6.2_V_Rest_5 := A0301_Spintore_Lat.Sollevatori[6].DataOut.RestSolenoid;
+          
+          
+          A0301_CinghiaTrasporto_1.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[1].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_2.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[2].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_3.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[3].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_4.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[4].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_5.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[5].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_6.2_V_Work_6 := A0301_Spintore_Lat.Sollevatori[6].DataOut.WorkSolenoid;
+          
+          
+      END_REGION
+
+   END_REGION
+
+
+END_FUNCTION

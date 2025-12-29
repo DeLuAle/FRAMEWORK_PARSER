@@ -259,36 +259,34 @@ class LADLogicParser:
                 # Let's assume Child[0] -> Child[1].
                 
                 source = children[0]
-                dest = children[1]
-                
                 source_tag = source.tag.split('}')[-1]
-                dest_tag = dest.tag.split('}')[-1]
-                
                 source_uid = source.get('UId')
                 source_name = source.get('Name')
                 
-                dest_uid = dest.get('UId')
-                dest_name = dest.get('Name')
-                
-                # Record the connection
-                if dest_uid:
-                    key = (dest_uid, dest_name) if dest_name else (dest_uid, None)
+                # Iterate over all destinations (all children after the first one)
+                for dest in children[1:]:
+                    dest_tag = dest.tag.split('}')[-1]
+                    dest_uid = dest.get('UId')
+                    dest_name = dest.get('Name')
                     
-                    self.connections[key] = {
-                        'type': source_tag,
-                        'uid': source_uid,
-                        'name': source_name
-                    }
-                    
-                    # Store purely for original logic compatibility (connections check)
-                    self.wires.append({
-                        'source_type': source_tag,
-                        'source_uid': source_uid,
-                        'source_name': source_name,
-                        'dest_type': dest_tag,
-                        'dest_uid': dest_uid,
-                        'dest_name': dest_name
-                    })
+                    if dest_uid:
+                        key = (dest_uid, dest_name) if dest_name else (dest_uid, None)
+                        
+                        self.connections[key] = {
+                            'type': source_tag,
+                            'uid': source_uid,
+                            'name': source_name
+                        }
+                        
+                        # Store for debugging and original logic compatibility
+                        self.wires.append({
+                            'source_type': source_tag,
+                            'source_uid': source_uid,
+                            'source_name': source_name,
+                            'dest_type': dest_tag,
+                            'dest_uid': dest_uid,
+                            'dest_name': dest_name
+                        })
 
                 # If there are more than 2 elements, it might be a chain? 
                 # Usually Wire has exactly 2 points.
@@ -527,6 +525,10 @@ class LADLogicParser:
         if uid not in self.parts:
             return '???'
 
+        # --- Handle ENO pin requests ---
+        if pin and pin.lower() == 'eno':
+            return 'TRUE'
+
         part = self.parts[uid]
         part_type = part.get('part_type')
 
@@ -661,6 +663,28 @@ class LADLogicParser:
             op_expr = self._resolve_input_connection(op_conn) if op_conn else '???'
             return f"NegEdge({op_expr})"
 
+        elif part_type == 'PBox':
+            # Positive Edge Box (P_TRIG)
+            # Has 'in' and 'bit'
+            in_conn = self.connections.get((uid, 'in'))
+            in_expr = self._resolve_input_connection(in_conn) if in_conn else '???'
+            
+            bit_conn = self.connections.get((uid, 'bit'))
+            bit_expr = self._resolve_input_connection(bit_conn) if bit_conn else '???'
+            
+            return f"PosEdge({in_expr}, {bit_expr})"
+
+        elif part_type == 'NBox':
+            # Negative Edge Box (N_TRIG)
+            # Has 'in' and 'bit'
+            in_conn = self.connections.get((uid, 'in'))
+            in_expr = self._resolve_input_connection(in_conn) if in_conn else '???'
+            
+            bit_conn = self.connections.get((uid, 'bit'))
+            bit_expr = self._resolve_input_connection(bit_conn) if bit_conn else '???'
+            
+            return f"NegEdge({in_expr}, {bit_expr})"
+
         # Mathematical and Standard Functions
         elif part_type in ['Mul', 'Add', 'Sub', 'Div', 'Mod', 'And', 'Or', 'Xor']:
             ops = {
@@ -704,7 +728,9 @@ class LADLogicParser:
                            'To_Int', 'To_DInt', 'To_Real', 'To_LReal', 'To_Bool', 'To_Byte', 'To_Word', 'To_DWord', 'To_Time', 'To_SInt', 'To_USInt', 'To_UInt', 'To_UDInt', 'To_String', 'To_WString',
                            'Bool_To_Int', 'Bool_To_DInt', 'Bool_To_Byte', 'Int_To_Bool', 'DInt_To_Bool',
                            # Advanced Types
-                           'TypeOf', 'VariantGet', 'VariantPut', 'Ref']:
+                           'TypeOf', 'VariantGet', 'VariantPut', 'Ref',
+                           'RD_SYS_T', 'T_DIFF', 'T_COMBINE', 'T_CONV', 'T_ADD', 'T_SUB',
+                           'SET_CINT', 'QRY_CINT', 'CAN_CINT']:
              # Function Calls
              func_map = {
                 'Abs': 'ABS', 'LIMIT': 'LIMIT', 'Sqr': 'SQR', 'Sqrt': 'SQRT',
@@ -727,9 +753,13 @@ class LADLogicParser:
                 'To_Bool': 'TO_BOOL', 'To_Byte': 'TO_BYTE', 'To_Word': 'TO_WORD', 'To_DWord': 'TO_DWORD',
                 'To_Time': 'TO_TIME', 'To_SInt': 'TO_SINT', 'To_USInt': 'TO_USINT', 'To_UInt': 'TO_UINT', 'To_UDInt': 'TO_UDINT',
                 'To_String': 'TO_STRING', 'To_WString': 'TO_WSTRING',
-                'Bool_To_Int': 'BOOL_TO_INT', 'Bool_To_DInt': 'BOOL_TO_DINT', 'Bool_To_Byte': 'BOOL_TO_BYTE',
+                'Bool_To_Int': 'BOOL_TO_INT', 'Bool_To_DInt': 'BOOL_TO_DInt', 'Bool_To_Byte': 'BOOL_TO_Byte',
                 'Int_To_Bool': 'INT_TO_BOOL', 'DInt_To_Bool': 'DINT_TO_BOOL',
-                'TypeOf': 'TypeOf', 'VariantGet': 'VariantGet', 'VariantPut': 'VariantPut', 'Ref': 'REF'
+                'TypeOf': 'TypeOf', 'VariantGet': 'VariantGet', 'VariantPut': 'VariantPut', 'Ref': 'REF',
+                # System Functions Cases
+                'RD_SYS_T': 'RD_SYS_T', 'T_DIFF': 'T_DIFF', 'T_COMBINE': 'T_COMBINE', 
+                'T_CONV': 'T_CONV', 'T_ADD': 'T_ADD', 'T_SUB': 'T_SUB',
+                'SET_CINT': 'SET_CINT', 'QRY_CINT': 'QRY_CINT', 'CAN_CINT': 'CAN_CINT'
              }
              func_name = func_map.get(part_type, part_type.upper())
              
@@ -739,11 +769,16 @@ class LADLogicParser:
              
              # Gather all input connections
              input_args = {}
+             # Pin names to exclude from parameters list (as they are handled as EN/ENO or assignment result)
+             exclude_pins = ['en', 'eno', 'out', 'out1', 'value', 'ret_val', 'retval']
+             
              for (curr_uid, curr_pin) in self.connections:
-                 if curr_uid == uid and curr_pin and curr_pin not in ['en', 'eno', 'out', 'out1']:
-                     conn = self.connections[(uid, curr_pin)]
-                     val = self._resolve_input_connection(conn)
-                     input_args[curr_pin] = val
+                 if curr_uid == uid and curr_pin:
+                     pin_lower = curr_pin.lower()
+                     if pin_lower not in exclude_pins:
+                         conn = self.connections[(uid, curr_pin)]
+                         val = self._resolve_input_connection(conn)
+                         input_args[curr_pin] = val
              
              # Format parameters
              if part_type == 'LIMIT':
@@ -834,7 +869,10 @@ class LADLogicParser:
                       'Shl', 'Shr', 'Rol', 'Ror', 'Swap',
                       'Scale_X', 'Norm_X', 'Neg', 'Frac', 'Convert',
                       'InRange', 'OutRange', 'MoveBlk', 'FillBlk', 'UMoveBlk', 'UFillBlk',
-                      'CountOfElements', 'IsArray']
+                      'CountOfElements', 'IsArray',
+                      # System Functions
+                      'SET_CINT', 'QRY_CINT', 'CAN_CINT', 'DIS_CINT', 'EN_CINT',
+                      'RD_SYS_T', 'T_DIFF', 'T_COMBINE', 'T_CONV', 'T_ADD', 'T_SUB']
 
         for uid, part in self.parts.items():
             name = part.get('part_type')
@@ -935,7 +973,12 @@ class LADLogicParser:
                 else:
                     # Value-returning functions - find assignment target
                     dest_var = None
-                    for pin in ['out', 'out1', 'value']:
+                    # Common output pins in TIA Portal LAD XML
+                    output_pins = ['out', 'out1', 'value', 'shl', 'shr', 'rol', 'ror', 'ret_val', 'retval']
+                    
+                    for pin in output_pins:
+                        # Try both the name as is and lowercase/uppercase variants if needed
+                        # _find_variable_connected_to_output should ideally handle this
                         dest_var = self._find_variable_connected_to_output(uid, pin)
                         if dest_var: break
                     
@@ -1103,7 +1146,8 @@ class LADLogicParser:
     def _find_variable_connected_to_output(self, part_uid, pin_name):
         """Finds a variable connected to the output of a part"""
         for (dest_uid, dest_pin), source_info in self.connections.items():
-            if source_info['uid'] == part_uid and source_info.get('name') == pin_name:
+            source_pin = source_info.get('name', '')
+            if source_info['uid'] == part_uid and (source_pin.lower() == pin_name.lower()):
                 dest_part = self.parts.get(dest_uid)
                 if dest_part and dest_part.get('type') == 'Access':
                      return self._resolve_access_name(dest_uid)

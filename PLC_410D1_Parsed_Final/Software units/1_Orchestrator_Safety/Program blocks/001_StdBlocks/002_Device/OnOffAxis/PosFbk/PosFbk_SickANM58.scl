@@ -1,0 +1,132 @@
+﻿FUNCTION_BLOCK "PosFbk_SickANM58"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+AUTHOR : TVA
+FAMILY : Devices
+VERSION : 0.2
+   VAR_INPUT 
+      HW_IO : HW_IO;   // Hardware ID
+   END_VAR
+
+   VAR_IN_OUT 
+      Interface : "PosFbk_ITF";   // Interface with OnOff Axis
+      "Retain" : "PosFbk_RTN";
+      Alarm : "PosFbk_Encoder_Alr";
+   END_VAR
+
+   VAR 
+      Encoder : "PosFbk_Encoder_TEL81";
+      tonNotAbsPos {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'} : IEC_TIMER;
+      CommOK { S7_SetPoint := 'True'} : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      wrRetval : Int;
+      pos1Raw : DInt;
+      pos2Raw : DInt;
+      deltaPos : DInt;
+   END_VAR
+
+   VAR CONSTANT 
+      pulsePerRevolution : LReal := 262144.0;
+      SYNC_TOLL : DInt := 20;
+   END_VAR
+
+
+BEGIN
+	
+	REGION Info
+	    //=============================================================================
+	    //PM FORMING
+	    //-----------------------------------------------------------------------------
+	    // Library: StandardBlocks
+	    // Tested with: S7-1515F-2 PN
+	    // Engineering: TIA Portal V19
+	    // Restrictions: -
+	    // Requirements: S7-1500
+	    // Functionality: Sick ANM58 Encoder Handling by Telegram 81
+	    // Details: 34bit (18x16) [18 bit (numero di impulsi per giro, 262 144) 16 bit (numero di rotazioni, 65 536)]
+	    // v0.0.1  17/10/2025  Presa di riferimento dalla v1.0.2 FB_PosFbk_SickAFM60
+	    //=============================================================================
+	    
+	END_REGION
+	
+	REGION Data Input
+	(* Read Data From Device *)
+	    #CommOK := DPRD_DAT(LADDR := #HW_IO, RECORD => #Encoder.IN) = 0;
+	    
+	END_REGION
+	
+	
+	REGION Alarms Handling
+	    // Reset
+	    IF #Interface.Ctrl.Rst THEN
+	        #Alarm.CommFault := FALSE;
+	        #Alarm.SensorFault := FALSE;
+	        #Alarm.NoRef := FALSE;
+	    END_IF;
+	    
+	    // Communication Fault 
+	    #Alarm.CommFault := NOT #CommOK;
+	    
+	    // Sensor Fault 
+	    #tonNotAbsPos.TON(IN := #CommOK AND NOT #Encoder.IN.G1_ZSW.TRM_ABS_POS,
+	                      PT := T#10S);
+	    
+	    #Alarm.SensorFault := #Encoder.IN.G1_ZSW.ENC_ERR OR #tonNotAbsPos.Q;
+	    #Encoder.OUT.G1_STW.ERR_ACK := #Interface.Ctrl.Rst AND #Encoder.IN.G1_ZSW.ENC_ERR;
+	    
+	    // Parameter Error
+	    #Alarm.Resolution := #Retain.Config.Resolution = 0.0;
+	    
+	    // Device Error
+	    #Interface.Sts.Error := #Alarm.CommFault OR #Alarm.SensorFault OR #Alarm.Resolution;
+	    
+	END_REGION
+	
+	REGION Positions Handling
+	(* Encoder Position Request *)
+	    #Encoder.OUT.STW2_ENC.PLC_CTRL := TRUE;
+	    #Encoder.OUT.G1_STW.POS_REQ := NOT #Encoder.IN.G1_ZSW.ENC_ERR;
+	    
+	    (* Positions Handling *)
+	    IF #Encoder.IN.G1_ZSW.TRM_ABS_POS THEN
+	        
+	        // Counter 1 Value
+	        #pos1Raw := #Encoder.IN.G1_XIST1;
+	        
+	        // Counter 2 Value
+	        #pos2Raw := #Encoder.IN.G1_XIST2;
+	        
+	        // Reduild Encoder Position 
+	        #deltaPos := (#pos2Raw - #Retain.Preset.Pulses);
+	        #Interface.Sts.Position := #Retain.Preset.Units + DINT_TO_LREAL(#deltaPos) / #pulsePerRevolution * #Retain.Config.Resolution;
+	        
+	        (* No REFERENCE Alarm *)
+	        #Alarm.NoRef := FALSE;
+	        #Interface.Sts.ErrorNotSynched := #Alarm.NoRef;
+	        
+	    END_IF;
+	    
+	    #Interface.Sts.EncIsAbsolute := TRUE;
+	    
+	END_REGION
+	
+	REGION Preset    
+	    // Preset Command
+	    IF #Interface.Ctrl.PresetCmd AND NOT #Interface.Sts.PresetAck THEN
+	        IF #Encoder.IN.G1_ZSW.TRM_ABS_POS AND NOT #Interface.Sts.Error THEN
+	            #Retain.Preset.Pulses := #Encoder.IN.G1_XIST2;
+	            #Retain.Preset.Units := #Interface.Ctrl.PresetPosition;
+	        END_IF;
+	    END_IF;
+	    #Interface.Sts.PresetAck := #Interface.Ctrl.PresetCmd;
+	END_REGION
+	
+	REGION Data Output
+	    #wrRetval := DPWR_DAT(LADDR := #HW_IO, RECORD := #Encoder.OUT);
+	    
+	END_REGION
+	
+	
+END_FUNCTION_BLOCK
+

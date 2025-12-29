@@ -1,0 +1,28 @@
+﻿TYPE "udt_MwFacCalc_Pers"
+VERSION : 0.1
+// Block: udt_MwFacCalc_Pers
+   STRUCT
+      Data : Struct
+         MaterialPresence : Bool;
+         Reg : Array[1..MWFAKCALC_REG_MAXITEM] of udt_MwFacCalc_RegItem;
+         RegItemsValid : UInt;
+         RegID : UInt;
+         GripperMeasID : UInt;
+         WheelMeasID : UInt;
+         AverageFAK : LReal;
+      END_STRUCT;
+      Par : Struct
+         WorkMode : UInt;
+         Gripper_Meas1_PosStart : LReal;
+         Gripper_Meas1_DonePosLim : LReal;
+         Gripper_Meas2_PosStart : LReal;
+         Gripper_Meas2_DonePosLim : LReal;
+         PushAx : SpeedMachine_Par;
+         PushAx_Aut_VelHigh : LReal;
+         PushAx_Aut_VelLow : LReal;
+         PushAx_Aut_Acc : LReal;
+         PushAx_Aut_Dec : LReal;
+      END_STRUCT;
+   END_STRUCT;
+
+END_TYPE

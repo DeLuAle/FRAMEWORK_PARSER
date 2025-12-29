@@ -1,0 +1,61 @@
+﻿FUNCTION "Feed2Stopper_DelayVel0Calc" : Time
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Sensor_Distance_mm : LReal;   // [mm] Sensor trigger Velocity 0 distance to mechanical stop
+      Conveyor_Vel_mm_min : LReal;   // [mm/min] Velocity of conveyor
+      Conveyor_Dec_mm_s2 : LReal;   // [mm/s²] Deceleration ramp fo conveyor
+   END_VAR
+
+   VAR_TEMP 
+      delay_s : LReal;
+      V_mmS : LReal;
+      t_ramp_s : LReal;
+      s_rampa : LReal;
+      s_VelCost : LReal;
+   END_VAR
+
+
+BEGIN
+	
+	#V_mmS := #Conveyor_Vel_mm_min / 60.0;
+	
+	REGION NOTE
+	    (*
+	      This function calculates the delay (from the moment the sensor turns ON) 
+	      before issuing the zero-velocity command to the conveyor.
+	
+	      The goal is to minimize part bouncing against the mechanical stop.
+	    *)
+	END_REGION
+	
+	
+	
+	
+	IF #V_mmS > 0 AND #Conveyor_Dec_mm_s2 > 0  THEN
+	    
+	    // tempo rampa inverter
+	    #t_ramp_s := #V_mmS / #Conveyor_Dec_mm_s2;
+	    
+	    (*
+	    #s_rampa := 0.5 * #Conveyor_Dec_mm_s2 * #t_ramp_s * #t_ramp_s;
+	    
+	    #s_VelCost :=  #Sensor_Distance_mm - #s_rampa;
+	    
+	    
+	    #delay_s := #s_VelCost / #V_mmS;
+	    *)
+	    
+	    #delay_s := (#Sensor_Distance_mm - 0.5 * #V_mmS * #t_ramp_s) / #V_mmS;
+	    
+	    IF #delay_s < 0.0 THEN
+	        #delay_s := 0.0;
+	    END_IF;
+	ELSE
+	    #delay_s := 0.0;
+	END_IF;
+	
+	#Feed2Stopper_DelayVel0Calc := DINT_TO_TIME(LREAL_TO_DINT(#delay_s * 1000.0)); // s → ms
+	
+END_FUNCTION
+

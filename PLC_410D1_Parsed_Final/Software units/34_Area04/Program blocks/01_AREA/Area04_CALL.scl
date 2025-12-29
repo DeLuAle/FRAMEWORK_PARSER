@@ -1,0 +1,979 @@
+﻿// Block: Area04_CALL
+// Title: Data In
+
+FUNCTION "Area04_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In
+   VAR_TEMP
+      AlrIndex : Int;
+      WngIndex : Int;
+      MissingOutput : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      Area04.DataIn.SelMan := ((NOT (A04_HMI.Area04.SuperUser.Priority) AND MB3_Pb_Manuale_Area04) OR (A04_HMI.Area04.SuperUser.Priority AND (A04_HMI.Area04.SuperUser.SelManAut = 1)));
+      Area04.DataIn.SelAut := ((NOT (A04_HMI.Area04.SuperUser.Priority) AND MB3_Pb_Automatico_Area04) OR (A04_HMI.Area04.SuperUser.Priority AND (A04_HMI.Area04.SuperUser.SelManAut = 2)));
+      Area04.DataIn.PbStart := NOT ((NOT (A04_HMI.Area04.SuperUser.PbStart) AND NOT (MB3_Pb_Start_Ciclo_Area04)));
+      Area04.DataIn.PbStop := NOT ((NOT (A04_HMI.Area04.SuperUser.PbStop) AND NOT (MB3_Pb_Stop_Ciclo_Area04)));
+      Area04.DataIn.PbStopProgrammed := FALSE;
+      Area04.DataIn.PbAckRst := (NOT (((NOT (MB1_Pb_ResetAlarms) AND NOT (MB2_Pb_Reset_Anomalie)) AND NOT (MB3_Pb_Reset_Anomalie))) OR NOT (NOT (A04_HMI.Area04.SuperUser.PbReset)));
+   END_REGION
+
+   REGION "All the machine controlled by the area are Auto ready"
+      Area04.MachinesStatus.AllMachineAutReady := (((A0303_Manager.MachineInterface.AutReady AND A0303_Spalla_Coda.MachineInterface.AutReady) AND A0303_Spalla_Testa.MachineInterface.AutReady) AND A0303_Spintore.MachineInterface.AutReady);
+      Area04.MachinesStatus.AllMachineAutReady := ((((((Area04.MachinesStatus.AllMachineAutReady AND A0303_TraslazioneStrato.MachineInterface.AutReady) AND A0303_Sollevamento.MachineInterface.AutReady) AND A0303_Sostegno_Coda.MachineInterface.AutReady) AND A0303_Sostegno_Testa.MachineInterface.AutReady) AND A0304_Navetta.MachineInterface.AutReady) AND A0304_Manager.MachineInterface.AutReady);
+   END_REGION
+
+   REGION "One of machine controlled by the area is aborting"
+      Area04.MachinesStatus.AtLeastOneMachineIsAborting := (NOT ((((NOT (A0303_Manager.MachineInterface.Aborting) AND NOT (A0303_Spalla_Coda.MachineInterface.Aborting)) AND NOT (A0303_Spalla_Testa.MachineInterface.Aborting)) AND NOT (A0303_Spintore.MachineInterface.Aborting))) OR NOT ((((((NOT (A0303_TraslazioneStrato.MachineInterface.Aborting) AND NOT (A0303_Sollevamento.MachineInterface.Aborting)) AND NOT (A0303_Sostegno_Coda.MachineInterface.Aborting)) AND NOT (A0303_Sostegno_Testa.MachineInterface.Aborting)) AND NOT (A0304_Navetta.MachineInterface.Aborting)) AND NOT (A0304_Manager.MachineInterface.Aborting))));
+   END_REGION
+
+   REGION "Machines Status - Cumulative ACK stop in phase"
+      Area04.MachinesStatus.AllMachineAckStopInPhase := (((A0303_Manager.MachineInterface.AckStopInPhase AND A0303_Spalla_Coda.MachineInterface.AckStopInPhase) AND A0303_Spalla_Testa.MachineInterface.AckStopInPhase) AND A0303_Spintore.MachineInterface.AckStopInPhase);
+      Area04.MachinesStatus.AllMachineAckStopInPhase := ((((((Area04.MachinesStatus.AllMachineAckStopInPhase AND A0303_TraslazioneStrato.MachineInterface.AckStopInPhase) AND A0303_Sollevamento.MachineInterface.AckStopInPhase) AND A0303_Sostegno_Coda.MachineInterface.AckStopInPhase) AND A0303_Sostegno_Testa.MachineInterface.AckStopInPhase) AND A0304_Navetta.MachineInterface.AckStopInPhase) AND A0304_Manager.MachineInterface.AckStopInPhase);
+   END_REGION
+
+   REGION "Machines Status - Cumulative ACK stop programmed"
+      Area04.MachinesStatus.AllMachineAckStopProgrammed := (((A0303_Manager.MachineInterface.AckStopProgrammed AND A0303_Spalla_Coda.MachineInterface.AckStopProgrammed) AND A0303_Spalla_Testa.MachineInterface.AckStopProgrammed) AND A0303_Spintore.MachineInterface.AckStopProgrammed);
+      Area04.MachinesStatus.AllMachineAckStopProgrammed := ((((((Area04.MachinesStatus.AllMachineAckStopProgrammed AND A0303_TraslazioneStrato.MachineInterface.AckStopProgrammed) AND A0303_Sollevamento.MachineInterface.AckStopProgrammed) AND A0303_Sostegno_Coda.MachineInterface.AckStopProgrammed) AND A0303_Sostegno_Testa.MachineInterface.AckStopProgrammed) AND A0304_Navetta.MachineInterface.AckStopProgrammed) AND A0304_Manager.MachineInterface.AckStopProgrammed);
+   END_REGION
+
+   REGION "Machines Status - One of machine controlled by the area have an alarm"
+      Area04.MachinesStatus.AtLeastOneAlrPresence := (NOT ((((NOT (A0303_Manager.MachineInterface.AlarmsPresence) AND NOT (A0303_Spalla_Coda.MachineInterface.AlarmsPresence)) AND NOT (A0303_Spalla_Testa.MachineInterface.AlarmsPresence)) AND NOT (A0303_Spintore.MachineInterface.AlarmsPresence))) OR NOT ((((((NOT (A0303_TraslazioneStrato.MachineInterface.AlarmsPresence) AND NOT (A0303_Sollevamento.MachineInterface.AlarmsPresence)) AND NOT (A0303_Sostegno_Coda.MachineInterface.AlarmsPresence)) AND NOT (A0303_Sostegno_Testa.MachineInterface.AlarmsPresence)) AND NOT (A0304_Navetta.MachineInterface.AlarmsPresence)) AND NOT (A0304_Manager.MachineInterface.AlarmsPresence))));
+   END_REGION
+
+   REGION "Machines Status - One of machine controlled by the area have a warning"
+      Area04.MachinesStatus.AtLeastOneWngPresence := (NOT ((((NOT (A0303_Manager.MachineInterface.WarningPresence) AND NOT (A0303_Spalla_Coda.MachineInterface.WarningPresence)) AND NOT (A0303_Spalla_Testa.MachineInterface.WarningPresence)) AND NOT (A0303_Spintore.MachineInterface.WarningPresence))) OR NOT ((((((NOT (A0303_TraslazioneStrato.MachineInterface.WarningPresence) AND NOT (A0303_Sollevamento.MachineInterface.WarningPresence)) AND NOT (A0303_Sostegno_Coda.MachineInterface.WarningPresence)) AND NOT (A0303_Sostegno_Testa.MachineInterface.WarningPresence)) AND NOT (A0304_Navetta.MachineInterface.WarningPresence)) AND NOT (A0304_Manager.MachineInterface.WarningPresence))));
+   END_REGION
+
+   REGION "Main"
+      #Area04(
+         en := TRUE,
+         Estop := (NOT (F_DB.A03_Estop) OR Areas_ITF.AG.CC1_PorteAperte),
+         Config := PrjConfig_A04.Area04_Main,
+         ForceStopInPhase := FALSE,
+         ForceStopProgrammed := FALSE,
+         ResetTimersTimeoutStops := FALSE,
+         HMI_StatusDinamicText => A04_HMI.Area04.Status.Status
+      );
+
+      #Area04.Q;
+   END_REGION
+
+   REGION "Alarms collect Area 04 (001...400)"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A  0 3     RIBALTAMENTO - PAREGGIATORI - MANUPOLATORI - PREPARAZIONE LAYER - NAVETTA
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle OR A04_HMI.Area04.SuperUser.PbReset THEN
+          FOR AlrIndex := 1 TO 400 DO
+              Area04_Messages.A.Msg[AlrIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+
+
+
+
+      //*********************************************************************************************+********************
+
+      // Manager Stazione Creazione Pacco
+      AlrIndex := 1;
+
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Manager.Alarm.TrkPassaggioPezzo;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Manager.Alarm.TrkPreparationAlreadyFull;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Manager.Alarm.TrkStackerAlreadyFull;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Manager.Alarm.PaccoOltreLimiteMax;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Manager.Alarm.STOP_ControlloQualita;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Manager.Alarm.STOP_End_Of_Proroduction;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Manager.Alarm.STOP_FineTurno;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Manager.Alarm.STOP_Inattività;
+      Area04_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 9] := FALSE;
+
+      // Spalla Coda
+      //
+      AlrIndex := 20;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Spalla_Coda.Alarm.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Spalla_Coda.Alarm.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Spalla_Coda.Alarm.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Spalla_Coda.Alarm.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Spalla_Coda.Alarm.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Spalla_Coda.Alarm.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Spalla_Coda.Alarm.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Spalla_Coda.Alarm.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Spalla_Coda.Alarm.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Spalla_Coda.Alarm.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Spalla_Coda.Alarm.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0303_Spalla_Coda.Alarm.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Spalla_Coda.Alarm.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Spalla_Coda.Alarm.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Spalla_Coda.Alarm.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_Spalla_Coda.Alarm.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_Spalla_Coda.Alarm.Enc.SensorFault;
+
+      // Spalla Testa
+      //
+      AlrIndex := 50;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Spalla_Testa.Alarm.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Spalla_Testa.Alarm.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Spalla_Testa.Alarm.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Spalla_Testa.Alarm.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Spalla_Testa.Alarm.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Spalla_Testa.Alarm.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Spalla_Testa.Alarm.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Spalla_Testa.Alarm.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Spalla_Testa.Alarm.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Spalla_Testa.Alarm.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Spalla_Testa.Alarm.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0303_Spalla_Testa.Alarm.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Spalla_Testa.Alarm.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Spalla_Testa.Alarm.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Spalla_Testa.Alarm.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_Spalla_Testa.Alarm.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_Spalla_Testa.Alarm.Enc.SensorFault;
+
+      // Spintore Strato
+      // 
+      AlrIndex := 80;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Spintore.Alarm.Testa.Vrt.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Spintore.Alarm.Testa.Vrt.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Spintore.Alarm.Testa.Vrt.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Spintore.Alarm.Coda.Vrt.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Spintore.Alarm.Coda.Vrt.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Spintore.Alarm.Coda.Vrt.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Spintore.Alarm.Testa.Orz.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Spintore.Alarm.Testa.Orz.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Spintore.Alarm.Testa.Orz.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 11] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Spintore.Alarm.Coda.Orz.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Spintore.Alarm.Coda.Orz.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Spintore.Alarm.Coda.Orz.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 15] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 16] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 17] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 18] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 19] := FALSE;
+
+      // Traslazione Strato
+      // 
+      AlrIndex := 110;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_TraslazioneStrato.Alarm.Testa.Ax.S120_Fault;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_TraslazioneStrato.Alarm.Testa.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Ax_ErrSelMode;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Ax_ErrOverride;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Ax_InvalidTraversingBlockNr;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_TraslazioneStrato.Alarm.Testa.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_TraslazioneStrato.Alarm.Testa.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_TraslazioneStrato.Alarm.Testa.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 11] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_TraslazioneStrato.Alarm.Coda.Ax.S120_Fault;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_TraslazioneStrato.Alarm.Coda.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_TraslazioneStrato.Alarm.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_TraslazioneStrato.Alarm.Coda.Ax.Ax_ErrSelMode;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_TraslazioneStrato.Alarm.Coda.Ax.Ax_ErrOverride;
+      Area04_Messages.A.Msg[AlrIndex + 17] := A0303_TraslazioneStrato.Alarm.Coda.Ax.Ax_InvalidTraversingBlockNr;
+      Area04_Messages.A.Msg[AlrIndex + 18] := A0303_TraslazioneStrato.Alarm.Coda.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 19] := A0303_TraslazioneStrato.Alarm.Coda.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 20] := A0303_TraslazioneStrato.Alarm.Coda.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 21] := A0303_TraslazioneStrato.Alarm.Coda.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 22] := A0303_TraslazioneStrato.Alarm.Coda.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 23] := A0303_TraslazioneStrato.Alarm.CheckBothAxMove; // DA AGGIUNGERE AD EXCEL
+      Area04_Messages.A.Msg[AlrIndex + 24] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Sostegno.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 25] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Sostegno.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 26] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Sostegno.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 27] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Sostegno.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 28] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Sostegno.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 29] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Sostegno.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 30] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Pareggiatore.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 31] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Pareggiatore.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 32] := A0303_TraslazioneStrato.Alarm.Testa.Manip_Pareggiatore.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 33] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Pareggiatore.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 34] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Pareggiatore.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 35] := A0303_TraslazioneStrato.Alarm.Coda.Manip_Pareggiatore.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 36] := A0303_TraslazioneStrato.Alarm.Testa.SostegnoVrt.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 37] := A0303_TraslazioneStrato.Alarm.Testa.SostegnoVrt.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 38] := A0303_TraslazioneStrato.Alarm.Testa.SostegnoVrt.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 39] := A0303_TraslazioneStrato.Alarm.Coda.SostegnoVrt.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 40] := A0303_TraslazioneStrato.Alarm.Coda.SostegnoVrt.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 41] := A0303_TraslazioneStrato.Alarm.Coda.SostegnoVrt.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 42] := A0303_TraslazioneStrato.Alarm.StratoDepositatoNoOk;// DA AGGIUNGERE AD EXCEL
+
+      //Sollevamento
+      //
+      AlrIndex := 160;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Sollevamento.Alarm.Testa.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Sollevamento.Alarm.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Sollevamento.Alarm.Testa.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Sollevamento.Alarm.Testa.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Sollevamento.Alarm.Testa.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0303_Sollevamento.Alarm.Testa.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Sollevamento.Alarm.Testa.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Sollevamento.Alarm.Testa.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Sollevamento.Alarm.Testa.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_Sollevamento.Alarm.Testa.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_Sollevamento.Alarm.Testa.Enc.SensorFault;
+      Area04_Messages.A.Msg[AlrIndex + 17] := A0303_Sollevamento.Alarm.CheckBothAxMove; //DA AGGIUNGERE AD EXCEL
+      Area04_Messages.A.Msg[AlrIndex + 18] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 19] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 20] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 21] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 22] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 23] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 24] := A0303_Sollevamento.Alarm.Coda.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 25] := A0303_Sollevamento.Alarm.Coda.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 26] := A0303_Sollevamento.Alarm.Coda.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 27] := A0303_Sollevamento.Alarm.Coda.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 28] := A0303_Sollevamento.Alarm.Coda.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 29] := A0303_Sollevamento.Alarm.Coda.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 30] := A0303_Sollevamento.Alarm.Coda.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 31] := A0303_Sollevamento.Alarm.Coda.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 32] := A0303_Sollevamento.Alarm.Coda.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 33] := A0303_Sollevamento.Alarm.Coda.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 34] := A0303_Sollevamento.Alarm.Coda.Enc.SensorFault;
+
+
+      //Sostegno Antiribaltamento Coda
+      //
+      AlrIndex := 200;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Sostegno_Coda.Alarm.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Sostegno_Coda.Alarm.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Sostegno_Coda.Alarm.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Sostegno_Coda.Alarm.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Sostegno_Coda.Alarm.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Sostegno_Coda.Alarm.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Sostegno_Coda.Alarm.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Sostegno_Coda.Alarm.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Sostegno_Coda.Alarm.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Sostegno_Coda.Alarm.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Sostegno_Coda.Alarm.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0303_Sostegno_Coda.Alarm.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Sostegno_Coda.Alarm.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Sostegno_Coda.Alarm.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Sostegno_Coda.Alarm.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_Sostegno_Coda.Alarm.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_Sostegno_Coda.Alarm.Enc.SensorFault;
+      Area04_Messages.A.Msg[AlrIndex + 17] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 18] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 19] := A0303_Sostegno_Coda.Alarm.LimitSwitch;
+      Area04_Messages.A.Msg[AlrIndex + 20] := A0303_Sostegno_Coda.Alarm.Missing_Pos0_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 21] := A0303_Sostegno_Coda.Alarm.Missing_Pos1_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 22] := A0303_Sostegno_Coda.Alarm.Missing_Pos2_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 23] := A0303_Sostegno_Coda.Alarm.V_1.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 24] := A0303_Sostegno_Coda.Alarm.V_1.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 25] := A0303_Sostegno_Coda.Alarm.V_1.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 26] := A0303_Sostegno_Coda.Alarm.V_2.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 27] := A0303_Sostegno_Coda.Alarm.V_2.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 28] := A0303_Sostegno_Coda.Alarm.V_2.TimeOutWork;
+
+
+      //Sostegno Antiribaltamento Testa
+      //
+      AlrIndex := 230;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0303_Sostegno_Testa.Alarm.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0303_Sostegno_Testa.Alarm.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0303_Sostegno_Testa.Alarm.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0303_Sostegno_Testa.Alarm.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0303_Sostegno_Testa.Alarm.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0303_Sostegno_Testa.Alarm.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0303_Sostegno_Testa.Alarm.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0303_Sostegno_Testa.Alarm.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0303_Sostegno_Testa.Alarm.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0303_Sostegno_Testa.Alarm.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0303_Sostegno_Testa.Alarm.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0303_Sostegno_Testa.Alarm.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0303_Sostegno_Testa.Alarm.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0303_Sostegno_Testa.Alarm.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0303_Sostegno_Testa.Alarm.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0303_Sostegno_Testa.Alarm.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0303_Sostegno_Testa.Alarm.Enc.SensorFault;
+      Area04_Messages.A.Msg[AlrIndex + 17] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 18] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 19] := A0303_Sostegno_Testa.Alarm.LimitSwitch;
+      Area04_Messages.A.Msg[AlrIndex + 20] := A0303_Sostegno_Testa.Alarm.Missing_Pos0_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 21] := A0303_Sostegno_Testa.Alarm.Missing_Pos1_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 22] := A0303_Sostegno_Testa.Alarm.Missing_Pos2_Ls_ON;
+      Area04_Messages.A.Msg[AlrIndex + 23] := A0303_Sostegno_Testa.Alarm.V_1.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 24] := A0303_Sostegno_Testa.Alarm.V_1.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 25] := A0303_Sostegno_Testa.Alarm.V_1.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 26] := A0303_Sostegno_Testa.Alarm.V_2.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 27] := A0303_Sostegno_Testa.Alarm.V_2.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 28] := A0303_Sostegno_Testa.Alarm.V_2.TimeOutWork;
+
+      //Navetta
+      //
+      AlrIndex := 260;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0304_Navetta.Alarm.Testa.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0304_Navetta.Alarm.Testa.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 2] := A0304_Navetta.Alarm.Testa.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 3] := A0304_Navetta.Alarm.Testa.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 4] := A0304_Navetta.Alarm.Testa.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 5] := A0304_Navetta.Alarm.Testa.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 6] := A0304_Navetta.Alarm.Testa.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 7] := A0304_Navetta.Alarm.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 8] := A0304_Navetta.Alarm.Testa.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 9] := A0304_Navetta.Alarm.Testa.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 10] := A0304_Navetta.Alarm.Testa.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 11] := A0304_Navetta.Alarm.Testa.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 12] := A0304_Navetta.Alarm.Testa.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 13] := A0304_Navetta.Alarm.Testa.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 14] := A0304_Navetta.Alarm.Testa.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 15] := A0304_Navetta.Alarm.Testa.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 16] := A0304_Navetta.Alarm.Testa.Enc.SensorFault;
+      Area04_Messages.A.Msg[AlrIndex + 17] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 18] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 19] := A0304_Navetta.Alarm.Coda.Ax.Ax.TargetPosIncorrect;
+      Area04_Messages.A.Msg[AlrIndex + 20] := A0304_Navetta.Alarm.Coda.Ax.Ax.PosOutTolerance;
+      Area04_Messages.A.Msg[AlrIndex + 21] := A0304_Navetta.Alarm.Coda.Ax.Ax.WrongDirection;
+      Area04_Messages.A.Msg[AlrIndex + 22] := A0304_Navetta.Alarm.Coda.Ax.Ax.WrongNotIncrease;
+      Area04_Messages.A.Msg[AlrIndex + 23] := A0304_Navetta.Alarm.Coda.Ax.Ax.HwLimitMinus;
+      Area04_Messages.A.Msg[AlrIndex + 24] := A0304_Navetta.Alarm.Coda.Ax.Ax.HwLimitPlus;
+      Area04_Messages.A.Msg[AlrIndex + 25] := A0304_Navetta.Alarm.Coda.Ax.Ax.TimeoutPreset;
+      Area04_Messages.A.Msg[AlrIndex + 26] := A0304_Navetta.Alarm.Coda.Ax.Ax_NotHomed;
+      Area04_Messages.A.Msg[AlrIndex + 27] := A0304_Navetta.Alarm.Coda.Ax.S120.Drive;
+      Area04_Messages.A.Msg[AlrIndex + 28] := A0304_Navetta.Alarm.Coda.Ax.S120_ComErr;
+      Area04_Messages.A.Msg[AlrIndex + 29] := A0304_Navetta.Alarm.Coda.Ax.BrakeTimeOut;
+      Area04_Messages.A.Msg[AlrIndex + 30] := A0304_Navetta.Alarm.Coda.Ax.Fan_M.ThermalProtection;
+      Area04_Messages.A.Msg[AlrIndex + 31] := A0304_Navetta.Alarm.Coda.Ax.Fan_M.Feedback;
+      Area04_Messages.A.Msg[AlrIndex + 32] := A0304_Navetta.Alarm.Coda.Enc.CommFault;
+      Area04_Messages.A.Msg[AlrIndex + 33] := A0304_Navetta.Alarm.Coda.Enc.NoRef;
+      Area04_Messages.A.Msg[AlrIndex + 34] := A0304_Navetta.Alarm.Coda.Enc.Resolution;
+      Area04_Messages.A.Msg[AlrIndex + 35] := A0304_Navetta.Alarm.Coda.Enc.SensorFault;
+      Area04_Messages.A.Msg[AlrIndex + 36] := A0304_Navetta.Alarm.CheckBothShutMove; 
+      Area04_Messages.A.Msg[AlrIndex + 37] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 38] := A0304_Navetta.Alarm.Testa.PalettiInterni.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 39] := A0304_Navetta.Alarm.Testa.PalettiInterni.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 40] := A0304_Navetta.Alarm.Testa.PalettiInterni.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 41] := A0304_Navetta.Alarm.Testa.PalettiEsterni.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 42] := A0304_Navetta.Alarm.Testa.PalettiEsterni.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 43] := A0304_Navetta.Alarm.Testa.PalettiEsterni.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 44] := A0304_Navetta.Alarm.Coda.PalettiInterni.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 45] := A0304_Navetta.Alarm.Coda.PalettiInterni.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 46] := A0304_Navetta.Alarm.Coda.PalettiInterni.LimitSwitches;
+      Area04_Messages.A.Msg[AlrIndex + 47] := A0304_Navetta.Alarm.Coda.PalettiEsterni.TimeOutRest;
+      Area04_Messages.A.Msg[AlrIndex + 48] := A0304_Navetta.Alarm.Coda.PalettiEsterni.TimeOutWork;
+      Area04_Messages.A.Msg[AlrIndex + 49] := A0304_Navetta.Alarm.Coda.PalettiEsterni.LimitSwitches;
+
+      //Manager Scarico
+      //
+      AlrIndex := 310;
+
+      Area04_Messages.A.Msg[AlrIndex + 0] := A0304_Manager.Alarm.ShuttleNotEmpty;
+      Area04_Messages.A.Msg[AlrIndex + 1] := A0304_Manager.Alarm.TimeoutRimozionePaccoMES;
+      Area04_Messages.A.Msg[AlrIndex + 2] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 3] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 4] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 5] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 6] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 7] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 8] := FALSE;
+      Area04_Messages.A.Msg[AlrIndex + 9] := FALSE;
+
+
+
+
+      //
+      "Area03_Messages".A.Msg[#AlrIndex + 0] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 1] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 2] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 3] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 4] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 5] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 6] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 7] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 8] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 9] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 10] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 11] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 12] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 13] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 14] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 15] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 16] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 17] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 18] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 19] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 20] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 21] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 22] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 23] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 24] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 25] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 26] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 27] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 28] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 29] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 30] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 31] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 32] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 33] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 34] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 35] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 36] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 37] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 38] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 39] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 40] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 41] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 42] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 43] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 44] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 45] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 46] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 47] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 48] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 49] := FALSE;
+      "Area03_Messages".A.Msg[#AlrIndex + 50] := FALSE;
+
+   END_REGION
+
+   REGION "Alarms manager"
+      #Area04_Msg_Alarms(
+         en := TRUE,
+         Ack := Area04.DataIn.PbAckRst,
+         Messages := Area04_Messages.A.Msg,
+         MessagesHMI := Area04_Messages.A.Hmi,
+         MessagesACK := Area04_Messages.A.Ack,
+         MessageCount => A04_HMI.Area04.Status.AlarmsNumber
+      );
+
+      #Area04_Msg_Alarms.Q;
+   END_REGION
+
+   REGION "Warnings collect Area 04 (001..400)"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      //                      A R E A  03      POST PUNCHING
+      //  
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      IF Sys.FirstPLCCycle OR A04_HMI.Area04.SuperUser.PbReset THEN
+          FOR WngIndex := 1 TO 400 DO
+              Area04_Messages.W.Msg[WngIndex] := FALSE;
+          END_FOR;
+      END_IF;
+
+
+
+      //Manager stazione creazione pacco
+      // 
+      WngIndex := 1;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Manager.Warning.IsWaiting_NoPiecesBefore;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Manager.Warning.IsWaiting_ShuttleUnload;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Manager.Warning.MissingCnd.SollevatoreNotReadyToRecive;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Manager.Warning.STOP_ControlloQualita;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Manager.Warning.STOP_End_Of_Proroduction;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Manager.Warning.STOP_FineTurno;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_Manager.Warning.IsWaiting_NoPiecesBefore_A01NotInCycle;
+      Area04_Messages.W.Msg[WngIndex + 7] := A0303_Manager.Warning.IsWaiting_NoPiecesBefore_A02NotInCycle;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Manager.Warning.IsWaiting_NoPiecesBefore_A03NotInCycle;
+
+
+      //Spalla Coda
+      // 
+      WngIndex := 10;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Spalla_Coda.Warning.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Spalla_Coda.Warning.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Spalla_Coda.Warning.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Spalla_Coda.Warning.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Spalla_Coda.Warning.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Spalla_Coda.Warning.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_Spalla_Coda.Warning.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Spalla_Coda.Warning.OP_POS_MissingCnd;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Spalla_Coda.Warning.SW_Limit_AntiCollision;
+
+      //Spalla Testa
+      // 
+      WngIndex := 30;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Spalla_Testa.Warning.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Spalla_Testa.Warning.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Spalla_Testa.Warning.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Spalla_Testa.Warning.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Spalla_Testa.Warning.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Spalla_Testa.Warning.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Spalla_Testa.Warning.OP_POS_MissingCnd;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Spalla_Testa.Warning.SW_Limit_AntiCollision;
+
+
+      //Spintore
+      // 
+      WngIndex := 50;
+
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Spintore.Warning.Testa.Vrt.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Spintore.Warning.Testa.Vrt.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Spintore.Warning.Testa.Vrt.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Spintore.Warning.Testa.Vrt.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Spintore.Warning.Testa.Vrt.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Spintore.Warning.Testa.Vrt.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Spintore.Warning.Testa.Orz.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Spintore.Warning.Testa.Orz.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0303_Spintore.Warning.Testa.Orz.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0303_Spintore.Warning.Testa.Orz.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0303_Spintore.Warning.Testa.Orz.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 13] := A0303_Spintore.Warning.Testa.Orz.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 16] := A0303_Spintore.Warning.Coda.Vrt.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 17] := A0303_Spintore.Warning.Coda.Vrt.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 18] := A0303_Spintore.Warning.Coda.Vrt.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 19] := A0303_Spintore.Warning.Coda.Vrt.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 20] := A0303_Spintore.Warning.Coda.Vrt.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 21] := A0303_Spintore.Warning.Coda.Vrt.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 22] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 23] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 24] := A0303_Spintore.Warning.Coda.Orz.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 25] := A0303_Spintore.Warning.Coda.Orz.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 26] := A0303_Spintore.Warning.Coda.Orz.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 27] := A0303_Spintore.Warning.Coda.Orz.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 28] := A0303_Spintore.Warning.Coda.Orz.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 29] := A0303_Spintore.Warning.Coda.Orz.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 30] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 31] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 32] := A0303_Spintore.Warning.OP_REST_MissingCnd;
+      Area04_Messages.W.Msg[WngIndex + 33] := A0303_Spintore.Warning.OP_WORK_MissingCnd;
+
+      //Traslazione Strato
+      // 
+      WngIndex := 90;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_TraslazioneStrato.Warning.Testa.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_TraslazioneStrato.Warning.Testa.Ax.Minus_CndMissing;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_TraslazioneStrato.Warning.Testa.Ax.Plus_CndMissing;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_TraslazioneStrato.Warning.Testa.Ax.S120_Warning;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_TraslazioneStrato.Warning.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_TraslazioneStrato.Warning.Testa.Ax.Ax_FlyingHome;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_TraslazioneStrato.Warning.Testa.Ax.Ax_SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 7] := A0303_TraslazioneStrato.Warning.Testa.Ax.Ax_SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 8] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 9] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 13] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 14] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 15] := A0303_TraslazioneStrato.Warning.Testa.Manip_Sostegno.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 16] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 17] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 18] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 19] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 20] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 21] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 22] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 23] := A0303_TraslazioneStrato.Warning.Testa.Manip_Pareggiatore.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 24] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 25] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 26] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 27] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 28] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 29] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 30] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 31] := A0303_TraslazioneStrato.Warning.Testa.SostegnoVrt.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 32] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 33] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 34] := A0303_TraslazioneStrato.Warning.Coda.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 35] := A0303_TraslazioneStrato.Warning.Coda.Ax.Minus_CndMissing;
+      Area04_Messages.W.Msg[WngIndex + 36] := A0303_TraslazioneStrato.Warning.Coda.Ax.Plus_CndMissing;
+      Area04_Messages.W.Msg[WngIndex + 37] := A0303_TraslazioneStrato.Warning.Coda.Ax.S120_Warning;
+      Area04_Messages.W.Msg[WngIndex + 38] := A0303_TraslazioneStrato.Warning.Coda.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 39] := A0303_TraslazioneStrato.Warning.Coda.Ax.Ax_FlyingHome;
+      Area04_Messages.W.Msg[WngIndex + 40] := A0303_TraslazioneStrato.Warning.Coda.Ax.Ax_SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 41] := A0303_TraslazioneStrato.Warning.Coda.Ax.Ax_SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 42] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 43] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 44] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 45] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 46] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 47] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 48] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 49] := A0303_TraslazioneStrato.Warning.Coda.Manip_Sostegno.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 50] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 51] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 52] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 53] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 54] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 55] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 56] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 57] := A0303_TraslazioneStrato.Warning.Coda.Manip_Pareggiatore.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 58] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 59] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 60] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 61] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 62] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 63] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 64] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 65] := A0303_TraslazioneStrato.Warning.Coda.SostegnoVrt.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 66] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 67] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 68] := A0303_TraslazioneStrato.Warning.MissingCnd.OP_VAI_A_PRELIEVO;
+      Area04_Messages.W.Msg[WngIndex + 69] := A0303_TraslazioneStrato.Warning.MissingCnd.OP_PRELIEVO;
+      Area04_Messages.W.Msg[WngIndex + 70] := A0303_TraslazioneStrato.Warning.MissingCnd.OP_VAI_A_DEPOSITO;
+      Area04_Messages.W.Msg[WngIndex + 71] := A0303_TraslazioneStrato.Warning.MissingCnd.OP_DEPOSITO;
+
+      //Sollevamento
+      // 
+      WngIndex := 170;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Sollevamento.Warning.Testa.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Sollevamento.Warning.Testa.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Sollevamento.Warning.Testa.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Sollevamento.Warning.Testa.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Sollevamento.Warning.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Sollevamento.Warning.Testa.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_Sollevamento.Warning.Testa.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Sollevamento.Warning.Coda.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Sollevamento.Warning.Coda.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0303_Sollevamento.Warning.Coda.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0303_Sollevamento.Warning.Coda.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0303_Sollevamento.Warning.Coda.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 13] := A0303_Sollevamento.Warning.Coda.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 14] := A0303_Sollevamento.Warning.Coda.Ax.Ax.SwLimitPlus;;
+      Area04_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 16] := A0303_Sollevamento.Warning.MissingCnd.OP_VAI_A_DEPOSITO;
+      Area04_Messages.W.Msg[WngIndex + 17] := A0303_Sollevamento.Warning.MissingCnd.OP_VAI_A_PRELIEVO;
+
+
+
+      //Sostegno Antiribaltamento Coda
+      // 
+      WngIndex := 190;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Sostegno_Coda.Warning.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Sostegno_Coda.Warning.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Sostegno_Coda.Warning.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Sostegno_Coda.Warning.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Sostegno_Coda.Warning.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Sostegno_Coda.Warning.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_Sostegno_Coda.Warning.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Sostegno_Coda.Warning.V_Paletti.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Sostegno_Coda.Warning.V_Paletti.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0303_Sostegno_Coda.Warning.V_Paletti.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0303_Sostegno_Coda.Warning.V_Paletti.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0303_Sostegno_Coda.Warning.V_Paletti.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 13] := A0303_Sostegno_Coda.Warning.V_Paletti.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 16] := A0303_Sostegno_Coda.Warning.MissingCnd.OP_REST;
+      Area04_Messages.W.Msg[WngIndex + 17] := A0303_Sostegno_Coda.Warning.MissingCnd.OP_WORK;
+
+
+      //Sostegno Antiribaltamento Testa
+      //
+      WngIndex := 210;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0303_Sostegno_Testa.Warning.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0303_Sostegno_Testa.Warning.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0303_Sostegno_Testa.Warning.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0303_Sostegno_Testa.Warning.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0303_Sostegno_Testa.Warning.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0303_Sostegno_Testa.Warning.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0303_Sostegno_Testa.Warning.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0303_Sostegno_Testa.Warning.V_Paletti.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0303_Sostegno_Testa.Warning.V_Paletti.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0303_Sostegno_Testa.Warning.V_Paletti.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0303_Sostegno_Testa.Warning.V_Paletti.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0303_Sostegno_Testa.Warning.V_Paletti.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 13] := A0303_Sostegno_Testa.Warning.V_Paletti.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 16] := A0303_Sostegno_Testa.Warning.MissingCnd.OP_REST;
+      Area04_Messages.W.Msg[WngIndex + 17] := A0303_Sostegno_Testa.Warning.MissingCnd.OP_WORK;
+
+      //Navetta
+      // 
+      WngIndex := 230;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0304_Navetta.Warning.Testa.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0304_Navetta.Warning.Testa.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 2] := A0304_Navetta.Warning.Testa.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 3] := A0304_Navetta.Warning.Testa.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 4] := A0304_Navetta.Warning.Testa.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 5] := A0304_Navetta.Warning.Testa.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 6] := A0304_Navetta.Warning.Testa.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := A0304_Navetta.Warning.Testa.PalettiInterni.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 9] := A0304_Navetta.Warning.Testa.PalettiInterni.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 10] := A0304_Navetta.Warning.Testa.PalettiInterni.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 11] := A0304_Navetta.Warning.Testa.PalettiInterni.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 12] := A0304_Navetta.Warning.Testa.PalettiInterni.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 13] := A0304_Navetta.Warning.Testa.PalettiInterni.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 14] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 15] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 16] := A0304_Navetta.Warning.Testa.PalettiEsterni.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 17] := A0304_Navetta.Warning.Testa.PalettiEsterni.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 18] := A0304_Navetta.Warning.Testa.PalettiEsterni.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 19] := A0304_Navetta.Warning.Testa.PalettiEsterni.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 20] := A0304_Navetta.Warning.Testa.PalettiEsterni.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 21] := A0304_Navetta.Warning.Testa.PalettiEsterni.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 22] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 23] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 24] := A0304_Navetta.Warning.Coda.Ax.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 25] := A0304_Navetta.Warning.Coda.Ax.MissingCnd_Minus;
+      Area04_Messages.W.Msg[WngIndex + 26] := A0304_Navetta.Warning.Coda.Ax.MissingCnd_Plus;
+      Area04_Messages.W.Msg[WngIndex + 27] := A0304_Navetta.Warning.Coda.Ax.S120.Drive;
+      Area04_Messages.W.Msg[WngIndex + 28] := A0304_Navetta.Warning.Coda.Ax.Ax_NotHomed;
+      Area04_Messages.W.Msg[WngIndex + 29] := A0304_Navetta.Warning.Coda.Ax.Ax.SwLimitMinus;
+      Area04_Messages.W.Msg[WngIndex + 30] := A0304_Navetta.Warning.Coda.Ax.Ax.SwLimitPlus;
+      Area04_Messages.W.Msg[WngIndex + 31] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 32] := A0304_Navetta.Warning.Coda.PalettiInterni.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 33] := A0304_Navetta.Warning.Coda.PalettiInterni.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 34] := A0304_Navetta.Warning.Coda.PalettiInterni.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 35] := A0304_Navetta.Warning.Coda.PalettiInterni.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 36] := A0304_Navetta.Warning.Coda.PalettiInterni.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 37] := A0304_Navetta.Warning.Coda.PalettiInterni.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 38] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 39] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 40] := A0304_Navetta.Warning.Coda.PalettiEsterni.NotAutReady;
+      Area04_Messages.W.Msg[WngIndex + 41] := A0304_Navetta.Warning.Coda.PalettiEsterni.PressureRunning_Timeout;
+      Area04_Messages.W.Msg[WngIndex + 42] := A0304_Navetta.Warning.Coda.PalettiEsterni.Rest_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 43] := A0304_Navetta.Warning.Coda.PalettiEsterni.Work_MissingExtEnable;
+      Area04_Messages.W.Msg[WngIndex + 44] := A0304_Navetta.Warning.Coda.PalettiEsterni.Missing_Rest_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 45] := A0304_Navetta.Warning.Coda.PalettiEsterni.Missing_Work_Ls_ON[1];
+      Area04_Messages.W.Msg[WngIndex + 46] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 47] := FALSE; 
+      Area04_Messages.W.Msg[WngIndex + 48] := A0304_Navetta.Warning.MissingCnd.OP_VAI_A_PRELIEVO;
+      Area04_Messages.W.Msg[WngIndex + 49] := A0304_Navetta.Warning.MissingCnd.OP_PRELIEVO;
+      Area04_Messages.W.Msg[WngIndex + 50] := A0304_Navetta.Warning.MissingCnd.OP_VAI_A_DEPOSITO;
+      Area04_Messages.W.Msg[WngIndex + 51] := A0304_Navetta.Warning.MissingCnd.OP_DEPOSITO;
+      Area04_Messages.W.Msg[WngIndex + 52] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 53] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 54] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 55] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 56] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 57] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 58] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 59] := FALSE;
+
+      //Manager stazione creazione pacco
+      // 
+      WngIndex := 290;
+
+      Area04_Messages.W.Msg[WngIndex + 0] := A0304_Manager.Warning.UnloadNotPossible;
+      Area04_Messages.W.Msg[WngIndex + 1] := A0304_Manager.Warning.TimeoutRimozionePaccoMES;
+      Area04_Messages.W.Msg[WngIndex + 2] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 3] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 4] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 5] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 6] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 7] := FALSE;
+      Area04_Messages.W.Msg[WngIndex + 8] := FALSE;
+
+
+      //
+      "Area03_Messages".W.Msg[#WngIndex + 0] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 1] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 2] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 3] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 4] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 5] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 6] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 7] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 8] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 9] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 10] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 11] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 12] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 13] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 14] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 15] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 16] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 17] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 18] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 19] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 20] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 21] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 22] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 23] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 24] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 25] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 26] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 27] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 28] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 29] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 30] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 31] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 32] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 33] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 34] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 35] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 36] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 37] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 38] := FALSE;
+      "Area03_Messages".W.Msg[#WngIndex + 39] := FALSE;
+
+
+   END_REGION
+
+   REGION "Warnings manager"
+      #Area04_Msg_Warnings(
+         en := TRUE,
+         Ack := Area04.DataIn.PbAckRst,
+         Messages := Area04_Messages.W.Msg,
+         MessagesHMI := Area04_Messages.W.Hmi,
+         MessagesACK := Area04_Messages.W.Ack,
+         MessageCount => A04_HMI.Area04.Status.WarningsNumber
+      );
+
+      #Area04_Msg_Warnings.Q;
+   END_REGION
+
+   REGION "MB lamp indicators"
+      MB3_Lp_Abilitazione_Automatico_Area04 := Area04.DataOut.lampReady;
+      MB3_Lp_LIBERO := Area04.DataOut.lampCycle;
+      MissingOutput := Area04.DataOut.lampCycle;
+      MissingOutput := ((NOT ((NOT (Area04.DataOut.LampAlarmPresence) AND NOT (Area04.DataOut.LampWarningPresence))) AND Sys.Clock_1S) OR (NOT ((NOT (Area04.DataOut.LampAlarmPresence) AND NOT (Area04.DataOut.LampWarningPresence))) AND NOT (Area04_Msg_Alarms.NewMessage)));
+   END_REGION
+
+   REGION "Tower lamp"
+      A03_TowerLampWhite_SL301 := Area04.DataOut.lampCycle;
+      A03_TowerLampYellow_SL301 := ((NOT ((NOT (Area04.DataOut.LampAlarmPresence) AND NOT (Area04.DataOut.LampWarningPresence))) AND Sys.Clock_1S) OR (NOT ((NOT (Area04.DataOut.LampAlarmPresence) AND NOT (Area04.DataOut.LampWarningPresence))) AND NOT (Area04_Msg_Alarms.NewMessage)));
+   END_REGION
+
+   REGION "Horn"
+      #TON_NewMessage_A04(
+         IN := Area04_Msg_Alarms.NewMessage,
+         PT := T#5S
+      );
+
+      #TON_NewMessage_A04.Q;
+      A03_TowerHorn_SL301 := (Area04.DataOut.horn OR ((Area04_Msg_Alarms.NewMessage AND NOT (TON_NewMessage_A04.Q)) AND Sys.Clock_500MS));
+   END_REGION
+
+   REGION "Super User"
+      A04_HMI.Area04.SuperUser.SgnMan := Area04.AreaInterface.Man;
+      A04_HMI.Area04.SuperUser.SgnAut := Area04.AreaInterface.Aut;
+      A04_HMI.Area04.SuperUser.SgnReset := A04_HMI.Area04.SuperUser.PbReset;
+      A04_HMI.Area04.SuperUser.SgnStart := Area04.AreaInterface.Cycle;
+      A04_HMI.Area04.SuperUser.SgnWngPresence := (A04_HMI.Area04.Status.WarningsNumber > 0);
+      A04_HMI.Area04.SuperUser.SgnAlrPresence := (A04_HMI.Area04.Status.AlarmsNumber > 0);
+      A04_HMI.Area04.SuperUser.SgnMessagePresence := false;
+      A04_HMI.Area04.SuperUser.SgnStop := NOT ((NOT (Area04.AreaInterface.StopInPhase) AND NOT (Area04.AreaInterface.StopProgrammed)));
+   END_REGION
+
+   REGION "<<< MACHINES AREA 04 >>>"
+      // Gen
+      A04_HMI_CALL();
+
+      Sys.ByPass := Sys.ByPass;
+      //
+
+      "Area03_Safety_Interface_CALL"();
+
+
+      //A0303
+      //
+      A0303_Manager_CALL();
+
+      A0303_Spalla_Coda_CALL();
+
+      A0303_Spalla_Testa_CALL();
+
+      A0303_Spintore_CALL();
+
+      A0303_TraslazioneStrato_CALL();
+
+      A0303_Sollevamento_CALL();
+
+      A0303_Sostegno_Coda_CALL();
+
+      A0303_Sostegno_Testa_CALL();
+
+      //A0304 
+      //
+      A0304_Manager_CALL();
+
+      A0304_Navetta_CALL();
+
+
+      A04_TrkManager_CALL();
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION ">"
+      Areas_ITF.A04.AreaInterface := Area04.AreaInterface;
+   END_REGION
+
+   REGION "Network 28"
+      Areas_ITF.A04.Infeed_REQ_ON := (NOT ((NOT (A0304_Navetta.COut.Testa.Ax.Infeed_ReqON) AND NOT (A0304_Navetta.COut.Coda.Ax.Infeed_ReqON))) OR NOT (((((NOT (A0303_Spalla_Coda.COut.Ax.Infeed_ReqON) AND NOT (A0303_Spalla_Testa.COut.Ax.Infeed_ReqON)) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Infeed_ReqON)) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Infeed_ReqON)) AND NOT (A0303_Sollevamento.COut.Ax_Testa.Infeed_ReqON))) OR NOT (((NOT (A0303_Sollevamento.COut.Ax_Coda.Infeed_ReqON) AND NOT (A0303_Sostegno_Coda.COut.Ax.Infeed_ReqON)) AND NOT (A0303_Sostegno_Testa.COut.Ax.Infeed_ReqON))));
+   END_REGION
+
+   REGION "Network 29"
+      Areas_ITF.A03.PB.MB3_PB_Reset := Area04.DataIn.PbAckRst;
+   END_REGION
+
+   REGION "AREA ITF"
+      "Area04_ITF"(
+         en := TRUE
+      );
+
+      "Area04_ITF"();
+   END_REGION
+
+   REGION "Entry enable Z27 (CREAZIONE PACCO)"
+      Areas_ITF.A04.Safety_EntryEnable.Z27 := ((((((A0303_TraslazioneStrato.MachineInterface.MotionsStandStill AND A0303_Spalla_Coda.MachineInterface.MotionsStandStill) AND A0303_Spalla_Testa.MachineInterface.MotionsStandStill) AND A0303_Spintore.MachineInterface.MotionsStandStill) AND A0303_Sollevamento.MachineInterface.MotionsStandStill) AND A0303_Sostegno_Coda.MachineInterface.MotionsStandStill) AND A0303_Sostegno_Testa.MachineInterface.MotionsStandStill);
+   END_REGION
+
+   REGION "Entry enable Z29 (NAVETTA)"
+      Areas_ITF.A04.Safety_EntryEnable.Z29 := ((((((((A0304_Navetta.MachineInterface.MotionsStandStill AND A0303_TraslazioneStrato.MachineInterface.MotionsStandStill) AND A0303_Spalla_Coda.MachineInterface.MotionsStandStill) AND A0303_Spalla_Testa.MachineInterface.MotionsStandStill) AND A0303_Spintore.MachineInterface.MotionsStandStill) AND A0303_Sollevamento.MachineInterface.MotionsStandStill) AND A0303_Sostegno_Coda.MachineInterface.MotionsStandStill) AND A0303_Sostegno_Testa.MachineInterface.MotionsStandStill) OR (A0304_Navetta.MachineInterface.MotionsStandStill AND F_DB.D24.OK));
+   END_REGION
+
+   REGION "Network 34"
+      Areas_ITF.A04.Doors_Closed := (((((NOT (F_DB.ZSI_Zone27.Door_NormalStop) AND NOT (F_DB.ZSI_Zone27.Door_SafeStop)) AND NOT (F_DB.ZSI_Zone27.Door_Opened)) AND NOT (F_DB.ZSI_Zone29.Door_NormalStop)) AND NOT (F_DB.ZSI_Zone29.Door_SafeStop)) AND NOT (F_DB.ZSI_Zone29.Door_Opened));
+   END_REGION
+
+   REGION "Network 35"
+      IF Sys.ByPass THEN
+         Areas_ITF.A04.Production_Halted.Code := 0;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

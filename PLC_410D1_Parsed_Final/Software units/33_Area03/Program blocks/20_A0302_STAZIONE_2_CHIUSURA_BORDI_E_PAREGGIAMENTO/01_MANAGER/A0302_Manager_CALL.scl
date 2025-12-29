@@ -1,0 +1,122 @@
+﻿// Block: A0302_Manager_CALL
+
+FUNCTION "A0302_Manager_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // TRASFERIMENTO CIn UTENZE FERMI P5
+
+      A0302_Manager.CIn.P5.Sollevatori := A0301_Spintore_Lat.COut.Sollevatori;
+      A0302_Manager.CIn.P5.Spintore_Lat.Spin_Lat1 := A0301_Spintore_Lat.COut.Spin_Lat1;
+      A0302_Manager.CIn.P5.Spintore_Lat.Spin_Lat2 := A0301_Spintore_Lat.COut.Spin_Lat2;
+
+      A0302_Manager.CIn.P5.SpintoreLong.Ax := A0302_Spintore.COut.Ax;
+      A0302_Manager.CIn.P5.SpintoreLong.Ax_Sts := A0302_Spintore.COut.Ax_Sts;
+      A0302_Manager.CIn.P5.SpintoreLong.Spintore := A0302_Spintore.COut.Spintore;
+      A0302_Manager.CIn.P5.SpintoreLong.Vrt := A0302_Spintore.COut.Vrt;
+      A0302_Manager.CIn.P5.SpintoreLong.Orz := A0302_Spintore.COut.Orz;
+      A0302_Manager.CIn.P5.SpintoreLong.Sens.FTC_FuoriIngombro := A0302_Spintore.IEC.FTC_On;
+
+      // TRASFERIMENTO CIn BORDATRICE
+      A0302_Manager.CIn.Bordatrice.Ax := A0302_Bordatrice.COut.Ax;
+      A0302_Manager.CIn.Bordatrice.Sts := A0302_Bordatrice.COut.Sts;
+      A0302_Manager.CIn.Bordatrice.Sens.FTC_Ingresso := A0302_Spintore.IEC.FTC_On;
+      A0302_Manager.CIn.Bordatrice.Sens.FTC_Uscita := A0302_Bordatrice.IEC_FTC_UscitaBordatrice.FTC_On;
+
+      // TRASFERIMENTO CIn RULLIERA
+      A0302_Manager.CIn.Rulliera.Ax_1 := A0302_Rulliera.COut.Ax_1;
+      A0302_Manager.CIn.Rulliera.Ax_2 := A0302_Rulliera.COut.Ax_2;
+      A0302_Manager.CIn.Rulliera.Centraggio := A0302_Centratori.COut.Centratori;
+      A0302_Manager.CIn.Rulliera.Sollevamento := A0302_Centratori.COut.Sollevamento;
+         // Sensori
+      A0302_Manager.CIn.Rulliera.Coda.Sens.FTC_Rall := A0302_Rulliera.IEC_FTC_CodaRall.FTC_On;
+      A0302_Manager.CIn.Rulliera.Coda.Sens.FTC_Prox_Ing := A0302_Rulliera.IEC_FTC_CodaProxIng.FTC_On;
+      A0302_Manager.CIn.Rulliera.Centro.Sens.FTC_Centrale := A0302_Rulliera.IEC_FTC_Centro.FTC_On;
+
+      // TRASFERIMENTO CIn CARRO PAREGG. CODA
+      A0302_Manager.CIn.CarroPareggCoda.Ax := A0302_PareggiatoreCoda.COut.Ax;
+      A0302_Manager.CIn.CarroPareggCoda.Ax_InWPos :=A0302_PareggiatoreCoda.COut.Ax_InWPos;
+      A0302_Manager.CIn.CarroPareggCoda.Bloccaggio := A0302_PareggiatoreCoda.COut.Bloccaggio;
+      A0302_Manager.CIn.CarroPareggCoda.BattutaVerticale := A0302_PareggiatoreCoda.COut.BattutaVerticale;
+      A0302_Manager.CIn.CarroPareggCoda.PareggiatoreLong := A0302_PareggiatoreCoda.COut.PareggiatoreLong;
+         // Sensori
+      A0302_Manager.CIn.CarroPareggCoda.Sens.FTC_Ingombro_Ing := A0302_PareggiatoreCoda.IEC_FTC_Input.FTC_On;
+      A0302_Manager.CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out := A0302_PareggiatoreCoda.IEC_FTC_Output.FTC_On;
+      A0302_Manager.CIn.CarroPareggCoda.Sens.PresenzaMat := A0302_PareggiatoreCoda.IEC_FTC_PresentMat.FTC_On;
+      A0302_Manager.CIn.CarroPareggCoda.Sens.PosPareggLong.Value := A0302_PareggiatoreCoda.PosPareggLong.ScaleValue;
+      A0302_Manager.CIn.CarroPareggCoda.Sens.PosPareggLong.Standstill := A0302_PareggiatoreCoda.PosPareggLong.Standstill;
+      A0302_Manager.CIn.CarroPareggCoda.Sens.PosPareggLong.CheckMeasure := A0302_PareggiatoreCoda.Ctrl.PareggLong.CheckMesure;
+
+      // TRASFERIMENTO CIn CARRO PAREGG. TESTA
+      A0302_Manager.CIn.CarroPareggTesta.Ax := A0302_PareggiatoreTesta.COut.Ax;
+      A0302_Manager.CIn.CarroPareggTesta.Ax_InWPos := A0302_PareggiatoreTesta.COut.Ax_InWPos;
+      A0302_Manager.CIn.CarroPareggTesta.Bloccaggio := A0302_PareggiatoreTesta.COut.Bloccaggio;
+      A0302_Manager.CIn.CarroPareggTesta.Centraggio := A0302_PareggiatoreTesta.COut.Centraggio;
+      A0302_Manager.CIn.CarroPareggTesta.Sollevatore := A0302_PareggiatoreTesta.COut.Sollevatore;
+         // Sensori
+      A0302_Manager.CIn.CarroPareggTesta.Sens.FTC_Ingombro_Ing := A0302_PareggiatoreTesta.IEC_FTC_Rall.FTC_On;
+      A0302_Manager.CIn.CarroPareggTesta.Sens.FTC_Prox_Ls := A0302_PareggiatoreTesta.IEC_FTC_ProxLs.FTC_On;
+      A0302_Manager.CIn.CarroPareggTesta.Sens.PresenzaMat := A0302_PareggiatoreTesta.IEC_FTC_PresentMat.FTC_On;
+
+      // TRASFERIMENTO CIn MANIPOLATORI
+      // Carro TESTA 
+      A0302_Manager.CIn.Manipolatori.Testa.Ax := A0302_Manipolatore.COut.Testa.Ax;
+      A0302_Manager.CIn.Manipolatori.Testa.Sollevatore := A0302_Manipolatore.COut.Testa.Sollevatore;
+      A0302_Manager.CIn.Manipolatori.Testa.Magnete := A0302_Manipolatore.COut.Testa.Magnete;
+      // Carro CODA
+      A0302_Manager.CIn.Manipolatori.Coda.Ax := A0302_Manipolatore.COut.Coda.Ax;
+      A0302_Manager.CIn.Manipolatori.Coda.Sollevatore := A0302_Manipolatore.COut.Coda.Sollevatore;
+      A0302_Manager.CIn.Manipolatori.Coda.Magnete := A0302_Manipolatore.COut.Coda.Magnete;
+         // Sensori
+      A0302_Manager.CIn.Manipolatori.InPos_Prelievo := A0302_Manipolatore.COut.InPos_Prelievo;
+      A0302_Manager.CIn.Manipolatori.InPos_BancoScarto := A0302_Manipolatore.COut.InPos_BancoScarto;
+      A0302_Manager.CIn.Manipolatori.InPos_BancoA0303 := A0302_Manipolatore.COut.InPos_BancoA0303;
+
+      // TRASFERIMENTO CIn SPALLE
+      A0302_Manager.CIn.Spalle.Coda.Ax := Areas_ITF.A04.A0303_SpallaCoda_Cout_Ax;
+      A0302_Manager.CIn.Spalle.Testa.Ax := Areas_ITF.A04.A0303_SpallaTesta_Cout_Ax;
+
+      // TRASFERIMENTO STATI BANCO A0303
+      A0302_Manager.CIn.Banco_A0303.ReadyToRecive := Areas_ITF.A04.A0303_Manager_COut_Manipolatore_ReadyToRecive;
+
+      // Production Mng
+      A0302_Manager.CIn.ProdManager := Areas_ITF.Prod.A03_A04;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn del blocco >>"
+      // MB3 Pulsante semiautomatico 
+      A0302_Manager.DataIn.SemiAut_Pb := MB3_Pb_Avanti_Stazione_2_Area03;
+
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati parametri PERS CARRI >>"
+      // Carro TESTA
+      A0302_PERS.Par.CarroPareggTesta.Preset := A0302_PareggiatoreTesta_PERS.Par.CarroPareggTesta.Preset;
+
+      // Carro CODA
+      A0302_PERS.Par.CarroPareggCoda.Preset := A0302_PareggiatoreCoda_PERS.Par.CarroPareggCoda.Preset;
+
+      // Cremaliera
+      A0302_PareggiatoreCoda_PERS.Par.Cremaliera.Modulo := A0302_PareggiatoreTesta_PERS.Par.Cremaliera.Modulo := A0302_PERS.Par.Cremaliera.Modulo;
+      A0302_PareggiatoreCoda_PERS.Par.Cremaliera.Passo := A0302_PareggiatoreTesta_PERS.Par.Cremaliera.Passo := A0302_PERS.Par.Cremaliera.Passo;
+
+
+
+   END_REGION
+
+   REGION "<< Machine Call >>"
+      #A0302_Manager(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         Par := A0302_PERS.Par
+      );
+
+      #A0302_Manager.Q;
+   END_REGION
+
+
+END_FUNCTION

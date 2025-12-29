@@ -1,0 +1,433 @@
+﻿// Block: DecoilersHRot_FB
+// Title: Man move in line
+
+FUNCTION_BLOCK "DecoilersHRot_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Man move in line
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         Rotation : udt_DeviceSafetyInterface;
+         Pivot : udt_DeviceSafetyInterface;
+         Translation : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : Struct
+         Traslation : TAx_DriveInterface;
+      END_STRUCT;
+      HW_ID : Struct
+         Traslation_TEL1 : HW_SUBMODULE;
+         TraslationEnc_IO : HW_SUBMODULE;
+      END_STRUCT;
+      DataIn : Struct
+         PB_Decoiler1_MoveInLine : Bool;
+         PB_Decoiler2_MoveInLine : Bool;
+         Rotation : ValveMachine_DataIn;
+         Pivot : ValveMachine_DataIn;
+         Traslation : Positioning_DOL_Machine_DataIn;
+      END_STRUCT;
+      CIn : Struct
+         Manager : DecoilersHRot_Manager;
+         CoilCar_OutOfLine : Bool;
+         PressureRunning_Rotation : Bool;
+         PressureRunning_Pivot : Bool;
+      END_STRUCT;
+      Config : Struct
+         Rotation : ValveMachine_Config;
+         Pivot : ValveMachine_Config;
+         Traslation : Positioning_DOL_Machine_Config;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         Rotation : ValveMachine_DataOut;
+         Pivot : ValveMachine_DataOut;
+         Tower_Lamp : Bool;
+         Tower_Horn : Bool;
+      END_STRUCT;
+      COut : DecoilersHRot_Status;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Struct
+         Par : Struct
+            TraslationAx : Positioning_DOL_Machine_Par;
+            TraslationEnc : PosFbk_RTN;
+            Traslation_AutSpeed : Real;
+         END_STRUCT;
+         Ax_Pers : Positioning_DOL_Machine_Pers_Data;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Warning : Struct
+         Rotation : ValveMachine_Wng;
+         Pivot : ValveMachine_Wng;
+         Traslation : Positioning_DOL_Machine_Wng;
+         Rotation_NotInPosition : Bool;
+         Pivot_NotWork : Bool;
+         Translation_NotInPosition : Bool;
+      END_STRUCT;
+      Alarm : Struct
+         Rotation : ValveAlr;
+         Pivot : ValveAlr;
+         Traslation_Ax : Positioning_DOL_Machine_Alr;
+         Traslation_Enc : PosFbk_Encoder_Alr;
+         Rotation_NotInPosition : Bool;
+         Pivot_NotWork : Bool;
+      END_STRUCT;
+      Sts : Struct
+         Decoiler1_InLine_Partial : Bool;
+         Decoiler2_InLine_Partial : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Decoiler1_MoveInLine_Man : Bool;
+         Decoiler2_MoveInLine_Man : Bool;
+         Decoiler1_MoveInLine_Aut : Bool;
+         Decoiler2_MoveInLine_Aut : Bool;
+         Decoiler1_MoveInLine : Bool;
+         Decoiler2_MoveInLine : Bool;
+      END_STRUCT;
+      Rotation : ValveMachine_FB;
+      Pivot : ValveMachine_FB;
+      Translation : Positioning_DOL_Machine_FB;
+      Traslation_Enc : PosFbk_SickAFM60;
+      Traslation_EncITF : PosFbk_ITF;
+      TON_Rotation_NotInPosition : TON_TIME;
+      TON_Pivot_NotWork : TON_TIME;
+      TON_Translation_NotInPosition : TON_TIME;
+      AUX : Struct
+         Move_Pb_InLineDecoiler1 : Bool;
+         Move_Pb_InLineDecoiler2 : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      Decoiler_N : Int;
+      Target : LReal;
+      InPosition : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Man move in line"
+      Ctrl.Decoiler1_MoveInLine_Man := (((PosEdge(DataIn.PB_Decoiler1_MoveInLine) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Decoiler1_MoveInLine_Man)) AND DataIn.PB_Decoiler1_MoveInLine) AND NOT (DataIn.PB_Decoiler2_MoveInLine));
+      Ctrl.Decoiler2_MoveInLine_Man := (((PosEdge(DataIn.PB_Decoiler2_MoveInLine) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Decoiler2_MoveInLine_Man)) AND DataIn.PB_Decoiler2_MoveInLine) AND NOT (DataIn.PB_Decoiler1_MoveInLine));
+   END_REGION
+
+   REGION "Aut move in line"
+      Ctrl.Decoiler1_MoveInLine_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Decoiler1_MoveInLine);
+      Ctrl.Decoiler2_MoveInLine_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Decoiler2_MoveInLine);
+   END_REGION
+
+   REGION "Cumulative move in line"
+      Ctrl.Decoiler1_MoveInLine := NOT ((NOT (Ctrl.Decoiler1_MoveInLine_Man) AND NOT (Ctrl.Decoiler1_MoveInLine_Aut)));
+      Ctrl.Decoiler2_MoveInLine := NOT ((NOT (Ctrl.Decoiler2_MoveInLine_Man) AND NOT (Ctrl.Decoiler2_MoveInLine_Aut)));
+   END_REGION
+
+   REGION "Alarms / Warnings no decoilers in position"
+      #TON_Rotation_NotInPosition(
+         IN := (((((NOT (Rotation.DataIn.Rest_Ls[1]) AND NOT (Rotation.DataIn.Work_Ls[1])) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)),
+         PT := T#5s
+      );
+
+      IF (((AreaInterface.Man OR AreaInterface.RstAlarms) AND Rotation.DataIn.Rest_Ls[1]) OR ((AreaInterface.Man OR AreaInterface.RstAlarms) AND Rotation.DataIn.Work_Ls[1])) THEN
+         Alarm.Rotation_NotInPosition := FALSE;
+      END_IF;
+      IF ((((((NOT (Rotation.DataIn.Rest_Ls[1]) AND NOT (Rotation.DataIn.Work_Ls[1])) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)) AND AreaInterface.Aut) THEN
+         Alarm.Rotation_NotInPosition := TRUE;
+      END_IF;
+      #TON_Rotation_NotInPosition.Q;
+      Warning.Rotation_NotInPosition := (#TON_Rotation_NotInPosition.Q AND NOT (Alarm.Rotation_NotInPosition));
+   END_REGION
+
+   REGION "Coordination in (Manager)"
+      Rotation.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Rotation.Cin.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+      Rotation.Cin.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+      // Rotazione @Rest = Decoiler 1 in linea
+      // Rotazione @Work = Decoiler 2 in linea
+
+      Rotation.Cin.Manager.Rest := NOT Rotation.COut.Rest AND Ctrl.Decoiler1_MoveInLine;
+
+      Rotation.Cin.Manager.Work :=  NOT Rotation.COut.Work AND Ctrl.Decoiler2_MoveInLine;
+
+
+      Rotation.Cin.Manager.Control_ON := CIn.Manager.Control_ON OR Rotation.Cin.Manager.Rest OR Rotation.Cin.Manager.Work;
+
+   END_REGION
+
+   REGION "Coordination in (External enables)"
+      Rotation.Cin.Rest_ExtEnable := ((CIn.Manager.ChangeDecoilerEnable AND CIn.CoilCar_OutOfLine) AND Pivot.COut.Rest);
+      Rotation.Cin.Work_ExtEnable := ((CIn.Manager.ChangeDecoilerEnable AND CIn.CoilCar_OutOfLine) AND Pivot.COut.Rest);
+      Rotation.Cin.PressureRunning := CIn.PressureRunning_Rotation;
+   END_REGION
+
+   REGION "External alrms used only for cycle aborting"
+      Rotation.Cin.ExternalAlarms := NOT (NOT (Alarm.Rotation_NotInPosition));
+   END_REGION
+
+   REGION "Valve Machine Manager"
+      #Rotation(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Rotation,
+         DataIn := DataIn.Rotation,
+         Config := Config.Rotation,
+         Alarm := Alarm.Rotation,
+         Warning := Warning.Rotation,
+         COut => COut.Rotation,
+         DataOut => DataOut.Rotation
+      );
+
+      #Rotation.Q;
+   END_REGION
+
+   REGION "Tower"
+      "Lamp"(
+         en := TRUE,
+         Signal := (NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))) AND Sys.Clock_500MS),
+         Ret_Val => DataOut.Tower_Lamp
+      );
+
+      "Lamp"(
+         en := TRUE,
+         Signal := NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))),
+         Ret_Val => DataOut.Tower_Horn
+      );
+
+      DataOut.Tower_Lamp := "Lamp"(Signal := (NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))) AND Sys.Clock_500MS));
+      DataOut.Tower_Horn := "Lamp"(Signal := NOT ((NOT (Rotation.COut.Rest_CheckNext) AND NOT (Rotation.COut.Work_CheckNext))));
+   END_REGION
+
+   REGION "Alarms / Warnings pivot not work"
+      #TON_Pivot_NotWork(
+         IN := (((((((Rotation.V.ValveSts.IsAtRest OR Rotation.V.ValveSts.IsAtWork) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Pivot.V.ValveSts.IsAtWork)) AND NOT (CIn.Manager.ChangeDecoilerEnable)) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)),
+         PT := T#2s
+      );
+
+      IF ((AreaInterface.Man OR AreaInterface.RstAlarms) AND Pivot.V.ValveSts.IsAtWork) THEN
+         Alarm.Pivot_NotWork := FALSE;
+      END_IF;
+      IF ((((((((Rotation.V.ValveSts.IsAtRest OR Rotation.V.ValveSts.IsAtWork) AND Rotation.V.ValveSts.StandStill) AND Pivot.V.ValveSts.StandStill) AND NOT (Pivot.V.ValveSts.IsAtWork)) AND NOT (CIn.Manager.ChangeDecoilerEnable)) AND NOT (Ctrl.Decoiler1_MoveInLine)) AND NOT (Ctrl.Decoiler2_MoveInLine)) AND AreaInterface.Aut) THEN
+         Alarm.Pivot_NotWork := TRUE;
+      END_IF;
+      #TON_Pivot_NotWork.Q;
+      Warning.Pivot_NotWork := (#TON_Pivot_NotWork.Q AND NOT (Alarm.Pivot_NotWork));
+   END_REGION
+
+   REGION "Coordination in (Manager)"
+      Pivot.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Pivot.Cin.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+      Pivot.Cin.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+
+      // Rotazione @Rest = Decoiler 1 in linea
+      // Rotazione @Work = Decoiler 2 in linea
+
+
+      Pivot.Cin.Manager.Rest :=
+      (
+      (Ctrl.Decoiler1_MoveInLine AND NOT Rotation.COut.Rest)
+      OR
+      (Ctrl.Decoiler2_MoveInLine AND NOT Rotation.COut.Work)
+      );
+
+      Pivot.Cin.Manager.Work :=
+      NOT Pivot.Cin.Manager.Rest
+      AND
+      (
+      Ctrl.Decoiler1_MoveInLine
+      OR
+      Ctrl.Decoiler2_MoveInLine);
+
+
+      Pivot.Cin.Manager.Control_ON := CIn.Manager.Control_ON OR Pivot.Cin.Manager.Work OR Pivot.Cin.Manager.Rest;
+
+
+   END_REGION
+
+   REGION "Coordination In (External enable)"
+      Pivot.Cin.Rest_ExtEnable := (CIn.Manager.ChangeDecoilerEnable AND Rotation.COut.Standstill);
+      Pivot.Cin.Work_ExtEnable := (((CIn.Manager.ChangeDecoilerEnable AND Rotation.COut.Standstill) AND Rotation.COut.Rest) OR ((CIn.Manager.ChangeDecoilerEnable AND Rotation.COut.Standstill) AND Rotation.COut.Work));
+      Pivot.Cin.PressureRunning := CIn.PressureRunning_Pivot;
+   END_REGION
+
+   REGION "External alrms used only for cycle aborting"
+      Pivot.Cin.ExternalAlarms := NOT (NOT (Alarm.Pivot_NotWork));
+   END_REGION
+
+   REGION "Valve Machine Manager"
+      #Pivot(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Pivot,
+         DataIn := DataIn.Pivot,
+         Config := Config.Pivot,
+         Alarm := Alarm.Pivot,
+         Warning := Warning.Pivot,
+         COut => COut.Pivot,
+         DataOut => DataOut.Pivot
+      );
+
+      #Pivot.Q;
+   END_REGION
+
+   REGION "Decoiler 1 / 2 in line partial (without chwck transaltion position)"
+      Sts.Decoiler1_InLine_Partial := (Pivot.COut.Work AND Rotation.COut.Rest);
+      Sts.Decoiler2_InLine_Partial := (Pivot.COut.Work AND Rotation.COut.Work);
+   END_REGION
+
+   REGION "Coordination In (Manager)"
+
+
+
+      // Gestione comandi manager
+      // 
+      Translation.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Translation.CIn.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+      Translation.CIn.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+
+      Translation.CIn.Manager.Minus := FALSE;
+      Translation.CIn.Manager.Plus := FALSE;
+
+      Translation.CIn.Manager.MoveToPos := Ctrl.Decoiler1_MoveInLine OR Ctrl.Decoiler2_MoveInLine;
+
+      Translation.CIn.Manager.Control_ON := CIn.Manager.Control_ON OR Translation.CIn.Manager.MoveToPos;
+
+
+      Translation.CIn.Manager.Speed := PersistentValues.Par.TraslationAx.Man_Speed;
+
+
+      // Posizione desiderta / comandata
+
+
+
+
+
+      IF Ctrl.Decoiler1_MoveInLine
+          OR
+          (NOT Ctrl.Decoiler1_MoveInLine_Man AND NOT Ctrl.Decoiler2_MoveInLine_Man AND Sts.Decoiler1_InLine_Partial)
+      THEN
+          Decoiler_N := 1;
+      END_IF;
+
+      IF Ctrl.Decoiler2_MoveInLine
+          OR
+          (NOT Ctrl.Decoiler1_MoveInLine_Man AND NOT Ctrl.Decoiler2_MoveInLine_Man AND Sts.Decoiler2_InLine_Partial)
+      THEN
+          Decoiler_N := 2;
+      END_IF;
+
+      Translation.CIn.Manager.Pos :=
+      DecHRot_Calc_Translation_By_MaterialWidth(Decoiler_N := Decoiler_N,
+                                                  Material_Width :=PPrf_MAIN.ON_WORK.GeneralData.Material_Width);
+
+
+   END_REGION
+
+   REGION "Warning not in position"
+      #TON_Translation_NotInPosition(
+         IN := ((COut.Decoiler1_InLine OR COut.Decoiler2_InLine) AND NOT (COut.Translation_InPosition)),
+         PT := T#2s
+      );
+
+      #TON_Translation_NotInPosition.Q;
+      Warning.Translation_NotInPosition := #TON_Translation_NotInPosition.Q;
+   END_REGION
+
+   REGION "Coordination In (External enable + External alarm + Position  limits)"
+      Translation.CIn.MinusExtEnable := CIn.CoilCar_OutOfLine;
+
+      Translation.CIn.PlusExtEnable := CIn.CoilCar_OutOfLine;
+
+      Translation.CIn.ExternalAlarms := FALSE;
+
+
+      Translation.CIn.PositionLimits.EnableMin := FALSE;
+      Translation.CIn.PositionLimits.EnableMax := FALSE;
+
+
+
+   END_REGION
+
+   REGION "Postioning Ecnoder manager"
+      #Traslation_Enc(
+         en := TRUE,
+         HW_IO := HW_ID.TraslationEnc_IO,
+         Interface := Traslation_EncITF,
+         Retain := PersistentValues.Par.TraslationEnc,
+         Alarm := Alarm.Traslation_Enc
+      );
+
+      #Traslation_Enc.Q;
+   END_REGION
+
+   REGION "Positioning Machine Manager"
+      #Translation(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Translation,
+         Drive := Drive.Traslation,
+         DataIn := DataIn.Traslation,
+         Config := Config.Traslation,
+         HW_ID_TEL1 := HW_ID.Traslation_TEL1,
+         PosFeedback := Traslation_EncITF,
+         Par := PersistentValues.Par.TraslationAx,
+         Pers_Data := PersistentValues.Ax_Pers,
+         Warning := Warning.Traslation,
+         Alarm := Alarm.Traslation_Ax,
+         COut => COut.Traslation
+      );
+
+      #Translation.Q;
+   END_REGION
+
+   REGION "Machine coordination out"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Translation.COut.ActualPosition,
+         Target := Translation.CIn.Manager.Pos,
+         PosWin := PersistentValues.Par.TraslationAx.PosTolerance,
+         Ret_Val => COut.Translation_InPosition
+      );
+
+      COut.Translation_InPosition := "TolWindow"(ActPos := Translation.COut.ActualPosition, Target := Translation.CIn.Manager.Pos, PosWin := PersistentValues.Par.TraslationAx.PosTolerance);
+      COut.Decoiler1_InLine := (true AND Sts.Decoiler1_InLine_Partial);
+      COut.Decoiler2_InLine := (true AND Sts.Decoiler2_InLine_Partial);
+      COut.DecoilerX_InLine_CheckNext := ((Ctrl.Decoiler1_MoveInLine AND NOT (COut.Decoiler1_InLine)) OR (Ctrl.Decoiler2_MoveInLine AND NOT (COut.Decoiler2_InLine)));
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Rotation.MachineInterface,
+         MachineInterface_2 := Pivot.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((NOT (Warning.Rotation_NotInPosition) AND NOT (Warning.Pivot_NotWork)) AND NOT (Warning.Translation_NotInPosition))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Translation.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Rotation.MachineInterface, MachineInterface_2 := Pivot.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((NOT (Warning.Rotation_NotInPosition) AND NOT (Warning.Pivot_NotWork)) AND NOT (Warning.Translation_NotInPosition))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Translation.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

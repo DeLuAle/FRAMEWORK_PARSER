@@ -1,0 +1,1502 @@
+﻿// Block: AccRollConveyor_FB
+// Title: Reset alarms command
+
+FUNCTION_BLOCK "AccRollConveyor_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms command
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         Roll1 : udt_DeviceSafetyInterface;
+         Roll2 : udt_DeviceSafetyInterface;
+         Roll3 : udt_DeviceSafetyInterface;
+         PusherVert : udt_DeviceSafetyInterface;
+         PusherHoriz : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : Struct
+         Roll1 : TAx_DriveInterface;
+         Roll2 : TAx_DriveInterface;
+         Roll3 : TAx_DriveInterface;
+      END_STRUCT;
+      HWID : Struct
+         Roll1_TEL1 : HW_SUBMODULE;
+         Roll2_TEL1 : HW_SUBMODULE;
+         Roll3_TEL1 : HW_SUBMODULE;
+      END_STRUCT;
+      DataIn : Struct
+         Pb_Semiauto : Bool;
+         Rolls_PbFwd : Bool;
+         Rolls_PbBwd : Bool;
+         PusherVert_PbUp : Bool;
+         PusherVert_PbDown : Bool;
+         PusherHoriz_PbLeft : Bool;
+         PusherHoriz_PbRight : Bool;
+         SensorMatPresence_S2_Entry : Bool;
+         SensorMatPresence_S3 : Bool;
+         SensorMatPresence_S4 : Bool;
+         SensorMatPresence_S5_Stop : Bool;
+         ExitLeft_MatPresence1 : Bool;
+         ExitLeft_MatPresence2 : Bool;
+         ExitLeft_MatPresence3 : Bool;
+         ExitLeft_MatPresence4 : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+         END_STRUCT;
+         Semiautomatic : Bool;
+         A03_CanLoadPiece : Bool;
+         A03_InCycle : Bool;
+         ReqFwdFromCut : Bool;
+         StopCheckQuality : Bool;
+      END_STRUCT;
+      Config : Struct
+         Roll1 : SpeedMachine_Config;
+         Roll2 : SpeedMachine_Config;
+         Roll3 : SpeedMachine_Config;
+         PusherVert : Array[1..6] of ValveMachine_Config;
+         PusherHoriz : Array[1..6] of ValveMachine_Config;
+         SensorsDelayOn : Time;
+         SensorsDelayOff : Time;
+         ExitLeftDelayOn : Time;
+         ExitLeftDelayOff : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Rolls : Struct
+            Infeed_ReqON : Bool;
+            Bwd_CheckNext : Bool;
+            Fwd_CheckNext : Bool;
+            Standstill : Bool;
+         END_STRUCT;
+         PusherVert : Struct
+            Rest_CheckNext : Bool;
+            Work_CheckNext : Bool;
+            AllStandstill : Bool;
+            TwoUp : Bool;
+            AllDown : Bool;
+         END_STRUCT;
+         PusherHoriz : Struct
+            Left_CheckNext : Bool;
+            Right_CheckNext : Bool;
+            AllStandstill : Bool;
+            InLeftPos : Bool;
+            InRightPos : Bool;
+         END_STRUCT;
+         Manager : udt_AccRollConveyor_COut_Manager;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Pers : udt_AccRollConveyor_Pers;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Semiautomatic : Bool;
+         OP_CanMoveFreely : Bool;
+         NextTargetPathLeft : Bool;
+         NextTargetPathRight : Bool;
+         ActTargetPathLeft : Bool;
+         ActTargetPathRight : Bool;
+         TrkExitLeftFull : Bool;
+         TrkPieceInRolls : Int;
+         TrkPieceToCheckInRoll : Int;
+         TrkPieceInLenght : LReal;
+         TrkPieceRecondGoodFind : Int;
+         StopCutCheckPiece : Bool;
+         Pusher : Struct
+            InLeftPos : Bool;
+            InRightPos : Bool;
+            UsedInLeftPos : Bool;
+            UsedInRightPos : Bool;
+            AllDown : Bool;
+            TwoUp : Bool;
+            Used : Array[1..MAX_PUSHER] of Bool;
+         END_STRUCT;
+         CycleTime : Struct
+            PusherHoriz : Struct
+               DT_W_Start : DTL;
+               DT_W_Stop : DTL;
+               DT_R_Start : DTL;
+               DT_R_Stop : DTL;
+               R_To_W_Exe : Bool;
+               W_To_R_Exe : Bool;
+               R_To_W_Items : Int;
+               R_To_W_Sum : Time;
+               W_To_R_Items : Int;
+               W_To_R_Sum : Time;
+            END_STRUCT;
+            PPrf_PrgNoSave : DInt;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         Pb_Semiauto : Bool;
+         Rolls : Struct
+            Man_Fwd : Bool;
+            Man_Bwd : Bool;
+            Aut_SlowDown : Bool;
+            Aut_Fwd : Bool;
+            Vel : LReal;
+            Entry_Vel : LReal;
+            Acc : LReal;
+            Dec : LReal;
+         END_STRUCT;
+         Pusher : Struct
+            Man_Left : Bool;
+            Man_Right : Bool;
+            Man_Up : Bool;
+            Man_Down : Bool;
+            Aut_Left : Bool;
+            Aut_Right : Bool;
+            Aut_Up : Bool;
+            Aut_Down : Bool;
+         END_STRUCT;
+         Cycle : Struct
+            ReqNextMovePieceToLeft : Bool;
+            ReqNextMovePieceToRight : Bool;
+            ExeNextMovePieceToLeft : Bool;
+            ExeNextMovePieceToRight : Bool;
+            ReqMovePieceToLeft : Bool;
+            ReqMovePieceToRight : Bool;
+            ExeMovePieceToLeft : Bool;
+            ExeMovePieceToRight : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Alarm : Struct
+         Roll1 : SpeedMachine_Alr;
+         Roll2 : SpeedMachine_Alr;
+         Roll3 : SpeedMachine_Alr;
+         PusherVert : Array[1..MAX_PUSHER] of ValveAlr;
+         PusherHoriz : Array[1..MAX_PUSHER] of ValveAlr;
+         TrkCloggedLeftExit : Bool;
+         TrkCloggedRightA03 : Bool;
+         TrkCloggedRollway : Bool;
+         TrkWrongMismatch_P0 : Bool;
+         TrkExitFullToChek : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Roll1 : SpeedMachine_Wng;
+         Roll2 : SpeedMachine_Wng;
+         Roll3 : SpeedMachine_Wng;
+         PusherVert : Array[1..MAX_PUSHER] of ValveMachine_Wng;
+         PusherHoriz : Array[1..MAX_PUSHER] of ValveMachine_Wng;
+      END_STRUCT;
+      HMI : Struct
+         PusherHoriz : Struct
+            Last_R_to_W_ID : DInt;
+            Last_R_to_W_Time : Time;
+            Last_W_to_R_ID : DInt;
+            Last_W_to_R_Time : Time;
+            Avg_R_to_W_Time : Time;
+            Avg_W_to_R_Time : Time;
+            Avg_CycleTime_S : LReal;
+            Buffer_R_to_W_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+            Buffer_W_to_R_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+      Roll1 : SpeedMachine_FB;
+      Roll2 : SpeedMachine_FB;
+      Roll3 : SpeedMachine_FB;
+      PusherVert : Array[1..MAX_PUSHER] of ValveMachine_FB;
+      PusherHoriz : Array[1..MAX_PUSHER] of ValveMachine_FB;
+      MatPresence_S2_Entry : DelayOnOff_R;
+      MatPresence_S3 : DelayOnOff_R;
+      MatPresence_S4 : DelayOnOff_R;
+      MatPresence_S5_Stop : DelayOnOff_R;
+      MatPresence_ExitLeft1 : DelayOnOff_R;
+      MatPresence_ExitLeft2 : DelayOnOff_R;
+      MatPresence_ExitLeft3 : DelayOnOff_R;
+      MatPresence_ExitLeft4 : DelayOnOff_R;
+      tonSlowDownRolls : TON_TIME;
+      tonStopRollformer : TON_TIME;
+      tonSlowDownRollformer : TON_TIME;
+      tonTrkMismatcP0 : TON_TIME;
+      Rollway_Control : Rulliera_Control_FB;
+      AUX : Struct
+         Pb_Semiauto : Bool;
+         Rolls_PbFwd : Bool;
+         Rolls_PbBwd : Bool;
+         PusherVert_PbUp : Bool;
+         PusherVert_PbDopwn : Bool;
+         PusherHoriz_PbLeft : Bool;
+         PusherHoriz_PbRight : Bool;
+         NE_MatPresence2_Entry : Bool;
+         PE_MatPresence3 : Bool;
+         PE_MatPresence5_Stop : Bool;
+         PE_SlowDownRolls : Bool;
+         NE_SlowDownDone : Bool;
+         PusherHoriz_InLeftPos : Bool;
+         PusherHoriz_InRightPos : Bool;
+      END_STRUCT;
+      PusherVert_MachineInterface : MachineInterface;
+      PusherHoriz_MachineInterface : MachineInterface;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Pb_Semiauto : Bool;
+         Rolls_PbFwd : Bool;
+         Rolls_PbBwd : Bool;
+         PusherVert_PbUp : Bool;
+         PusherVert_PbDown : Bool;
+         PusherHoriz_PbLeft : Bool;
+         PusherHoriz_PbRight : Bool;
+         NE_MatPresence2_Entry : Bool;
+         PE_MatPresence3 : Bool;
+         PE_MatPresence5_Stop : Bool;
+         PE_SlowDownRolls : Bool;
+         NE_SlowDownDone : Bool;
+         PusherHoriz_InLeftPos : Bool;
+         PusherHoriz_InRightPos : Bool;
+      END_STRUCT;
+      i : Int;
+      PusherVert_NrUp : Int;
+      ActualPieceLenght : LReal;
+      RetVal_MOVEBLK : Int;
+      Ptrk_ItemFind : Int;
+      Ptrk_ExitItemToCheck : Int;
+      ReturnVal : Word;
+      AddAlarm : Bool;
+      PartLenght : LReal;
+   END_VAR
+
+   VAR CONSTANT
+      BUFFER_ITEMS : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms command"
+
+      IF  AreaInterface.RstAlarms THEN
+          // Alarms
+          Alarm.TrkCloggedLeftExit := FALSE;
+          Alarm.TrkCloggedRightA03 := FALSE;
+          Alarm.TrkCloggedRollway := FALSE;
+          
+          Alarm.TrkWrongMismatch_P0 := FALSE;
+          Alarm.TrkExitFullToChek := FALSE;
+
+      END_IF;
+
+   END_REGION
+
+   REGION "OP Can move freely"
+      Sts.OP_CanMoveFreely := TRUE;
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Semiautomaitc"
+      Ctrl.Pb_Semiauto := (((PosEdge(DataIn.Pb_Semiauto) OR Ctrl.Pb_Semiauto) AND AreaInterface.Man) AND DataIn.Pb_Semiauto);
+      Sts.Semiautomatic := ((Ctrl.Pb_Semiauto OR CIn.Semiautomatic) AND NOT (MachineInterface.AlarmsPresence));
+   END_REGION
+
+   REGION "Material presence 2 Entry"
+      #MatPresence_S2_Entry(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_S2_Entry,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_S2_Entry
+      );
+
+      Pers.Data.MaterialPresence_S2_Entry := #MatPresence_S2_Entry.Q;
+      PE.NE_MatPresence2_Entry := NegEdge(Pers.Data.MaterialPresence_S2_Entry);
+   END_REGION
+
+   REGION "Material presence 3"
+      #MatPresence_S3(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_S3,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_S3
+      );
+
+      Pers.Data.MaterialPresence_S3 := #MatPresence_S3.Q;
+      PE.PE_MatPresence3 := PosEdge(Pers.Data.MaterialPresence_S3);
+   END_REGION
+
+   REGION "Material presence 4"
+      #MatPresence_S4(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_S4,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_S4
+      );
+
+      Pers.Data.MaterialPresence_S4 := #MatPresence_S4.Q;
+   END_REGION
+
+   REGION "Material presence 5 Stop"
+      #MatPresence_S5_Stop(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_S5_Stop,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_S5_Stop
+      );
+
+      Pers.Data.MaterialPresence_S5_Stop := #MatPresence_S5_Stop.Q;
+      PE.PE_MatPresence5_Stop := PosEdge(Pers.Data.MaterialPresence_S5_Stop);
+      PE.NE_SlowDownDone := NegEdge(Ctrl.Rolls.Aut_SlowDown);
+   END_REGION
+
+   REGION "Material presence ExitLeft1"
+      #MatPresence_ExitLeft1(
+         en := TRUE,
+         IN := DataIn.ExitLeft_MatPresence1,
+         DelayON := Config.ExitLeftDelayOn,
+         DelayOFF := Config.ExitLeftDelayOff,
+         OUT => Pers.Data.MaterialPresence_ExitLeft1
+      );
+
+      Pers.Data.MaterialPresence_ExitLeft1 := #MatPresence_ExitLeft1.Q;
+   END_REGION
+
+   REGION "Material presence ExitLeft2"
+      #MatPresence_ExitLeft2(
+         en := TRUE,
+         IN := DataIn.ExitLeft_MatPresence2,
+         DelayON := Config.ExitLeftDelayOn,
+         DelayOFF := Config.ExitLeftDelayOff,
+         OUT => Pers.Data.MaterialPresence_ExitLeft2
+      );
+
+      Pers.Data.MaterialPresence_ExitLeft2 := #MatPresence_ExitLeft2.Q;
+   END_REGION
+
+   REGION "Material presence ExitLeft3"
+      #MatPresence_ExitLeft3(
+         en := TRUE,
+         IN := DataIn.ExitLeft_MatPresence3,
+         DelayON := Config.ExitLeftDelayOn,
+         DelayOFF := Config.ExitLeftDelayOff,
+         OUT => Pers.Data.MaterialPresence_ExitLeft3
+      );
+
+      Pers.Data.MaterialPresence_ExitLeft3 := #MatPresence_ExitLeft3.Q;
+   END_REGION
+
+   REGION "Material presence ExitLeft4"
+      #MatPresence_ExitLeft4(
+         en := TRUE,
+         IN := DataIn.ExitLeft_MatPresence4,
+         DelayON := Config.ExitLeftDelayOn,
+         DelayOFF := Config.ExitLeftDelayOff,
+         OUT => Pers.Data.MaterialPresence_ExitLeft4
+      );
+
+      Pers.Data.MaterialPresence_ExitLeft4 := #MatPresence_ExitLeft4.Q;
+   END_REGION
+
+   REGION "Rollway movement"
+
+      //Tracking ENTRY to P6 
+      IF PTrk.A0202.P[PTRK_A0202_ENTRY].P_ID <> 0 AND
+          ((PE.NE_MatPresence2_Entry AND PTrk.A0202.P[PTRK_A0202_ENTRY].PLen_Meas <= 4000) OR
+          (Pers.Data.MaterialPresence_S3 AND PTrk.A0202.P[PTRK_A0202_ENTRY].PLen_Meas > 4000))
+      THEN
+          IF PTrk.A0202.P[PTRK_A0202_P6].P_ID = 0 THEN
+              PTrk.A0202.P[PTRK_A0202_P6] := PTrk.A0202.P[PTRK_A0202_ENTRY];
+              PTrk.A0202.P[PTRK_A0202_ENTRY] := PTrk.Empty;
+          ELSE
+              Alarm.TrkCloggedRollway := TRUE;
+          END_IF;
+          
+      END_IF;
+          
+
+      //Sposto buffer tacking
+      i := PTRK_A0202_P1;
+      WHILE i > PTRK_A0202_P6 DO
+          
+          IF PTrk.A0202.P[i].P_ID = 0 AND
+              PTrk.A0202.P[i - 1].P_ID <> 0
+          THEN
+              PTrk.A0202.P[i] := PTrk.A0202.P[i - 1];
+              PTrk.A0202.P[i - 1] := PTrk.Empty;
+          END_IF;
+          i -= 1;
+          
+      END_WHILE;
+
+
+      //Tracking P1 to P0
+      IF PTrk.A0202.P[PTRK_A0202_P1].P_ID <> 0 AND
+          ((PE.PE_MatPresence5_Stop AND AreaInterface.Man AND NOT Sts.Semiautomatic)
+            OR PE.NE_SlowDownDone)
+      THEN
+          IF PTrk.A0202.P[PTRK_A0202_P0].P_ID = 0 THEN
+              PTrk.A0202.P[PTRK_A0202_P0] := PTrk.A0202.P[PTRK_A0202_P1];
+              PTrk.A0202.P[PTRK_A0202_P1] := PTrk.Empty;
+          ELSE
+              Alarm.TrkCloggedRollway := TRUE;
+          END_IF;
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Left Exit movement"
+
+      //Rollway to left
+      IF PTrk.A0202.P[PTRK_A0202_P0].P_ID <> 0 AND
+          (Ctrl.Cycle.ReqMovePieceToLeft OR AreaInterface.Man) AND
+          COut.PusherHoriz.Left_CheckNext AND NOT COut.PusherHoriz.AllStandstill AND
+          Sts.Pusher.TwoUp AND
+          NOT Sts.Pusher.InLeftPos
+      THEN
+          
+          IF PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT].P_ID = 0  THEN
+              PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT] := PTrk.A0202.P[PTRK_A0202_P0];
+              PTrk.A0202.P[PTRK_A0202_P0] := PTrk.Empty;
+          ELSE
+              Alarm.TrkCloggedLeftExit := TRUE;
+          END_IF;
+      END_IF;
+
+      //Left to Exit
+      IF PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT].P_ID <> 0 AND
+          Sts.Pusher.TwoUp AND
+          Sts.Pusher.UsedInLeftPos
+      THEN
+          
+          RetVal_MOVEBLK := (SRC := PTrk.A02_EXIT_TOCHECK,
+                                              COUNT := (PTRK_A0202_EXIT_TOCHECK_ITEMS - 1),
+                                              SRC_INDEX := 0,
+                                              DEST_INDEX := 1,
+                                              DEST => PTrk.A02_EXIT_TOCHECK);
+          
+          PTrk.A02_EXIT_TOCHECK[1] := PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT];
+          PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT] := PTrk.Empty;
+      END_IF;
+
+      //Alarm Clogged
+      IF PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT].P_ID <> 0 AND
+           PTrk.A0202.P[PTRK_A0202_P0].P_ID <> 0
+      THEN
+          Alarm.TrkCloggedLeftExit := TRUE;
+      END_IF;
+          
+          
+
+   END_REGION
+
+   REGION "Right A03 movement"
+
+      //Rollway to left
+      IF PTrk.A0202.P[PTRK_A0202_P0].P_ID <> 0 AND
+          (Ctrl.Cycle.ReqMovePieceToRight OR AreaInterface.Man) AND
+          COut.PusherHoriz.Right_CheckNext AND NOT COut.PusherHoriz.AllStandstill AND
+          Sts.Pusher.TwoUp AND 
+          NOT Sts.Pusher.InRightPos
+      THEN
+          
+          IF PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301].P_ID = 0 AND
+              PTrk.A0301.P[PTRK_A0301_Pos1_Entry].P_ID = 0
+          THEN
+              PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301] := PTrk.A0202.P[PTRK_A0202_P0];
+              PTrk.A0202.P[PTRK_A0202_P0] := PTrk.Empty;
+          ELSE
+              Alarm.TrkCloggedRightA03 := TRUE;
+          END_IF;
+      END_IF;
+
+      //Left to Exit
+      IF PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301].P_ID <> 0 AND
+          Sts.Pusher.TwoUp AND
+          Sts.Pusher.UsedInRightPos
+      THEN
+          PTrk.A0301.P[PTRK_A0301_Pos1_Entry] := PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301];
+          PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301] := PTrk.Empty;
+      END_IF;
+
+      //Alarm Clogged
+      IF PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301].P_ID <> 0 AND
+          (PTrk.A0301.P[PTRK_A0301_Pos1_Entry].P_ID <> 0 OR PTrk.A0202.P[PTRK_A0202_P0].P_ID <> 0)
+      THEN
+          Alarm.TrkCloggedRightA03 := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Exit To check manager"
+
+      //Shift verso alto se trovo buco
+
+      Ptrk_ItemFind := 0;
+      FOR i := 1 TO PTRK_A0202_EXIT_TOCHECK_ITEMS - 1 DO
+
+          IF PTrk.A02_EXIT_TOCHECK[i].P_ID = 0 AND
+              PTrk.A02_EXIT_TOCHECK[i + 1].P_ID <> 0 THEN
+              Ptrk_ItemFind := i;
+              EXIT;
+          END_IF;
+      END_FOR;
+
+      IF Ptrk_ItemFind > 0 THEN
+          RetVal_MOVEBLK := (SRC := PTrk.A02_EXIT_TOCHECK,
+                                              COUNT := (PTRK_A0202_EXIT_TOCHECK_ITEMS - Ptrk_ItemFind),
+                                              SRC_INDEX := Ptrk_ItemFind,
+                                              DEST_INDEX := Ptrk_ItemFind - 1,
+                                              DEST => PTrk.A02_EXIT_TOCHECK);
+      END_IF;
+          
+          
+
+      //Conteggio Pezzi su rulliera
+      Sts.TrkPieceInRolls := 0;
+      Sts.TrkPieceInLenght := 0.0;
+      Sts.TrkPieceToCheckInRoll := 0;
+
+      FOR i := 1 TO PTRK_A0202_DEVITATOR_To_EXIT DO
+          
+          IF PTrk.A0202.P[i].P_ID <> 0 THEN
+              Sts.TrkPieceInRolls += 1;
+              Sts.TrkPieceInLenght := PTrk.A0202.P[i].PLen_Meas;
+              
+              //Conto i pezzi da controllare
+              IF PTrk.A0202.P[i].Quality = TO_CHECK OR
+                  PTrk.A0202.P[i].Quality = TO_CHECK_LEN
+              THEN
+                  Sts.TrkPieceToCheckInRoll += 1;
+              END_IF;
+                  
+          END_IF;
+          
+      END_FOR;
+
+      //Rulliera vuota
+      COut.Manager.Empty := Sts.TrkPieceInRolls = 0;
+
+          
+      //Rallentamento profila se pezzi da controllare
+      Ptrk_ExitItemToCheck := PTRK_A0202_EXIT_TOCHECK_ITEMS - Sts.TrkPieceToCheckInRoll;
+      IF Ptrk_ExitItemToCheck < 1 THEN
+          Ptrk_ExitItemToCheck := 1;
+      END_IF;
+
+
+      Sts.StopCutCheckPiece := FALSE;
+      Sts.TrkPieceRecondGoodFind := 0;
+      FOR i := 1 TO PTRK_A0202_EXIT_TOCHECK_ITEMS DO
+          
+          IF i >= Ptrk_ExitItemToCheck AND
+              PTrk.A02_EXIT_TOCHECK[i].P_ID <> 0 AND
+              (PTrk.A02_EXIT_TOCHECK[i].Quality = TO_CHECK OR
+              PTrk.A02_EXIT_TOCHECK[i].Quality = TO_CHECK_LEN)
+          THEN
+              Sts.StopCutCheckPiece := TRUE;
+          END_IF;
+          
+          IF PTrk.A02_EXIT_TOCHECK[i].P_ID <> 0
+              AND PTrk.A02_EXIT_TOCHECK[i].Quality = RECOND_GOOD
+          THEN
+              Sts.TrkPieceRecondGoodFind := i;
+          END_IF;
+      END_FOR;
+
+
+      //Move piece recond good
+      IF Sts.TrkPieceRecondGoodFind > 0 AND
+          PTrk.A0202.P[PTRK_A0202_P0].P_ID = 0
+      THEN
+          PTrk.A0202.P[PTRK_A0202_P0] := PTrk.A02_EXIT_TOCHECK[Sts.TrkPieceRecondGoodFind];
+      END_IF;
+          
+
+
+          
+      //Tracking left FULL
+      Sts.TrkExitLeftFull :=
+      (PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].P_ID <> 0 AND PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].Quality = TO_CHECK) OR
+      (PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].P_ID <> 0 AND PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].Quality = TO_CHECK_LEN) OR
+      ((Pers.Data.MaterialPresence_ExitLeft3 OR Pers.Data.MaterialPresence_ExitLeft4) AND
+      (Pers.Data.MaterialPresence_ExitLeft1 OR Pers.Data.MaterialPresence_ExitLeft2));
+
+      //Allarme Trk full
+      IF(PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].P_ID <> 0 AND PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].Quality = TO_CHECK) OR
+          (PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].P_ID <> 0 AND PTrk.A02_EXIT_TOCHECK[PTRK_A0202_EXIT_TOCHECK_ITEMS].Quality = TO_CHECK_LEN)
+      THEN
+          Alarm.TrkExitFullToChek := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Alarm mismatch P0"
+      #tonTrkMismatcP0(
+         IN := ((((((AreaInterface.Aut AND Pers.Data.MaterialPresence_S4) OR (AreaInterface.Aut AND Pers.Data.MaterialPresence_S5_Stop)) AND (PTrk.A0202.P.P_ID = 0)) OR (((AreaInterface.Aut AND (PTrk.A0202.P.P_ID <> 0)) AND NOT (Pers.Data.MaterialPresence_S4)) AND NOT (Pers.Data.MaterialPresence_S5_Stop))) AND COut.Rolls.Standstill) AND COut.PusherHoriz.AllStandstill),
+         PT := T#500MS
+      );
+
+      #tonTrkMismatcP0.Q;
+      IF #tonTrkMismatcP0.Q THEN
+         Alarm.TrkWrongMismatch_P0 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Next Targert path left/right"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Sts.NextTargetPathRight := ((NOT (Pers.Par.UnloadAllLeft) AND (PTrk.A0202.P.Quality = #GOOD)) AND (PTrk.A0202.P.Beam_Code > 0));
+      Sts.NextTargetPathLeft := ((PTrk.A0202.P.Quality <> #GOOD) OR (PTrk.A0202.P.Beam_Code = 0) OR Pers.Par.UnloadAllLeft);
+   END_REGION
+
+   REGION "Actual Targert path left/right"
+      // Sys.Bypass Delu il semiguscio può essere anche NG !!!
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Sts.ActTargetPathRight := (((NOT (Pers.Par.UnloadAllLeft) AND (PTrk.A0202.P.Quality = #GOOD)) OR (NOT (Pers.Par.UnloadAllLeft) AND (PTrk.A0202.P.Quality = #GOOD_R)) OR (NOT (Pers.Par.UnloadAllLeft) AND (PTrk.A0202.P.Quality = #RECOND_GOOD))) AND (PTrk.A0202.P.Beam_Code > 0));
+      Sts.ActTargetPathLeft := (((PTrk.A0202.P.Quality <> #GOOD) AND (PTrk.A0202.P.Quality <> #GOOD_R)) OR (PTrk.A0202.P.Beam_Code = 0) OR Pers.Par.UnloadAllLeft);
+   END_REGION
+
+   REGION "Move piece to left"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Cycle.ReqMovePieceToLeft := (Sts.ActTargetPathLeft OR TRUE);
+      Ctrl.Cycle.ExeMovePieceToLeft := (((((Sts.ActTargetPathLeft OR TRUE) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((Sts.ActTargetPathLeft OR TRUE) AND NOT (Sts.TrkExitLeftFull)) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
+   END_REGION
+
+   REGION "Move piece to Right"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Cycle.ReqMovePieceToRight := (Sts.ActTargetPathRight OR TRUE);
+      Ctrl.Cycle.ExeMovePieceToRight := (((((Sts.ActTargetPathRight OR TRUE) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND AreaInterface.Cycle) OR ((((Sts.ActTargetPathRight OR TRUE) AND CIn.A03_CanLoadPiece) AND NOT (CIn.StopCheckQuality)) AND Sts.Semiautomatic));
+   END_REGION
+
+   REGION "Prepare next move to left / right"
+      Ctrl.Cycle.ReqNextMovePieceToLeft := (((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathLeft) AND NOT (Sts.NextTargetPathRight));
+      Ctrl.Cycle.ExeNextMovePieceToLeft := (((((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathLeft) AND NOT (Sts.NextTargetPathRight)) AND AreaInterface.Cycle) OR ((((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathLeft) AND NOT (Sts.NextTargetPathRight)) AND Sts.Semiautomatic));
+      Ctrl.Cycle.ReqNextMovePieceToRight := (((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathRight) AND NOT (Sts.NextTargetPathLeft));
+      Ctrl.Cycle.ExeNextMovePieceToRight := (((((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathRight) AND NOT (Sts.NextTargetPathLeft)) AND AreaInterface.Cycle) OR ((((NOT (Ctrl.Cycle.ReqMovePieceToLeft) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) AND Sts.NextTargetPathRight) AND NOT (Sts.NextTargetPathLeft)) AND Sts.Semiautomatic));
+   END_REGION
+
+   REGION "Command auto left"
+      "PTrk_Presence"(
+         en := (Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.AllDown),
+         Item := PTrk.A0202.P
+      );
+
+      IF (Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.AllDown) THEN
+         "PTrk_Presence"(Item := PTrk.A0202.P);
+      END_IF;
+      Ctrl.Pusher.Aut_Left := (((((((Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR NOT (Sts.Pusher.InLeftPos) OR (Ctrl.Cycle.ExeNextMovePieceToRight AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
+   END_REGION
+
+   REGION "Command auto Right"
+      "PTrk_Presence"(
+         en := (Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.AllDown),
+         Item := PTrk.A0202.P
+      );
+
+      IF (Ctrl.Cycle.ExeMovePieceToLeft AND Sts.Pusher.AllDown) THEN
+         "PTrk_Presence"(Item := PTrk.A0202.P);
+      END_IF;
+      Ctrl.Pusher.Aut_Right := (((((((Ctrl.Cycle.ExeMovePieceToRight AND Sts.Pusher.TwoUp) AND Pers.Data.MaterialPresence_S4) AND Pers.Data.MaterialPresence_S5_Stop) OR NOT (Sts.Pusher.InRightPos) OR (Ctrl.Cycle.ExeNextMovePieceToLeft AND Sts.Pusher.AllDown)) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway));
+   END_REGION
+
+   REGION "Command auto up"
+      Ctrl.Pusher.Aut_Up := ((((((Ctrl.Cycle.ReqMovePieceToLeft OR (Ctrl.Cycle.ReqNextMovePieceToLeft AND NOT (Ctrl.Cycle.ReqMovePieceToLeft))) AND Sts.Pusher.InRightPos) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) OR (((Ctrl.Cycle.ReqMovePieceToRight OR (Ctrl.Cycle.ReqNextMovePieceToRight AND NOT (Ctrl.Cycle.ReqNextMovePieceToLeft))) AND Sts.Pusher.InLeftPos) AND NOT (Ctrl.Cycle.ReqMovePieceToLeft))) AND AreaInterface.Cycle) OR (((((Ctrl.Cycle.ReqMovePieceToLeft OR (Ctrl.Cycle.ReqNextMovePieceToLeft AND NOT (Ctrl.Cycle.ReqMovePieceToLeft))) AND Sts.Pusher.InRightPos) AND NOT (Ctrl.Cycle.ReqMovePieceToRight)) OR (((Ctrl.Cycle.ReqMovePieceToRight OR (Ctrl.Cycle.ReqNextMovePieceToRight AND NOT (Ctrl.Cycle.ReqNextMovePieceToLeft))) AND Sts.Pusher.InLeftPos) AND NOT (Ctrl.Cycle.ReqMovePieceToLeft))) AND Sts.Semiautomatic));
+   END_REGION
+
+   REGION "Command atuto down"
+      Ctrl.Pusher.Aut_Down := ((((((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.InRightPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.InLeftPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.UsedInRightPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.UsedInLeftPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND NOT (Sts.Pusher.TwoUp))) AND COut.PusherHoriz.AllStandstill) AND AreaInterface.Cycle) OR (((((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.InRightPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.InLeftPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.UsedInRightPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND Sts.Pusher.UsedInLeftPos) OR ((NOT (Ctrl.Pusher.Aut_Up) AND NOT (Sts.Pusher.AllDown)) AND NOT (Sts.Pusher.TwoUp))) AND COut.PusherHoriz.AllStandstill) AND Sts.Semiautomatic));
+   END_REGION
+
+   REGION "Pusher used"
+      ActualPieceLenght := 0.0;
+
+
+      IF Ctrl.Cycle.ReqMovePieceToLeft OR
+          Ctrl.Cycle.ReqMovePieceToRight
+      THEN
+          IF PTrk.A0202.P[PTRK_A0202_P0].P_ID <> 0 THEN
+              ActualPieceLenght := PTrk.A0202.P[PTRK_A0202_P0].PLen_Meas;
+          ELSIF PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT].P_ID <> 0 AND Ctrl.Cycle.ReqMovePieceToLeft THEN
+              ActualPieceLenght := PTrk.A0202.P[PTRK_A0202_DEVITATOR_To_EXIT].PLen_Meas;
+          ELSIF PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301].P_ID <> 0 AND Ctrl.Cycle.ReqMovePieceToRight THEN
+              ActualPieceLenght := PTrk.A0202.P[PTRK_A0202_DEVIATOR_To_A0301].PLen_Meas;
+          END_IF;
+      ELSIF
+          Ctrl.Cycle.ReqNextMovePieceToLeft OR
+          Ctrl.Cycle.ReqNextMovePieceToRight
+      THEN
+          ActualPieceLenght := PTrk.A0202.P[PTRK_A0202_P1].PLen_Meas;
+      END_IF;
+
+
+      FOR i := 1 TO MAX_PUSHER DO
+          
+          IF i = 1 THEN
+              Sts.Pusher.Used[i] := ActualPieceLenght <= Pers.Par.Pusher_MaxLenghtUseFirst;
+          ELSIF i < MAX_PUSHER THEN
+              
+              Sts.Pusher.Used[i] :=
+              ((ActualPieceLenght - Pers.Par.Pusher_DistanceFromStop[i] > Pers.Par.Pusher_DeltaLenghtForUse) AND NOT
+              (ActualPieceLenght - Pers.Par.Pusher_DistanceFromStop[i + 1] > Pers.Par.Pusher_DeltaLenghtForUse)) OR
+              (i= 2 AND NOT Sts.Pusher.Used[i -1]) ;
+          ELSE
+              
+              Sts.Pusher.Used[i] := (ActualPieceLenght - Pers.Par.Pusher_DistanceFromStop[i]) > Pers.Par.Pusher_DeltaLenghtForUse;
+              
+          END_IF;
+          
+      END_FOR;
+
+          
+          
+
+   END_REGION
+
+   REGION "Rolls aut Fwd"
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      Ctrl.Rolls.Aut_Fwd := ((((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR TRUE OR TRUE OR TRUE OR TRUE) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR TRUE OR TRUE OR TRUE OR TRUE) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND COut.Manager.RollformerFeedOk) OR (((((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR TRUE OR TRUE OR TRUE OR TRUE) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND AreaInterface.Cycle) OR ((((((CIn.ReqFwdFromCut AND Rollformer.Sts.CndFWD_OK) OR TRUE OR TRUE OR TRUE OR TRUE) AND NOT (Alarm.TrkCloggedLeftExit)) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_SlowDown)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)));
+   END_REGION
+
+   REGION "Stop Slow down"
+      #tonSlowDownRolls(
+         IN := Pers.Data.MaterialPresence_S4,
+         PT := Rollway_Control.RitStop_Rull
+      );
+
+      #tonSlowDownRolls.Q;
+   END_REGION
+
+   REGION "Stop Slow down Mem"
+
+      IF PE.PE_SlowDownRolls THEN
+          Ctrl.Rolls.Aut_SlowDown := TRUE;
+      ELSIF Ctrl.Rolls.Aut_SlowDown AND
+          (Roll3.COut.Standstill OR
+          Roll3.COut.ActualVelocity < Pers.Par.Rollway_StopSlowDownSpeed OR
+          Pers.Data.MaterialPresence_S5_Stop)
+      THEN
+          Ctrl.Rolls.Aut_SlowDown := FALSE;
+      END_IF;
+          
+
+   END_REGION
+
+   REGION "Piece length for speed calculation"
+
+      IF RollformingMng.FeedLimit.PartLength <= 0.0
+      THEN
+          IF Sts.TrkPieceInLenght > 0.0 THEN
+              PartLenght := Sts.TrkPieceInLenght;
+          ELSE
+              PartLenght := PLEN_MIN_PPM_MAX;
+          END_IF;
+      ELSE
+          PartLenght := RollformingMng.FeedLimit.PartLength;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Rollss speed calculation"
+      #Rollway_Control(
+         en := TRUE,
+         PLen := PartLenght,
+         V_Prof := RollformingMng.FlyingCutoff.COut.Lead.Vel,
+         Pos_Coda := RollformingMng.COut.AccRollConveyor.PosCoda,
+         T_Cut := RollformingMng.FeedLimit.CutoffTime,
+         T_Dev := HMI.PusherHoriz.Avg_CycleTime_S,
+         A_FlyC := FlyingCarriage_PERS.FsParameter.SyncDinamics.Acceleration,
+         A_Prof := RollformingMng.COut.Rollformer.Feed.Acc,
+         A_Rull := Pers.Par.Rollway_AutAcc,
+         V_RullMIn := Pers.Par.Rollway_AutMinSpeed,
+         D_Min := Pers.Par.Rollway_DistanceBetweenPieces,
+         Pos_S4_mm := Pers.Par.S4_DistanceFromstop,
+         Rul_len_mm := Pers.Par.Rollway_Lenght
+      );
+
+      #Rollway_Control.Q;
+   END_REGION
+
+   REGION "Rolls Target velocity / Acc / Dec / Jerk"
+
+      Ctrl.Rolls.Vel := 0.0;
+      Ctrl.Rolls.Entry_Vel := 0.0;
+
+      IF Ctrl.Rolls.Man_Bwd OR Ctrl.Rolls.Man_Fwd THEN
+          
+          //Prendo i dati da ultima rulliera
+          Ctrl.Rolls.Vel := Pers.Par.Roll3.Man.VelFwdLow;
+          Ctrl.Rolls.Entry_Vel := Pers.Par.Roll3.Man.VelFwdLow;
+          
+          Ctrl.Rolls.Acc := Pers.Par.Roll3.Man.Acc;
+          Ctrl.Rolls.Dec := Pers.Par.Roll3.Man.Dec;
+          
+      ELSIF Ctrl.Rolls.Aut_Fwd THEN
+          
+          
+          IF DataIn.Pb_Semiauto
+          THEN
+              Ctrl.Rolls.Vel := RollformingMng_PERS.PersistentValues.Par.SemiAut.Vel;
+          ELSE
+              
+              
+              Ctrl.Rolls.Vel := Rollway_Control.V_Rull;
+          END_IF;
+
+          Ctrl.Rolls.Entry_Vel := Ctrl.Rolls.Vel;
+
+          Ctrl.Rolls.Acc := Pers.Par.Rollway_AutAcc;
+          Ctrl.Rolls.Dec := Pers.Par.Rollway_AutDec;
+          
+      END_IF;
+          
+
+   END_REGION
+
+   REGION "Rolls Request Stop rollformer"
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Absence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      "PTrk_Presence"(
+         en := TRUE,
+         Item := PTrk.A0202.P
+      );
+
+      #tonStopRollformer(
+         IN := (((((TRUE OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR (((TRUE OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND NOT (AreaInterface.Man)) OR ((((TRUE OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND COut.PusherHoriz.AllStandstill) OR (((TRUE OR (Pers.Data.MaterialPresence_S4 AND Pers.Data.MaterialPresence_S5_Stop)) AND NOT (Ctrl.Cycle.ExeMovePieceToLeft)) AND NOT (Ctrl.Cycle.ExeMovePieceToRight))) AND Sts.Semiautomatic)),
+         PT := Pers.Par.Rollway_DelayStopRollformer
+      );
+
+      "PTrk_Absence"(Item := PTrk.A0202.P);
+      "PTrk_Presence"(Item := PTrk.A0202.P);
+      #tonStopRollformer.Q;
+      IF #tonStopRollformer.Q THEN
+         COut.Manager.RollformerFeedOk := FALSE;
+      ELSIF ((((NOT (Pers.Data.MaterialPresence_S2_Entry) AND NOT (Pers.Data.MaterialPresence_S3)) OR AreaInterface.Man) AND NOT (Pers.Data.MaterialPresence_S4)) AND NOT (Pers.Data.MaterialPresence_S5_Stop)) THEN
+         COut.Manager.RollformerFeedOk := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Rolls Request slow down rollformer"
+      #tonSlowDownRollformer(
+         IN := ((NOT (CIn.A03_InCycle) AND (PPrf_MAIN.ON_WORK.GeneralData.Beam_Code = 1)) OR Sts.TrkExitLeftFull),
+         PT := Pers.Par.Rollway_DelaySlowDownRollformer
+      );
+
+      #tonSlowDownRollformer.Q;
+      COut.Manager.RollformerReqSlowDown := #tonSlowDownRollformer.Q;
+   END_REGION
+
+   REGION "Comando combinato  avanti/ indietro rulliere"
+      PE.Rolls_PbFwd := PosEdge(DataIn.Rolls_PbFwd);
+      PE.Rolls_PbBwd := PosEdge(DataIn.Rolls_PbBwd);
+      Ctrl.Rolls.Man_Fwd := ((((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_Fwd)) AND PE.Rolls_PbFwd) OR (((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_Fwd)) AND Ctrl.Rolls.Man_Fwd)) AND DataIn.Rolls_PbFwd) AND NOT (DataIn.Rolls_PbBwd));
+      Ctrl.Rolls.Man_Bwd := ((((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_Fwd)) AND PE.Rolls_PbBwd) OR (((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Rolls.Aut_Fwd)) AND Ctrl.Rolls.Man_Bwd)) AND DataIn.Rolls_PbBwd) AND NOT (DataIn.Rolls_PbFwd));
+   END_REGION
+
+   REGION "Cin (Manager stop)"
+      Roll1.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Roll1.CIn.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+      Roll1.CIn.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "CIn (Manager)"
+      Roll1.CIn.Manager.Control_ON := NOT (((NOT (Ctrl.Rolls.Aut_Fwd) AND NOT (Ctrl.Rolls.Man_Fwd)) AND NOT (Ctrl.Rolls.Man_Bwd)));
+      Roll1.CIn.Manager.Bwd := Ctrl.Rolls.Man_Bwd;
+      Roll1.CIn.Manager.Fwd := (Ctrl.Rolls.Man_Fwd OR ((Ctrl.Rolls.Aut_Fwd AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)));
+      Roll1.CIn.Manager.Vel := Ctrl.Rolls.Entry_Vel;
+   END_REGION
+
+   REGION "CIn (External enables)"
+      Roll1.CIn.Bwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll1.CIn.Manager.Control_ON)) OR Ctrl.Rolls.Man_Bwd) AND Sts.OP_CanMoveFreely);
+      Roll1.CIn.Fwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll1.CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) OR Roll1.CIn.Manager.Control_ON);
+      Roll1.CIn.EnableManChangeVel := FALSE;
+   END_REGION
+
+   REGION "External alarm"
+      Roll1.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Machine Manager"
+      #Roll1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Roll1,
+         Drive := Drive.Roll1,
+         Config := Config.Roll1,
+         HW_ID_TEL1 := HWID.Roll1_TEL1,
+         Par := Pers.Par.Roll1,
+         Warning := Warning.Roll1,
+         Alarm := Alarm.Roll1
+      );
+
+      #Roll1.Q;
+   END_REGION
+
+   REGION "Cin (Manager stop)"
+      Roll2.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Roll2.CIn.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+      Roll2.CIn.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "CIn (Manager)"
+      Roll2.CIn.Manager.Control_ON := NOT (((NOT (Ctrl.Rolls.Aut_Fwd) AND NOT (Ctrl.Rolls.Man_Fwd)) AND NOT (Ctrl.Rolls.Man_Bwd)));
+      Roll2.CIn.Manager.Bwd := Ctrl.Rolls.Man_Bwd;
+      Roll2.CIn.Manager.Fwd := (Ctrl.Rolls.Man_Fwd OR ((Ctrl.Rolls.Aut_Fwd AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)));
+      Roll2.CIn.Manager.Vel := Ctrl.Rolls.Vel;
+   END_REGION
+
+   REGION "CIn (External enables)"
+      Roll2.CIn.Bwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll2.CIn.Manager.Control_ON)) OR Ctrl.Rolls.Man_Bwd) AND Sts.OP_CanMoveFreely);
+      Roll2.CIn.Fwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll2.CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) OR Roll2.CIn.Manager.Control_ON);
+      Roll2.CIn.EnableManChangeVel := FALSE;
+   END_REGION
+
+   REGION "External alarm"
+      Roll2.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Machine Manager"
+      #Roll2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Roll2,
+         Drive := Drive.Roll2,
+         Config := Config.Roll2,
+         HW_ID_TEL1 := HWID.Roll2_TEL1,
+         Par := Pers.Par.Roll2,
+         Warning := Warning.Roll2,
+         Alarm := Alarm.Roll2
+      );
+
+      #Roll2.Q;
+   END_REGION
+
+   REGION "Cin (Manager stop)"
+      Roll3.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Roll3.CIn.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+      Roll3.CIn.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "CIn (Manager)"
+      Roll3.CIn.Manager.Control_ON := NOT (((NOT (Ctrl.Rolls.Aut_Fwd) AND NOT (Ctrl.Rolls.Man_Fwd)) AND NOT (Ctrl.Rolls.Man_Bwd)));
+      Roll3.CIn.Manager.Bwd := Ctrl.Rolls.Man_Bwd;
+      Roll3.CIn.Manager.Fwd := (Ctrl.Rolls.Man_Fwd OR ((Ctrl.Rolls.Aut_Fwd AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)));
+      Roll3.CIn.Manager.Vel := Ctrl.Rolls.Vel;
+   END_REGION
+
+   REGION "CIn (External enables)"
+      Roll3.CIn.Bwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll3.CIn.Manager.Control_ON)) OR Ctrl.Rolls.Man_Bwd) AND Sts.OP_CanMoveFreely);
+      Roll3.CIn.Fwd_ExtEnable := ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Roll3.CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) OR Roll3.CIn.Manager.Control_ON);
+      Roll3.CIn.EnableManChangeVel := FALSE;
+   END_REGION
+
+   REGION "External alarm"
+      Roll3.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Machine Manager"
+      #Roll3(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Roll3,
+         Drive := Drive.Roll3,
+         Config := Config.Roll3,
+         HW_ID_TEL1 := HWID.Roll3_TEL1,
+         Par := Pers.Par.Roll3,
+         Warning := Warning.Roll3,
+         Alarm := Alarm.Roll3
+      );
+
+      #Roll3.Q;
+   END_REGION
+
+   REGION "Comando combinato"
+      PE.PusherVert_PbUp := PosEdge(DataIn.PusherVert_PbUp);
+      PE.PusherVert_PbDown := PosEdge(DataIn.PusherVert_PbDown);
+      Ctrl.Pusher.Man_Up := (((((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Up)) AND NOT (Ctrl.Pusher.Aut_Down)) AND PE.PusherVert_PbUp) OR ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Up)) AND NOT (Ctrl.Pusher.Aut_Down)) AND Ctrl.Pusher.Man_Up)) AND DataIn.PusherVert_PbUp) AND NOT (DataIn.PusherVert_PbDown));
+      Ctrl.Pusher.Man_Down := (((((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Up)) AND NOT (Ctrl.Pusher.Aut_Down)) AND PE.PusherVert_PbDown) OR ((((AreaInterface.Man AND NOT (Sts.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Up)) AND NOT (Ctrl.Pusher.Aut_Down)) AND Ctrl.Pusher.Man_Down)) AND DataIn.PusherVert_PbDown) AND NOT (DataIn.PusherVert_PbUp));
+   END_REGION
+
+   REGION "Manager"
+
+      PusherVert_MachineInterface := PusherVert[1].MachineInterface;
+      Sts.Pusher.AllDown := TRUE;
+      PusherVert_NrUp := 0;
+
+      COut.PusherVert.AllStandstill := TRUE;
+      COut.PusherVert.Rest_CheckNext := FALSE;
+      COut.PusherVert.Work_CheckNext := FALSE;
+
+      FOR i := 1 TO MAX_PUSHER DO
+          
+          PusherVert[i].Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+          PusherVert[i].Cin.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+          PusherVert[i].Cin.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+          
+          PusherVert[i].Cin.Manager.Control_ON := Ctrl.Pusher.Aut_Down OR Ctrl.Pusher.Aut_Up OR Ctrl.Pusher.Man_Down OR Ctrl.Pusher.Man_Up;
+          PusherVert[i].Cin.Manager.Work := (Ctrl.Pusher.Aut_Up AND Sts.Pusher.Used[i] AND NOT Ctrl.StopInPhase AND NOT Ctrl.StopProgrammed) OR Ctrl.Pusher.Man_Up;
+          PusherVert[i].Cin.Manager.Rest := (Ctrl.Pusher.Aut_Down AND NOT Ctrl.StopInPhase AND NOT Ctrl.StopProgrammed) OR Ctrl.Pusher.Man_Down;
+          
+          PusherVert[i].Cin.Rest_ExtEnable := TRUE;
+          PusherVert[i].Cin.Work_ExtEnable := (AreaInterface.Man AND NOT Sts.Semiautomatic AND Sts.OP_CanMoveFreely) OR (PusherVert[i].Cin.Manager.Control_ON AND Sts.Pusher.Used[i]);
+          PusherVert[i].Cin.ExternalAlarms := FALSE;
+          
+          
+          PusherVert[i](AreaInterface := AreaInterface,
+                          ZSI := ZSI,
+                          DSI := DSI.PusherVert,
+                          Config := Config.PusherVert[i],
+                          Alarm := Alarm.PusherVert[i],
+                          Warning := Warning.PusherVert[i]);
+          
+          
+          IF NOT PusherVert[i].COut.Rest THEN
+              Sts.Pusher.AllDown := FALSE;
+          END_IF;
+          IF PusherVert[i].COut.Work THEN
+              PusherVert_NrUp += 1;
+          END_IF;
+          IF NOT PusherVert[i].COut.Standstill THEN
+              COut.PusherVert.AllStandstill := FALSE;
+          END_IF;
+          IF PusherVert[i].COut.Rest_CheckNext THEN
+              COut.PusherVert.Rest_CheckNext := TRUE;
+          END_IF;
+          IF PusherVert[i].COut.Work_CheckNext THEN
+              COut.PusherVert.Work_CheckNext := TRUE;
+          END_IF;
+          
+          
+          IF i = 1 THEN
+              PusherVert_MachineInterface := PusherVert[i].MachineInterface;
+          ELSE
+              PusherVert_MachineInterface := MachineInterface_2_To_1(MachineInterface_1 := PusherVert_MachineInterface,
+                                                                         MachineInterface_2 := PusherVert[i].MachineInterface,
+                                                                         AdditionalAlarms := FALSE,
+                                                                         AdditionalWarnings := FALSE);
+          END_IF;
+      END_FOR;
+
+      Sts.Pusher.TwoUp := PusherVert_NrUp >= 2;
+      COut.PusherVert.TwoUp := Sts.Pusher.TwoUp;
+      COut.PusherVert.AllDown := Sts.Pusher.AllDown;
+
+
+   END_REGION
+
+   REGION "Comando combinato"
+      PE.PusherHoriz_PbLeft := PosEdge(DataIn.PusherHoriz_PbLeft);
+      PE.PusherHoriz_PbRight := PosEdge(DataIn.PusherHoriz_PbRight);
+      Ctrl.Pusher.Man_Left := (((((((AreaInterface.Man AND NOT (CIn.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Left)) AND NOT (Ctrl.Pusher.Aut_Right)) AND PE.PusherHoriz_PbLeft) OR ((((AreaInterface.Man AND NOT (CIn.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Left)) AND NOT (Ctrl.Pusher.Aut_Right)) AND Ctrl.Pusher.Man_Left)) AND DataIn.PusherHoriz_PbLeft) AND NOT (DataIn.PusherHoriz_PbRight));
+      Ctrl.Pusher.Man_Right := (((((((AreaInterface.Man AND NOT (CIn.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Left)) AND NOT (Ctrl.Pusher.Aut_Right)) AND PE.PusherHoriz_PbRight) OR ((((AreaInterface.Man AND NOT (CIn.Semiautomatic)) AND NOT (Ctrl.Pusher.Aut_Left)) AND NOT (Ctrl.Pusher.Aut_Right)) AND Ctrl.Pusher.Man_Right)) AND DataIn.PusherHoriz_PbRight) AND NOT (DataIn.PusherHoriz_PbLeft));
+   END_REGION
+
+   REGION "Manager"
+
+      PusherHoriz_MachineInterface := PusherHoriz[1].MachineInterface;
+      Sts.Pusher.InLeftPos  := TRUE;
+      Sts.Pusher.InRightPos := TRUE;
+      Sts.Pusher.UsedInLeftPos := TRUE;
+      Sts.Pusher.UsedInRightPos := TRUE;
+
+      COut.PusherHoriz.AllStandstill := TRUE;
+      COut.PusherHoriz.Left_CheckNext := FALSE;
+      COut.PusherHoriz.Right_CheckNext := FALSE;
+
+      FOR i := 1 TO MAX_PUSHER DO
+          
+          PusherHoriz[i].Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+          PusherHoriz[i].Cin.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+          PusherHoriz[i].Cin.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+          
+          PusherHoriz[i].Cin.Manager.Control_ON := Ctrl.Pusher.Aut_Left OR Ctrl.Pusher.Aut_Right OR Ctrl.Pusher.Man_Left OR Ctrl.Pusher.Man_Right;
+          PusherHoriz[i].Cin.Manager.Work := (Ctrl.Pusher.Aut_Right AND (Sts.Pusher.Used[i] OR Sts.Pusher.AllDown) AND NOT Ctrl.StopInPhase AND NOT Ctrl.StopProgrammed) OR Ctrl.Pusher.Man_Right;
+          PusherHoriz[i].Cin.Manager.Rest := (Ctrl.Pusher.Aut_Left  AND (Sts.Pusher.Used[i] OR Sts.Pusher.AllDown) AND NOT Ctrl.StopInPhase AND NOT Ctrl.StopProgrammed) OR Ctrl.Pusher.Man_Left;
+          
+          PusherHoriz[i].Cin.Rest_ExtEnable := (AreaInterface.Man AND NOT Sts.Semiautomatic AND Sts.OP_CanMoveFreely) OR (PusherHoriz[i].Cin.Manager.Control_ON AND Sts.Pusher.Used[i]) OR Sts.Pusher.AllDown;
+          PusherHoriz[i].Cin.Work_ExtEnable := PusherHoriz[i].Cin.Rest_ExtEnable;
+          PusherHoriz[i].Cin.ExternalAlarms := FALSE;
+          
+          
+          PusherHoriz[i](AreaInterface := AreaInterface,
+                           ZSI := ZSI,
+                           DSI := DSI.PusherHoriz,
+                           Config := Config.PusherHoriz[i],
+                           Alarm := Alarm.PusherHoriz[i],
+                           Warning := Warning.PusherHoriz[i]);
+          
+          IF NOT PusherHoriz[i].COut.Rest THEN
+              Sts.Pusher.InLeftPos := FALSE;
+          END_IF;
+          IF NOT PusherHoriz[i].COut.Work THEN
+              Sts.Pusher.InRightPos := FALSE;
+          END_IF;
+          IF Sts.Pusher.Used[i] AND
+              NOT PusherHoriz[i].COut.Rest
+          THEN
+              Sts.Pusher.UsedInLeftPos := FALSE;
+          END_IF;
+          IF Sts.Pusher.Used[i] AND
+              NOT PusherHoriz[i].COut.Work
+          THEN
+              Sts.Pusher.UsedInRightPos := FALSE;
+          END_IF;
+          
+          IF NOT PusherHoriz[i].COut.Standstill THEN
+              COut.PusherHoriz.AllStandstill := FALSE;
+          END_IF;
+          
+          IF PusherHoriz[i].COut.Rest_CheckNext THEN
+              COut.PusherHoriz.Left_CheckNext := TRUE;
+          END_IF;
+          IF PusherHoriz[i].COut.Work_CheckNext THEN
+              COut.PusherHoriz.Right_CheckNext := TRUE;
+          END_IF;
+          
+          IF i= 1 THEN
+              PusherHoriz_MachineInterface := PusherHoriz[i].MachineInterface;
+          ELSE
+              PusherHoriz_MachineInterface := MachineInterface_2_To_1(MachineInterface_1 := PusherHoriz_MachineInterface,
+                                                                         MachineInterface_2 := PusherHoriz[i].MachineInterface,
+                                                                         AdditionalAlarms := FALSE,
+                                                                         AdditionalWarnings := FALSE);
+          END_IF;
+      END_FOR;
+
+      COut.PusherHoriz.InLeftPos := Sts.Pusher.InLeftPos;
+      COut.PusherHoriz.InRightPos := Sts.Pusher.InRightPos;
+
+
+   END_REGION
+
+   REGION "At Rest / At work positive/negative edge"
+      PE.PusherHoriz_InLeftPos := PosEdge(PusherHoriz[1].COut.Rest);
+      PE.PusherHoriz_InRightPos := PosEdge(PusherHoriz[1].COut.Work);
+   END_REGION
+
+   REGION "Rest to work time calculation"
+      IF (PusherHoriz[1].DataOut.WorkSolenoid AND NOT (Sts.CycleTime.PusherHoriz.R_To_W_Exe)) THEN
+         Sts.CycleTime.PusherHoriz.DT_W_Start := RD_SYS_T();
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.PusherHoriz.R_To_W_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.R_To_W_Exe AND PE.PusherHoriz_InRightPos) OR (Sts.CycleTime.PusherHoriz.R_To_W_Exe AND NOT (PusherHoriz[1].DataOut.WorkSolenoid))) THEN
+         Sts.CycleTime.PusherHoriz.DT_W_Stop := RD_SYS_T();
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.R_To_W_Exe AND PE.PusherHoriz_InRightPos) OR (Sts.CycleTime.PusherHoriz.R_To_W_Exe AND NOT (PusherHoriz[1].DataOut.WorkSolenoid))) THEN
+         HMI.PusherHoriz.Last_R_to_W_Time := T_DIFF(IN1:=Sts.CycleTime.PusherHoriz.DT_W_Stop, IN2:=Sts.CycleTime.PusherHoriz.DT_W_Start);
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.R_To_W_Exe AND PE.PusherHoriz_InRightPos) OR (Sts.CycleTime.PusherHoriz.R_To_W_Exe AND NOT (PusherHoriz[1].DataOut.WorkSolenoid))) THEN
+         HMI.PusherHoriz.Last_R_to_W_ID := (HMI.PusherHoriz.Buffer_R_to_W_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.PusherHoriz.R_To_W_Exe AND NOT (PusherHoriz[1].DataOut.WorkSolenoid)) THEN
+         Sts.CycleTime.PusherHoriz.R_To_W_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Work to rest time calculation"
+      IF (PusherHoriz[1].DataOut.RestSolenoid AND NOT (Sts.CycleTime.PusherHoriz.W_To_R_Exe)) THEN
+         Sts.CycleTime.PusherHoriz.DT_R_Start := RD_SYS_T();
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.PusherHoriz.W_To_R_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.W_To_R_Exe AND PE.PusherHoriz_InLeftPos) OR (Sts.CycleTime.PusherHoriz.W_To_R_Exe AND NOT (PusherHoriz[1].DataOut.RestSolenoid))) THEN
+         Sts.CycleTime.PusherHoriz.DT_R_Stop := RD_SYS_T();
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.W_To_R_Exe AND PE.PusherHoriz_InLeftPos) OR (Sts.CycleTime.PusherHoriz.W_To_R_Exe AND NOT (PusherHoriz[1].DataOut.RestSolenoid))) THEN
+         HMI.PusherHoriz.Last_W_to_R_Time := T_DIFF(IN1:=Sts.CycleTime.PusherHoriz.DT_R_Stop, IN2:=Sts.CycleTime.PusherHoriz.DT_R_Start);
+      END_IF;
+      IF ((Sts.CycleTime.PusherHoriz.W_To_R_Exe AND PE.PusherHoriz_InLeftPos) OR (Sts.CycleTime.PusherHoriz.W_To_R_Exe AND NOT (PusherHoriz[1].DataOut.RestSolenoid))) THEN
+         HMI.PusherHoriz.Last_W_to_R_ID := (HMI.PusherHoriz.Buffer_W_to_R_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.PusherHoriz.W_To_R_Exe AND NOT (PusherHoriz[1].DataOut.RestSolenoid)) THEN
+         Sts.CycleTime.PusherHoriz.W_To_R_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Init buffers & average calculations"
+      IF PPrf_MAIN.ON_WORK.Header.PrgNo <> Sts.CycleTime.PPrf_PrgNoSave OR PPrf_MAIN.ON_WORK.Header.PrgNo <= 0 THEN
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              HMI.PusherHoriz.Buffer_R_to_W_Time[i].ID := 0;
+              HMI.PusherHoriz.Buffer_R_to_W_Time[i].Value := T#0s;
+              HMI.PusherHoriz.Buffer_W_to_R_Time[i].ID := 0;
+              HMI.PusherHoriz.Buffer_W_to_R_Time[i].Value := T#0s;
+          END_FOR;
+          
+          HMI.PusherHoriz.Last_R_to_W_ID := 0;
+          HMI.PusherHoriz.Last_R_to_W_Time := T#0ms;
+          HMI.PusherHoriz.Avg_R_to_W_Time := Config.PusherHoriz[1].V.WorkTimeOut;
+          HMI.PusherHoriz.Last_W_to_R_ID := 0;
+          HMI.PusherHoriz.Last_W_to_R_Time := T#0ms;
+          HMI.PusherHoriz.Avg_W_to_R_Time := Config.PusherHoriz[1].V.RestTimeOut;
+          
+      END_IF;
+
+
+      Sts.CycleTime.PPrf_PrgNoSave := PPrf_MAIN.ON_WORK.Header.PrgNo ;
+
+   END_REGION
+
+   REGION "Add new items to Rest-TO-Work buffer & calculate average"
+
+      IF HMI.PusherHoriz.Last_R_to_W_Time >= Config.PusherHoriz[1].V.WorkTimeOut OR Alarm.PusherHoriz[1].TimeOutWork THEN
+          
+          HMI.PusherHoriz.Last_R_to_W_ID := -1; // Force red background on the HMI visualization
+          
+          
+          
+      ELSIF HMI.PusherHoriz.Last_R_to_W_ID <> HMI.PusherHoriz.Buffer_R_to_W_Time[1].ID AND HMI.PusherHoriz.Last_R_to_W_Time < Config.PusherHoriz[1].V.WorkTimeOut AND HMI.PusherHoriz.Last_R_to_W_Time > T#0ms THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.PusherHoriz.Buffer_R_to_W_Time[i] := HMI.PusherHoriz.Buffer_R_to_W_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.PusherHoriz.Buffer_R_to_W_Time[1].ID := HMI.PusherHoriz.Last_R_to_W_ID;
+          HMI.PusherHoriz.Buffer_R_to_W_Time[1].Value := HMI.PusherHoriz.Last_R_to_W_Time;
+          
+          Sts.CycleTime.PusherHoriz.R_To_W_Items := 0;
+          Sts.CycleTime.PusherHoriz.R_To_W_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.PusherHoriz.Buffer_R_to_W_Time[i].ID > 0 AND HMI.PusherHoriz.Buffer_R_to_W_Time[i].Value > T#0ms THEN
+                  Sts.CycleTime.PusherHoriz.R_To_W_Items += 1;
+                  Sts.CycleTime.PusherHoriz.R_To_W_Sum := Sts.CycleTime.PusherHoriz.R_To_W_Sum + HMI.PusherHoriz.Buffer_R_to_W_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.PusherHoriz.R_To_W_Items >= 5 THEN
+              HMI.PusherHoriz.Avg_R_to_W_Time := Sts.CycleTime.PusherHoriz.R_To_W_Sum / Sts.CycleTime.PusherHoriz.R_To_W_Items;
+          ELSE
+              HMI.PusherHoriz.Avg_R_to_W_Time := Config.PusherHoriz[1].V.WorkTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+      //#HMI.PusherHoriz.Avg_CycleTime_S := DINT_TO_LREAL(TIME_TO_DINT(((#HMI.PusherHoriz.Avg_R_to_W_Time + #HMI.PusherHoriz.Avg_W_to_R_Time) / 2))) / 1000;
+
+      HMI.PusherHoriz.Avg_CycleTime_S := ((HMI.PusherHoriz.Avg_R_to_W_Time)) / 1000;
+
+   END_REGION
+
+   REGION "Add new items to Work-TO-Rest buffer & calculate average"
+      IF HMI.PusherHoriz.Last_W_to_R_Time >= Config.PusherHoriz[1].V.RestTimeOut OR Alarm.PusherHoriz[1].TimeOutRest THEN
+          
+          HMI.PusherHoriz.Last_W_to_R_ID := -1; // Force red background on the HMI visualization
+
+      ELSIF HMI.PusherHoriz.Last_W_to_R_ID <> HMI.PusherHoriz.Buffer_W_to_R_Time[1].ID AND HMI.PusherHoriz.Last_W_to_R_Time < Config.PusherHoriz[1].V.RestTimeOut AND HMI.PusherHoriz.Last_W_to_R_Time > T#0ms  THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.PusherHoriz.Buffer_W_to_R_Time[i] := HMI.PusherHoriz.Buffer_W_to_R_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.PusherHoriz.Buffer_W_to_R_Time[1].ID := HMI.PusherHoriz.Last_W_to_R_ID;
+          HMI.PusherHoriz.Buffer_W_to_R_Time[1].Value := HMI.PusherHoriz.Last_W_to_R_Time;
+          
+          Sts.CycleTime.PusherHoriz.W_To_R_Items := 0;
+          Sts.CycleTime.PusherHoriz.W_To_R_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.PusherHoriz.Buffer_W_to_R_Time[i].ID > 0 AND HMI.PusherHoriz.Buffer_W_to_R_Time[i].Value > T#0ms  THEN
+                  Sts.CycleTime.PusherHoriz.W_To_R_Items += 1;
+                  Sts.CycleTime.PusherHoriz.W_To_R_Sum := Sts.CycleTime.PusherHoriz.W_To_R_Sum + HMI.PusherHoriz.Buffer_W_to_R_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.PusherHoriz.W_To_R_Items >= 5 THEN
+              HMI.PusherHoriz.Avg_W_to_R_Time := Sts.CycleTime.PusherHoriz.W_To_R_Sum / Sts.CycleTime.PusherHoriz.W_To_R_Items;
+          ELSE
+              HMI.PusherHoriz.Avg_W_to_R_Time := Config.PusherHoriz[1].V.RestTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Coordination Out"
+      COut.Rolls.Standstill := ((Roll1.COut.Standstill AND Roll2.COut.Standstill) AND Roll3.COut.Standstill);
+      COut.Rolls.Bwd_CheckNext := NOT (((NOT (Roll1.COut.Bwd_CheckNext) AND NOT (Roll2.COut.Bwd_CheckNext)) AND NOT (Roll3.COut.Bwd_CheckNext)));
+      COut.Rolls.Fwd_CheckNext := NOT (((NOT (Roll1.COut.Fwd_CheckNext) AND NOT (Roll2.COut.Fwd_CheckNext)) AND NOT (Roll3.COut.Fwd_CheckNext)));
+      COut.Rolls.Infeed_ReqON := NOT (((NOT (Roll1.COut.Infeed_ReqON) AND NOT (Roll2.COut.Fwd_CheckNext)) AND NOT (Roll3.COut.Infeed_ReqON)));
+   END_REGION
+
+   REGION "Additional Alarm"
+      AddAlarm := NOT (((((NOT (Alarm.TrkCloggedLeftExit) AND NOT (Alarm.TrkCloggedRightA03)) AND NOT (Alarm.TrkCloggedRollway)) AND NOT (Alarm.TrkWrongMismatch_P0)) AND NOT (Alarm.TrkExitFullToChek)));
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Roll1.MachineInterface,
+         MachineInterface_2 := Roll2.MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Roll3.MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PusherVert_MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := PusherHoriz_MachineInterface,
+         AdditionalAlarms := AddAlarm,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Roll1.MachineInterface, MachineInterface_2 := Roll2.MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Roll3.MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PusherVert_MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := PusherHoriz_MachineInterface, AdditionalAlarms := AddAlarm, AdditionalWarnings := FALSE);
+   END_REGION
+
+   REGION "Ack stop in phase and stop programmed"
+
+      MachineInterface.AckStopInPhase := MachineInterface.AckStopInPhase AND (COut.Manager.Empty OR MachineInterface.Aborting);
+      MachineInterface.AckStopProgrammed := MachineInterface.AckStopInPhase AND(COut.Manager.Empty OR MachineInterface.Aborting);
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

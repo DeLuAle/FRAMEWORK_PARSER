@@ -1,0 +1,104 @@
+﻿FUNCTION "Pos_Antirib" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PosSpalla : LReal;
+   END_VAR
+
+   VAR_OUTPUT 
+      PosPaletto : Int;
+      Pos1Collisione : Bool;
+      Pos2Collisione : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      PosPalettoPos1 : LReal;
+      PosPalettoPos2 : LReal;
+      PosSpalla_Paletto : LReal;
+      Dist1 : LReal;
+      Dist2 : LReal;
+      PosizioneScelta : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      Sollevatore1_pos : Real := 240.0;   // Quota sollevatore 1 
+      Sollevatore2_pos : LReal := 1000.0;   // Quota sollevatore 2
+      Sollevatore3_pos : Real := 2000.0;   // Quota sollevatore 3
+      Ingombro_sollevatori : Real := 40.0;   // Largezza totale 80mm
+      InterassePos : Real := -150.0;   // Distanza tra Pos
+      OffsetPaletto : Real := 25.0;
+   END_VAR
+
+
+BEGIN
+	#PosSpalla_Paletto := #PosSpalla + #OffsetPaletto ;
+	
+	//Posizione  Pos1 
+	#PosPalettoPos1 := #PosSpalla_Paletto + #InterassePos;
+	#PosPalettoPos2 := #PosSpalla_Paletto + (#InterassePos*2);
+	
+	
+	// Verifica collisione per Posizione 1
+	IF (ABS(#PosPalettoPos1 - #Sollevatore1_pos) <= #Ingombro_sollevatori) OR
+	    (ABS(#PosPalettoPos1 - #Sollevatore2_pos) <= #Ingombro_sollevatori) OR
+	    (ABS(#PosPalettoPos1 - #Sollevatore3_pos) <= #Ingombro_sollevatori) THEN
+	    #Pos1Collisione := TRUE; // Collisione per Pos1
+	ELSE
+	    #Pos1Collisione := FALSE; // Nessuna collisione per Pos1
+	END_IF;
+	
+	// Verifica collisione per Posizione 2
+	IF (ABS(#PosPalettoPos2 - #Sollevatore1_pos) <= #Ingombro_sollevatori) OR
+	    (ABS(#PosPalettoPos2 - #Sollevatore2_pos) <= #Ingombro_sollevatori) OR
+	    (ABS(#PosPalettoPos2 - #Sollevatore3_pos) <= #Ingombro_sollevatori) THEN
+	    #Pos2Collisione := TRUE; // Collisione per Pos2
+	ELSE
+	    #Pos2Collisione := FALSE; // Nessuna collisione per Pos2
+	END_IF;
+	
+	
+	//Se Pos1 è in collisione allora scelgo la pos 2
+	//
+	IF #Pos1Collisione THEN
+	    #PosizioneScelta := 2;
+	    //Se Pos2 è in collisione allora scelgo la pos 1
+	ELSIF #Pos2Collisione THEN
+	    #PosizioneScelta := 1;
+	    
+	ELSIF (NOT #Pos1Collisione AND NOT #Pos2Collisione) THEN
+	    #PosizioneScelta := 2;
+	END_IF;
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	// // Se entrambe le posizioni sono libere, scegli la più lontana
+	// ELSIF (NOT #Pos1Collisione AND NOT #Pos2Collisione) THEN
+	//     //Calcola la distanza minima per Pos1
+	//     #Dist1 := ABS(#PosPalettoPos1 - #Sollevatore1_pos);
+	//     #Dist1 := MIN(IN1 :=#Dist1,IN2 := ABS(#PosPalettoPos1 - #Sollevatore2_pos));
+	//     #Dist1 := MIN(IN1 :=#Dist1,IN2 := ABS(#PosPalettoPos1 - #Sollevatore3_pos));
+	    
+	//     // Calcola la distanza minima per Pos2
+	//     #Dist2 := ABS(#PosPalettoPos2 - #Sollevatore1_pos);
+	//     #Dist2 := MIN(IN1 := #Dist2, IN2 := ABS(#PosPalettoPos2 - #Sollevatore2_pos));
+	//     #Dist2 := MIN(IN1 := #Dist2, IN2 := ABS(#PosPalettoPos2 - #Sollevatore3_pos));
+	    
+	//     // Scegli la posizione più lontana
+	//     IF #Dist2 > #Dist1 THEN
+	//         #PosizioneScelta := 2; // Posizione 2 più lontana
+	//     ELSE
+	//         #PosizioneScelta := 1; // Posizione 1 più lontana
+	//     END_IF;
+	// END_IF;
+	
+	// Assegna la posizione finale
+	#PosPaletto := #PosizioneScelta;
+END_FUNCTION
+

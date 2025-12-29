@@ -1,0 +1,173 @@
+﻿// Block: RollformerLubr_FB
+
+FUNCTION_BLOCK "RollformerLubr_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+   END_VAR
+
+   VAR
+      Pump : Lubr_Motor;
+      Valves1 : Lubr_Valve;
+      Valves2 : Lubr_Valve;
+      Valves3 : Lubr_Valve;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      Pump.DataIn.PbManualLubr := FALSE;
+      Pump.DataIn.MotorThermalProtection := FALSE;
+      Pump.DataIn.MotorFdbkRunning := A0201_Profila_Cassette_Pompa_Lubrificante_Feedback;
+      Pump.DataIn.SensorLevel := A0201_Profila_Cassette_Livello_Lubrificante;
+   END_REGION
+
+   REGION "Manager"
+      #Pump(
+         en := TRUE,
+         Par := RollformerLubr_PERS.Pump
+      );
+
+      #Pump.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Profila_Cassette_Pompa_Lubrificante_Marcia := Pump.RunContactor;
+      A0201_Profila_Cassette_V_Sezionatrice_Generale := Pump.RunContactor;
+   END_REGION
+
+   REGION "Data In"
+      Valves1.DataIn.PbStartLubr := A02_HMI.MB2.Button.Rollformer.Lubr1.Start;
+      Valves1.DataIn.PbStopLubr := A02_HMI.MB2.Button.Rollformer.Lubr1.Stop;
+      Valves1.DataIn.CycleFbk := FALSE;
+      Valves1.DataIn.ConnectorPlugged := TRUE;
+   END_REGION
+
+   REGION "CIn"
+      IF (RollformingMng_PERS.PersistentValues.Data.MaterialPresence_Entry AND RollformingMng_PERS.PersistentValues.Data.MaterialPresence_AfterMW) THEN
+         Valves1.CIn.ActualPosition := Rollformer.Feed.COut.ActualPosition;
+      END_IF;
+      Valves1.CIn.LubrEnable := NOT (Rollformer.COut.Feed.Standstill);
+   END_REGION
+
+   REGION "Manager"
+      #Valves1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         Config := A02_Config.RollfomerLubr,
+         LubrInterface := Pump.LubrInterface,
+         Pers := RollformerLubr_PERS.Valves1.Control
+      );
+
+      #Valves1.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Profila_Cassetta_1_V_Lubrificante_1 := NOT (Valves1.ValveCmd);
+      A0201_Profila_Cassetta_1_V_Lubrificante_2 := NOT (Valves1.ValveCmd);
+      A0201_Profila_Cassetta_1_V_Lubrificante_3 := NOT (Valves1.ValveCmd);
+      A0201_Profila_Cassetta_1_V_Lubrificante_4 := NOT (Valves1.ValveCmd);
+      A0201_Profila_Cassetta_1_V_Lubrificante_5 := NOT (Valves1.ValveCmd);
+      A0201_Profila_Cassetta_1_V_Lubrificante_6 := NOT (Valves1.ValveCmd);
+   END_REGION
+
+   REGION "Data In"
+      Valves2.DataIn.PbStartLubr := A02_HMI.MB2.Button.Rollformer.Lubr2.Start;
+      Valves2.DataIn.PbStopLubr := A02_HMI.MB2.Button.Rollformer.Lubr2.Stop;
+      Valves2.DataIn.CycleFbk := FALSE;
+      Valves2.DataIn.ConnectorPlugged := TRUE;
+   END_REGION
+
+   REGION "CIn"
+      IF (RollformingMng_PERS.PersistentValues.Data.MaterialPresence_Entry AND RollformingMng_PERS.PersistentValues.Data.MaterialPresence_AfterMW) THEN
+         Valves2.CIn.ActualPosition := Rollformer.Feed.COut.ActualPosition;
+      END_IF;
+      Valves2.CIn.LubrEnable := NOT (Rollformer.COut.Feed.Standstill);
+   END_REGION
+
+   REGION "Manager"
+      #Valves2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         Config := A02_Config.RollfomerLubr,
+         LubrInterface := Pump.LubrInterface,
+         Pers := RollformerLubr_PERS.Valves2.Control
+      );
+
+      #Valves2.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Profila_Cassetta_2_V_Lubrificante_1 := NOT (Valves2.ValveCmd);
+      A0201_Profila_Cassetta_2_V_Lubrificante_2 := NOT (Valves2.ValveCmd);
+      A0201_Profila_Cassetta_2_V_Lubrificante_3 := NOT (Valves2.ValveCmd);
+      A0201_Profila_Cassetta_2_V_Lubrificante_4 := NOT (Valves2.ValveCmd);
+      A0201_Profila_Cassetta_2_V_Lubrificante_5 := NOT (Valves2.ValveCmd);
+      A0201_Profila_Cassetta_2_V_Lubrificante_6 := NOT (Valves2.ValveCmd);
+   END_REGION
+
+   REGION "Data In"
+      Valves3.DataIn.PbStartLubr := A02_HMI.MB2.Button.Rollformer.Lubr3.Start;
+      Valves3.DataIn.PbStopLubr := A02_HMI.MB2.Button.Rollformer.Lubr3.Stop;
+      Valves3.DataIn.CycleFbk := FALSE;
+      Valves3.DataIn.ConnectorPlugged := TRUE;
+   END_REGION
+
+   REGION "CIn"
+      IF (RollformingMng_PERS.PersistentValues.Data.MaterialPresence_Entry AND RollformingMng_PERS.PersistentValues.Data.MaterialPresence_AfterMW) THEN
+         Valves3.CIn.ActualPosition := Rollformer.Feed.COut.ActualPosition;
+      END_IF;
+      Valves3.CIn.LubrEnable := NOT (Rollformer.COut.Feed.Standstill);
+   END_REGION
+
+   REGION "Manager"
+      #Valves3(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         Config := A02_Config.RollfomerLubr,
+         LubrInterface := Pump.LubrInterface,
+         Pers := RollformerLubr_PERS.Valves3.Control
+      );
+
+      #Valves3.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Profila_Cassetta_3_V_Lubrificante_1 := NOT (Valves3.ValveCmd);
+      A0201_Profila_Cassetta_3_V_Lubrificante_2 := NOT (Valves3.ValveCmd);
+      A0201_Profila_Cassetta_3_V_Lubrificante_3 := NOT (Valves3.ValveCmd);
+      A0201_Profila_Cassetta_3_V_Lubrificante_4 := NOT (Valves3.ValveCmd);
+      A0201_Profila_Cassetta_3_V_Lubrificante_5 := NOT (Valves3.ValveCmd);
+      A0201_Profila_Cassetta_3_V_Lubrificante_6 := NOT (Valves3.ValveCmd);
+   END_REGION
+
+   REGION "Machine interface (machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := Valves1.MachineInterface,
+         MachineInterface_2 := Valves2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Valves3.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := Valves1.MachineInterface, MachineInterface_2 := Valves2.MachineInterface, AdditionalAlarms := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := MachineInterface, MachineInterface_2 := Valves3.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

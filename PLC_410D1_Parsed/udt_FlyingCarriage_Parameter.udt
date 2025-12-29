@@ -1,0 +1,36 @@
+﻿TYPE "udt_FlyingCarriage_Parameter"
+VERSION : 0.1
+// Block: udt_FlyingCarriage_Parameter
+   STRUCT
+      PosTolerance : LReal;
+      PosWindowDelay : Time;
+      ZeroChk_SensorPosition : LReal;
+      ZeroChk_PosTolerance : LReal;
+      Limits : Struct
+         SwLimNegative : LReal;
+         SwLimPositive : LReal;
+      END_STRUCT;
+      Referencing : Struct
+         ApprochVelocity : LReal;
+         HomingVelocity : LReal;
+         HomePositionOffset : LReal;
+         HomePosition : LReal;
+      END_STRUCT;
+      Man : Struct
+         Vel : LReal;
+         Acc : LReal;
+         Dec : LReal;
+         Jerk : LReal;
+      END_STRUCT;
+      Aut : Struct
+         Vel : LReal;
+         Acc : LReal;
+         Dec : LReal;
+         Jerk : LReal;
+      END_STRUCT;
+      Axis_Kv : LReal;
+      Drive_Kp : Real;
+      Drive_Ki : Real;
+   END_STRUCT;
+
+END_TYPE

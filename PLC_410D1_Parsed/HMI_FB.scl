@@ -1,0 +1,38 @@
+﻿// Block: HMI_FB
+
+FUNCTION_BLOCK "HMI_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
+   VAR
+      FpReadClock : Bool;
+   END_VAR
+
+   VAR_TEMP
+      ReturnValue : Int;
+   END_VAR
+
+   VAR CONSTANT
+      "empty date" : DTL;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      IF PosEdge(Sys.Clock_1S) THEN
+         HMI.PLCDateTime := ???;
+      END_IF;
+   END_REGION
+
+   REGION "Project Info"
+      //
+      "HMI".ProjectInfo.Job := '213123231';
+      "HMI".ProjectInfo.Revision := 'V1.0';
+      "HMI".ProjectInfo.RevisionDate := DTL#2022-09-13-00:00:00;
+      "HMI".ProjectInfo.Programmer := 'DZN';
+      "HMI".ProjectInfo.F_Signature := "RTG1SysInfo".F_SYSINFO.F_PROG_SIG;
+      "HMI".ProjectInfo.F_CompilationDate := "RTG1SysInfo".F_SYSINFO.F_PROG_DAT;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

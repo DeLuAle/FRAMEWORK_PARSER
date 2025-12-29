@@ -1,0 +1,222 @@
+﻿// Block: A0302_Centratori_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0302_Centratori_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+   VAR_TEMP
+      Missing_Input : Bool;
+      Missing_Output : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // SOSTITUIRE SYS BYPASS CON INGRESSI DIGITALI
+
+      // TRASFERIMENTO COMANDI CIn MANAGER
+      A0302_Centratori.CIn.Manager := A0302_Manager.COut.Rulliera.Centratori;
+      //
+      A0302_Centratori.CIn.SemiAut_Pb := A0302_Manager.DataIn.SemiAut_Pb;
+
+
+      REGION TRASFERIMENTO STATI SENSORI RULLIERA 
+          
+          A0302_Centratori.CIn.Rulliera.Coda.Sens.FTC_Rall := A0302_Rulliera.IEC_FTC_CodaRall.FTC_On;
+          A0302_Centratori.CIn.Rulliera.Coda.Sens.FTC_Prox_Ing := A0302_Rulliera.IEC_FTC_CodaProxIng.FTC_On;
+          A0302_Centratori.CIn.Rulliera.Centro.Sens.FTC_Centrale := A0302_Rulliera.IEC_FTC_Centro.FTC_On;
+          
+      END_REGION ;
+
+      REGION TRASFERIMENTO STATI CARRO PAREGGIATORE DI CODA
+          
+          A0302_Centratori.CIn.CarroPareggCoda.Ax := A0302_PareggiatoreCoda.COut.Ax;
+          A0302_Centratori.CIn.CarroPareggCoda.Bloccaggio := A0302_PareggiatoreCoda.COut.Bloccaggio;
+          A0302_Centratori.CIn.CarroPareggCoda.BattutaVerticale := A0302_PareggiatoreCoda.COut.BattutaVerticale;
+          A0302_Centratori.CIn.CarroPareggCoda.PareggiatoreLong := A0302_PareggiatoreCoda.COut.PareggiatoreLong;
+          A0302_Centratori.CIn.CarroPareggCoda.Sens.FTC_Ingombro_In := A0302_PareggiatoreCoda.IEC_FTC_Input.FTC_On;
+          A0302_Centratori.CIn.CarroPareggCoda.Sens.FTC_Ingombro_Out := A0302_PareggiatoreCoda.IEC_FTC_Output.FTC_On;
+          A0302_Centratori.CIn.CarroPareggCoda.Sens.PresenzaMat := A0302_PareggiatoreCoda.IEC_FTC_PresentMat.FTC_On;
+          
+      END_REGION ;
+
+      REGION TRASFERIMENTO STATI CARRO PAREGGIATORE DI TESTA
+          
+          A0302_Centratori.CIn.CarroPareggTesta.Ax := A0302_PareggiatoreTesta.COut.Ax;
+          A0302_Centratori.CIn.CarroPareggTesta.Bloccaggio := A0302_PareggiatoreTesta.COut.Bloccaggio;
+          A0302_Centratori.CIn.CarroPareggTesta.Centraggio := A0302_PareggiatoreTesta.COut.Centraggio;
+          A0302_Centratori.CIn.CarroPareggTesta.Sollevatore := A0302_PareggiatoreTesta.COut.Sollevatore;
+          A0302_Centratori.CIn.CarroPareggTesta.Sens.FTC1_Rall := A0302_PareggiatoreTesta.IEC_FTC_Rall.FTC_On;
+          A0302_Centratori.CIn.CarroPareggTesta.Sens.FTC2_Prox_Ls := A0302_PareggiatoreTesta.IEC_FTC_ProxLs.FTC_On;
+          A0302_Centratori.CIn.CarroPareggTesta.Sens.PresenzaMat := A0302_PareggiatoreTesta.IEC_FTC_PresentMat.FTC_On;
+          
+      END_REGION ;
+
+      // TRASFERIMENTO STATO DELLE ZONE INGRESSO E USCITA DELLA STAZIONE
+      A0302_Centratori.CIn.BTrk.ZoneA0302Entry_Empty := A0302_Manager.Sts.BTrk.ZoneA0302Entry_Empty;
+      A0302_Centratori.CIn.BTrk.ZoneA0302Exit_Empty := A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty;
+
+   END_REGION
+
+   REGION "DATA In - Pulsanti OP"
+      // Pulsanti OP lavoro
+      // 
+      A0302_Centratori.DataIn.OP.Rest := A03_HMI.MB3.Button.A0302.Centratori.OP.Rest;
+      A0302_Centratori.DataIn.OP.Work := A03_HMI.MB3.Button.A0302.Centratori.OP.Work;
+
+   END_REGION
+
+   REGION "DataIn - Centraggio 1"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Centraggio[1],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Centraggio[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Centraggio[1], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Centraggio[1].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_1_Coda_Ls_Aperto;
+      A0302_Centratori.Centraggio[1].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_1_Coda_Ls_Chiuso;
+   END_REGION
+
+   REGION "DataIn - Centraggio 2"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Centraggio[2],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Centraggio[2].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Centraggio[2], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Centraggio[2].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_2_Centrale_Ls_Aperto;
+      A0302_Centratori.Centraggio[2].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_2_Centrale_Ls_Chiuso;
+   END_REGION
+
+   REGION "DataIn - Centraggio 3"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Centraggio[3],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Centraggio[3].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Centraggio[3], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Centraggio, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Centraggio[3].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_3_Testa_Ls_Aperto;
+      A0302_Centratori.Centraggio[3].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_3_Testa_Ls_Chiuso;
+   END_REGION
+
+   REGION "DataIn - Sollevatore 1"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Sollevamento[1],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Sollevamento[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Sollevamento[1], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Sollevamento[1].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_1_Coda_Ls_Basso;
+      A0302_Centratori.Sollevamento[1].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_1_Coda_Ls_Alto;
+   END_REGION
+
+   REGION "DataIn - Sollevatore 2"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Sollevamento[2],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Sollevamento[2].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Sollevamento[2], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Sollevamento[2].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_2_Centrale_Ls_Basso;
+      A0302_Centratori.Sollevamento[2].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_2_Centrale_Ls_Alto;
+   END_REGION
+
+   REGION "DataIn - Sollevatore 3"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := A0302_Centratori.HMI.Selection.Sollevamento[3],
+         HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0302_Centratori.Sollevamento[3].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := A0302_Centratori.HMI.Selection.Sollevamento[3], HMI_PB := A03_HMI.MB3.Button.A0302.Centratori.Sollevamento, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+      A0302_Centratori.Sollevamento[3].DataIn.Rest_Ls[1] := A0302_Centratori_Centraggio_3_Testa_Ls_Basso;
+      A0302_Centratori.Sollevamento[3].DataIn.Work_Ls[1] := A0302_Centratori_Centraggio_3_Testa_Ls_Alto;
+   END_REGION
+
+   REGION "DSI"
+      // Di solito facciamo struct DSI con dentro Centratori
+
+      A0302_Centratori.DSI := F_DB.DSI_V_Air_A0302_A0303;
+
+
+   END_REGION
+
+   REGION "[Centratori] - Machine Call"
+      #A0302_Centratori(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone25,
+         Config := PrjConfig_A03.A0302.Centratori
+      );
+
+      #A0302_Centratori.Q;
+   END_REGION
+
+   REGION "DataOut - Centraggio 1"
+      A0302_Centratori_Centraggio_1_Coda_V_Aperto := A0302_Centratori.Centraggio[1].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_1_Coda_V_Chiuso := A0302_Centratori.Centraggio[1].DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Centraggio 2"
+      A0302_Centratori_Centraggio_2_Centrale_V_Aperto := A0302_Centratori.Centraggio[2].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_2_Centrale_V_Chiuso := A0302_Centratori.Centraggio[2].DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Centraggio 3"
+      A0302_Centratori_Centraggio_3_Testa_V_Aperto := A0302_Centratori.Centraggio[3].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_3_Testa_V_Chiuso := A0302_Centratori.Centraggio[3].DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Sollevamento 1"
+      A0302_Centratori_Centraggio_1_Coda_V_Basso := A0302_Centratori.Sollevamento[1].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_1_Coda_V_Alto := A0302_Centratori.Sollevamento[1].DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Sollevamento 2"
+      A0302_Centratori_Centraggio_2_Centrale_V_Basso := A0302_Centratori.Sollevamento[2].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_2_Centrale_V_Alto := A0302_Centratori.Sollevamento[2].DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Sollevamento 3"
+      A0302_Centratori_Centraggio_3_Testa_V_Basso := A0302_Centratori.Sollevamento[3].DataOut.RestSolenoid;
+      A0302_Centratori_Centraggio_3_Testa_V_Alto := A0302_Centratori.Sollevamento[3].DataOut.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

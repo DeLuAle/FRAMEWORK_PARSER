@@ -1,0 +1,578 @@
+﻿FUNCTION_BLOCK "A03_0102TrkManager_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      AreaInterface : "AreaInterface";
+      SuperUserLogged : Bool;
+   END_VAR
+
+   VAR 
+      HMI : Struct
+         A0301_P : Struct
+            Move { S7_SetPoint := 'False'} : Array[1..11] of "TrkMng_Move";
+         END_STRUCT;
+         A0301_B : Struct
+            Move { S7_SetPoint := 'False'} : Array[1..12] of "TrkMng_Move";
+         END_STRUCT;
+         A0302_ENTRY : Struct
+            Move { S7_SetPoint := 'False'} : Array[1..7] of "TrkMng_Move";
+         END_STRUCT;
+         A0302_EXIT : Struct
+            Move { S7_SetPoint := 'False'} : Array[1..18] of "TrkMng_Move";
+         END_STRUCT;
+      END_STRUCT;
+      Sts : Struct
+         MoveA0301_P : Struct
+            SelectionOn : Bool;   // Selezione attivata= 1 => posso spostare
+            SelectionNo : Int;   // Numero della posizione selezionata da spostare
+         END_STRUCT;
+         MoveA0301_B : Struct
+            SelectionOn : Bool;   // Selezione attivata= 1 => posso spostare
+            SelectionNo : Int;   // Numero della posizione selezionata da spostare
+         END_STRUCT;
+         MoveA0302_ENTRY : Struct
+            SelectionOn : Bool;   // Selezione attivata= 1 => posso spostare
+            SelectionNo : Int;   // Numero della posizione selezionata da spostare
+         END_STRUCT;
+         MoveA0302_EXIT : Struct
+            SelectionOn : Bool;   // Selezione attivata= 1 => posso spostare
+            SelectionNo : Int;   // Numero della posizione selezionata da spostare
+         END_STRUCT;
+      END_STRUCT;
+      A0301B_TON_Delete_Buttons {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      A0301P_TON_Delete_Buttons {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      A0302_ENTRY_TON_Delete_Buttons {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      A0302_EXIT_TON_Delete_Buttons {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;   // Indice ciclo A0301
+      DeleteButton : Bool;
+   END_VAR
+
+
+BEGIN
+	REGION A0301_Part
+	    
+	    IF NOT #AreaInterface.Man THEN
+	        #Sts.MoveA0301_P.SelectionNo := 0;
+	        
+	    END_IF;
+	    
+	    #Sts.MoveA0301_P.SelectionOn := #Sts.MoveA0301_P.SelectionNo <> 0;
+	    
+	    
+	    #DeleteButton := FALSE;
+	    FOR #i := 1 TO 11 DO
+	        
+	        //Tracking Select button
+	        IF #HMI.A0301_P.Move[#i].SelButton THEN
+	            IF #Sts.MoveA0301_P.SelectionNo = 0 OR #Sts.MoveA0301_P.SelectionNo <> #i THEN
+	                #Sts.MoveA0301_P.SelectionNo := #i;
+	            ELSE
+	                #Sts.MoveA0301_P.SelectionNo := 0;
+	            END_IF;
+	            #HMI.A0301_P.Move[#i].SelButton := FALSE;
+	            
+	        END_IF;
+	        
+	        IF #Sts.MoveA0301_P.SelectionNo = #i AND "PTrk".A0301.P[#i].P_ID = 0 THEN
+	            #Sts.MoveA0301_P.SelectionNo := 0;
+	        END_IF;
+	        
+	        
+	        //Buttons Visibility
+	        #HMI.A0301_P.Move[#i].SelectButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND NOT #HMI.A0301_P.Move[#i].PasteButton_Visibile AND "PTrk".A0301.P[#i].P_ID <> 0;
+	        #HMI.A0301_P.Move[#i].DeleteButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND #Sts.MoveA0301_P.SelectionOn AND #Sts.MoveA0301_P.SelectionNo = #i;
+	        #HMI.A0301_P.Move[#i].SelectButton_Selected := #Sts.MoveA0301_P.SelectionNo = #i;
+	        
+	        IF #i = "PTRK_A0301_Pos1_Entry" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Exit_To_Pos2") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Exit_To_Pos3")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos1_Exit_To_Pos2" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Entry") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_To_Pos2")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos1_To_Pos2" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Exit_To_Pos2") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos2_Entry")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos2_Entry" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos2_Entry") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos2_Solleva")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos2_Solleva" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_To_Pos2") AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos1_Exit_To_Pos3" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Entry") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_To_Pos3")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos1_To_Pos3" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_Exit_To_Pos3") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos3_Entry")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Pos3_Entry" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos1_To_Pos3") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Ribalta_Pos1")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Ribalta_Pos1" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Pos3_Entry") OR (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Ribalta_Pos2")) AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Ribalta_Pos2" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_P.SelectionNo = "PTRK_A0301_Ribalta_Pos1") AND "PTrk".A0301.P[#i].P_ID = 0;
+	        ELSIF #i = "PTRK_A0301_Ribalta_Pos3" THEN
+	            #HMI.A0301_P.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_P.SelectionNo = #i - 1) AND "PTrk".A0301.P[#i].P_ID = 0;
+	            
+	        END_IF;
+	        
+	        IF #HMI.A0301_P.Move[#i].DeleteButton THEN
+	            #DeleteButton := TRUE;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    
+	    // Timer 5s alla pressione dei pulsanti delete    
+	    #A0301P_TON_Delete_Buttons.TON(IN := #DeleteButton,
+	                                   PT := T#5S);
+	    
+	    
+	    REGION Tracking DELETE Button
+	        
+	        FOR #i := 1 TO 11 DO
+	            
+	            
+	            // ******* DELETE Part ********
+	            IF #HMI.A0301_P.Move[#i].DeleteButton AND #A0301P_TON_Delete_Buttons.Q THEN
+	                
+	                
+	                IF "PTrk".A0301.P[#i].Quality = "GOOD_R"
+	                THEN
+	                    "PTrk".A0301.P[#i].Quality := "GOOD_R_DEL";
+	                ELSIF "PTrk".A0301.P[#i].Quality = "GOOD"
+	                THEN
+	                    "PTrk".A0301.P[#i].Quality := "GOOD_DEL";
+	                ELSE
+	                    "PTrk".A0301.P[#i] := "PTrk".Empty;
+	                END_IF;
+	                
+	                #HMI.A0301_P.Move[#i].DeleteButton := FALSE;
+	                #Sts.MoveA0301_P.SelectionNo := 0;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        
+	    END_REGION
+	    //
+	    REGION Tracking PASTE Button
+	        // 
+	        
+	        IF #Sts.MoveA0301_P.SelectionNo > 0 THEN
+	            
+	            FOR #i := 1 TO 11 DO
+	                
+	                IF #HMI.A0301_P.Move[#i].PasteButton THEN
+	                    "PTrk".A0301.P[#i] := "PTrk".A0301.P[#Sts.MoveA0301_P.SelectionNo];
+	                    "PTrk".A0301.P[#Sts.MoveA0301_P.SelectionNo] := "PTrk".Empty;
+	                    
+	                    #HMI.A0301_P.Move[#i].PasteButton := FALSE;
+	                    #Sts.MoveA0301_P.SelectionNo := 0;
+	                    
+	                END_IF;
+	                
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    
+	    
+	    
+	    
+	END_REGION ;
+	REGION A0301_Beams
+	    //301 B
+	    
+	    IF NOT #AreaInterface.Man THEN
+	        #Sts.MoveA0301_B.SelectionNo := 0;
+	        
+	    END_IF;
+	    
+	    #Sts.MoveA0301_B.SelectionOn := #Sts.MoveA0301_B.SelectionNo <> 0;
+	    
+	    
+	    #DeleteButton := FALSE;
+	    FOR #i := 1 TO 12 DO
+	        
+	        //Tracking Select button
+	        IF #HMI.A0301_B.Move[#i].SelButton THEN
+	            IF #Sts.MoveA0301_B.SelectionNo = 0 OR #Sts.MoveA0301_B.SelectionNo <> #i THEN
+	                #Sts.MoveA0301_B.SelectionNo := #i;
+	            ELSE
+	                #Sts.MoveA0301_B.SelectionNo := 0;
+	            END_IF;
+	            #HMI.A0301_B.Move[#i].SelButton := FALSE;
+	            
+	        END_IF;
+	        
+	        IF #Sts.MoveA0301_B.SelectionNo = #i AND "BTrk".A0301.B[#i].B_ID = 0 THEN
+	            #Sts.MoveA0301_B.SelectionNo := 0;
+	        END_IF;
+	        
+	        
+	        //Buttons Visibility
+	        #HMI.A0301_B.Move[#i].SelectButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND NOT #HMI.A0301_B.Move[#i].PasteButton_Visibile AND "BTrk".A0301.B[#i].B_ID <> 0;
+	        #HMI.A0301_B.Move[#i].DeleteButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND #Sts.MoveA0301_B.SelectionOn AND #Sts.MoveA0301_B.SelectionNo = #i;
+	        #HMI.A0301_B.Move[#i].SelectButton_Selected := #Sts.MoveA0301_B.SelectionNo = #i;
+	        
+	        IF #i = "BTRK_A0301_Pos2_Lifter_Up" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := FALSE;
+	        ELSIF #i = "BTRK_A0301_Pos2_Lifter_Dwn" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos2_to_Pos3" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos3_Entry" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos3_Exit" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos3_to_Pos4" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos4_Entry" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos4_Exit" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos4_to_Pos5" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos5_SpinLat1-2_Solleva" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos5.2_Long_PosAttesa" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0301_Pos5.2_Long_Work_Pos" THEN
+	            #HMI.A0301_B.Move[#i].PasteButton_Visibile := (#Sts.MoveA0301_B.SelectionNo = #i - 1) AND "BTrk".A0301.B[#i].B_ID = 0;
+	        END_IF;
+	        
+	        IF #HMI.A0301_B.Move[#i].DeleteButton THEN
+	            #DeleteButton := TRUE;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    // Timer 5s alla pressione dei pulsanti delete    
+	    #A0301B_TON_Delete_Buttons.TON(IN := #DeleteButton,
+	                                   PT := T#5S);
+	    
+	    
+	    REGION Tracking DELETE Button
+	        
+	        FOR #i := 1 TO 12 DO
+	            
+	            
+	            // ******* DELETE Part ********
+	            IF #HMI.A0301_B.Move[#i].DeleteButton AND #A0301B_TON_Delete_Buttons.Q THEN
+	                
+	                
+	                IF "BTrk".A0301.B[#i].Quality = "GOOD_R"
+	                THEN
+	                    "BTrk".A0301.B[#i].Quality := "GOOD_R_DEL";
+	                ELSIF "BTrk".A0301.B[#i].Quality = "GOOD"
+	                THEN
+	                    "BTrk".A0301.B[#i].Quality := "GOOD_DEL";
+	                ELSE
+	                    "BTrk".A0301.B[#i] := "BTrk".Empty;
+	                END_IF;
+	                
+	                #HMI.A0301_B.Move[#i].DeleteButton := FALSE;
+	                #Sts.MoveA0301_B.SelectionNo := 0;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        
+	    END_REGION
+	    //
+	    REGION Tracking PASTE Button
+	        // 
+	        
+	        IF #Sts.MoveA0301_B.SelectionNo > 0 THEN
+	            
+	            FOR #i := 1 TO 12 DO
+	                
+	                IF #HMI.A0301_B.Move[#i].PasteButton THEN
+	                    "BTrk".A0301.B[#i] := "BTrk".A0301.B[#Sts.MoveA0301_B.SelectionNo];
+	                    "BTrk".A0301.B[#Sts.MoveA0301_B.SelectionNo] := "BTrk".Empty;
+	                    
+	                    #HMI.A0301_B.Move[#i].PasteButton := FALSE;
+	                    #Sts.MoveA0301_B.SelectionNo := 0;
+	                    
+	                END_IF;
+	                
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    
+	END_REGION
+	REGION A0302 Ingresso
+	    
+	    
+	    IF NOT #AreaInterface.Man THEN
+	        #Sts.MoveA0302_ENTRY.SelectionNo := 0;
+	        
+	    END_IF;
+	    
+	    #Sts.MoveA0302_ENTRY.SelectionOn := #Sts.MoveA0302_ENTRY.SelectionNo <> 0;
+	    
+	    
+	    #DeleteButton := FALSE;
+	    FOR #i := 1 TO 7 DO
+	        
+	        //Tracking Select button
+	        IF #HMI.A0302_ENTRY.Move[#i].SelButton THEN
+	            IF #Sts.MoveA0302_ENTRY.SelectionNo = 0 OR #Sts.MoveA0302_ENTRY.SelectionNo <> #i THEN
+	                #Sts.MoveA0302_ENTRY.SelectionNo := #i;
+	            ELSE
+	                #Sts.MoveA0302_ENTRY.SelectionNo := 0;
+	            END_IF;
+	            #HMI.A0302_ENTRY.Move[#i].SelButton := FALSE;
+	            
+	        END_IF;
+	        
+	        IF #Sts.MoveA0302_ENTRY.SelectionNo = #i AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0 THEN
+	            #Sts.MoveA0302_ENTRY.SelectionNo := 0;
+	        END_IF;
+	        
+	        
+	        //Buttons Visibility
+	        #HMI.A0302_ENTRY.Move[#i].SelectButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND NOT #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile AND "BTrk".A0302_ENTRY.B[#i].B_ID <> 0;
+	        #HMI.A0302_ENTRY.Move[#i].DeleteButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND #Sts.MoveA0302_ENTRY.SelectionOn AND #Sts.MoveA0302_ENTRY.SelectionNo = #i;
+	        #HMI.A0302_ENTRY.Move[#i].SelectButton_Selected := #Sts.MoveA0302_ENTRY.SelectionNo = #i;
+	        
+	        IF #i = "BTRK_A0302_SPINTORE" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1)) AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_SPINTORE_USCITA_TRASPORTO_A031" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1))  AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_SPINTORE_INGRESSO_BORDATRICE" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1))  AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_INGRESSO_BORDATRICE" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1))  AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_USCITA_BORDATRICE" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile :=((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1))  AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_USCITA_BORDATRICE_PAREG_CODA_BASSO" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_ENTRY.SelectionNo = #i + 1) OR (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1))  AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_USCITA_BORDATRICE_PAREG_CODA_ALTO" THEN
+	            #HMI.A0302_ENTRY.Move[#i].PasteButton_Visibile := (#Sts.MoveA0302_ENTRY.SelectionNo = #i - 1) AND "BTrk".A0302_ENTRY.B[#i].B_ID = 0;
+	        END_IF;
+	        
+	        IF #HMI.A0302_ENTRY.Move[#i].DeleteButton THEN
+	            #DeleteButton := TRUE;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    // Timer 5s alla pressione dei pulsanti delete    
+	    #A0302_ENTRY_TON_Delete_Buttons.TON(IN := #DeleteButton,
+	                                   PT := T#5S);
+	    
+	    
+	    REGION Tracking DELETE Button
+	        
+	        FOR #i := 1 TO 7 DO
+	            
+	            
+	            // ******* DELETE Part ********
+	            IF #HMI.A0302_ENTRY.Move[#i].DeleteButton AND #A0302_ENTRY_TON_Delete_Buttons.Q THEN
+	                
+	                
+	                IF "BTrk".A0302_ENTRY.B[#i].Quality = "GOOD_R"
+	                THEN
+	                    "BTrk".A0302_ENTRY.B[#i].Quality := "GOOD_R_DEL";
+	                ELSIF "BTrk".A0302_ENTRY.B[#i].Quality = "GOOD"
+	                THEN
+	                    "BTrk".A0302_ENTRY.B[#i].Quality := "GOOD_DEL";
+	                ELSE
+	                    "BTrk".A0302_ENTRY.B[#i] := "BTrk".Empty;
+	                END_IF;
+	                
+	                #HMI.A0302_ENTRY.Move[#i].DeleteButton := FALSE;
+	                #Sts.MoveA0302_ENTRY.SelectionNo := 0;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        
+	    END_REGION
+	    //
+	    REGION Tracking PASTE Button
+	        // 
+	        
+	        IF #Sts.MoveA0302_ENTRY.SelectionNo > 0 THEN
+	            
+	            FOR #i := 1 TO 7 DO
+	                
+	                IF #HMI.A0302_ENTRY.Move[#i].PasteButton THEN
+	                    "BTrk".A0302_ENTRY.B[#i] := "BTrk".A0302_ENTRY.B[#Sts.MoveA0302_ENTRY.SelectionNo];
+	                    "BTrk".A0302_ENTRY.B[#Sts.MoveA0302_ENTRY.SelectionNo] := "BTrk".Empty;
+	                    
+	                    #HMI.A0302_ENTRY.Move[#i].PasteButton := FALSE;
+	                    #Sts.MoveA0302_ENTRY.SelectionNo := 0;
+	                    
+	                END_IF;
+	                
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    
+	END_REGION
+	REGION A0302 Uscita
+	    
+	    
+	    IF NOT #AreaInterface.Man THEN
+	        #Sts.MoveA0302_EXIT.SelectionNo := 0;
+	        
+	    END_IF;
+	    
+	    #Sts.MoveA0302_EXIT.SelectionOn := #Sts.MoveA0302_EXIT.SelectionNo <> 0;
+	    
+	    
+	    #DeleteButton := FALSE;
+	    FOR #i := 1 TO 18 DO
+	        
+	        //Tracking Select button
+	        IF #HMI.A0302_EXIT.Move[#i].SelButton THEN
+	            IF #Sts.MoveA0302_EXIT.SelectionNo = 0 OR #Sts.MoveA0302_EXIT.SelectionNo <> #i THEN
+	                #Sts.MoveA0302_EXIT.SelectionNo := #i;
+	            ELSE
+	                #Sts.MoveA0302_EXIT.SelectionNo := 0;
+	            END_IF;
+	            #HMI.A0302_EXIT.Move[#i].SelButton := FALSE;
+	            
+	        END_IF;
+	        
+	        IF #Sts.MoveA0302_EXIT.SelectionNo = #i AND "BTrk".A0302_EXIT.B[#i].B_ID = 0 THEN
+	            #Sts.MoveA0302_EXIT.SelectionNo := 0;
+	        END_IF;
+	        
+	        
+	        //Buttons Visibility
+	        #HMI.A0302_EXIT.Move[#i].SelectButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND NOT #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile AND "BTrk".A0302_EXIT.B[#i].B_ID <> 0;
+	        #HMI.A0302_EXIT.Move[#i].DeleteButton_Visibile := #AreaInterface.Man AND #SuperUserLogged AND #Sts.MoveA0302_EXIT.SelectionOn AND #Sts.MoveA0302_EXIT.SelectionNo = #i;
+	        #HMI.A0302_EXIT.Move[#i].SelectButton_Selected := #Sts.MoveA0302_EXIT.SelectionNo = #i;
+	        
+	        IF #i = "BTRK_A0302_RULL_PRIMA_PAREG_CODA_BASSO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_PRIMA_PAREG_CODA_BASSO_RALL" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_PRIMA_PAREG_CODA_BASSO_STOP" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_PRIMA_PAREG_CODA_ALTO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_SOTTO_PAREG_CODA_ALTO_S3" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_SOTTO_PAREG_CODA_ALTO_S4" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_DOPO_PAREG_CODA_ALTO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_SU_PAREG_TESTA" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1))AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_TRA_PAREG_TESTA_E_PAREG_CODA" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_CENTRATO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_CENTRATO_PAREG_CODA_BASSO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_RULL_PAREGGIATO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile :=((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_PRESA_BASSO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_PRESA_ALTO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1))AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_DEPOSITO_USCITA_ALTO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1))AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_DEPOSITO_USCITA_BASSO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_DEPOSITO_A0303_ALTO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := ((#Sts.MoveA0302_EXIT.SelectionNo = #i + 1) OR (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1)) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        ELSIF #i = "BTRK_A0302_MANIP_DEPOSITO_A0303_BASSO" THEN
+	            #HMI.A0302_EXIT.Move[#i].PasteButton_Visibile := (#Sts.MoveA0302_EXIT.SelectionNo = #i - 1) AND "BTrk".A0302_EXIT.B[#i].B_ID = 0;
+	        END_IF;
+	        
+	        IF #HMI.A0302_EXIT.Move[#i].DeleteButton THEN
+	            #DeleteButton := TRUE;
+	        END_IF;
+	        
+	    END_FOR;
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    // Timer 5s alla pressione dei pulsanti delete    
+	    #A0302_EXIT_TON_Delete_Buttons.TON(IN := #DeleteButton,
+	                                   PT := T#5S);
+	    
+	    
+	    REGION Tracking DELETE Button
+	        
+	        FOR #i := 1 TO 18 DO
+	            
+	            
+	            // ******* DELETE Part ********
+	            IF #HMI.A0302_EXIT.Move[#i].DeleteButton AND #A0302_EXIT_TON_Delete_Buttons.Q THEN
+	                
+	                
+	                IF "BTrk".A0302_EXIT.B[#i].Quality = "GOOD_R"
+	                THEN
+	                    "BTrk".A0302_EXIT.B[#i].Quality := "GOOD_R_DEL";
+	                ELSIF "BTrk".A0302_EXIT.B[#i].Quality = "GOOD"
+	                THEN
+	                    "BTrk".A0302_EXIT.B[#i].Quality := "GOOD_DEL";
+	                ELSE
+	                    "BTrk".A0302_EXIT.B[#i] := "BTrk".Empty;
+	                END_IF;
+	                
+	                #HMI.A0302_EXIT.Move[#i].DeleteButton := FALSE;
+	                #Sts.MoveA0302_EXIT.SelectionNo := 0;
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        
+	    END_REGION
+	    //
+	    REGION Tracking PASTE Button
+	        // 
+	        
+	        IF #Sts.MoveA0302_EXIT.SelectionNo > 0 THEN
+	            
+	            FOR #i := 1 TO 18 DO
+	                
+	                IF #HMI.A0302_EXIT.Move[#i].PasteButton THEN
+	                    "BTrk".A0302_EXIT.B[#i] := "BTrk".A0302_EXIT.B[#Sts.MoveA0302_EXIT.SelectionNo];
+	                    "BTrk".A0302_EXIT.B[#Sts.MoveA0302_EXIT.SelectionNo] := "BTrk".Empty;
+	                    
+	                    #HMI.A0302_EXIT.Move[#i].PasteButton := FALSE;
+	                    #Sts.MoveA0302_EXIT.SelectionNo := 0;
+	                    
+	                END_IF;
+	                
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    
+	END_REGION
+	
+END_FUNCTION_BLOCK
+

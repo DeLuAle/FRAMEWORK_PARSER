@@ -1,0 +1,48 @@
+﻿// Block: Prod_item_Conv_MES_Profile_name_To_PPrfNo
+// Title: Exe
+
+FUNCTION "Prod_item_Conv_MES_Profile_name_To_PPrfNo" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Exe
+   VAR_INPUT
+      Item : Prod_Item;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+      strPos : Int;
+      ProfileCode_PivotIndx : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Exe"
+      ProfileCode_PivotIndx := 0;
+
+      FOR i := 1 TO PPRF_TOTAL_ARCHIVE_ITEMS DO
+          
+          strPos := (IN1 := PPrf_MAIN.PIVOT[i].PrgName , IN2 := Item.MES_PPrf_Name );
+          
+          IF strPos >= 1 THEN
+              
+              
+              ProfileCode_PivotIndx := i;
+              
+              Prod_item_Conv_MES_Profile_name_To_PPrfNo := PPrf_MAIN.PIVOT[i].PrgNo;
+              
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+      IF  ProfileCode_PivotIndx = 0 THEN
+          Prod_item_Conv_MES_Profile_name_To_PPrfNo := -1;
+          RETURN;
+      END_IF;
+
+
+   END_REGION
+
+
+END_FUNCTION

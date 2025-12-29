@@ -1,0 +1,145 @@
+﻿FUNCTION_BLOCK "A0301_PTrk_To_BTrk_Create_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      AreaInterface : "AreaInterface";
+      Execute : Bool;
+      PTrk_P2 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "PTrk_Item";   // PTrk presente in stazione P3 - [B.P_L]
+      PTrk_P3 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "PTrk_Item";   // PTrk presente in stazione P3 - [B.P_U]
+   END_VAR
+
+   VAR_OUTPUT 
+      BTrk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "BTrk_item";
+   END_VAR
+
+   VAR_IN_OUT 
+      Status : USInt;
+   END_VAR
+
+   VAR 
+      R_TRIG_Execute {InstructionName := 'R_TRIG'; LibVersion := '1.0'} : R_TRIG;
+      Inc_Last_ID_B { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      Alarm { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : USInt;
+   END_VAR
+
+
+BEGIN
+	REGION RESET ALLARMI
+	    //
+	    IF #AreaInterface.RstAlarms THEN
+	        #Status := 0;
+	        #Alarm := 0;
+	    END_IF;
+	    //    
+	END_REGION
+	
+	//
+	REGION ABILITAZIONE Blocco FB
+	    #R_TRIG_Execute(CLK := #Execute,
+	                    Q => #Inc_Last_ID_B);
+	END_REGION
+	
+	REGION Incrementa ultimo ID_B 
+	   // (ID_B pezzo = trave = beam) Incremento il numero perchè non sia uguale al precedente
+	    IF #Inc_Last_ID_B THEN
+	        "BTrk".Last_B_ID := "Inc_DINT_Circ"("BTrk".Last_B_ID);
+	        #BTrk.B_ID := "BTrk".Last_B_ID;
+	    END_IF;
+	END_REGION
+	
+	REGION CREAZIONE DEL BTrk
+	    REGION Salva valori "PTrk" Pos.3 Up su #BTrk
+	        IF #Execute THEN
+	            #BTrk.P_U.P_ID := #PTrk_P3.P_ID; //ID parte
+	            #BTrk.P_U.C_ID := #PTrk_P3.C_ID; //ID rotolo
+	            #BTrk.P_U.Quality := #PTrk_P3.Quality; //Qualità: UNKNOW;GOOD;BAD...
+	            #BTrk.P_U.PLen_Meas := #PTrk_P3.PLen_Meas; //Lunghezza parte misurata (tra 2 tagli)
+	        ELSE
+	            #Status := 0;
+	        END_IF;
+	    END_REGION
+	    //
+	    REGION Salva valori "PTrk" Pos.2 Down su #BTrk
+	        IF #Execute THEN
+	            #BTrk.P_L.P_ID := #PTrk_P2.P_ID;
+	            #BTrk.P_L.C_ID := #PTrk_P2.C_ID;
+	            #BTrk.P_L.Quality := #PTrk_P2.Quality;
+	            #BTrk.P_L.PLen_Meas := #PTrk_P2.PLen_Meas;
+	        END_IF;
+	    END_REGION
+	    
+	    REGION Salva il valore teorico BLean_Meas del Beam
+	        (* In base al controllo della misura sui Part,scrivo BLen_Meas per posizionamento carri pareggiatori.
+	           Poi quando entrerà il Beam nell'area A0302 Carri Pareggiatori si farà la misura definitiva*)
+	        
+	            #BTrk.BLen_Meas := MAX_REAL(IN1 := #PTrk_P2.PLen_Meas, IN2 := #PTrk_P3.PLen_Meas);
+	  
+	    END_REGION 
+	    //
+	    REGION Controllo valori accoppiati
+	        (*Controllo uguaglianza dati sui Parts e scrivo sui Beams,
+	          se diverso allarme e azzero O_ID su Beams*)
+	        IF #Execute THEN
+	            // #Status:1 => Accoppiamento OK avvenuto
+	            IF #PTrk_P3.O_ID = #PTrk_P2.O_ID THEN
+	                #BTrk.O_ID := #PTrk_P3.O_ID;
+	            ELSIF #BTrk.O_ID = #PTrk_P3.O_ID AND #BTrk.O_ID = #PTrk_P2.O_ID THEN
+	                #Status := 1;
+	            END_IF;
+	        (* Se rilevo una differenza tra i 2 parts attivo un allarme
+	           #Alarm =  1:O_ID differente/2:W_A differente/3:H_B differente/4:Qlty differente/5:ShiftDone mancante
+	           #Status = 1:Accoppiamento OK / 2:Accoppiamento non possibile / 3:Accoppiato con errore 
+	                   => #STATUS:2 => Accoppiamento non possibile per diseguaglianza O_ID,o misura della base W_A <>, o misura altezza H_B <> *)
+	            
+	            IF #PTrk_P3.O_ID <> #PTrk_P2.O_ID THEN
+	                #BTrk.O_ID := 0;
+	                #Alarm := 1;
+	                #Status := 2;
+	            ELSIF #PTrk_P3.W_A <> #PTrk_P2.W_A THEN
+	                #BTrk.Quality := 0;
+	                #Alarm := 2;
+	                #Status := 2;
+	            ELSIF #PTrk_P3.H_B <> #PTrk_P2.H_B THEN
+	                #BTrk.Quality := 0;
+	                #Alarm := 3;
+	                #Status := 2;
+	            END_IF;
+	            
+	            // #Status:3 => Accoppiamento con errore Qualità o non Pareggiato
+	            IF #Execute AND #PTrk_P3.Quality <> #PTrk_P2.Quality THEN
+	                #BTrk.Quality := 0;
+	                #Alarm := 4;
+	                #Status := 3;
+	           // ELSIF (NOT #PTrk_P3.ShiftDone OR #PTrk_P2.ShiftDone) THEN
+	               // #Alarm := 5;
+	              // #Status := 3;
+	            END_IF;
+	           // 
+	        ELSE
+	            // Status = 0 => Resetto i PTrk, quindi devo aver modificato il tracking e riportato i dati uguali sia sui Part che sul Beam
+	            IF #Alarm = 0 AND #Status = 1 THEN
+	                #Status := 0;
+	            ELSIF #Status = 2 AND #BTrk.O_ID = #PTrk_P3.O_ID AND #BTrk.O_ID = #PTrk_P2.O_ID
+	                AND #BTrk.W_A = #PTrk_P3.W_A AND #BTrk.W_A = #PTrk_P2.W_A
+	                AND #BTrk.H_B = #PTrk_P3.H_B AND #BTrk.H_B = #PTrk_P2.H_B THEN
+	                #Status := 0;
+	            ELSIF #Status = 3 AND #PTrk_P3.Quality = #PTrk_P2.Quality THEN
+	                // AND #PTrk_P3.ShiftDone AND NOT #PTrk_P2.ShiftDone 
+	                #Status := 0;
+	            END_IF;
+	        END_IF;
+	    END_REGION
+	END_REGION
+	
+	REGION CONTROLLO DEGLI ALLARMI TRACKING E MANIPOLAZIONE DEL TRAKING
+	    (* Se rilevo una differenza tra i 2 parts e attivo un allarme, posso resettarlo,ma ritornerà fino a quando il tracking non viene sistemato dal master
+	       #Alarm =  1:O_ID differente/2:W_A differente/3:H_B differente/4:Qlty differente/5:ShiftDone mancante
+	       #Status = 1:Accoppiamento OK / 2:Accoppiamento non possibile / 3:Accoppiato con errore *) 
+	
+	    IF #AreaInterface.RstAlarms AND #Status <> 0 AND #Status <> 1 THEN
+	        #Alarm := 0;
+	    END_IF;
+	    
+	END_REGION
+END_FUNCTION_BLOCK
+

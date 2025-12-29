@@ -1,0 +1,26 @@
+﻿// Block: DoorSignals
+// Title: Lamps Door
+
+FUNCTION "DoorSignals" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Lamps Door
+   VAR_INPUT
+      Door : udt_DoorSts;
+      TwoHandEnable : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      LampEntry : Bool;
+      LampRst : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Lamps Door"
+      LampEntry := ((((Door.NormalStop AND Sys.Clock_500MS) OR (Door.NormalStop AND Door.EntryEnable) OR (Door.NormalStop AND Door.SafeStop)) AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+      LampRst := ((((Door.SafeStop AND Sys.Clock_500MS) OR (Door.SafeStop AND NOT (TwoHandEnable))) AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+   END_REGION
+
+
+END_FUNCTION

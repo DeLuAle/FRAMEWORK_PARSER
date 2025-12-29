@@ -1,0 +1,123 @@
+﻿FUNCTION_BLOCK "SortPivot"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Execute : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      InProgress : Bool;
+      Done : Bool;
+      UpdatePercentage : Real;
+   END_VAR
+
+   VAR_IN_OUT 
+      Table : Array[*] of "Prg_Pivot";
+   END_VAR
+
+   VAR 
+      SwapMade : Bool;
+      SortDone : Bool;
+      Status : Int;
+      i : Int;
+      j : Int;
+      k : Int;
+      n : Int;
+      iRepetition : Int;
+   END_VAR
+
+   VAR_TEMP 
+      TableItemTemp : "Prg_Pivot";
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_REPETITION : Int := 200;
+   END_VAR
+
+
+BEGIN
+	IF      #Execute 
+	    THEN
+	       
+	    CASE #Status OF
+	            
+	        //-------------------------------------------------------
+	        // INITIALIZE 
+	        //-------------------------------------------------------
+	        0:   
+	            #InProgress := true;
+	            #Done := false;
+	            #SortDone := FALSE;
+	            #UpdatePercentage := 0.0;
+	            #SwapMade := FALSE;
+	            #i := 2;
+	            #k := 2;
+	            #j := #n:= DINT_TO_INT(UPPER_BOUND(ARR:=#Table, DIM:=1));
+	            #iRepetition := #MAX_REPETITION;
+	            #Status := 1;
+	        
+	        //-------------------------------------------------------
+	        // BUBBLE SORTING 
+	        //-------------------------------------------------------    
+	        1:  
+	            WHILE (#iRepetition > 0) AND NOT #SortDone DO
+	                
+	                IF #j >= #i THEN
+	                    IF (((#Table[#j - 1].PrgNo > #Table[#j].PrgNo) AND (#Table[#j - 1].PrgNo > 0) AND (#Table[#j].PrgNo > 0)) OR
+	                        ((#Table[#j - 1].PrgNo = 0) AND (#Table[#j].PrgNo > 0)) OR
+	                        ((#Table[#j - 1].PrgNo = 0 AND (#Table[#j].PrgNo =0) AND (#Table[#j - 1].RecordNo > #Table[#j].RecordNo)))
+	                        ) THEN
+	
+	                        #TableItemTemp := #Table[#j - 1];
+	                        #Table[#j - 1] := #Table[#j];
+	                        #Table[#j] := #TableItemTemp;
+	                        #SwapMade := TRUE;
+	                        
+	                        #k := #j; (*posizione di scambio*)
+	                    END_IF;
+	                    
+	                    #j := #j - 1;
+	                    
+	                ELSIF #j < #i AND #SwapMade THEN
+	                    #SwapMade := FALSE;
+	                    #j := #n;
+	                    #i := #k + 1; (* sposta limite inferiore del ciclo in base alla posizione dell'ultimo scambio...salta i confronti su parte già ordinata *)
+	                    
+	                ELSIF #j < #i AND NOT #SwapMade 
+	                    THEN
+	                    #SortDone := TRUE;
+	                    #Status := 2;
+	                END_IF;
+	                
+	                #iRepetition := #iRepetition - 1;
+	               
+	            END_WHILE;
+	            
+	            #UpdatePercentage := 100.0 * (INT_TO_REAL(#k) / INT_TO_REAL(#n));
+	
+	            // Reload WHILE cyle / ricarica ciclo WHILE
+	            IF      NOT #SortDone 
+	                THEN
+	                #iRepetition := #MAX_REPETITION;
+	            END_IF;
+	
+	        //-------------------------------------------------------
+	        // DONE 
+	        //-------------------------------------------------------
+	        2:   
+	            #InProgress := FALSE;
+	            #Done := TRUE;
+	            #UpdatePercentage := 100.0;    
+	
+	        ELSE
+	            #Status := 0;
+	    END_CASE;
+	
+	ELSE
+	    #InProgress := FALSE;
+	    #Done := FALSE;
+	    #UpdatePercentage := 0;
+	    #Status := 0;
+	END_IF;
+END_FUNCTION_BLOCK
+

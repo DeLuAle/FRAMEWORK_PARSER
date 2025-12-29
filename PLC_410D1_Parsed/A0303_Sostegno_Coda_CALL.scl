@@ -1,0 +1,132 @@
+﻿// Block: A0303_Sostegno_Coda_CALL
+// Title: DataIn  - Asse Y
+
+FUNCTION "A0303_Sostegno_Coda_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// DataIn  - Asse Y
+   VAR_TEMP
+      V1_Work_1 : Bool;
+      V1_Work_2 : Bool;
+      V1_Rest : Bool;
+      V1_Rest_2 : Bool;
+      V2_Work : Bool;
+      V2_Rest_1 : Bool;
+      V2_Rest_2 : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "DataIn  - Asse Y"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0303_Sostegno_Coda.Ax.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := TRUE, HMI_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
+      A0303_Sostegno_Coda.Ax.DataIn.LS_Minus := NOT (A0303_Posizione_Y_Ax_Coda_Ls_Minimo);
+      A0303_Sostegno_Coda.Ax.DataIn.LS_Plus := NOT (A0303_Posizione_Y_Ax_Coda_Ls_Massimo);
+      A0303_Sostegno_Coda.Ax.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_Antiribaltamento_Coda;
+      A0303_Sostegno_Coda.Ax.DataIn.Brake_M_Feedback := Areas_ITF.AG.CU_DI.FbkBrake_Antiribaltamento_Coda;
+   END_REGION
+
+   REGION "DataIn  - Valve"
+      V1_Rest := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0));
+      V2_Rest_1 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0));
+      V1_Work_1 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1));
+      V2_Rest_2 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1));
+      V1_Work_2 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2));
+      V2_Work := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2));
+      A0303_Sostegno_Coda.V_1.DataIn.PB.Rest := V1_Rest;
+      A0303_Sostegno_Coda.V_1.DataIn.PB.Work := (V1_Work_1 OR V1_Work_2);
+      A0303_Sostegno_Coda.V_2.DataIn.PB.Rest := (V2_Rest_1 OR V2_Rest_2);
+      A0303_Sostegno_Coda.V_2.DataIn.PB.Work := V2_Work;
+   END_REGION
+
+   REGION "DataIn  - Valve"
+      V1_Rest := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0));
+      V2_Rest_1 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0));
+      V1_Work_1 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1));
+      V2_Rest_2 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1));
+      V1_Work_2 := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2));
+      V2_Work := NOT (NOT (A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2));
+      A0303_Sostegno_Coda.V_1.DataIn.PB.Rest := V1_Rest;
+      A0303_Sostegno_Coda.V_1.DataIn.PB.Work := (V1_Work_1 OR V1_Work_2);
+      A0303_Sostegno_Coda.V_2.DataIn.PB.Rest := (V2_Rest_1 OR V2_Rest_2);
+      A0303_Sostegno_Coda.V_2.DataIn.PB.Work := V2_Work;
+   END_REGION
+
+   REGION "DataIn -  Pos 0 1 2"
+      A0303_Sostegno_Coda.DataIn.Pos0_Ls := A0303_Pistoni_Posizione_1_Paletti_Sostegno_Coda_Ls_Rest;
+      A0303_Sostegno_Coda.DataIn.Pos1_Ls := A0303_Pistoni_Posizione_1_Paletti_Sostegno_Coda_Ls_Work;
+      A0303_Sostegno_Coda.DataIn.Pos2_Ls := A0303_Pistoni_Posizione_2_Paletti_Sostegno_Coda_Ls_Work;
+   END_REGION
+
+   REGION "DataIn - OP"
+      A0303_Sostegno_Coda.DataIn.OP_Work_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.OP_Work;
+      A0303_Sostegno_Coda.DataIn.OP_Rest_PB := A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.OP_Rest;
+   END_REGION
+
+   REGION "CIn"
+      A0303_Sostegno_Coda.CIn.Manager := A0303_Manager.COut.Sostegno.Coda;
+      A0303_Sostegno_Coda.CIn.Navetta.OutOfWorkspace := (A0304_Navetta.COut.Coda.Ax.ActualPosition >= 1490.0);
+      A0303_Sostegno_Coda.CIn.CycleModeShortPiece := A0303_Manager.CycleWithShortPiece;
+      A0303_Sostegno_Coda.CIn.Trasporto.OutOfWorkspace := (A0303_TraslazioneStrato.COut.Coda.Ax.ActualPosition < 0.0);
+   END_REGION
+
+   REGION "Drive"
+      A0303_Sostegno_Coda.Ax.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0303_Sostegno_Coda.Ax.Drive.AccessPoint := HW_Const_Values.CU8_PN_615A1_ModuleAccessPoint;
+      A0303_Sostegno_Coda.Ax.Drive.AxisID := CU8_ID_7_2350A1_2_2370M1;
+      A0303_Sostegno_Coda.Ax.Drive.TokenChain :=TOKENCHAIN_CU8;
+
+
+   END_REGION
+
+   REGION "HW"
+      A0303_Sostegno_Coda.HWID.Ax_TEL1 := HW_Const_Values.CU8_PN_2350A1_2_Standard_telegram_1;
+
+      A0303_Sostegno_Coda.HWID.Enc_IO := HW_Const_Values.HW_2374P1_Telegram_81_DI_DO;
+
+   END_REGION
+
+   REGION "Config"
+      A0303_Sostegno_Coda.Config := PrjConfig_A04.A0303.Sostegno.Coda;
+   END_REGION
+
+   REGION "Machine Call"
+      #A0303_Sostegno_Coda(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone27,
+         DSI_Feed := F_DB.DSI_SostegnoAntiribCoda,
+         DSI_Valve := F_DB.DSI_V_Air_A0302_A0303,
+         Par := A0303_Sostegno_PERS.Par.Coda,
+         Par_Mach := A0303_Sostegno_PERS.Par_Mach
+      );
+
+      #A0303_Sostegno_Coda.Q;
+   END_REGION
+
+   REGION "DataOut - Valve 1"
+      A0303_Pistoni_Posizione_1_Paletti_Sostegno_Coda_V_Rest := A0303_Sostegno_Coda.V_1.DataOut.RestSolenoid;
+      A0303_Pistoni_Posizione_1_Paletti_Sostegno_Coda_V_Work := A0303_Sostegno_Coda.V_1.DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "DataOut - Valve 2"
+      A0303_Pistoni_Posizione_2_Paletti_Sostegno_Coda_V_Rest := A0303_Sostegno_Coda.V_2.DataOut.RestSolenoid;
+      A0303_Pistoni_Posizione_2_Paletti_Sostegno_Coda_V_Work := A0303_Sostegno_Coda.V_2.DataOut.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

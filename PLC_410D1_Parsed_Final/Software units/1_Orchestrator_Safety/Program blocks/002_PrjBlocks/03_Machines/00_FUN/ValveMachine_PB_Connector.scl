@@ -1,0 +1,30 @@
+﻿// Block: ValveMachine_PB_Connector
+// Title: Logical OR
+
+FUNCTION "ValveMachine_PB_Connector" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Logical OR
+   VAR_INPUT
+      Enable : Bool;
+      HMI_PB : ValveMachine_PB;
+      LB_PB_Rest : Bool;
+      LB_PB_Work : Bool;
+      LB_PB_StartStop : Bool;
+      Other_PB : ValveMachine_PB;
+   END_VAR
+
+   VAR_OUTPUT
+      PB : ValveMachine_PB;
+   END_VAR
+
+
+BEGIN
+   REGION "Logical OR"
+      PB.Rest := (NOT (((NOT (HMI_PB.Rest) AND NOT (LB_PB_Rest)) AND NOT (Other_PB.Rest))) AND Enable);
+      PB.Work := (NOT (((NOT (HMI_PB.Work) AND NOT (LB_PB_Work)) AND NOT (Other_PB.Work))) AND Enable);
+      PB.StartStop := (NOT (((NOT (HMI_PB.StartStop) AND NOT (LB_PB_StartStop)) AND NOT (Other_PB.StartStop))) AND Enable);
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,576 @@
+﻿FUNCTION_BLOCK "MES_Receive_Msg_Topic3XX_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      DEBUG : Struct
+         Enable : Bool;
+         AckChangeStep : Bool;
+         ActualStep : Int;
+      END_STRUCT;
+      Err : "MES_Msg_Receive_Topic3xx_Err";
+   END_VAR
+
+   VAR 
+      Status : Int;
+      Save_Msg_ID : DInt;
+      ACK : DInt;
+      MSG300 : Struct
+         RETVAL_Decoder : DInt;
+      END_STRUCT;
+      MSG301 : Struct
+         RETVAL_Decoder : DInt;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT 
+      IDLE : Int := 0;
+      WAIT_NEXT_MSG : Int := 1;
+      ACK_TO_MES : Int := 100;
+      MSG300_1 : Int := 3001;
+      MSG300_2 : Int := 3002;
+      MSG300_3 : Int := 3003;
+      MSG300_4 : Int := 3004;
+      MSG301_1 : Int := 3011;
+      MSG301_2 : Int := 3012;
+      MSG301_3 : Int := 3013;
+      MSG301_4 : Int := 3014;
+   END_VAR
+
+
+BEGIN
+	#DEBUG.ActualStep := #Status;
+	
+	
+	REGION ACK TO MES        
+	    
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// ACK TO MES
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    IF #Status = #ACK_TO_MES THEN
+	        
+	        
+	        // OK → CAMBIO PASSO
+	        // 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // Uscita traferendo ACK alla gestione al MES
+	        //
+	        
+	        
+	        
+	        "MES_Com_Channel_Topic3XX".RECEIVE.ack := #ACK;
+	        
+	        // Invio messaggio a IPC per registrazione evento ricezione messaggio
+	        // 
+	        "IPC_Push_Log_MES"(Msg := "MES_Com_Channel_Topic3XX".RECEIVE.msg,
+	                                               Ack := "MES_Com_Channel_Topic3XX".RECEIVE.ack);
+	        
+	        
+	        CASE "MES_Com_Channel_Topic3XX".RECEIVE.msg.topic OF
+	                
+	            300: // MES → PLC – Topic = 300: Sospensione per fine turno
+	                #Err.Recive_MSG300 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic3XX".RECEIVE.msg);
+	                
+	            301: // MES → PLC – Topic = 301: Sospensione per controllo qualità
+	                #Err.Recive_MSG301 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic3XX".RECEIVE.msg);
+	                
+	        END_CASE;
+	                
+	                
+	        #Status := #"IDLE";
+	        
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	        
+	      
+	        
+	        
+	        
+	REGION IDLE       
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// IDLE
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    IF #Status = #IDLE THEN
+	        
+	        // MES non ha ancore cambiato ID e messaggio precedente era terminato OK 
+	        // 
+	        IF "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id = "MES_Com_Channel_Topic3XX".RECEIVE.ack THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES non ha ancora cambiato ID e messaggio precedente è terminato con errore
+	        // 
+	        IF "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id = #Save_Msg_ID THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES ha inviato messaggio con ID <= 0 →  ACK immediato
+	        // 
+	        IF "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id <= 0 THEN
+	            #ACK := "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id;
+	            #Save_Msg_ID := "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id;
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // Avvio ricezione nuovo messaggio
+	        // 
+	        #Save_Msg_ID := "MES_Com_Channel_Topic3XX".RECEIVE.msg.Id;
+	        
+	        CASE "MES_Com_Channel_Topic3XX".RECEIVE.msg.topic OF
+	                
+	                
+	            300: // MES → PLC – Topic = 300: Sospensione per fine turno
+	                #Status := #MSG300_1;
+	                RETURN;
+	                
+	                
+	            301:// MES → PLC – Topic = 301: Sospensione per controllo qualità
+	                #Status := #MSG301_1;
+	                RETURN;
+	                
+	            ELSE
+	                // Topic del messaggio non gestita
+	                // 
+	                #ACK := "PROD_ERR_BUFFER_MSGs_UNKNOW_TOPIC";
+	                #Status := #ACK_TO_MES;
+	                RETURN;
+	        END_CASE;
+	        
+	        RETURN;
+	 
+	    END_IF;
+	END_REGION ;
+	        
+	        
+	       
+	        
+	   
+	            
+	            
+	REGION MSG300 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 300: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)  
+	    
+	    IF #Status = #MSG300_1 THEN
+	        
+	        #MSG300.RETVAL_Decoder := "PROD_FUN_RESULT_OK";
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	
+	    
+	END_REGION
+	            
+	           
+	            
+	            
+	REGION MSG300 STEP 2 (DECODER PAYLOAD)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 130: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)     
+	    
+	    IF #Status = #MSG300_2 THEN
+	        
+	        #MSG300.RETVAL_Decoder :=
+	        
+	        "MES_Msg300_Decoder"("MES_Com_Channel_Topic3XX".RECEIVE.msg.payLoad);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG300.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG300.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	        
+	        
+	        
+	REGION MSG300 STEP 3 (SET MEMORIA STOP FINE TURNO)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 300: STEP 3
+	    
+	    SET MEMORIA INTERRUZIONE FINE TURNO  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG300_3 THEN
+	        
+	        
+	        "ProductionMng_PERS".Pers.Data.INTERRUZIONI.STOP_FineTurno := TRUE;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	            
+	END_REGION ;
+	        
+	        
+	REGION MSG300 STEP 4 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	                   
+	    MES → PLC – Topic = 300 : STEP 4
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	         
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG300_4 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	END_REGION
+	        
+	          
+	                
+	 REGION MSG301 STEP 1 (INIT)
+	                    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 301: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG301_1 THEN
+	        
+	        #MSG301.RETVAL_Decoder := "PROD_FUN_RESULT_OK";
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	                    
+	                    
+	END_REGION
+	                
+	                
+	                
+	                
+	REGION MSG301 STEP 2 (DECODER PAYLOAD)
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	
+	MES → PLC – Topic = 130: STEP 2
+	
+	DECODIFICA PAYLOAD  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	                    
+	    IF #Status = #MSG301_2 THEN
+	        
+	        #MSG301.RETVAL_Decoder := "MES_Msg301_Decoder"("MES_Com_Channel_Topic3XX".RECEIVE.msg.payLoad);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG301.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG301.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	                    
+	END_REGION ;
+	                
+	                
+	                
+	REGION MSG301 STEP 3 (SET MEMORIA STOP CONTROLLO QUALITA)
+	                    
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	MES → PLC – Topic = 301: STEP 3
+	
+	SET MEMORIA INTERRUZIONE CONTROLLO QUALITA + ACK CON ESITO POSITIVO  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	                    
+	    IF #Status = #MSG301_3 THEN
+	        
+	        
+	        "ProductionMng_PERS".Pers.Data.INTERRUZIONI.STOP_ControlloQualita := TRUE;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	                
+	                
+	        
+	REGION MSG301 STEP 4 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	                   
+	    MES → PLC – Topic = 301 : STEP 4
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	         
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG301_4 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	END_REGION
+	        
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	            
+	
+	            
+	            
+	            
+	            
+	 
+	       
+	       
+	       
+	       
+	       
+	       
+	            
+	            
+	            
+	(*    
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	Status errato
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)        
+	
+	            
+	
+	            
+	#Status := #"IDLE";
+	        
+	        
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

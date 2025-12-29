@@ -1,0 +1,67 @@
+﻿TYPE "ITF_ProductionMng"
+VERSION : 0.1
+// Block: ITF_ProductionMng
+   STRUCT
+      GEN : Struct
+         Warnings : Struct
+            Presenza_Errore_Invio_Messaggio_a_MES : Bool;
+            SetUp : Struct
+               Errore_Invio_MSG101_InizioSetup : Bool;
+               Caricamento_PPrf : Struct
+                  Err_Load_PPrf : Bool;
+                  Err_Load_Timeout : Bool;
+                  Err_NumeroProgrammaNonValido : Bool;
+                  Err_NonCorrisponde_W_A : Bool;
+                  Err_NonCorrisponde_H_B : Bool;
+                  Err_NonCorrisponde_Spessore : Bool;
+               END_STRUCT;
+               SetUp_Automatico_Avviato : Bool;
+               Attesa_SetUp_Manuale : Bool;
+               Attesa_Avvio_Inserimento_lamiera : Bool;
+               Attesa_Fine_inserimento_lamiera : Bool;
+               Attesa_Taglio_di_Intestazione : Bool;
+               Errore_Invio_MSG102_FineSetup : Bool;
+            END_STRUCT;
+            Err_Movimento_Ordine_InFaseDiCompletamento : Bool;
+            Err_Movimento_Ordine_InEsecuzioneSemiGusci : Bool;
+            Nessun_Ordine_InEsecuzioneSemiGusci : Bool;
+            Nessun_Ordine_InEsecuzione : Bool;
+            Messages : Struct
+               Err_MSG131_Part_GOOD : Bool;
+               Err_MSG131_Part_NG : Bool;
+               Err_MSG131_Part_GOOD_R : Bool;
+               Err_MSG131_Part_NG_R : Bool;
+               Err_MSG131_Part_DELETE : Bool;
+               Err_MSG131_Beam_GOOD : Bool;
+               Err_MSG131_Beam_GOOD_R : Bool;
+               Err_MSG131_Beam_NG_R : Bool;
+               Err_MSG131_Beam_DELETE : Bool;
+               Err_MSG131_O_ACT_Status_Update : Bool;
+               Err_MSG131_O_TODO_Status_Update : Bool;
+               Err_MSG131_O_ENDING_Status_Update : Bool;
+               Err_MSG131_O_OUT_Status_Update : Bool;
+               Err_Msg201 : Bool;
+               Err_Msg211 : Bool;
+               Err_Msg310_O_ACT : Bool;
+               Err_Msg310_O_ENDING : Array[1..5] of Bool;
+               Err_Msg311_O_ACT : Bool;
+               Err_Msg311_O_ENDING : Array[1..5] of Bool;
+               Err_Msg411 : Bool;
+               Err_Msg413 : Bool;
+               Err_Msg423 : Bool;
+               Err_MSG431_Part_BAD : Bool;
+               Err_MSG431_Part_NG : Bool;
+               Err_MSG431_Part_NG_R : Bool;
+               Err_MSG431_Part_DELETE : Bool;
+               Err_MSG431_Beam_NG_R : Bool;
+               Err_MSG431_Beam_DELETE : Bool;
+               Err_Msg431_FineLamieraRF : Bool;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+      A01 : Prod_Coil_Ctrl;
+      A02 : Prod_Part_Ctrl;
+      A03_A04 : Prod_Beam_Ctrl;
+   END_STRUCT;
+
+END_TYPE

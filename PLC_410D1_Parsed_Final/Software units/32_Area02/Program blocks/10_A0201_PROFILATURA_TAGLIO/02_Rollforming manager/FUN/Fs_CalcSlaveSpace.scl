@@ -1,0 +1,52 @@
+﻿FUNCTION "Fs_CalcSlaveSpace" : LReal
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.2
+   VAR_INPUT 
+      CutoffStation : Bool;
+      Master_Vel : LReal;   // [lu/min]
+      Master_Dec : LReal;   // [lu/s^2]
+      Master_Jerk : LReal;   // [lu/s^3]
+      Work_CycleTime : LReal;   // [s]
+   END_VAR
+
+   VAR_IN_OUT 
+      CarriageAx : "FlyingShearAxis";
+      Carriage_FsParameter : "udt_FsParameter";
+   END_VAR
+
+   VAR_TEMP 
+      Carriage_RampSynch_Space : LReal;
+      Rollformer_Ramp_Space : LReal;
+      Detach_Time : LReal;
+      Detach_Space : LReal;
+      ErrorTimeout : LReal;
+   END_VAR
+
+
+BEGIN
+	// Calcolo della distanza necessaria allo slave per esaurire il taglio 
+	// prima dell'inizio della rampa di discesa del master
+	// Utile per calcolare la posizione di Home del carro per tagliare all'ultimo.
+	// V0.2 - Compute blade detach time
+	
+	#Carriage_RampSynch_Space    := "Trapezoidal_RampSpace_1"(VDelta:=#Master_Vel, AccDec:=#Carriage_FsParameter.SyncDinamics.Acceleration,  Jerk:=#Carriage_FsParameter.SyncDinamics.Jerk);
+	#Rollformer_Ramp_Space       := "Trapezoidal_RampSpace_1"(VDelta:=#Master_Vel, AccDec:=#Master_Dec, Jerk:=#Master_Jerk);
+	IF #CutoffStation THEN
+	    #Detach_Time    := "Trapezoidal_MoveTime"(
+	                            MoveSpace   := #Carriage_FsParameter.BladeDetachValue, 
+	                            MaxVelocity := #Carriage_FsParameter.BladeDetachVelocity, 
+	                            AccDec      := #Carriage_FsParameter.SyncDinamics.Acceleration, 
+	                            Jerk        := #Carriage_FsParameter.SyncDinamics.Jerk);
+	    #Detach_Space   := #Carriage_FsParameter.BladeDetachValue;
+	ELSE
+	    #Detach_Time    := 0.0;
+	    #Detach_Space   := 0.0;
+	END_IF;
+	
+	#ErrorTimeout       := DINT_TO_LREAL(TIME_TO_DINT(#Carriage_FsParameter.ErrorTimeout)) / 1000.0;
+	#Fs_CalcSlaveSpace :=    (#Work_CycleTime + #Detach_Time + #ErrorTimeout) * #Master_Vel * #CarriageAx.FSCore."K_mV_TO_m/s" * 1000.0 
+	                        + #Carriage_RampSynch_Space
+	                        + #Rollformer_Ramp_Space
+	                        + #Detach_Space;
+END_FUNCTION
+

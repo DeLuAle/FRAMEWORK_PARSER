@@ -1,0 +1,24 @@
+﻿TYPE "Prod_Pers"
+VERSION : 0.1
+// Block: Prod_Pers
+   STRUCT
+      Data : Struct
+         MODE : Prod_Mode;
+         SET_UP : Prod_SetUp_Data;
+         INTERRUZIONI : Prod_Interruzioni;
+         Aspo_In_Linea_Prev_Values : Coil_Item;
+         Aspo_In_Carico_Prev_Values : Coil_Item;
+         Taglio_Finale_Prev_Values : Coil_Item;
+         "C_ID_Aspo_In_Linea_@AbortCut" : DInt;
+         "C_ID_Aspo_In_Linea_@CoilEnd" : DInt;
+      END_STRUCT;
+      Par : Struct
+         MES_Operating : Int;
+         AUT_PushOrder_InProduction : Int;
+         PartTolFactor_BAD_EXCEED_TOL : Real;
+         Material_To_Go_Additional : Real;
+         Material_To_Go_Low_Speed : Real;
+      END_STRUCT;
+   END_STRUCT;
+
+END_TYPE

@@ -1,0 +1,1041 @@
+﻿// Block: FinalCut_FB
+// Title: Reset alarms 
+
+FUNCTION_BLOCK "FinalCut_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         CutHead : ValveMachine_DataIn;
+         DrawHead : ValveMachine_DataIn;
+         MarkHead : ValveMachine_DataIn;
+         Locking : ValveMachine_DataIn;
+         Locking_PressureAI : Int;
+      END_STRUCT;
+      CIn : Struct
+         PressureRunning : Bool;
+         MaterialStandstill : Bool;
+         EnableCutHead : Bool;
+         EnableDrawHead : Bool;
+         EnableMarkHead : Bool;
+         PPrf_PrgNo : DInt;
+         CutHead_Manager : ValveMachine_Manager;
+         DrawHead_Manager : ValveMachine_Manager;
+         MarkHead_Manager : ValveMachine_Manager;
+      END_STRUCT;
+      Config : Struct
+         CheckRestPosition : Bool;
+         CutHead : ValveMachine_Config;
+         DrawHead : ValveMachine_Config;
+         MarkHead : ValveMachine_Config;
+         Locking : ValveMachine_Config;
+         Locking_AI_HighLimit : Real;
+         Locking_AI_LowLimit : Real;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         CutHead : ValveMachine_DataOut;
+         DrawHead : ValveMachine_DataOut;
+         MarkHead : ValveMachine_DataOut;
+         Locking : ValveMachine_DataOut;
+      END_STRUCT;
+      COut : Struct
+         CutHead : ValveMachine_COut;
+         DrawHead : ValveMachine_COut;
+         MarkHead : ValveMachine_COut;
+         Locking : ValveMachine_COut;
+         Avg_R_to_W_Time : Time;
+         Avg_W_to_R_Time : Time;
+         AllAtRest : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : udt_FinalCut_Pers;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         CycleTime : Struct
+            CutHead : Struct
+               DT_W_Start : DTL;
+               DT_W_Stop : DTL;
+               DT_R_Start : DTL;
+               DT_R_Stop : DTL;
+               R_To_W_Exe : Bool;
+               W_To_R_Exe : Bool;
+               R_To_W_Items : Int;
+               R_To_W_Sum : Time;
+               W_To_R_Items : Int;
+               W_To_R_Sum : Time;
+            END_STRUCT;
+            DrawHead : Struct
+               DT_W_Start : DTL;
+               DT_W_Stop : DTL;
+               DT_R_Start : DTL;
+               DT_R_Stop : DTL;
+               R_To_W_Exe : Bool;
+               W_To_R_Exe : Bool;
+               R_To_W_Items : Int;
+               R_To_W_Sum : Time;
+               W_To_R_Items : Int;
+               W_To_R_Sum : Time;
+            END_STRUCT;
+            MarkHead : Struct
+               DT_W_Start : DTL;
+               DT_W_Stop : DTL;
+               DT_R_Start : DTL;
+               DT_R_Stop : DTL;
+               R_To_W_Exe : Bool;
+               W_To_R_Exe : Bool;
+               R_To_W_Items : Int;
+               R_To_W_Sum : Time;
+               W_To_R_Items : Int;
+               W_To_R_Sum : Time;
+            END_STRUCT;
+            PPrf_PrgNoSave : DInt;
+         END_STRUCT;
+         LockingPressure : Real;
+         WorkPressureOk : Bool;
+         MinPressureOk : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Reload : Struct
+            CutHead : Bool;
+            DrawHead : Bool;
+            MarkHead : Bool;
+            Locking : Bool;
+         END_STRUCT;
+         RstAlarms : Bool;
+      END_STRUCT;
+      Alarm : Struct
+         CutHead : ValveAlr;
+         DrawHead : ValveAlr;
+         MarkHead : ValveAlr;
+         Locking : ValveAlr;
+         Locking_NotAWork : Bool;
+      END_STRUCT;
+      Warning : Struct
+         CutHead : ValveMachine_Wng;
+         DrawHead : ValveMachine_Wng;
+         MarkHead : ValveMachine_Wng;
+         Locking : ValveMachine_Wng;
+         CutHead_NotAtRest : Bool;
+         DrawHead_NotAtRest : Bool;
+         MarkHead_NotAtRest : Bool;
+         Locking_NotAWork : Bool;
+         MaterialNotStandstill : Bool;
+      END_STRUCT;
+      HMI : Struct
+         CutHead : Struct
+            Last_R_to_W_ID : DInt;
+            Last_R_to_W_Time : Time;
+            Last_W_to_R_ID : DInt;
+            Last_W_to_R_Time : Time;
+            Avg_R_to_W_Time : Time;
+            Avg_W_to_R_Time : Time;
+            Buffer_R_to_W_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+            Buffer_W_to_R_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+         END_STRUCT;
+         DrawHead : Struct
+            Last_R_to_W_ID : DInt;
+            Last_R_to_W_Time : Time;
+            Last_W_to_R_ID : DInt;
+            Last_W_to_R_Time : Time;
+            Avg_R_to_W_Time : Time;
+            Avg_W_to_R_Time : Time;
+            Buffer_R_to_W_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+            Buffer_W_to_R_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+         END_STRUCT;
+         MarkHead : Struct
+            Last_R_to_W_ID : DInt;
+            Last_R_to_W_Time : Time;
+            Last_W_to_R_ID : DInt;
+            Last_W_to_R_Time : Time;
+            Avg_R_to_W_Time : Time;
+            Avg_W_to_R_Time : Time;
+            Buffer_R_to_W_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+            Buffer_W_to_R_Time : Struct
+               ID : DInt;
+               Value : Time;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+      CutHead : ValveMachine_FB;
+      DrawHead : ValveMachine_FB;
+      MarkHead : ValveMachine_FB;
+      Locking : ValveMachine_FB;
+      TON_CutHead_Pause : IEC_TIMER;
+      TON_CutHead_Duration : IEC_TIMER;
+      TON_DrawHead_Pause : IEC_TIMER;
+      TON_DrawHead_Duration : IEC_TIMER;
+      TON_MarkHead_Pause : IEC_TIMER;
+      TON_MarkHead_Duration : IEC_TIMER;
+      TON_LockingTimeOut : IEC_TIMER;
+      PE_Aux : Struct
+         CutHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+         DrawHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+         MarkHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      i : Int;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         CutHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+         DrawHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+         MarkHead : Struct
+            AtRest : Bool;
+            AtWork : Bool;
+            NotAtRest : Bool;
+            NotAtWork : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      ReturnVal : Word;
+      ScaleRetVal : Word;
+   END_VAR
+
+   VAR CONSTANT
+      BUFFER_ITEMS : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms"
+      Ctrl.RstAlarms := AreaInterface.RstAlarms;
+
+      IF    Ctrl.RstAlarms THEN
+          
+          Alarm.Locking_NotAWork := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Pressure reload for avoiding losing of rest position cause leakage on hydraulic cylinders"
+      #TON_CutHead_Pause(
+         IN := ((((((PersistentValues.Par.CutHeadReload.Pause > T#0ms) AND (PersistentValues.Par.CutHeadReload.Duration > T#0ms)) AND NOT (CIn.CutHead_Manager.Work)) AND CutHead.V.ValveSts.IsAtRest) AND NOT (CutHead.V.ValveSts.RestInProgress)) AND NOT (CutHead.V.ValveSts.WorkInProgress)),
+         PT := PersistentValues.Par.CutHeadReload.Pause
+      );
+
+      #TON_CutHead_Duration(
+         IN := (((((PersistentValues.Par.CutHeadReload.Pause > T#0ms) AND (PersistentValues.Par.CutHeadReload.Duration > T#0ms)) AND NOT (CIn.CutHead_Manager.Work)) AND CutHead.V.ValveSts.IsAtRest) AND CutHead.V.ValveSts.RestInProgress),
+         PT := PersistentValues.Par.CutHeadReload.Duration
+      );
+
+      #TON_CutHead_Pause.Q;
+      IF #TON_CutHead_Pause.Q THEN
+         Ctrl.Reload.CutHead := TRUE;
+      END_IF;
+      #TON_CutHead_Duration.Q;
+      IF #TON_CutHead_Duration.Q THEN
+         Ctrl.Reload.CutHead := FALSE;
+      END_IF;
+      IF NOT (((PersistentValues.Par.CutHeadReload.Pause > T#0ms) AND (PersistentValues.Par.CutHeadReload.Duration > T#0ms))) THEN
+         Ctrl.Reload.CutHead := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn (External enable)"
+      CutHead.Cin.Rest_ExtEnable := TRUE;
+      CutHead.Cin.Work_ExtEnable := ((CIn.MaterialStandstill AND CIn.EnableCutHead) AND Locking.COut.Work);
+      CutHead.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "CIn (Manager)"
+      CutHead.Cin.Manager := CIn.CutHead_Manager;
+      CutHead.Cin.Manager.Rest := ((CIn.CutHead_Manager.Control_ON AND CIn.CutHead_Manager.Rest) OR (CIn.CutHead_Manager.Control_ON AND Ctrl.Reload.CutHead));
+   END_REGION
+
+   REGION "Machine Valve manager"
+      #CutHead(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         DataIn := DataIn.CutHead,
+         Config := Config.CutHead,
+         Alarm := Alarm.CutHead,
+         Warning := Warning.CutHead,
+         MachineInterface => MachineInterface,
+         COut => COut.CutHead,
+         DataOut => DataOut.CutHead
+      );
+
+      #CutHead.Q;
+   END_REGION
+
+   REGION "Warning Cut is not at rest"
+      Warning.CutHead_NotAtRest := ((NOT (CIn.MaterialStandstill) AND NOT (CutHead.V.ValveSts.IsAtRest)) AND Config.CheckRestPosition);
+   END_REGION
+
+   REGION "At Rest / At work positive/negative edge"
+      PE.CutHead.AtRest := PosEdge(CutHead.COut.Rest);
+      PE.CutHead.AtWork := PosEdge(CutHead.COut.Work);
+      PE.CutHead.NotAtRest := NegEdge(CutHead.COut.Rest);
+      PE.CutHead.NotAtWork := NegEdge(CutHead.COut.Work);
+   END_REGION
+
+   REGION "Rest to work time calculation"
+      IF (DataOut.CutHead.WorkSolenoid AND NOT (Sts.CycleTime.CutHead.R_To_W_Exe)) THEN
+         Sts.CycleTime.CutHead.DT_W_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.CutHead.R_To_W_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.R_To_W_Exe AND PE.CutHead.AtWork) OR (Sts.CycleTime.CutHead.R_To_W_Exe AND NOT (DataOut.CutHead.WorkSolenoid))) THEN
+         Sts.CycleTime.CutHead.DT_W_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.R_To_W_Exe AND PE.CutHead.AtWork) OR (Sts.CycleTime.CutHead.R_To_W_Exe AND NOT (DataOut.CutHead.WorkSolenoid))) THEN
+         HMI.CutHead.Last_R_to_W_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.R_To_W_Exe AND PE.CutHead.AtWork) OR (Sts.CycleTime.CutHead.R_To_W_Exe AND NOT (DataOut.CutHead.WorkSolenoid))) THEN
+         HMI.CutHead.Last_R_to_W_ID := (HMI.CutHead.Buffer_R_to_W_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.CutHead.R_To_W_Exe AND NOT (DataOut.CutHead.WorkSolenoid)) THEN
+         Sts.CycleTime.CutHead.R_To_W_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Work to rest time calculation"
+      IF (DataOut.CutHead.RestSolenoid AND NOT (Sts.CycleTime.CutHead.W_To_R_Exe)) THEN
+         Sts.CycleTime.CutHead.DT_R_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.CutHead.W_To_R_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.W_To_R_Exe AND PE.CutHead.AtRest) OR (Sts.CycleTime.CutHead.W_To_R_Exe AND NOT (DataOut.CutHead.RestSolenoid))) THEN
+         Sts.CycleTime.CutHead.DT_R_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.W_To_R_Exe AND PE.CutHead.AtRest) OR (Sts.CycleTime.CutHead.W_To_R_Exe AND NOT (DataOut.CutHead.RestSolenoid))) THEN
+         HMI.CutHead.Last_W_to_R_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.CutHead.W_To_R_Exe AND PE.CutHead.AtRest) OR (Sts.CycleTime.CutHead.W_To_R_Exe AND NOT (DataOut.CutHead.RestSolenoid))) THEN
+         HMI.CutHead.Last_W_to_R_ID := (HMI.CutHead.Buffer_W_to_R_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.CutHead.W_To_R_Exe AND NOT (DataOut.CutHead.RestSolenoid)) THEN
+         Sts.CycleTime.CutHead.W_To_R_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Init buffers & average calculations"
+      IF CIn.PPrf_PrgNo <> Sts.CycleTime.PPrf_PrgNoSave OR CIn.PPrf_PrgNo <= 0 THEN
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              HMI.CutHead.Buffer_R_to_W_Time[i].ID := 0;
+              HMI.CutHead.Buffer_R_to_W_Time[i].Value := T#0s;
+              HMI.CutHead.Buffer_W_to_R_Time[i].ID := 0;
+              HMI.CutHead.Buffer_W_to_R_Time[i].Value := T#0s;
+          END_FOR;
+          
+          HMI.CutHead.Last_R_to_W_ID := 0;
+          HMI.CutHead.Last_R_to_W_Time := T#0ms;
+          HMI.CutHead.Avg_R_to_W_Time := Config.CutHead.V.WorkTimeOut;
+          
+          HMI.CutHead.Last_W_to_R_ID := 0;
+          HMI.CutHead.Last_W_to_R_Time := T#0ms;
+          HMI.CutHead.Avg_W_to_R_Time := Config.CutHead.V.RestTimeOut;
+          
+      END_IF;
+
+
+      Sts.CycleTime.PPrf_PrgNoSave := CIn.PPrf_PrgNo;
+
+   END_REGION
+
+   REGION "Add new items to Rest-TO-Work buffer & calculate average"
+
+      IF HMI.CutHead.Last_R_to_W_Time >= CutHead.Config.V.WorkTimeOut OR Alarm.CutHead.TimeOutWork THEN
+          
+          HMI.CutHead.Last_R_to_W_ID := -1; // Force red background on the HMI visualization
+          
+          
+          
+      ELSIF HMI.CutHead.Last_R_to_W_ID <> HMI.CutHead.Buffer_R_to_W_Time[1].ID AND HMI.CutHead.Last_R_to_W_Time < CutHead.Config.V.WorkTimeOut AND HMI.CutHead.Last_R_to_W_Time > T#0ms THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.CutHead.Buffer_R_to_W_Time[i] := HMI.CutHead.Buffer_R_to_W_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.CutHead.Buffer_R_to_W_Time[1].ID := HMI.CutHead.Last_R_to_W_ID;
+          HMI.CutHead.Buffer_R_to_W_Time[1].Value := HMI.CutHead.Last_R_to_W_Time;
+          
+          Sts.CycleTime.CutHead.R_To_W_Items := 0;
+          Sts.CycleTime.CutHead.R_To_W_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.CutHead.Buffer_R_to_W_Time[i].ID > 0 AND HMI.CutHead.Buffer_R_to_W_Time[i].Value > T#0ms THEN
+                  Sts.CycleTime.CutHead.R_To_W_Items += 1;
+                  Sts.CycleTime.CutHead.R_To_W_Sum := Sts.CycleTime.CutHead.R_To_W_Sum + HMI.CutHead.Buffer_R_to_W_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.CutHead.R_To_W_Items >= 5 THEN
+              HMI.CutHead.Avg_R_to_W_Time := Sts.CycleTime.CutHead.R_To_W_Sum / Sts.CycleTime.CutHead.R_To_W_Items;
+          ELSE
+              HMI.CutHead.Avg_R_to_W_Time := Config.CutHead.V.WorkTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Add new items to Work-TO-Rest buffer & calculate average"
+      IF HMI.CutHead.Last_W_to_R_Time >= CutHead.Config.V.RestTimeOut OR Alarm.CutHead.TimeOutRest THEN
+          
+          HMI.CutHead.Last_W_to_R_ID := -1; // Force red background on the HMI visualization
+
+      ELSIF HMI.CutHead.Last_W_to_R_ID <> HMI.CutHead.Buffer_W_to_R_Time[1].ID AND HMI.CutHead.Last_W_to_R_Time < CutHead.Config.V.RestTimeOut AND HMI.CutHead.Last_W_to_R_Time > T#0ms  THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.CutHead.Buffer_W_to_R_Time[i] := HMI.CutHead.Buffer_W_to_R_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.CutHead.Buffer_W_to_R_Time[1].ID := HMI.CutHead.Last_W_to_R_ID;
+          HMI.CutHead.Buffer_W_to_R_Time[1].Value := HMI.CutHead.Last_W_to_R_Time;
+          
+          Sts.CycleTime.CutHead.W_To_R_Items := 0;
+          Sts.CycleTime.CutHead.W_To_R_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.CutHead.Buffer_W_to_R_Time[i].ID > 0 AND HMI.CutHead.Buffer_W_to_R_Time[i].Value > T#0ms  THEN
+                  Sts.CycleTime.CutHead.W_To_R_Items += 1;
+                  Sts.CycleTime.CutHead.W_To_R_Sum := Sts.CycleTime.CutHead.W_To_R_Sum + HMI.CutHead.Buffer_W_to_R_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.CutHead.W_To_R_Items >= 5 THEN
+              HMI.CutHead.Avg_W_to_R_Time := Sts.CycleTime.CutHead.W_To_R_Sum / Sts.CycleTime.CutHead.W_To_R_Items;
+          ELSE
+              HMI.CutHead.Avg_W_to_R_Time := Config.CutHead.V.RestTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Pressure reload for avoiding losing of rest position cause leakage on hydraulic cylinders"
+      #TON_DrawHead_Pause(
+         IN := ((((((PersistentValues.Par.DrawHeadReload.Pause > T#0ms) AND (PersistentValues.Par.DrawHeadReload.Duration > T#0ms)) AND NOT (CIn.DrawHead_Manager.Work)) AND DrawHead.V.ValveSts.IsAtRest) AND NOT (DrawHead.V.ValveSts.RestInProgress)) AND NOT (DrawHead.V.ValveSts.WorkInProgress)),
+         PT := PersistentValues.Par.DrawHeadReload.Pause
+      );
+
+      #TON_DrawHead_Duration(
+         IN := (((((PersistentValues.Par.DrawHeadReload.Pause > T#0ms) AND (PersistentValues.Par.DrawHeadReload.Duration > T#0ms)) AND NOT (CIn.DrawHead_Manager.Work)) AND DrawHead.V.ValveSts.IsAtRest) AND DrawHead.V.ValveSts.RestInProgress),
+         PT := PersistentValues.Par.DrawHeadReload.Duration
+      );
+
+      #TON_DrawHead_Pause.Q;
+      IF #TON_DrawHead_Pause.Q THEN
+         Ctrl.Reload.DrawHead := TRUE;
+      END_IF;
+      #TON_DrawHead_Duration.Q;
+      IF #TON_DrawHead_Duration.Q THEN
+         Ctrl.Reload.DrawHead := FALSE;
+      END_IF;
+      IF NOT (((PersistentValues.Par.DrawHeadReload.Pause > T#0ms) AND (PersistentValues.Par.DrawHeadReload.Duration > T#0ms))) THEN
+         Ctrl.Reload.DrawHead := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn (External enable)"
+      DrawHead.Cin.Rest_ExtEnable := TRUE;
+      DrawHead.Cin.Work_ExtEnable := ((CIn.MaterialStandstill AND CIn.EnableDrawHead) AND Locking.COut.Work);
+      DrawHead.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "CIn (Manager)"
+      DrawHead.Cin.Manager := CIn.DrawHead_Manager;
+      DrawHead.Cin.Manager.Rest := ((CIn.DrawHead_Manager.Control_ON AND CIn.DrawHead_Manager.Rest) OR (CIn.DrawHead_Manager.Control_ON AND Ctrl.Reload.DrawHead));
+   END_REGION
+
+   REGION "Machine Valve manager"
+      #DrawHead(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         DataIn := DataIn.DrawHead,
+         Config := Config.DrawHead,
+         Alarm := Alarm.DrawHead,
+         Warning := Warning.DrawHead,
+         MachineInterface => MachineInterface,
+         COut => COut.DrawHead,
+         DataOut => DataOut.DrawHead
+      );
+
+      #DrawHead.Q;
+   END_REGION
+
+   REGION "Warning Cut is not at rest"
+      Warning.DrawHead_NotAtRest := ((NOT (CIn.MaterialStandstill) AND NOT (DrawHead.V.ValveSts.IsAtRest)) AND Config.CheckRestPosition);
+   END_REGION
+
+   REGION "At Rest / At work positive/negative edge"
+      PE.DrawHead.AtRest := PosEdge(DrawHead.V.ValveSts.IsAtRest);
+      PE.DrawHead.AtWork := PosEdge(DrawHead.V.ValveSts.IsAtWork);
+      PE.DrawHead.NotAtRest := NegEdge(DrawHead.V.ValveSts.IsAtRest);
+      PE.DrawHead.NotAtWork := NegEdge(DrawHead.V.ValveSts.IsAtWork);
+   END_REGION
+
+   REGION "Rest to work time calculation"
+      IF (DataOut.DrawHead.WorkSolenoid AND NOT (Sts.CycleTime.DrawHead.R_To_W_Exe)) THEN
+         Sts.CycleTime.DrawHead.DT_W_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.DrawHead.R_To_W_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.R_To_W_Exe AND PE.DrawHead.AtWork) OR (Sts.CycleTime.DrawHead.R_To_W_Exe AND NOT (DataOut.DrawHead.WorkSolenoid))) THEN
+         Sts.CycleTime.DrawHead.DT_W_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.R_To_W_Exe AND PE.DrawHead.AtWork) OR (Sts.CycleTime.DrawHead.R_To_W_Exe AND NOT (DataOut.DrawHead.WorkSolenoid))) THEN
+         HMI.DrawHead.Last_R_to_W_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.R_To_W_Exe AND PE.DrawHead.AtWork) OR (Sts.CycleTime.DrawHead.R_To_W_Exe AND NOT (DataOut.DrawHead.WorkSolenoid))) THEN
+         HMI.DrawHead.Last_R_to_W_ID := (HMI.DrawHead.Buffer_R_to_W_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.DrawHead.R_To_W_Exe AND NOT (DataOut.DrawHead.WorkSolenoid)) THEN
+         Sts.CycleTime.DrawHead.R_To_W_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Work to rest time calculation"
+      IF (DataOut.DrawHead.RestSolenoid AND NOT (Sts.CycleTime.DrawHead.W_To_R_Exe)) THEN
+         Sts.CycleTime.DrawHead.DT_R_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.DrawHead.W_To_R_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.W_To_R_Exe AND PE.DrawHead.AtRest) OR (Sts.CycleTime.DrawHead.W_To_R_Exe AND NOT (DataOut.DrawHead.RestSolenoid))) THEN
+         Sts.CycleTime.DrawHead.DT_R_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.W_To_R_Exe AND PE.DrawHead.AtRest) OR (Sts.CycleTime.DrawHead.W_To_R_Exe AND NOT (DataOut.DrawHead.RestSolenoid))) THEN
+         HMI.DrawHead.Last_W_to_R_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.DrawHead.W_To_R_Exe AND PE.DrawHead.AtRest) OR (Sts.CycleTime.DrawHead.W_To_R_Exe AND NOT (DataOut.DrawHead.RestSolenoid))) THEN
+         HMI.DrawHead.Last_W_to_R_ID := (HMI.DrawHead.Buffer_W_to_R_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.DrawHead.W_To_R_Exe AND NOT (DataOut.DrawHead.RestSolenoid)) THEN
+         Sts.CycleTime.DrawHead.W_To_R_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Init buffers & average calculations"
+      IF CIn.PPrf_PrgNo <> Sts.CycleTime.PPrf_PrgNoSave OR CIn.PPrf_PrgNo <= 0 THEN
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              HMI.DrawHead.Buffer_R_to_W_Time[i].ID := 0;
+              HMI.DrawHead.Buffer_R_to_W_Time[i].Value := T#0s;
+              HMI.DrawHead.Buffer_W_to_R_Time[i].ID := 0;
+              HMI.DrawHead.Buffer_W_to_R_Time[i].Value := T#0s;
+          END_FOR;
+          
+          HMI.DrawHead.Last_R_to_W_ID := 0;
+          HMI.DrawHead.Last_R_to_W_Time := T#0ms;
+          HMI.DrawHead.Avg_R_to_W_Time := Config.DrawHead.V.WorkTimeOut;
+          
+          HMI.DrawHead.Last_W_to_R_ID := 0;
+          HMI.DrawHead.Last_W_to_R_Time := T#0ms;
+          HMI.DrawHead.Avg_W_to_R_Time := Config.DrawHead.V.RestTimeOut;
+          
+      END_IF;
+
+
+      Sts.CycleTime.PPrf_PrgNoSave := CIn.PPrf_PrgNo;
+
+   END_REGION
+
+   REGION "Add new items to Rest-TO-Work buffer & calculate average"
+
+      IF HMI.DrawHead.Last_R_to_W_Time >= DrawHead.Config.V.WorkTimeOut OR Alarm.DrawHead.TimeOutWork THEN
+          
+          HMI.DrawHead.Last_R_to_W_ID := -1; // Force red background on the HMI visualization
+          
+          
+          
+      ELSIF HMI.DrawHead.Last_R_to_W_ID <> HMI.DrawHead.Buffer_R_to_W_Time[1].ID AND HMI.DrawHead.Last_R_to_W_Time < DrawHead.Config.V.WorkTimeOut AND HMI.DrawHead.Last_R_to_W_Time > T#0ms THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.DrawHead.Buffer_R_to_W_Time[i] := HMI.DrawHead.Buffer_R_to_W_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.DrawHead.Buffer_R_to_W_Time[1].ID := HMI.DrawHead.Last_R_to_W_ID;
+          HMI.DrawHead.Buffer_R_to_W_Time[1].Value := HMI.DrawHead.Last_R_to_W_Time;
+          
+          Sts.CycleTime.DrawHead.R_To_W_Items := 0;
+          Sts.CycleTime.DrawHead.R_To_W_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.DrawHead.Buffer_R_to_W_Time[i].ID > 0 AND HMI.DrawHead.Buffer_R_to_W_Time[i].Value > T#0ms THEN
+                  Sts.CycleTime.DrawHead.R_To_W_Items += 1;
+                  Sts.CycleTime.DrawHead.R_To_W_Sum := Sts.CycleTime.DrawHead.R_To_W_Sum + HMI.DrawHead.Buffer_R_to_W_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.DrawHead.R_To_W_Items >= 5 THEN
+              HMI.DrawHead.Avg_R_to_W_Time := Sts.CycleTime.DrawHead.R_To_W_Sum / Sts.CycleTime.DrawHead.R_To_W_Items;
+          ELSE
+              HMI.DrawHead.Avg_R_to_W_Time := Config.DrawHead.V.WorkTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Add new items to Work-TO-Rest buffer & calculate average"
+      IF HMI.DrawHead.Last_W_to_R_Time >= DrawHead.Config.V.RestTimeOut OR Alarm.DrawHead.TimeOutRest THEN
+          
+          HMI.DrawHead.Last_W_to_R_ID := -1; // Force red background on the HMI visualization
+
+      ELSIF HMI.DrawHead.Last_W_to_R_ID <> HMI.DrawHead.Buffer_W_to_R_Time[1].ID AND HMI.DrawHead.Last_W_to_R_Time < DrawHead.Config.V.RestTimeOut AND HMI.DrawHead.Last_W_to_R_Time > T#0ms  THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.DrawHead.Buffer_W_to_R_Time[i] := HMI.DrawHead.Buffer_W_to_R_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.DrawHead.Buffer_W_to_R_Time[1].ID := HMI.DrawHead.Last_W_to_R_ID;
+          HMI.DrawHead.Buffer_W_to_R_Time[1].Value := HMI.DrawHead.Last_W_to_R_Time;
+          
+          Sts.CycleTime.DrawHead.W_To_R_Items := 0;
+          Sts.CycleTime.DrawHead.W_To_R_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.DrawHead.Buffer_W_to_R_Time[i].ID > 0 AND HMI.DrawHead.Buffer_W_to_R_Time[i].Value > T#0ms  THEN
+                  Sts.CycleTime.DrawHead.W_To_R_Items += 1;
+                  Sts.CycleTime.DrawHead.W_To_R_Sum := Sts.CycleTime.DrawHead.W_To_R_Sum + HMI.DrawHead.Buffer_W_to_R_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.DrawHead.W_To_R_Items >= 5 THEN
+              HMI.DrawHead.Avg_W_to_R_Time := Sts.CycleTime.DrawHead.W_To_R_Sum / Sts.CycleTime.DrawHead.W_To_R_Items;
+          ELSE
+              HMI.DrawHead.Avg_W_to_R_Time := Config.DrawHead.V.RestTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Pressure reload for avoiding losing of rest position cause leakage on hydraulic cylinders"
+      #TON_MarkHead_Pause(
+         IN := ((((((PersistentValues.Par.MarkHeadReload.Pause > T#0ms) AND (PersistentValues.Par.MarkHeadReload.Duration > T#0ms)) AND NOT (CIn.MarkHead_Manager.Work)) AND MarkHead.V.ValveSts.IsAtRest) AND NOT (MarkHead.V.ValveSts.RestInProgress)) AND NOT (MarkHead.V.ValveSts.WorkInProgress)),
+         PT := PersistentValues.Par.MarkHeadReload.Pause
+      );
+
+      #TON_MarkHead_Duration(
+         IN := (((((PersistentValues.Par.MarkHeadReload.Pause > T#0ms) AND (PersistentValues.Par.MarkHeadReload.Duration > T#0ms)) AND NOT (CIn.MarkHead_Manager.Work)) AND MarkHead.V.ValveSts.IsAtRest) AND MarkHead.V.ValveSts.RestInProgress),
+         PT := PersistentValues.Par.MarkHeadReload.Duration
+      );
+
+      #TON_MarkHead_Pause.Q;
+      IF #TON_MarkHead_Pause.Q THEN
+         Ctrl.Reload.MarkHead := TRUE;
+      END_IF;
+      #TON_MarkHead_Duration.Q;
+      IF #TON_MarkHead_Duration.Q THEN
+         Ctrl.Reload.MarkHead := FALSE;
+      END_IF;
+      IF NOT (((PersistentValues.Par.MarkHeadReload.Pause > T#0ms) AND (PersistentValues.Par.MarkHeadReload.Duration > T#0ms))) THEN
+         Ctrl.Reload.MarkHead := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn (External enable)"
+      MarkHead.Cin.Rest_ExtEnable := TRUE;
+      MarkHead.Cin.Work_ExtEnable := ((CIn.MaterialStandstill AND CIn.EnableMarkHead) AND Locking.COut.Work);
+      MarkHead.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "CIn (Manager)"
+      MarkHead.Cin.Manager := CIn.MarkHead_Manager;
+      MarkHead.Cin.Manager.Rest := ((CIn.MarkHead_Manager.Control_ON AND CIn.MarkHead_Manager.Rest) OR (CIn.MarkHead_Manager.Control_ON AND Ctrl.Reload.MarkHead));
+   END_REGION
+
+   REGION "Machine Valve manager"
+      #MarkHead(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         DataIn := DataIn.MarkHead,
+         Config := Config.MarkHead,
+         Alarm := Alarm.MarkHead,
+         Warning := Warning.MarkHead,
+         MachineInterface => MachineInterface,
+         COut => COut.MarkHead,
+         DataOut => DataOut.MarkHead
+      );
+
+      #MarkHead.Q;
+   END_REGION
+
+   REGION "Warning Cut is not at rest"
+      Warning.MarkHead_NotAtRest := ((NOT (CIn.MaterialStandstill) AND NOT (MarkHead.V.ValveSts.IsAtRest)) AND Config.CheckRestPosition);
+   END_REGION
+
+   REGION "At Rest / At work positive/negative edge"
+      PE.MarkHead.AtRest := PosEdge(MarkHead.V.ValveSts.IsAtRest);
+      PE.MarkHead.AtWork := PosEdge(MarkHead.V.ValveSts.IsAtWork);
+      PE.MarkHead.NotAtRest := NegEdge(MarkHead.V.ValveSts.IsAtRest);
+      PE.MarkHead.NotAtWork := NegEdge(MarkHead.V.ValveSts.IsAtWork);
+   END_REGION
+
+   REGION "Rest to work time calculation"
+      IF (DataOut.MarkHead.WorkSolenoid AND NOT (Sts.CycleTime.MarkHead.R_To_W_Exe)) THEN
+         Sts.CycleTime.MarkHead.DT_W_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.MarkHead.R_To_W_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.R_To_W_Exe AND PE.MarkHead.AtWork) OR (Sts.CycleTime.MarkHead.R_To_W_Exe AND NOT (DataOut.MarkHead.WorkSolenoid))) THEN
+         Sts.CycleTime.MarkHead.DT_W_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.R_To_W_Exe AND PE.MarkHead.AtWork) OR (Sts.CycleTime.MarkHead.R_To_W_Exe AND NOT (DataOut.MarkHead.WorkSolenoid))) THEN
+         HMI.MarkHead.Last_R_to_W_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.R_To_W_Exe AND PE.MarkHead.AtWork) OR (Sts.CycleTime.MarkHead.R_To_W_Exe AND NOT (DataOut.MarkHead.WorkSolenoid))) THEN
+         HMI.MarkHead.Last_R_to_W_ID := (HMI.MarkHead.Buffer_R_to_W_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.MarkHead.R_To_W_Exe AND NOT (DataOut.MarkHead.WorkSolenoid)) THEN
+         Sts.CycleTime.MarkHead.R_To_W_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Work to rest time calculation"
+      IF (DataOut.MarkHead.RestSolenoid AND NOT (Sts.CycleTime.MarkHead.W_To_R_Exe)) THEN
+         Sts.CycleTime.MarkHead.DT_R_Start := ???;
+      END_IF;
+      IF TRUE THEN
+         Sts.CycleTime.MarkHead.W_To_R_Exe := TRUE;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.W_To_R_Exe AND PE.MarkHead.AtRest) OR (Sts.CycleTime.MarkHead.W_To_R_Exe AND NOT (DataOut.MarkHead.RestSolenoid))) THEN
+         Sts.CycleTime.MarkHead.DT_R_Stop := ???;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.W_To_R_Exe AND PE.MarkHead.AtRest) OR (Sts.CycleTime.MarkHead.W_To_R_Exe AND NOT (DataOut.MarkHead.RestSolenoid))) THEN
+         HMI.MarkHead.Last_W_to_R_Time := ???;
+      END_IF;
+      IF ((Sts.CycleTime.MarkHead.W_To_R_Exe AND PE.MarkHead.AtRest) OR (Sts.CycleTime.MarkHead.W_To_R_Exe AND NOT (DataOut.MarkHead.RestSolenoid))) THEN
+         HMI.MarkHead.Last_W_to_R_ID := (HMI.MarkHead.Buffer_W_to_R_Time[1].ID + 1);
+      END_IF;
+      IF (Sts.CycleTime.MarkHead.W_To_R_Exe AND NOT (DataOut.MarkHead.RestSolenoid)) THEN
+         Sts.CycleTime.MarkHead.W_To_R_Exe := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Init buffers & average calculations"
+      IF CIn.PPrf_PrgNo <> Sts.CycleTime.PPrf_PrgNoSave OR CIn.PPrf_PrgNo <= 0 THEN
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              HMI.MarkHead.Buffer_R_to_W_Time[i].ID := 0;
+              HMI.MarkHead.Buffer_R_to_W_Time[i].Value := T#0s;
+              HMI.MarkHead.Buffer_W_to_R_Time[i].ID := 0;
+              HMI.MarkHead.Buffer_W_to_R_Time[i].Value := T#0s;
+          END_FOR;
+          
+          HMI.MarkHead.Last_R_to_W_ID := 0;
+          HMI.MarkHead.Last_R_to_W_Time := T#0ms;
+          HMI.MarkHead.Avg_R_to_W_Time := Config.MarkHead.V.WorkTimeOut;
+          
+          HMI.MarkHead.Last_W_to_R_ID := 0;
+          HMI.MarkHead.Last_W_to_R_Time := T#0ms;
+          HMI.MarkHead.Avg_W_to_R_Time := Config.MarkHead.V.RestTimeOut;
+          
+      END_IF;
+
+
+      Sts.CycleTime.PPrf_PrgNoSave := CIn.PPrf_PrgNo;
+
+   END_REGION
+
+   REGION "Add new items to Rest-TO-Work buffer & calculate average"
+
+      IF HMI.MarkHead.Last_R_to_W_Time >= MarkHead.Config.V.WorkTimeOut OR Alarm.MarkHead.TimeOutWork THEN
+          
+          HMI.MarkHead.Last_R_to_W_ID := -1; // Force red background on the HMI visualization
+          
+          
+          
+      ELSIF HMI.MarkHead.Last_R_to_W_ID <> HMI.MarkHead.Buffer_R_to_W_Time[1].ID AND HMI.MarkHead.Last_R_to_W_Time < MarkHead.Config.V.WorkTimeOut AND HMI.MarkHead.Last_R_to_W_Time > T#0ms THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.MarkHead.Buffer_R_to_W_Time[i] := HMI.MarkHead.Buffer_R_to_W_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.MarkHead.Buffer_R_to_W_Time[1].ID := HMI.MarkHead.Last_R_to_W_ID;
+          HMI.MarkHead.Buffer_R_to_W_Time[1].Value := HMI.MarkHead.Last_R_to_W_Time;
+          
+          Sts.CycleTime.MarkHead.R_To_W_Items := 0;
+          Sts.CycleTime.MarkHead.R_To_W_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.MarkHead.Buffer_R_to_W_Time[i].ID > 0 AND HMI.MarkHead.Buffer_R_to_W_Time[i].Value > T#0ms THEN
+                  Sts.CycleTime.MarkHead.R_To_W_Items += 1;
+                  Sts.CycleTime.MarkHead.R_To_W_Sum := Sts.CycleTime.MarkHead.R_To_W_Sum + HMI.MarkHead.Buffer_R_to_W_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.MarkHead.R_To_W_Items >= 5 THEN
+              HMI.MarkHead.Avg_R_to_W_Time := Sts.CycleTime.MarkHead.R_To_W_Sum / Sts.CycleTime.MarkHead.R_To_W_Items;
+          ELSE
+              HMI.MarkHead.Avg_R_to_W_Time := Config.MarkHead.V.WorkTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Add new items to Work-TO-Rest buffer & calculate average"
+      IF HMI.MarkHead.Last_W_to_R_Time >= MarkHead.Config.V.RestTimeOut OR Alarm.MarkHead.TimeOutRest THEN
+          
+          HMI.MarkHead.Last_W_to_R_ID := -1; // Force red background on the HMI visualization
+
+      ELSIF HMI.MarkHead.Last_W_to_R_ID <> HMI.MarkHead.Buffer_W_to_R_Time[1].ID AND HMI.MarkHead.Last_W_to_R_Time < MarkHead.Config.V.RestTimeOut AND HMI.MarkHead.Last_W_to_R_Time > T#0ms  THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              HMI.MarkHead.Buffer_W_to_R_Time[i] := HMI.MarkHead.Buffer_W_to_R_Time[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          HMI.MarkHead.Buffer_W_to_R_Time[1].ID := HMI.MarkHead.Last_W_to_R_ID;
+          HMI.MarkHead.Buffer_W_to_R_Time[1].Value := HMI.MarkHead.Last_W_to_R_Time;
+          
+          Sts.CycleTime.MarkHead.W_To_R_Items := 0;
+          Sts.CycleTime.MarkHead.W_To_R_Sum := T#0s;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              IF HMI.MarkHead.Buffer_W_to_R_Time[i].ID > 0 AND HMI.MarkHead.Buffer_W_to_R_Time[i].Value > T#0ms  THEN
+                  Sts.CycleTime.MarkHead.W_To_R_Items += 1;
+                  Sts.CycleTime.MarkHead.W_To_R_Sum := Sts.CycleTime.MarkHead.W_To_R_Sum + HMI.MarkHead.Buffer_W_to_R_Time[i].Value;
+              END_IF;
+              
+          END_FOR;
+          
+          IF Sts.CycleTime.MarkHead.W_To_R_Items >= 5 THEN
+              HMI.MarkHead.Avg_W_to_R_Time := Sts.CycleTime.MarkHead.W_To_R_Sum / Sts.CycleTime.MarkHead.W_To_R_Items;
+          ELSE
+              HMI.MarkHead.Avg_W_to_R_Time := Config.MarkHead.V.RestTimeOut;
+          END_IF;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Analog oil temperature Scaling and Triggering"
+      Sts.WorkPressureOk := ((ScaleRetVal = W#16#0) AND (Sts.LockingPressure > PersistentValues.Par.LockingPressure.WorkPressure));
+      Sts.MinPressureOk := ((ScaleRetVal = W#16#0) AND (Sts.LockingPressure > PersistentValues.Par.LockingPressure.MinPressure));
+   END_REGION
+
+   REGION "Pressure reload for avoiding losing of rest position cause leakage on hydraulic cylinders"
+      #TON_LockingTimeOut(
+         IN := Ctrl.Reload.Locking,
+         PT := Config.Locking.V.WorkTimeOut
+      );
+
+      Ctrl.Reload.Locking := ((NOT (((NOT (CIn.CutHead_Manager.Control_ON) AND NOT (CIn.DrawHead_Manager.Control_ON)) AND NOT (CIn.MarkHead_Manager.Control_ON))) AND Sts.MinPressureOk) AND NOT (Sts.WorkPressureOk));
+      #TON_LockingTimeOut.Q;
+      IF #TON_LockingTimeOut.Q THEN
+         Alarm.Locking_NotAWork := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Work Ls"
+      // Gi altri ingressi sono assegnati nel call
+
+      IF (Locking.DataOut.RestSolenoid OR Locking.COut.Rest OR ((NOT (Sts.MinPressureOk) AND (ScaleRetVal = W#16#0)) AND NOT (AreaInterface.EStop))) THEN
+         PersistentValues.Data.Locking_WorkLs := FALSE;
+      ELSIF (Locking.DataOut.WorkSolenoid AND Sts.WorkPressureOk) THEN
+         PersistentValues.Data.Locking_WorkLs := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Data In"
+      Locking.DataIn := DataIn.Locking;
+
+      Locking.DataIn.Work_Ls[1] := PersistentValues.Data.Locking_WorkLs;
+
+   END_REGION
+
+   REGION "CIn (External enable)"
+      Locking.Cin.Rest_ExtEnable := TRUE;
+      Locking.Cin.Work_ExtEnable := TRUE;
+      Locking.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "CIn (Manager)"
+      Locking.Cin.Manager.Rest := FALSE;
+      Locking.Cin.Manager.Work := Ctrl.Reload.Locking;
+      Locking.Cin.Manager.Control_ON := Ctrl.Reload.Locking;
+   END_REGION
+
+   REGION "Machine Valve manager"
+      #Locking(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Locking,
+         Alarm := Alarm.Locking,
+         Warning := Warning.Locking,
+         MachineInterface => MachineInterface,
+         COut => COut.Locking,
+         DataOut => DataOut.Locking
+      );
+
+      #Locking.Q;
+   END_REGION
+
+   REGION "Warning locking is not at work"
+      Warning.Locking_NotAWork := NOT (Locking.COut.Work);
+      IF (NOT (((NOT (CIn.CutHead_Manager.Control_ON) AND NOT (CIn.DrawHead_Manager.Control_ON)) AND NOT (CIn.MarkHead_Manager.Control_ON))) AND NOT (Locking.COut.Work)) THEN
+         Alarm.Locking_NotAWork := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning cut can not move to work due to material not standstill"
+      Warning.MaterialNotStandstill := (((COut.CutHead.Work_CheckNext AND COut.DrawHead.Work_CheckNext) AND COut.MarkHead.Work_CheckNext) AND NOT (CIn.MaterialStandstill));
+   END_REGION
+
+   REGION "Coordination Out"
+      COut.AllAtRest := (((CutHead.COut.Rest AND DrawHead.COut.Rest) AND MarkHead.COut.Rest) AND Locking.COut.Work);
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := CutHead.MachineInterface,
+         MachineInterface_2 := DrawHead.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := Warning.CutHead_NotAtRest,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := MarkHead.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := Warning.CutHead_NotAtRest,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((((NOT (Warning.CutHead_NotAtRest) AND NOT (Warning.DrawHead_NotAtRest)) AND NOT (Warning.MarkHead_NotAtRest)) AND NOT (Warning.Locking_NotAWork)) AND NOT (Warning.MaterialNotStandstill))),
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Locking.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := CutHead.MachineInterface, MachineInterface_2 := DrawHead.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := Warning.CutHead_NotAtRest);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := MarkHead.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := Warning.CutHead_NotAtRest);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((((NOT (Warning.CutHead_NotAtRest) AND NOT (Warning.DrawHead_NotAtRest)) AND NOT (Warning.MarkHead_NotAtRest)) AND NOT (Warning.Locking_NotAWork)) AND NOT (Warning.MaterialNotStandstill))), MachineInterface_1 := MachineInterface, MachineInterface_2 := Locking.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

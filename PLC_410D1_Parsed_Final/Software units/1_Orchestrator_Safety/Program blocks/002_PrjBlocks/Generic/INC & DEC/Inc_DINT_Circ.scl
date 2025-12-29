@@ -1,0 +1,21 @@
+﻿FUNCTION "Inc_DINT_Circ" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      value : DInt;
+   END_VAR
+
+   VAR CONSTANT 
+      LIM_MAX : DInt := 1000_000_000;
+   END_VAR
+
+
+BEGIN
+	
+	// Incrementa ID in maniera circolare
+	// 
+	#Inc_DINT_Circ := #value;
+	#Inc_DINT_Circ := (#Inc_DINT_Circ MOD #LIM_MAX) + 1 ;
+	
+END_FUNCTION
+

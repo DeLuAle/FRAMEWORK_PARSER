@@ -1,0 +1,48 @@
+﻿FUNCTION_BLOCK "Filter_1°Order"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Sample : Real;
+      Tau : Time;
+   END_VAR
+
+   VAR_OUTPUT 
+      Q : Real;
+   END_VAR
+
+   VAR 
+      sFiltered : Real;
+      LastCpuCycleTime : Time;
+   END_VAR
+
+   VAR_TEMP 
+      decayFct : Real;
+      ActualCpuCycleTime : Time;
+      tCycle : Time;
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_TIME : Time := T#2147483647ms;
+   END_VAR
+
+
+BEGIN
+	#ActualCpuCycleTime := TIME_TCK();
+	#tCycle := #ActualCpuCycleTime - #LastCpuCycleTime;
+	
+	IF #tCycle < T#0ms THEN
+	    #tCycle += #MAX_TIME;
+	END_IF;
+	#LastCpuCycleTime := #ActualCpuCycleTime;
+	
+	
+	IF #Tau > t#0s THEN
+	    #decayFct := DINT_TO_REAL(TIME_TO_DINT(#tCycle)) / DINT_TO_REAL(TIME_TO_DINT(#Tau));
+	ELSE
+	    #decayFct := 1.0;
+	END_IF;
+	#sFiltered += #decayFct * (#Sample - #sFiltered);
+	#Q := #sFiltered;
+	
+END_FUNCTION_BLOCK
+

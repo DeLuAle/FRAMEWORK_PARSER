@@ -1,0 +1,328 @@
+﻿// Block: Rollformer_FB
+// Title: >
+
+FUNCTION_BLOCK "Rollformer_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// >
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : Struct
+         Feed : PositioningMachine_DataIn;
+         ConnectorPlugged1 : Bool;
+         ConnectorPlugged2 : Bool;
+         ConnectorPlugged3Side1 : Bool;
+         ConnectorPlugged3Side2 : Bool;
+      END_STRUCT;
+      CIn : Struct
+         ExtEnable_LoopFwdOk : Bool;
+         ExtEnable_LoopBwdOk : Bool;
+         ExtEnable_FlyingShareOk : Bool;
+         ExtEnable_MaterialCounterOK : Bool;
+         ExtEnable_UnloadRollwayOk : Bool;
+         ExtEnable_MwFakCalcOk : Bool;
+         Loop1_VelOverride : LReal;
+         SOS_Enable : Bool;
+         Manager : PositioningMachine_Manager;
+      END_STRUCT;
+      Config : Struct
+         Feed : PositioningMachine_Config;
+         Data : PositioningMachine_Ax_Parameters;
+         DataPresence : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Feed : PositioningMachine_COut;
+         EnableSOS : Bool;
+      END_STRUCT;
+      DataOut : Struct
+         Feed : PositioningMachine_DataOut;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+      PersistentValues : udt_Rollformer_Pers;
+   END_VAR
+
+   VAR
+      Alarms : Struct
+         Feed : PositioningMachine_Alr;
+         ConnectorNotPlugged1 : Bool;
+         ConnectorNotPlugged2 : Bool;
+         ConnectorNotPlugged3Side1 : Bool;
+         ConnectorNotPlugged3Side2 : Bool;
+      END_STRUCT;
+      Warnings : Struct
+         Feed : PositioningMachine_Wng;
+         ExtraLowIsON : Bool;
+         MissingCnd : Struct
+            FlyingShare : Bool;
+            MaterialCounter : Bool;
+            UnloadRollway : Bool;
+            MwFakClac : Bool;
+            Loop1_Enable_BWD : Bool;
+            Loop1_Enable_FWD : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      HMI : Struct
+         MissingCnd : Struct
+            FlyingShare : Bool;
+            MaterialCounter : Bool;
+            UnloadRollway : Bool;
+            MwFacCalc : Bool;
+            Loop1_Enable_BWD : Bool;
+            Loop1_Enable_FWD : Bool;
+         END_STRUCT;
+         ManTargetMaterialPosition : LReal;
+      END_STRUCT;
+      Sts : Struct
+         CndBWD_OK : Bool;
+         CndFWD_OK : Bool;
+      END_STRUCT;
+      Feed : PositioningMachine_FB;
+      TON_SOS : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      Cnd : Bool;
+      AdditionalWarnings : Bool;
+      AdditionalAlarms : Bool;
+      Req : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      AX_ENCODER_SMC30_MEAS_WHEEL : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Alarm wrong connector Plugged"
+      Alarms.ConnectorNotPlugged1 := NOT (DataIn.ConnectorPlugged1);
+      Alarms.ConnectorNotPlugged2 := NOT (DataIn.ConnectorPlugged2);
+      Alarms.ConnectorNotPlugged3Side1 := NOT (DataIn.ConnectorPlugged3Side1);
+      Alarms.ConnectorNotPlugged3Side2 := NOT (DataIn.ConnectorPlugged3Side2);
+   END_REGION
+
+   REGION "Conditions HMI + Warnings + CIn"
+      IF TRUE THEN
+         Sts.CndBWD_OK := TRUE;
+      END_IF;
+      IF TRUE THEN
+         Sts.CndFWD_OK := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_FlyingShareOk) THEN
+         Sts.CndBWD_OK := FALSE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_FlyingShareOk) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.FlyingShare := NOT (CIn.ExtEnable_FlyingShareOk);
+      IF ((NOT (CIn.ExtEnable_FlyingShareOk) AND Warnings.Feed.MissingCnd_BWD) OR (NOT (CIn.ExtEnable_FlyingShareOk) AND Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.FlyingShare := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_MaterialCounterOK) THEN
+         Sts.CndBWD_OK := FALSE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_MaterialCounterOK) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.MaterialCounter := NOT (CIn.ExtEnable_MaterialCounterOK);
+      IF ((NOT (CIn.ExtEnable_MaterialCounterOK) AND Warnings.Feed.MissingCnd_BWD) OR (NOT (CIn.ExtEnable_MaterialCounterOK) AND Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.MaterialCounter := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_UnloadRollwayOk) THEN
+         Sts.CndBWD_OK := FALSE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_UnloadRollwayOk) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.UnloadRollway := NOT (CIn.ExtEnable_UnloadRollwayOk);
+      IF ((NOT (CIn.ExtEnable_UnloadRollwayOk) AND Warnings.Feed.MissingCnd_BWD) OR (NOT (CIn.ExtEnable_UnloadRollwayOk) AND Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.UnloadRollway := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_MwFakCalcOk) THEN
+         Sts.CndBWD_OK := FALSE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_MwFakCalcOk) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.MwFacCalc := NOT (CIn.ExtEnable_MwFakCalcOk);
+      IF ((NOT (CIn.ExtEnable_MwFakCalcOk) AND Warnings.Feed.MissingCnd_BWD) OR (NOT (CIn.ExtEnable_MwFakCalcOk) AND Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.MwFakClac := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_LoopBwdOk) THEN
+         Sts.CndBWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.Loop1_Enable_BWD := NOT (CIn.ExtEnable_LoopBwdOk);
+      IF (NOT (CIn.ExtEnable_LoopBwdOk) AND Warnings.Feed.MissingCnd_BWD) THEN
+         Warnings.MissingCnd.Loop1_Enable_BWD := TRUE;
+      END_IF;
+      IF NOT (CIn.ExtEnable_LoopFwdOk) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+      HMI.MissingCnd.Loop1_Enable_FWD := NOT (CIn.ExtEnable_LoopFwdOk);
+      IF (NOT (CIn.ExtEnable_LoopFwdOk) AND Warnings.Feed.MissingCnd_FWD) THEN
+         Warnings.MissingCnd.Loop1_Enable_FWD := TRUE;
+      END_IF;
+      IF (NOT (Warnings.Feed.MissingCnd_BWD) AND NOT (Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.FlyingShare := FALSE;
+      END_IF;
+      IF (NOT (Warnings.Feed.MissingCnd_BWD) AND NOT (Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.UnloadRollway := FALSE;
+      END_IF;
+      IF (NOT (Warnings.Feed.MissingCnd_BWD) AND NOT (Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.MwFakClac := FALSE;
+      END_IF;
+      IF (NOT (Warnings.Feed.MissingCnd_BWD) AND NOT (Warnings.Feed.MissingCnd_FWD)) THEN
+         Warnings.MissingCnd.MaterialCounter := FALSE;
+      END_IF;
+      IF NOT (Warnings.Feed.MissingCnd_BWD) THEN
+         Warnings.MissingCnd.Loop1_Enable_BWD := FALSE;
+      END_IF;
+      IF NOT (Warnings.Feed.MissingCnd_FWD) THEN
+         Warnings.MissingCnd.Loop1_Enable_FWD := FALSE;
+      END_IF;
+      IF NOT (((((NOT (Alarms.ConnectorNotPlugged1) AND NOT (Alarms.ConnectorNotPlugged2)) AND NOT (Alarms.ConnectorNotPlugged1)) AND NOT (Alarms.ConnectorNotPlugged1)) AND NOT (Alarms.ConnectorNotPlugged1))) THEN
+         Sts.CndFWD_OK := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "COut - Enable SOS of S120 for avoiding material spring back while semiautomatic material threading"
+      #TON_SOS(
+         IN := NOT (Req),
+         PT := T#1m
+      );
+
+      Req := ((Rollformer.Feed.CIn.Manager.Control_ON AND Rollformer.Feed.CIn.Manager.MoveToPos) OR PersistentValues.Machine.Par.ExtraLow_Enable);
+      #TON_SOS.Q;
+      IF (NOT (AreaInterface.Man) OR #TON_SOS.Q) THEN
+         COut.EnableSOS := FALSE;
+      ELSIF ((Rollformer.Feed.CIn.Manager.Control_ON AND Rollformer.Feed.CIn.Manager.MoveToPos) OR PersistentValues.Machine.Par.ExtraLow_Enable) THEN
+         COut.EnableSOS := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Extra low speed selection (select by HMI button and only in manual)"
+      IF NOT (AreaInterface.Man) THEN
+         PersistentValues.Machine.Par.ExtraLow_Enable := FALSE;
+      END_IF;
+      Warnings.ExtraLowIsON := PersistentValues.Machine.Par.ExtraLow_Enable;
+   END_REGION
+
+   REGION "Manual Target material pos"
+      "PosMatToPosAxis_Wheel"(
+         en := TRUE,
+         PosMaterial := HMI.ManTargetMaterialPosition,
+         Data := PostPunchingMatCounter_PERS.PersistentValues.Data,
+         Ret_Val => Feed.HMI.TargetPosition
+      );
+
+      Feed.HMI.TargetPosition := "PosMatToPosAxis_Wheel"(PosMaterial := HMI.ManTargetMaterialPosition, Data := PostPunchingMatCounter_PERS.PersistentValues.Data);
+   END_REGION
+
+   REGION "CIn (External enables)"
+      Rollformer.Feed.CIn.Bwd_ExtEnable := Sts.CndBWD_OK;
+      Rollformer.Feed.CIn.Fwd_ExtEnable := Sts.CndFWD_OK;
+      Feed.CIn.EnableManChangeVel := TRUE;
+      Feed.CIn.ExternalAlarms := FALSE;
+      Feed.CIn.SOS_Enable := CIn.SOS_Enable;
+   END_REGION
+
+   REGION "CIn (Velocity override)"
+      Feed.CIn.VelocityOverride.Enable := TRUE;
+      Feed.CIn.VelocityOverride.Value := 100.0;
+
+
+      IF PersistentValues.Machine.Par.ExtraLow_Enable AND PersistentValues.Machine.Par.ExtraLow_VelPercentage > 0.0  THEN
+          
+          Feed.CIn.VelocityOverride.Value := PersistentValues.Machine.Par.ExtraLow_VelPercentage;
+          
+      END_IF;
+
+
+      IF AreaInterface.Cycle THEN
+          
+          IF CIn.Loop1_VelOverride < Feed.CIn.VelocityOverride.Value THEN
+              Feed.CIn.VelocityOverride.Value := CIn.Loop1_VelOverride;
+          END_IF;
+      END_IF;
+          
+
+
+
+   END_REGION
+
+   REGION "CIn (Torque Limits)"
+      IF TRUE THEN
+         Feed.CIn.TorqueLimits.Enable := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn (TO Parameters)"
+      Feed.CIn.TOParameters.Data := Config.Data;
+      Feed.CIn.TOParameters.DataPresence := Config.DataPresence;
+   END_REGION
+
+   REGION "CIn (Manager control)"
+      Rollformer.Feed.CIn.Manager := CIn.Manager;
+   END_REGION
+
+   REGION "Cin (External Alarm)"
+      Feed.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Cin SOS Enable"
+      Feed.CIn.SOS_Enable := Areas_ITF.AG.SOS.RollformerEnable;
+   END_REGION
+
+   REGION "Positioning machine"
+      #Feed(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Drive := Drive,
+         DataIn := DataIn.Feed,
+         Config := Config.Feed,
+         TO_Ax := TO_Ax,
+         Par := PersistentValues.Feed.Par,
+         Pers_Data := PersistentValues.Feed.Pers_Data,
+         Warning := Warnings.Feed,
+         Alarm := Alarms.Feed,
+         DataOut => DataOut.Feed,
+         COut => COut.Feed
+      );
+
+      #Feed.Q;
+   END_REGION
+
+   REGION "Cumulative additional warnings"
+      AdditionalWarnings := NOT (((((((NOT (Warnings.ExtraLowIsON) AND NOT (Warnings.MissingCnd.FlyingShare)) AND NOT (HMI.MissingCnd.MaterialCounter)) AND NOT (HMI.MissingCnd.UnloadRollway)) AND NOT (HMI.MissingCnd.MwFacCalc)) AND NOT (Warnings.MissingCnd.Loop1_Enable_BWD)) AND NOT (Warnings.MissingCnd.Loop1_Enable_FWD)));
+   END_REGION
+
+   REGION "Cumulative additional Alarms"
+      AdditionalAlarms := NOT ((((NOT (Alarms.ConnectorNotPlugged1) AND NOT (Alarms.ConnectorNotPlugged2)) AND NOT (Alarms.ConnectorNotPlugged3Side1)) AND NOT (Alarms.ConnectorNotPlugged3Side2)));
+   END_REGION
+
+   REGION "Machine interface"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalAlarms := AdditionalAlarms,
+         AdditionalWarnings := AdditionalWarnings,
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Feed.MachineInterface,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalAlarms := AdditionalAlarms, AdditionalWarnings := AdditionalWarnings, MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Feed.MachineInterface);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

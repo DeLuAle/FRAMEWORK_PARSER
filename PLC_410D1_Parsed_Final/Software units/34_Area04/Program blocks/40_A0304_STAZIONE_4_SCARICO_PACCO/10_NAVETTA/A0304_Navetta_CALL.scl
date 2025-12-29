@@ -1,0 +1,199 @@
+﻿// Block: A0304_Navetta_CALL
+// Title: <<< LATO TESTA >>>
+
+FUNCTION "A0304_Navetta_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< LATO TESTA >>>
+
+BEGIN
+   REGION "DataIn - Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.Ax = 0) OR (A0304_Navetta.HMI.Selection.Ax = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0304_Navetta.Ax_Testa.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.Ax = 0) OR (A0304_Navetta.HMI.Selection.Ax = 1)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
+      A0304_Navetta.Ax_Testa.DataIn.LS_Minus := NOT (A0303_Navetta_Ax_Scarico_Testa_Ls_Minimo);
+      A0304_Navetta.Ax_Testa.DataIn.LS_Plus := NOT (A0303_Navetta_Ax_Scarico_Testa_Ls_Massimo);
+   END_REGION
+
+   REGION "DataIn  - Paletti Interni"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.PalettiInterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiInterni = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0304_Navetta.PalettiInterni_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.PalettiInterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiInterni = 1)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0304_Navetta.DataIn.PalettoInternoTesta_LsRest := A0303_Navetta_Paletto_Interno_Testa_Ls_Rest;
+      A0304_Navetta.DataIn.PalettoInternoTesta_LsWork := A0303_Navetta_Paletto_Interno_Testa_Ls_Work;
+   END_REGION
+
+   REGION "DataIn  - Paletti Esterni"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.PalettiEsterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiEsterni = 1)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0304_Navetta.PalettiEsterni_Testa.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.PalettiEsterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiEsterni = 1)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0304_Navetta.DataIn.PalettoEsternoTesta_LsRest := A0303_Navetta_Paletto_Esterno_Testa_Ls_Rest;
+      A0304_Navetta.DataIn.PalettoEsternoTesta_LsWork := A0303_Navetta_Paletto_Esterno_Testa_Ls_Work;
+   END_REGION
+
+   REGION "DataIn - Ax"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.Ax = 0) OR (A0304_Navetta.HMI.Selection.Ax = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Ax,
+         LB_PB_Bwd_Minus := FALSE,
+         LB_PB_Fwd_Plus := FALSE,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax,
+         PB => A0304_Navetta.Ax_Coda.DataIn.PB
+      );
+
+      "Ax_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.Ax = 0) OR (A0304_Navetta.HMI.Selection.Ax = 2)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Ax, LB_PB_Bwd_Minus := FALSE, LB_PB_Fwd_Plus := FALSE, LB_PB_MoveToPos := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Ax);
+      A0304_Navetta.Ax_Coda.DataIn.LS_Minus := NOT (A0303_Navetta_Ax_Scarico_Coda_Ls_Minimo);
+      A0304_Navetta.Ax_Coda.DataIn.LS_Plus := NOT (A0303_Navetta_Ax_Scarico_Coda_Ls_Massimo);
+   END_REGION
+
+   REGION "DataIn  - Paletti Interni"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.PalettiInterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiInterni = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0304_Navetta.PalettiInterni_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.PalettiInterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiInterni = 2)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0304_Navetta.DataIn.PalettoInternoCoda_LsRest := A0303_Navetta_Paletto_Interno_Coda_Ls_Rest;
+      A0304_Navetta.DataIn.PalettoInternoCoda_LsWork := A0303_Navetta_Paletto_Interno_Coda_Ls_Work;
+   END_REGION
+
+   REGION "DataIn  - Paletti Esterni"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := ((A0304_Navetta.HMI.Selection.PalettiEsterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiEsterni = 2)),
+         HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0304_Navetta.PalettiEsterni_Coda.DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := ((A0304_Navetta.HMI.Selection.PalettiEsterni = 0) OR (A0304_Navetta.HMI.Selection.PalettiEsterni = 2)), HMI_PB := A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A04_HMI.MB3.Button.PB_Empty.Valve);
+      A0304_Navetta.DataIn.PalettoEsternoCoda_LsRest := A0303_Navetta_Paletto_Esterno_Coda_Ls_Rest;
+      A0304_Navetta.DataIn.PalettoEsternoCoda_LsWork := A0303_Navetta_Paletto_Esterno_Coda_Ls_Work;
+   END_REGION
+
+   REGION "DataIn - Material Presence"
+      A0304_Navetta.DataIn.UnloadBenchCaricoMatPres1 := A0303_Phc_1_Controllo_Pacco_In_Scarico;
+      A0304_Navetta.DataIn.UnloadBenchCaricoMatPres2 := A0303_Phc_2_Controllo_Pacco_In_Scarico;
+      A0304_Navetta.DataIn.UnloadBenchScaricoMatPres1 := A0303_Phc_1_Controllo_Pacco_In_Carico;
+      A0304_Navetta.DataIn.UnloadBenchScaricoMatPres2 := A0303_Phc_2_Controllo_Pacco_In_Carico;
+   END_REGION
+
+   REGION "DataIn - OP"
+      A0304_Navetta.DataIn.OP_Vai_A_Prelievo := A04_HMI.MB3.Button.A0304.Navetta.OP_Vai_A_Prelievo;
+      A0304_Navetta.DataIn.OP_Prelievo := A04_HMI.MB3.Button.A0304.Navetta.OP_Prelievo;
+      A0304_Navetta.DataIn.OP_Vai_A_Deposito := A04_HMI.MB3.Button.A0304.Navetta.OP_Vai_A_Deposito;
+      A0304_Navetta.DataIn.OP_Deposito := A04_HMI.MB3.Button.A0304.Navetta.OP_Deposito;
+   END_REGION
+
+   REGION "CIn"
+      A0304_Navetta.CIn.Manager := A0304_Manager.COut.Navetta;
+      A0304_Navetta.CIn.Sostegno.ReadyForDeposito := (((A0303_Manager.Sts.SostegnoTesta.Ax.InCyclePos AND A0303_Manager.Sts.SostegnoCoda.Ax.InCyclePos) AND A0303_Manager.Sts.SostegnoCoda.Paletto.InCyclePos) AND A0303_Manager.Sts.SostegnoTesta.Paletto.InCyclePos);
+      A0304_Navetta.CIn.AirOk := F_DB.DSI_V_Air_A0302_A0303.PowerEnable;
+      A0304_Navetta.CIn.Sollevatori.Testa.InPosDeposito := A0303_Manager.Sts.Sollevatore.InPosDeposito;
+      A0304_Navetta.CIn.Sollevatori.Coda.InPosDeposito := A0303_Manager.Sts.Sollevatore.InPosDeposito;
+      A0304_Navetta.CIn.CycleModeShortPiece := A0304_Manager.CycleWithShortPiece;
+   END_REGION
+
+   REGION "Drive"
+      A0304_Navetta.Ax_Testa.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0304_Navetta.Ax_Testa.Drive.AccessPoint := HW_Const_Values.CU8_PN_615A1_ModuleAccessPoint;
+      A0304_Navetta.Ax_Testa.Drive.AxisID := CU8_ID_4_2430A1_1_2430M1;
+      A0304_Navetta.Ax_Testa.Drive.TokenChain := TOKENCHAIN_CU8;
+
+      A0304_Navetta.Ax_Coda.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0304_Navetta.Ax_Coda.Drive.AccessPoint := HW_Const_Values.CU8_PN_615A1_ModuleAccessPoint;
+      A0304_Navetta.Ax_Coda.Drive.AxisID := CU8_ID_5_2430A1_2_2460M1;
+      A0304_Navetta.Ax_Coda.Drive.TokenChain :=  TOKENCHAIN_CU8;
+
+
+   END_REGION
+
+   REGION "HW ID"
+      A0304_Navetta.Ax_Testa.HW_ID_TEL1 := HW_Const_Values.CU8_PN_2430A1_1_Standard_telegram_1;
+      A0304_Navetta.Enc_Testa.HW_IO := HW_Const_Values.HW_2434P1_Telegram_81_DI_DO;
+
+      A0304_Navetta.Ax_Coda.HW_ID_TEL1 := HW_Const_Values.CU8_PN_2430A1_2_Standard_telegram_1;
+      A0304_Navetta.Enc_Coda.HW_IO := HW_Const_Values.HW_2464P1_Telegram_81_DI_DO;
+
+   END_REGION
+
+   REGION "Machine Call"
+      #A0304_Navetta(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone29,
+         DSI_Feed_Testa := F_DB.DSI_NavettaTesta,
+         DSI_Feed_Coda := F_DB.DSI_NavettaCoda,
+         DSI_Valve := F_DB.DSI_V_Air_A0304,
+         Config := PrjConfig_A04.A0304,
+         Par := A0304_Navetta_PERS.Par,
+         Par_Mach := A0304_Navetta_PERS.Par_Mach
+      );
+
+      #A0304_Navetta.Q;
+   END_REGION
+
+   REGION "Data Out -  Paletti Interni"
+      A0303_Navetta_Paletto_Interno_Testa_V_Rest := A0304_Navetta.DataOut.Testa.PalettoInterno.Rest;
+      A0303_Navetta_Paletto_Interno_Testa_V_Work := A0304_Navetta.DataOut.Testa.PalettoInterno.Work;
+      A0303_Navetta_Paletto_Interno_Testa_SbloccaggioStelo_V_Work := A0304_Navetta.DataOut.Testa.PalettoInterno.SbloccaggioStelo;
+   END_REGION
+
+   REGION "Data Out -  Paletti Esterni"
+      A0303_Navetta_Paletto_Esterno_Testa_V_Rest := A0304_Navetta.DataOut.Testa.PalettoEsterno.Rest;
+      A0303_Navetta_Paletto_Esterno_Testa_V_Work := A0304_Navetta.DataOut.Testa.PalettoEsterno.Work;
+      A0303_Navetta_Paletto_Esterno_Testa_SbloccaggioStelo_V_Work := A0304_Navetta.DataOut.Testa.PalettoEsterno.SbloccaggioStelo;
+   END_REGION
+
+   REGION "Data Out -  Paletti Interni"
+      A0303_Navetta_Paletto_Interno_Coda_V_Rest := A0304_Navetta.DataOut.Coda.PalettoInterno.Rest;
+      A0303_Navetta_Paletto_Interno_Coda_V_Work := A0304_Navetta.DataOut.Coda.PalettoInterno.Work;
+      A0303_Navetta_Paletto_Interno_Coda_SbloccaggioStelo_V_Work := A0304_Navetta.DataOut.Coda.PalettoInterno.SbloccaggioStelo;
+   END_REGION
+
+   REGION "Data Out -  Paletti Esterni"
+      A0303_Navetta_Paletto_Esterno_Coda_V_Rest := A0304_Navetta.DataOut.Coda.PalettoEsterno.Rest;
+      A0303_Navetta_Paletto_Esterno_Coda_V_Work := A0304_Navetta.DataOut.Coda.PalettoEsterno.Work;
+      A0303_Navetta_Paletto_Esterno_Coda_SbloccaggioStelo_V_Work := A0304_Navetta.DataOut.Coda.PalettoEsterno.SbloccaggioStelo;
+   END_REGION
+
+
+END_FUNCTION

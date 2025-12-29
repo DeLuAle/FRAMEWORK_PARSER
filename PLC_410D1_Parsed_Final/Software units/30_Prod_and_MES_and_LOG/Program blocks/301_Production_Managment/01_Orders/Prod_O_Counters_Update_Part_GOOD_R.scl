@@ -1,0 +1,90 @@
+﻿FUNCTION_BLOCK "Prod_O_Counters_Update_Part_GOOD_R"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Exe { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+      PTrk { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : "PTrk_Item";
+      PT_RETRY { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time := T#1s;
+   END_VAR
+
+   VAR_OUTPUT 
+      ACK { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+   END_VAR
+
+   VAR_IN_OUT 
+      Err_Push_MSG131 : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR 
+      RETVAL { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+      Indx { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int;
+      item { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "Prod_Item";
+      MSG_131 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+         Exe { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+         O_ID { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : DInt;
+      END_STRUCT;
+      Push_MSG131 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Push_MSG131";
+   END_VAR
+
+
+BEGIN
+	REGION CAMBIO conteggio parti (SemiGusci) DA CONTROLLARE -> pezzo BUONO RICONDIZIONATO
+	    
+	    IF #Exe AND NOT #ACK THEN
+	        
+	        #RETVAL := "Prod_item_GetData"(O_ID := #PTrk.O_ID, MES_IDP := '', indx => #Indx, Item => #item);
+	        
+	        
+	        IF #RETVAL = "PROD_ORDER_IS_AT_O_ACT" THEN
+	            "Production".O_ACT.Parts_TOCHECK -= 1;
+	            "Production".O_ACT.Parts_GOOD_R += 1;
+	        END_IF;
+	        
+	        IF #RETVAL = "PROD_ORDER_IS_AT_O_TODO" THEN
+	            IF #Indx >= 1 AND #Indx <= "PROD_TODO_ITEMS" THEN
+	                "Production".O_TODO[#Indx].Parts_TOCHECK -= 1;
+	                "Production".O_TODO[#Indx].Parts_GOOD_R += 1;
+	            END_IF;
+	        END_IF;
+	        
+	        
+	        IF #RETVAL = "PROD_ORDER_IS_AT_O_ENDING" THEN
+	            IF #Indx >= 1 AND #Indx <= "PROD_ENDING_ITEMS" THEN
+	                "Production".O_ENDING[#Indx].Parts_TOCHECK -= 1;
+	                "Production".O_ENDING[#Indx].Parts_GOOD_R += 1;
+	            END_IF;
+	        END_IF;
+	        
+	        
+	        IF #RETVAL = "PROD_ORDER_IS_AT_O_OUT" THEN
+	            IF #Indx >= 1 AND #Indx <= "PROD_OUT_ITEMS" THEN
+	                "Production".O_OUT[#Indx].Parts_TOCHECK -= 1;
+	                "Production".O_OUT[#Indx].Parts_GOOD_R += 1;
+	            END_IF;
+	        END_IF;
+	        
+	        "Prod_O_Counters_Sum_Update"(O_ID_Location := #RETVAL,
+	                                     Index         := #Indx);
+	        
+	        #MSG_131.Exe := TRUE;
+	        #MSG_131.O_ID := #PTrk.O_ID;
+	        
+	    END_IF;
+	    
+	    
+	    #Push_MSG131(O_ID       := #MSG_131.O_ID,
+	                                  PT_RETRY   := #PT_RETRY,
+	                                  Exe        := #MSG_131.Exe,
+	                                  Msg131_Err := #Err_Push_MSG131);
+	    
+	    
+	    #ACK := #Exe;
+	END_REGION
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

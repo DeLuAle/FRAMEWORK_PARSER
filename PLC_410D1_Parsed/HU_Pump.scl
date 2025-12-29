@@ -1,0 +1,310 @@
+﻿// Block: HU_Pump
+// Title: Info
+
+FUNCTION_BLOCK "HU_Pump"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         PbStop : Bool;
+         PbStart : Bool;
+         MainPump_MotorThermalProtection : Bool;
+         MainPump_FdbkRunning : Bool;
+         SensorPumpFilterClogged : Bool;
+      END_STRUCT;
+      CIn : Struct
+         EnableStopInPhase : Bool;
+         EnableStopProgrammed : Bool;
+         PumpRunPermitted : Bool;
+         EnableCheckFilter : Bool;
+         PressureReq : Bool;
+      END_STRUCT;
+      Config : HU_Pump_Config;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         KmOilPump : Bool;
+         EvAccumulator : Bool;
+         EvStandby : Bool;
+      END_STRUCT;
+      COut : Struct
+         CheckNext_Run : Bool;
+         CtrlSafe : Bool;
+         Standstill : Bool;
+         PumpRunning : Bool;
+         PressureRunning : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : HU_Pump_Par;
+   END_VAR
+
+   VAR
+      M_MainPump : Motor;
+      Ctrl : Struct
+         RstAlarms : Bool;
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         MainPump_AutStart : Bool;
+         MainPump_ManStart : Bool;
+      END_STRUCT;
+      Sts : Struct
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         IsStandstill : Bool;
+         CndMainPump : Bool;
+      END_STRUCT;
+      HMI : HU_Pump_HMI;
+      Alarm : Struct
+         PumpFilterClogged : Bool;
+         MainPump : MotorAlr;
+      END_STRUCT;
+      Warning : Struct
+         NoAutReady : Bool;
+      END_STRUCT;
+      tonNoPressureReq : IEC_TIMER;
+      tonMainPumpInactivity : IEC_TIMER;
+      tonDelayPressureStart : IEC_TIMER;
+      tonDelayPressureStop : IEC_TIMER;
+      tonDelayPressureRunning : IEC_TIMER;
+      tonAlrPumpFilterClogged : IEC_TIMER;
+      tonNoPendingCmd : IEC_TIMER;
+      AckRstAlarms : Bool;
+      Pb_Start_PEAux : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Hydraulic Pump Machine
+      //
+      // v1.0.0  28/12/2022 
+      // v1.1.0  14/02/2023 Simulation added
+      // v1.1.1  21/02/2023 DSI Added, for Pump without Safety Cutoff Valve
+      // v1.1.2  14/06/2023 Set sensor pump filter clogged NO
+      // v1.1.5  29/04/2024 Add reset filter clogged
+      //=============================================================================
+
+   END_REGION
+
+   REGION "Reset alarms command"
+      Ctrl.RstAlarms := AreaInterface.RstAlarms AND NOT AckRstAlarms; 
+      AckRstAlarms := AreaInterface.RstAlarms;
+
+      IF Ctrl.RstAlarms THEN
+          Warning.NoAutReady := FALSE;
+          Alarm.PumpFilterClogged := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Alarm pump filter is clogged"
+      #tonAlrPumpFilterClogged(
+         IN := (((M_MainPump.MotorSts.Running AND CIn.EnableCheckFilter) AND DataIn.SensorPumpFilterClogged) AND NOT (Simulation)),
+         PT := Par.DelayCheckFilterClogged
+      );
+
+      #tonAlrPumpFilterClogged.Q;
+      IF #tonAlrPumpFilterClogged.Q THEN
+         Alarm.PumpFilterClogged := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "No pressure request delayed"
+      #tonNoPressureReq(
+         IN := NOT (CIn.PressureReq),
+         PT := T#1s
+      );
+
+      #tonNoPressureReq.Q;
+   END_REGION
+
+   REGION "Stop due next door opening"
+      IF (NOT (ZSI.Door_NormalStop) OR Config.SafetyCutOffValveExist OR Simulation) THEN
+         Ctrl.StopDueDoorOpeningRequest := FALSE;
+      ELSIF (tonNoPendingCmd.Q AND Sts.IsStandstill) THEN
+         Ctrl.StopDueDoorOpeningRequest := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF (CIn.EnableStopInPhase OR Config.SafetyCutOffValveExist) THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF (CIn.EnableStopProgrammed OR Config.SafetyCutOffValveExist) THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Main pump condirion"
+      Sts.CndMainPump := (((((((((CIn.PumpRunPermitted AND NOT (Alarm.PumpFilterClogged)) AND M_MainPump.MotorSts.RunPermitted) AND NOT (Ctrl.StopDueDoorOpeningRequest)) AND NOT (DSI.SafeStop)) AND NOT (DSI.DevicesInSafeState)) OR ((((CIn.PumpRunPermitted AND NOT (Alarm.PumpFilterClogged)) AND M_MainPump.MotorSts.RunPermitted) AND NOT (Ctrl.StopDueDoorOpeningRequest)) AND Simulation)) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) OR ((((CIn.PumpRunPermitted AND NOT (Alarm.PumpFilterClogged)) AND M_MainPump.MotorSts.RunPermitted) AND NOT (Ctrl.StopDueDoorOpeningRequest)) AND Config.SafetyCutOffValveExist));
+   END_REGION
+
+   REGION "Delay inactivity (no pressure request)"
+      #tonMainPumpInactivity(
+         IN := (M_MainPump.MotorSts.Running AND NOT (CIn.PressureReq)),
+         PT := Par.DelayPumpInactivity
+      );
+
+      #tonMainPumpInactivity.Q;
+   END_REGION
+
+   REGION "Main pump automatic start"
+      IF ((NOT (CIn.PressureReq) AND tonMainPumpInactivity.Q) OR ((NOT (CIn.PressureReq) AND AreaInterface.Man) AND DataIn.PbStop) OR NOT (Sts.CndMainPump)) THEN
+         Ctrl.MainPump_AutStart := FALSE;
+      ELSIF ((CIn.PressureReq AND AreaInterface.Man) OR (CIn.PressureReq AND AreaInterface.Aut)) THEN
+         Ctrl.MainPump_AutStart := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Main pump manual start"
+      IF (DataIn.PbStop OR Ctrl.MainPump_AutStart OR tonMainPumpInactivity.Q OR NOT (AreaInterface.Man) OR Sts.AlarmsPresence) THEN
+         Ctrl.MainPump_ManStart := FALSE;
+      ELSIF PosEdge(DataIn.PbStart) THEN
+         Ctrl.MainPump_ManStart := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Main pump motor interface"
+      M_MainPump.MotorCtrl.SafeStop := (DSI.SafeStop AND NOT (Config.SafetyCutOffValveExist));
+      M_MainPump.MotorCtrl.Rst := Ctrl.RstAlarms;
+      M_MainPump.MotorCtrl.Run := (NOT ((NOT (Ctrl.MainPump_ManStart) AND NOT (Ctrl.MainPump_AutStart))) AND Sts.CndMainPump);
+   END_REGION
+
+   REGION "Main pump motor manager"
+      #M_MainPump(
+         en := TRUE,
+         ThermalProtection := DataIn.MainPump_MotorThermalProtection,
+         FdbkRunning := DataIn.MainPump_FdbkRunning,
+         FeedbackTimeout := Config.OilPumpContactotFeedbackTimeOut,
+         Simulation := Simulation,
+         Alarm := Alarm.MainPump,
+         Contactor => DataOut.KmOilPump
+      );
+
+      #M_MainPump.Q;
+   END_REGION
+
+   REGION "Delay pressure command Start"
+      #tonDelayPressureStart(
+         IN := M_MainPump.MotorSts.Running,
+         PT := Par.DelayEvPressureStart
+      );
+
+      #tonDelayPressureStart.Q;
+   END_REGION
+
+   REGION "Delay pressure command Stop"
+      #tonDelayPressureStop(
+         IN := (DataOut.EvStandby AND NOT (CIn.PressureReq)),
+         PT := Par.DelayEvPressureStop
+      );
+
+      #tonDelayPressureStop.Q;
+   END_REGION
+
+   REGION "Accumulator valve (ON WITH MOTOR)"
+      DataOut.EvAccumulator := (M_MainPump.MotorSts.Running AND NOT (Simulation));
+   END_REGION
+
+   REGION "Standby valve command (ON WITH PRESSURE REQ)"
+      IF (NOT (Config.StandbyValveExist) OR NOT (tonDelayPressureStart.Q) OR tonDelayPressureStop.Q OR Simulation) THEN
+         DataOut.EvStandby := FALSE;
+      ELSIF (CIn.PressureReq AND NOT (Simulation)) THEN
+         DataOut.EvStandby := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm presence"
+      Sts.AlarmsPresence := NOT ((NOT (M_MainPump.MotorSts.AlarmPresence) AND NOT (Alarm.PumpFilterClogged)));
+   END_REGION
+
+   REGION "Warning presence"
+      Sts.WarningsPresence := NOT (NOT (Warning.NoAutReady));
+   END_REGION
+
+   REGION "Machine is standtill"
+      Sts.IsStandstill := NOT (M_MainPump.MotorSts.Running);
+   END_REGION
+
+   REGION "No Pending command"
+      #tonNoPendingCmd(
+         IN := (NOT (Ctrl.MainPump_ManStart) AND NOT (Ctrl.MainPump_AutStart)),
+         PT := T#500MS
+      );
+
+      #tonNoPendingCmd.Q;
+   END_REGION
+
+   REGION "Coordination out"
+      #tonDelayPressureRunning(
+         IN := (((M_MainPump.MotorSts.Running AND DataOut.EvAccumulator) AND NOT (Config.StandbyValveExist)) OR ((M_MainPump.MotorSts.Running AND DataOut.EvStandby) AND Config.StandbyValveExist) OR (M_MainPump.MotorSts.Running AND Simulation)),
+         PT := Par.DelayPressureRunning
+      );
+
+      COut.PumpRunning := M_MainPump.MotorSts.Running;
+      #tonDelayPressureRunning.Q;
+      COut.PressureRunning := #tonDelayPressureRunning.Q;
+      COut.CheckNext_Run := NOT ((NOT (Ctrl.MainPump_ManStart) AND NOT (Ctrl.MainPump_AutStart)));
+      COut.Standstill := NOT (M_MainPump.MotorSts.Running);
+      COut.CtrlSafe := ((NOT (tonNoPendingCmd.IN) OR (AreaInterface.Cycle AND NOT (Ctrl.StopDueDoorOpeningRequest))) AND NOT (Simulation));
+   END_REGION
+
+   REGION "HMI"
+      HMI.Alarm := Sts.AlarmsPresence;
+      HMI.ManStart := Ctrl.MainPump_ManStart;
+      HMI.PumpRunning := COut.PumpRunning;
+      HMI.PressureRunning := COut.PressureRunning;
+
+   END_REGION
+
+   REGION "Collect machine to area interface"
+      // Status machine ready
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      // Status machine aborting
+      MachineInterface.Aborting := Sts.AlarmsPresence;
+      // Status Ack Stop in phase
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND (Sts.IsStandstill OR Config.SafetyCutOffValveExist);
+      // Status Ack Stop programmed
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND (Sts.IsStandstill OR Config.SafetyCutOffValveExist);
+      // Status Motion standtill
+      MachineInterface.MotionsStandStill := Sts.IsStandstill;
+      // Status Alarm presence
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+      // Warning machine not automatic ready
+      IF AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady THEN
+        Warning.NoAutReady := false;
+      END_IF;
+
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,51 @@
+﻿// Block: A0302_PareggiatoreCoda_PERS
+
+DATA_BLOCK A0302_PareggiatoreCoda_PERS
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Par : Struct
+         Ax : Positioning_DOL_Machine_Par;
+         Ax_Pers : Positioning_DOL_Machine_Pers_Data;
+         Enc : PosFbk_RTN;
+         Ax_Aut : A0301_Mach_Speed_Par;
+         Bloccaggio_Sens : Struct
+            "2191B1" : Analogic_SensorManagement_Par;
+            SogliaWork : Real;
+         END_STRUCT;
+         CarroPareggCoda : Struct
+            Delay_StartMove : Time;
+            Preset : LReal;
+         END_STRUCT;
+         Cremaliera : Struct
+            Modulo : LReal;
+            Passo : LReal;
+         END_STRUCT;
+      END_STRUCT;
+      Par_Sens : Struct
+         AI : Analogic_SensorManagement_Par;
+      END_STRUCT;
+      Data_Sens : Analogic_SensorManagement_Data;
+      Par_MachSens : A0301_Mach_Sens_Par;
+      IEC_SP : Struct
+         FTC_Input : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_Output : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_PresentMat : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         Check_2119B1 : Struct
+            TON_PT : Time;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

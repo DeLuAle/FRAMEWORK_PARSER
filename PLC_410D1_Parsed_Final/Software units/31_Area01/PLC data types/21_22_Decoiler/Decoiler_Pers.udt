@@ -1,0 +1,47 @@
+﻿TYPE "Decoiler_Pers"
+VERSION : 0.1
+// Block: Decoiler_Pers
+   STRUCT
+      CoilDiamSensor : Struct
+         Data : Struct
+            AnalogicSensor_OffsetValue : Real;
+            AnalogicSensor_OffsetValid : Bool;
+         END_STRUCT;
+         Par : Struct
+            AnalogicSensor_Enable : Bool;
+            AnalogicSensor_RangeLow : Real;
+            AnalogicSensor_RangeHigh : Real;
+            Diam_Min : Real;
+            Diam_Max : Real;
+            EndCoil_Diam : Real;
+            EndCoil_Timer : Time;
+         END_STRUCT;
+      END_STRUCT;
+      Loop : Struct
+         Par : Struct
+            DelayRestartAfterMaxLoop : Time;
+            DelayStopMaxLoop : Time;
+            SensoAdjVel_PercentageMinus : LReal;
+            SensoAdjVel_PercentagePlus : LReal;
+            SensoAdjVel_PercentagePlusPlus : LReal;
+            SensoAdjVel_DelayPlusPlus : Time;
+         END_STRUCT;
+      END_STRUCT;
+      Feed : SpeedMachine_Par;
+      Coupling : Struct
+         Engaged : Bool;
+      END_STRUCT;
+      Jaws : Struct
+         Par : Struct
+            Pause : Time;
+            Duration : Time;
+            DiamEnable : Real;
+         END_STRUCT;
+      END_STRUCT;
+      PneumaticBracking : Struct
+         DiameterChangeBrake : Real;
+         BrakeLowSelected : Bool;
+      END_STRUCT;
+   END_STRUCT;
+
+END_TYPE

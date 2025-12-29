@@ -1,0 +1,36 @@
+﻿FUNCTION "MES_Msg212_Decoder" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      payLoad : String;
+   END_VAR
+
+
+BEGIN
+	REGION INFO
+	    (*
+	        
+	    MES → PLC – Topic = 212: Consenso cancellazione dati pacco su baia di uscita
+	    
+	    Questo messaggio viene inviato dal MES per comunicare al PLC che:
+	    
+	    •   i dati del pacco in uscita sono stati registrati,
+	    •   l’etichetta è stata stampata,
+	    •   e quindi è possibile procedere con la cancellazione dei dati relativi al pacco.
+	    
+	    Payload: vuoto
+	
+	
+	    
+	    *)
+	    
+	END_REGION
+	
+	
+	
+	#MES_Msg212_Decoder := "PROD_FUN_RESULT_OK";
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,290 @@
+﻿FUNCTION_BLOCK "Prod_O_ENDING_Clean"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      DEBUG : Struct
+         Enable : Bool;
+         AckChangeStep : Bool;
+         ActualStep : Int;
+      END_STRUCT;
+   END_VAR
+
+   VAR 
+      i : Int;
+      Status : Int;
+      Indx : Int;
+      RETVAL : DInt;
+      O_Position : DInt;
+      O_Index : Int;
+      Pop_Done : Bool;
+      Ton_Delay {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;
+   END_VAR
+
+   VAR CONSTANT 
+      INIT : Int := 0;
+      WAIT : Int := 1;
+      CHECK : Int := 2;
+      INC_INDEX : Int := 3;
+      POP_TO_O_OUT : Int := 4;
+      POP_TO_O_TODO : Int := 5;
+   END_VAR
+
+
+BEGIN
+	(*
+	
+	Questo FB sposta gli ordini da O_ENDING quando non ci sono più parti / pezzi che lo usano
+	e lo sposta tra gli ordini usciti oppure lo rimette in coda sugli ordini da eseguire
+	
+	
+	*)
+	
+	
+	
+	#DEBUG.ActualStep := #Status;
+	
+	
+	REGION S0_INIT
+	    
+	    IF #Status = #INIT THEN
+	        
+	        #Pop_Done := FALSE;
+	        
+	        
+	        #Ton_Delay(IN := FALSE,
+	                          PT := T#5s);
+	        
+	        
+	        IF #Ton_Delay.Q THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // OK → CAMBIO PASSO
+	        //
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	    
+	END_REGION
+	
+	REGION S1_WAIT
+	    
+	    IF #Status = #WAIT THEN
+	        
+	        #Ton_Delay(IN := TRUE,
+	                          PT := T#5s);
+	        
+	        
+	        IF NOT #Ton_Delay.Q THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // OK → CAMBIO PASSO
+	        //
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	REGION S2_CHEK Controlla se Ordine può essere cancellato
+	    
+	    IF #Status = #CHECK THEN
+	        
+	        #Indx := LIMIT(MN := 1, IN := #Indx, MX := "PROD_ENDING_ITEMS");
+	        
+	        // ? Ordine Può essere cancellato?
+	        // 
+	        #RETVAL :=
+	        
+	        "Prod_Item_Check_O_Can_be_Deleted"(O_ID := "Production".O_ENDING[#Indx].O_ID,
+	                                           MES_IDP := '',
+	                                           Enable_O_TODO := FALSE,
+	                                           Enable_O_ENDING := TRUE,
+	                                           O_Position => #O_Position,
+	                                           O_Index => #O_Index);
+	        
+	        
+	        // L'ordine selezionato non puoò essere cancellato
+	        // 
+	        IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #INC_INDEX;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // Questa condizione non deve mai verificarsi..c'è qualcosa che non va nella funzione
+	        // 
+	        IF #O_Position <> "PROD_ORDER_IS_AT_O_ENDING"
+	            OR
+	            #Indx <> #O_Index
+	        THEN
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #INC_INDEX;
+	            RETURN;
+	        END_IF;
+	        
+	        // Ordine deve andare tra i conclusi (O_OUT)
+	        // 
+	        IF "Production".O_ENDING[#Indx].Status = "SOR_CONCLUSO_PARZIALE" THEN
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            
+	            #Status := #POP_TO_O_OUT;
+	            RETURN;
+	            
+	            // Ordine deve andare in coda a quelli da eseguire (O_TODO)   
+	            // 
+	        ELSIF "Production".O_ENDING[#Indx].Status = "SOR_PAUSA_PARZIALE" THEN
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            
+	            #Status := #POP_TO_O_TODO;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	    END_IF;
+	        
+	    
+	END_REGION
+	
+	
+	REGION S3_INC indice
+	    
+	    IF #Status = #INC_INDEX THEN
+	        // Incrementa indice di ricerca
+	        //
+	        #Indx := (#Indx MOD "PROD_ENDING_ITEMS") + 1;
+	        
+	        #Status := #INIT;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION S4_POP Ordine da O_ENDING e PUSH su O_OUT
+	    
+	    // Rimuove ordine dal buffer e lo mette nel buffer di quelli usciti dal processo
+	    // 
+	    IF #Status = #POP_TO_O_OUT THEN
+	        
+	        IF NOT #Pop_Done THEN
+	            
+	            #Pop_Done := TRUE;
+	            #RETVAL := "Prod_O_ENDING_Pop_&_O_OUT_Push"(#Indx);
+	            
+	        END_IF;
+	        
+	        // In ogni caso sia positivo che negativo si cambia l'ordine
+	        //
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // OK → CAMBIO PASSO
+	        //
+	        
+	        #Status := #INC_INDEX;
+	        
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION S5_POP Ordine da O_ENDING e PUSH su O_TODO
+	    
+	    
+	    IF #Status = #POP_TO_O_TODO THEN
+	        
+	        // Rimuove ordine dal buffer e lo mette nella coda degli ordini da eseguire
+	        // 
+	        IF NOT #Pop_Done THEN
+	            
+	            #Pop_Done := TRUE;
+	            #RETVAL := "Prod_O_ENDING_Pop_&_O_OUT_Push"(#Indx);
+	            
+	        END_IF;
+	        
+	        // In ogni caso sia positivo che negativo si cambia l'ordine
+	        //
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // OK → CAMBIO PASSO
+	        //
+	        
+	        #Status := #INC_INDEX;
+	        
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

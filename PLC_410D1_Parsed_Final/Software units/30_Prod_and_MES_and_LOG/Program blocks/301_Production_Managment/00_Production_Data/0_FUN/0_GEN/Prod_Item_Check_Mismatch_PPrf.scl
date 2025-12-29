@@ -1,0 +1,96 @@
+﻿FUNCTION "Prod_Item_Check_Mismatch_PPrf" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Prg : "PPrf_Data";
+      item_Prod : "Prod_Item";
+   END_VAR
+
+
+BEGIN
+	
+	#Prod_Item_Check_Mismatch_PPrf := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	CASE #Prg.GeneralData.Beam_Code OF
+	        
+	    0:
+	        IF #item_Prod.MES_Profile_Code <> "PROFILE_TYPE_SEMIGUSCIO" THEN
+	            
+	            
+	            #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_TYPE";
+	            
+	            RETURN;
+	            
+	            
+	        END_IF;
+	    1:
+	        IF #item_Prod.MES_Profile_Code <> "PROFILE_TYPE_ACCOPPIATO" THEN
+	            
+	            #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_TYPE";
+	            
+	            RETURN;
+	            
+	            
+	        END_IF;
+	        
+	        
+	        
+	        
+	        
+	    ELSE
+	        #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_TYPE";
+	        
+	        RETURN;
+	        
+	        
+	END_CASE;
+	
+	
+	
+	
+	IF ABS((INT_TO_REAL(#Prg.GeneralData.Beam_W_A_Code)) - #item_Prod.Beams_W_A) > 0.1 THEN
+	    
+	    #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_W_A";
+	    
+	    RETURN;
+	    
+	END_IF;
+	
+	
+	
+	
+	IF ABS((INT_TO_REAL(#Prg.GeneralData.Beam_H_B_Code)) - #item_Prod.Beams_H_B) > 0.1 THEN
+	    
+	    #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_H_B";
+	    
+	    RETURN;
+	    
+	    
+	END_IF;
+	
+	
+	
+	
+	
+	IF ABS((INT_TO_REAL(#Prg.GeneralData.Beam_TK_Code) / 100.0) - #item_Prod.Beams_Thickness) > 0.1 THEN
+	    
+	    #Prod_Item_Check_Mismatch_PPrf := "PROD_ERR_PPRF_MISMATCH_BEAM_TICKNESS";
+	    
+	    RETURN;
+	    
+	    
+	END_IF;
+	
+	
+	
+	
+	
+	
+	
+	    
+	
+	
+END_FUNCTION
+

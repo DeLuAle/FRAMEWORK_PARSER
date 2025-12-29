@@ -1,0 +1,179 @@
+﻿FUNCTION "MES_Msg310_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+// COSTRUISCE IL PAYLOAD PER IL MESSAGGIO TOPIC = 101 (INIZIO SET-UP)
+   VAR_INPUT 
+      MES_IDP : String;   // ID MES per riferimento all'ordine di prosuzione
+      IC_Num : Int;
+      MC_Str : String;
+   END_VAR
+
+   VAR_IN_OUT 
+      Err : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;   // Valore di ritorno della funzione di ricerca dati ItemProd usando ID_Prod (PLC) 
+      Msg : "MES_Msg";
+      strPayload : String;   // Stringa Payload per formare il messaggio
+   END_VAR
+
+   VAR CONSTANT 
+      NUMERO_MESSAGGIO : UDInt := 310;
+   END_VAR
+
+
+BEGIN
+	
+	REGION NOTE
+	    (*
+	    PLC → MES – Topic = 310: Sospensione della produzione
+	    
+	    Il messaggio viene inviato per informare il MES sulle cause che hanno portato alla sospensione di un ordine attualmente in esecuzione.
+	   
+	    Payload:
+	    Chiave  Formato Descrizione
+	    [IDP]   C   Identificativo ordine.
+	    [DT]    C   Timestamp del momento in cui l’ordine è entrata in sospensione. Formato: "YYYY-MM-DD HH:MM:SS.mmm"
+	    [IC]    N0  Codice causa della sospensione. (vedi codici sotto) 
+	    [MC]    C   Codice dell’allarme o del warning che ha causato la sospensione 
+	
+	   Valori possibili per [IC] – Codice causa della sospensione
+	    •   0 - Causa sconosciuta
+	    •   1 - Interruzione del ciclo automatico per pressione del pulsante di arresto ciclo.
+	    •   2 - Sospensione dovuta all’interruzione del ciclo automatico per presenza di allarme.
+	    •   3 - Sospensione dovuta alla pausa del ciclo automatico per presenza di warning.
+	    •   10 - Sospensione dovuta da richiesta MES per fine turno.
+	    •   11 - Sospensione dovuto da richiesta MES per controllo qualità.
+	
+	    
+	   Note
+	    Tutti gli eventi che causano la sospensione della produzione sono gestiti nel PLC come allarmi o warning.
+	    Ad esempio, la fine rotolo viene segnalata come un allarme con codice A01_A0100, che rappresenta l’allarme numero 100 dell’area 1, ovvero l’area preposta alla gestione dei rotoli.
+	    Dopo lo sviluppo del codice PLC, sarà possibile identificare con precisione tutti gli eventi ricorrenti che carat-terizzano il ciclo di utilizzo dei rotoli e lo svolgimento di un ordine di produzione — come il caricamento del rotolo, la fine materiale, la fine turno, ecc. — e associare ciascun evento al relativo codice di allarme o mes-saggio.
+	
+	
+	    *)
+	    
+	END_REGION ;
+	
+	
+	
+	
+	#MES_Msg310_Push := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+	
+	
+	
+	REGION PayLoad creation
+	    
+	    
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    //
+	    // CREAZIONE PAYLOAD
+	    // 
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  
+	    
+	    #strPayload := '';
+	    
+	    // [IDP]   C   Identificativo ordine.
+	    //
+	   
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IDP");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #MES_IDP); 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    // [DT]    C   Timestamp del momento in cui l’ordine è entrata in sospensione. Formato: "YYYY-MM-DD HH:MM:SS.mmm"
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_DT");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_DT_to_STRING"("Now"())); 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    // [IC]    N0  Codice causa della sospensione. (vedi codici sotto)
+	    // 
+	    (*
+	            Valori possibili per [IC] – Codice causa della sospensione
+	            
+	        •   0 - Causa sconosciuta
+	        •   1 - Interruzione del ciclo automatico per pressione del pulsante di arresto ciclo.
+	        •   2 - Sospensione dovuta all’interruzione del ciclo automatico per presenza di allarme.
+	        •   3 - Sospensione dovuta alla pausa del ciclo automatico per presenza di warning.
+	        •   10 - Sospensione dovuta da richiesta MES per fine turno.
+	        •   11 - Sospensione dovuto da richiesta MES per controllo qualità.
+	
+	    *)
+	    
+	    
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IC");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #IC_Num, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [MC]    Codice dell’allarme o del warning che ha causato la sospensione
+	    // 
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_MC");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #MC_Str);
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	        
+	        
+	        
+	END_REGION ;
+	
+	
+	
+	
+	
+	REGION PUSH messaggio
+	    
+	    // Incrementa ultimo ID
+	    // 
+	    "MES_Send_Buffer_Msg_Topic3XX".lastId := "Inc_DINT_Circ"("MES_Send_Buffer_Msg_Topic3XX".lastId);
+	    
+	    
+	    // Prepararazione messaggio
+	    // 
+	    #Msg.Id := "MES_Send_Buffer_Msg_Topic3XX".lastId;
+	    #Msg.timestamp := "Conv_DT_to_STRING"("Now"());
+	    #Msg.topic := #NUMERO_MESSAGGIO;
+	    #Msg.payLoad := #strPayload;
+	    
+	    
+	    // Push messaggio
+	    // 
+	    #RETVAL := "MES_Buffer_Push"(Msg := #Msg, Evaluate_FULL := "ProductionMng_PERS".Pers.Data.MODE.MES_ON,
+	                                 Buffer_msg := "MES_Send_Buffer_Msg_Topic3XX".msg);
+	    
+	    
+	    
+	    // Push messaggio LOG
+	    // 
+	   "IPC_Push_Log_MES"(Msg := #Msg, Ack := #RETVAL);
+	    
+	    
+	    IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	        #MES_Msg310_Push := #RETVAL;
+	        #Err := "MES_Error_Set"(msg_RETVAL := #RETVAL, msg := #Msg);
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    // Return value = OK
+	    // 
+	    #MES_Msg310_Push := "PROD_FUN_RESULT_OK";
+	    RETURN;
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

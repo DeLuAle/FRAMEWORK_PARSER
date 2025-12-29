@@ -1,0 +1,95 @@
+﻿// Block: Rollformer_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "Rollformer_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+   VAR_TEMP
+      MissIO : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - PB Feed"
+      "Ax_PB_Connector"(
+         en := TRUE,
+         LB_PB_Bwd_Minus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Bwd) AND NOT (LB211.PB.Rollformer_Bwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Bwd))),
+         LB_PB_Fwd_Plus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Fwd) AND NOT (LB211.PB.Rollformer_Fwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Fwd))),
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.Rollformer.Feed,
+         LB_PB_MoveToPos := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax,
+         PB => Rollformer.DataIn.Feed.PB
+      );
+
+      "Ax_PB_Connector"(LB_PB_Bwd_Minus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Bwd) AND NOT (LB211.PB.Rollformer_Bwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Bwd))), LB_PB_Fwd_Plus := NOT (((NOT (LB114_FeedA02.PB.Rollformer_Fwd) AND NOT (LB211.PB.Rollformer_Fwd)) AND NOT (LB212_FeedA02.PB.Rollformer_Fwd))), Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.Rollformer.Feed, LB_PB_MoveToPos := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Ax);
+   END_REGION
+
+   REGION "DataIn - Sensor"
+      Rollformer.DataIn.ConnectorPlugged1 := A0201_Motore_Bancalata_1_Controllo_Connettore;
+      Rollformer.DataIn.ConnectorPlugged2 := A0201_Motore_Bancalata_2_Controllo_Connettore;
+      Rollformer.DataIn.ConnectorPlugged3Side1 := A0201_Motore_Bancalata_3_Lato_1_Controllo_Connettore;
+      Rollformer.DataIn.ConnectorPlugged3Side2 := A0201_Motore_Bancalata_3_Lato_2_Controllo_Connettore;
+
+      Rollformer.DataIn.Feed.Fan_M_Feedback := A0201_Ventilatore_Mot_Profila_Feedback;
+
+   END_REGION
+
+   REGION "Drive"
+
+      Rollformer.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      Rollformer.Drive.AccessPoint := HW_Const_Values.CU2_PN_585A1_ModuleAccessPoint;
+      Rollformer.Drive.AxisID := CU2_ID_2_1190A1_1190M1;
+      Rollformer.Drive.TokenChain := TOKENCHAIN_CU2;
+
+   END_REGION
+
+   REGION "Config"
+
+      Rollformer.Config.DataPresence := PPrf_MAIN.ON_WORK.Header.PrgNo > 0;
+      Rollformer.Config.Data := PPrf_MAIN.ON_WORK.A02_1_PartsCutting.Rollformer.TAxConfig;
+
+      Rollformer.Config.Feed := A02_Config.Rollformer;
+
+   END_REGION
+
+   REGION "CIn"
+      Rollformer.CIn.ExtEnable_FlyingShareOk := RollformingMng.FlyingCutoff.COut.Lead.LeadMovePermitted;
+      Rollformer.CIn.ExtEnable_MaterialCounterOK := NOT PostPunchingMatCounter.COut.StopFeeding;
+      Rollformer.CIn.ExtEnable_MwFakCalcOk := NOT MwFakCalc.COut.StopMaterialFeeding;
+      Rollformer.CIn.ExtEnable_UnloadRollwayOk := AccRollConveyor.COut.Manager.RollformerFeedOk;
+
+      Rollformer.CIn.ExtEnable_LoopBwdOk := Areas_ITF.A01.Loop1_COut.Exit_EnableFeedBkw;
+      Rollformer.CIn.ExtEnable_LoopFwdOk := Areas_ITF.A01.Loop1_COut.Exit_EnableFeedFwd;
+      Rollformer.CIn.Loop1_VelOverride := Areas_ITF.A01.Loop1_COut.Exit_VelocityOverride;
+
+      Rollformer.CIn.Manager := RollformingMng.COut.Rollformer.Feed;
+
+      Rollformer.CIn.SOS_Enable := FALSE;
+
+   END_REGION
+
+   REGION "Machine call"
+      #Rollformer(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface,
+         ZSI := F_DB.ZSI_Zone20,
+         DSI := F_DB.DSI_S120_Rollformer,
+         TO_Ax := A02_Rollformer,
+         PersistentValues := Rollformer_PERS.PersistentValues
+      );
+
+      #Rollformer.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Ventilatore_Mot_Profila_Marcia := Rollformer.DataOut.Feed.Fan_M_Contactor;
+
+      A0201_Fine_Profila_V_Soffio_Pulizia_Phc_Tacca := NOT Rollformer.COut.Feed.Standstill;
+
+
+   END_REGION
+
+
+END_FUNCTION

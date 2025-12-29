@@ -1,0 +1,103 @@
+﻿FUNCTION "Prod_O_ENDING_Pop_&_O_TODO_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Index : Int;   // Indice array ordini in via di completamento (ENDING) 
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// CONTROLLI INTERNI
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	// Uscita per limiti indice array di O_ENDING
+	// 
+	IF (#Index < 1) OR (#Index > "PROD_ENDING_ITEMS") THEN
+	    #"Prod_O_ENDING_Pop_&_O_TODO_Push" := "PROD_ERR_O_ENDING_INDEX_EXCEEDS_BOUNDS";
+	    RETURN;
+	END_IF;
+	
+	
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// PUSH
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	// O_TODO -  Push
+	//
+	
+	
+	#RETVAL := "PROD_item_Push_to_Bottom"(Item:="Production".O_ENDING[#Index], Reserve:=0, Buffer:="Production".O_TODO);
+	
+	
+	
+	// Uscita per errore push su O_TODO
+	// 
+	IF #RETVAL < 0 THEN
+	    #"Prod_O_ENDING_Pop_&_O_TODO_Push" := #RETVAL;
+	    RETURN;
+	END_IF;
+	
+	
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// POP
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+	// O_ENDING - Pop
+	// 
+	#RETVAL := "PROD_item_Pop"(Index := #Index, Buffer := "Production".O_ENDING);
+	
+	
+	// Uscita per errore pop da O_ENDING
+	// 
+	IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	    
+	    #"Prod_O_ENDING_Pop_&_O_TODO_Push" := #RETVAL;
+	    RETURN;
+	END_IF;
+	
+	
+	
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// OK
+	// 
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	
+	// RETVAL OK
+	// 
+	#"Prod_O_ENDING_Pop_&_O_TODO_Push" := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

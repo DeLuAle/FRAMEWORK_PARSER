@@ -1,0 +1,80 @@
+﻿// Block: A0303_Manager_CALL
+// Title: CIn
+
+FUNCTION "A0303_Manager_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// CIn
+
+BEGIN
+   REGION "CIn"
+      //CIn Spalle
+      A0303_Manager.CIn.Spalle.Coda := A0303_Spalla_Coda.COut;
+      A0303_Manager.CIn.Spalle.Testa := A0303_Spalla_Testa.COut;
+
+      //CIn Traslazione 
+      A0303_Manager.CIn.TraslazioneStrato.Ax_Coda:=A0303_TraslazioneStrato.COut.Coda.Ax;
+      A0303_Manager.CIn.TraslazioneStrato.Ax_Testa := A0303_TraslazioneStrato.COut.Testa.Ax;
+      A0303_Manager.CIn.TraslazioneStrato.Manip_Pareggiatore := A0303_TraslazioneStrato.COut.Cumulativo.Manip_Pareggiatore;
+      A0303_Manager.CIn.TraslazioneStrato.Manip_Sostegno := A0303_TraslazioneStrato.COut.Cumulativo.Manip_Sostegno;
+      A0303_Manager.CIn.TraslazioneStrato.SostegnoVrt := A0303_TraslazioneStrato.COut.Cumulativo.SostegnoVrt;
+      A0303_Manager.CIn.TraslazioneStrato.IsMeasuring := A0303_TraslazioneStrato.ControlloStrato_Coda.Enable OR A0303_TraslazioneStrato.ControlloStrato_Testa.Enable;
+      //CIn Navetta 
+      A0303_Manager.CIn.Navetta.ReadyToRecive := A0304_Navetta.COut.ReadyToRecive;
+
+      //Spintore
+      A0303_Manager.CIn.Spintore.Orz := A0303_Spintore.COut.Orz;
+      A0303_Manager.CIn.Spintore.Vrt := A0303_Spintore.COut.Vrt;
+
+      //Sollevatore
+      A0303_Manager.CIn.Sollevamento.Ax_Coda := A0303_Sollevamento.COut.Ax_Coda;
+      A0303_Manager.CIn.Sollevamento.Ax_Testa := A0303_Sollevamento.COut.Ax_Testa;
+
+
+      //Sostegno
+      A0303_Manager.CIn.Sostegno.Testa.Ax :=A0303_Sostegno_Testa.COut.Ax;
+      A0303_Manager.CIn.Sostegno.Testa.Paletto := A0303_Sostegno_Testa.COut.Paletto;
+      A0303_Manager.CIn.Sostegno.Coda.Ax := A0303_Sostegno_Coda.COut.Ax;
+      A0303_Manager.CIn.Sostegno.Coda.Paletto := A0303_Sostegno_Coda.COut.Paletto;
+
+      //Navetta
+      A0303_Manager.CIn.Navetta.RequestDeposito := A0304_Manager.Sts.RichiestaVaiDeposito AND NOT A0304_Navetta.Sts.OutOfWorkSpace;
+      A0303_Manager.CIn.Navetta.RequestPrelievo := A0304_Manager.Sts.RichiestaVaiPrelievo;
+      A0303_Manager.CIn.Navetta.OutOfWorkspace := A0304_Navetta.Sts.OutOfWorkSpace;
+      A0303_Manager.CIn.Navetta.InPosizioneDiPrelievo := A0304_Navetta.Sts.InPosPrelievo;
+      A0303_Manager.CIn.Navetta.InPosizioneDiPrePrelievo := A0304_Navetta.Sts.InPosPrePrelievo;
+
+
+      //Pareggiatore
+      A0303_Manager.CIn.PareggiatoreCoda.Ax := Areas_ITF.A03.A0302_PareggiatoreCoda_COut_Ax;
+      A0303_Manager.CIn.PareggiatoreTesta.Ax := Areas_ITF.A03.A0302_PareggiatoreTesta_COut_Ax;
+
+      // Production Mng
+      A0303_Manager.CIn.ProdManager := Areas_ITF.Prod.A03_A04;
+
+   END_REGION
+
+   REGION "Data In"
+      A0303_Manager.DataIn.LsCheckPassaggio_Coda := A0303_ControlloPezzo_Coda_Phc_InPosizione;
+      A0303_Manager.DataIn.LsCheckPassaggio_Testa := A0303_ControlloPezzo_Testa_Phc_InPosizione;
+      A0303_Manager.DataIn.LsPezzoPosMax_Coda := A0303_ControlloPezzo_Coda_Phc_MassimaPosizione;
+      A0303_Manager.DataIn.LsPezzoPosMax_Testa := A0303_ControlloPezzo_Testa_Phc_MassimaPosizione;
+   END_REGION
+
+   REGION "FB CALL"
+      #A0303_Manager(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         Par := A0303_Manager_PERS.Par,
+         Par_Trasporto := A0303_TraslazioneStrato_PERS.Par_Mach,
+         Par_Sollevatore := A0303_Sollevamento_PERS.Par_Mach,
+         Par_SostegnoAntirib := A0303_Sostegno_PERS.Par_Mach,
+         Par_Spalla_Testa := A0303_Spalla_Pers.Par_Mach_Testa,
+         Par_Spalla_Coda := A0303_Spalla_Pers.Par_Mach_Coda
+      );
+
+      #A0303_Manager.Q;
+   END_REGION
+
+
+END_FUNCTION

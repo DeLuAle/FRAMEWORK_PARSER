@@ -1,0 +1,161 @@
+﻿// Block: Area02_ITF
+
+FUNCTION "Area02_ITF" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Entry enable Z11 (ROLLFORMER)"
+      Areas_ITF.A02.Safety_EntryEnable.Z11 := (Rollformer.MachineInterface.MotionsStandStill AND A0201_Profilatrice_RegolazioneFormato.MachineInterface.MotionsStandStill);
+   END_REGION
+
+   REGION "Entry enable Z13 (FINALCUT)"
+      Areas_ITF.A02.Safety_EntryEnable.Z13 := ((Rollformer.MachineInterface.MotionsStandStill AND FlyingCarriage.MachineInterface.MotionsStandStill) AND FinalCut.MachineInterface.MotionsStandStill);
+   END_REGION
+
+   REGION "Entry enable Z15 (ACC ROLL)"
+      Areas_ITF.A02.Safety_EntryEnable.Z15 := (Rollformer.MachineInterface.MotionsStandStill AND AccRollConveyor.MachineInterface.MotionsStandStill);
+   END_REGION
+
+   REGION "Entry enable Z20"
+      Areas_ITF.A02.Safety_EntryEnable.Z20 := Rollformer.MachineInterface.MotionsStandStill;
+   END_REGION
+
+   REGION "Ctrl Safe Area 02 HU  (Motor + Safety shut‑off valves with monitored position feedbacks)"
+      // C.Olio su banco di intestazione
+
+      Areas_ITF.A02.Safety_CtrlSafe.HU_FinalCut_Motor := (Area02_HU.Pump.COut.CtrlSafe OR A02_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.HU_FinalCut_StandbyValve := (Area02_HU.Pump.DataOut.EvStandby OR A02_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.HU_FinalCut_DegasValve := (Area02_HU.Pump.DataOut.EvAccumulator OR A02_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.HU_FinalCut_SafetyValve := ((FinalCut.COut.CutHead.CtrlSafe OR FinalCut.COut.Locking.CtrlSafe OR FinalCut.COut.MarkHead.CtrlSafe OR FinalCut.COut.DrawHead.CtrlSafe OR A02_DEBUG.Forse_Contactors_CtrlSafe) AND Area02_HU.Pump.COut.PressureRunning);
+   END_REGION
+
+   REGION "Ctrl Safe S120"
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta1_OP := (A0201_Profilatrice_RegolazioneFormato.AX_D[1].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta1_MOT := (A0201_Profilatrice_RegolazioneFormato.AX_D[2].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta2_OP := (A0201_Profilatrice_RegolazioneFormato.AX_D[3].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta2_MOT := (A0201_Profilatrice_RegolazioneFormato.AX_D[4].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta3_OP := (A0201_Profilatrice_RegolazioneFormato.AX_D[5].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Cassetta3_MOT := (A0201_Profilatrice_RegolazioneFormato.AX_D[6].COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Rollformer := (Rollformer.COut.Feed.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_FAK_Pusher := (MwFakCalc.COut.PushAx.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_Carriage := (FlyingCarriage.COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_AccRolls1 := (AccRollConveyor.Roll1.COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_AccRolls2 := (AccRollConveyor.Roll2.COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A02.Safety_CtrlSafe.Sinamics_AccRolls3 := (AccRollConveyor.Roll3.COut.CtrlSafe OR A02_DEBUG.Force_Sinamics_CtrlSafe);
+   END_REGION
+
+   REGION "Ctrl SOS S120"
+      Areas_ITF.A02.Safety_SOS.Rollformer := Rollformer.COut.EnableSOS;
+   END_REGION
+
+   REGION "Production Halted"
+      Areas_ITF.A02.Production_Halted.Code := 0;
+      Areas_ITF.A02.Production_Halted.Message_N := 0;
+
+      IF RollformingMng.Alarm.STOP_ControlloQualita THEN
+          Areas_ITF.A02.Production_Halted.Code := 11;
+          
+      ELSIF RollformingMng.Alarm.STOP_End_Of_Proroduction OR
+          RollformingMng.Alarm.STOP_FineTurno
+      THEN
+          Areas_ITF.A02.Production_Halted.Code := 10;
+
+          
+      ELSIF Rollformer.Warnings.MissingCnd.Loop1_Enable_FWD AND
+          Area02.AreaInterface.Cycle
+      THEN
+          Areas_ITF.A02.Production_Halted.Code := 3;
+          Areas_ITF.A02.Production_Halted.Message_N := 212;
+          
+      ELSIF Rollformer.Warnings.MissingCnd.UnloadRollway AND
+          Area02.AreaInterface.Cycle
+      THEN
+          Areas_ITF.A02.Production_Halted.Code := 3;
+          Areas_ITF.A02.Production_Halted.Message_N := 209;
+          
+      ELSIF Area02.MachinesStatus.AtLeastOneAlrPresence OR 
+          Area02.MachinesStatus.AtLeastOneMachineIsAborting
+      THEN
+          Areas_ITF.A02.Production_Halted.Code := 2;
+          
+          FOR i := 1 TO 576 DO
+              IF Area02_Messages.A.Msg[i] THEN
+                  Areas_ITF.A02.Production_Halted.Message_N := i;
+                  EXIT;
+              END_IF;
+          END_FOR;
+          
+      ELSE
+          
+          Areas_ITF.A02.Production_Halted.Code := 1;
+      END_IF;
+
+
+      Areas_ITF.A02.Production_Running := Area02.AreaInterface.Cycle
+      AND NOT Rollformer.Warnings.MissingCnd.UnloadRollway
+      AND NOT Rollformer.Warnings.MissingCnd.Loop1_Enable_FWD;
+
+
+   END_REGION
+
+   REGION "Area ITF Orchestrator"
+      Areas_ITF.A02.AreaInterface := Area02.AreaInterface;
+
+      Areas_ITF.A02.PostPunch_MachineInterface := RollformingMng.MachineInterface;
+
+      Areas_ITF.A02.Infeed_REQ_ON :=
+      Rollformer.COut.Feed.Infeed_ReqON OR
+      MwFakCalc.COut.PushAx.Infeed_ReqON OR
+      A0201_Profilatrice_RegolazioneFormato.Cout.Infeed_ReqON OR
+      FlyingCarriage.COut.Infeed_ReqON OR
+      AccRollConveyor.COut.Rolls.Infeed_ReqON;
+
+      MB2_Lp_Start_Ciclo_Area01 := Areas_ITF.A01.PB.Area_DataOut_LampCycle;
+      Areas_ITF.A02.PB.MB2_Area01_PB_Start := MB2_Pb_Start_Ciclo_Area01;
+      Areas_ITF.A02.PB.MB2_Area01_PB_Stop := MB2_Pb_Stop_Ciclo_Area01;
+      MB2_Lp_Start_Ciclo_Area03 := Areas_ITF.A03.PB.Area_DataOut_LampCycle;
+      Areas_ITF.A02.PB.MB2_Area03_PB_Start := MB2_Pb_Start_Ciclo_Area03;
+      Areas_ITF.A02.PB.MB2_Area03_PB_Stop := MB2_Pb_Stop_Ciclo_Area03;
+
+      Areas_ITF.A02.Weld_Presence := WeldReg.COut.Manager.WeldPresence;
+      Areas_ITF.A02.Weld_Missing_To_FinalCut := WeldReg.COut.Manager.WeldMIssingToFinalCut;
+
+
+
+      Areas_ITF.A02.MaterialCounter := PostPunchingMatCounter_PERS.PersistentValues.Data;
+
+      Areas_ITF.A02.MaterialPresence := RollformingMng_PERS.PersistentValues.Data.MaterialPresence;
+      Areas_ITF.A02.MaterialPresence_Entry := RollformingMng_PERS.PersistentValues.Data.MaterialPresence_Entry;
+      Areas_ITF.A02.MaterialPresence_Exit := RollformingMng_PERS.PersistentValues.Data.MaterialPresence_AfterMW;
+
+      Areas_ITF.A02.Material_Qty_FromLastCut := Areas_ITF.A01.Loop1_COut.LoopMaterialCounter + RollformingMng.FlyingCutoff.Sts.MaterialPositionRelativeGround + 810.0; // 810 distanza tra saldatura e taglio
+
+
+      Areas_ITF.A02.Safety_SuperUser.PbSafetyReset := A02_HMI.Area02.SuperUser.PbSafetyRst;
+      Areas_ITF.A02.Safety_SuperUser.SgnSafetyReset := A02_HMI.Area02.SuperUser.SgnSafetyRst;
+
+      Areas_ITF.A02.PitTable.IsUp := PitTable1.Lift.COut.Rest;
+      Areas_ITF.A02.PitTable.IsDown := PitTable1.Lift.COut.Work;
+
+      Areas_ITF.A02.Rollformer.VelocitySetpoint := Rollformer.Feed.Ax.AxisCtrl.Velocity;
+      Areas_ITF.A02.Rollformer.FWD_CheckNext := Rollformer.COut.Feed.Fwd_CheckNext;
+      Areas_ITF.A02.Rollformer.BWD_CheckNext := Rollformer.COut.Feed.Bwd_CheckNext;
+
+      Areas_ITF.A02.SetUp_Profiatrice_Done := A0201_Profilatrice_RegolazioneFormato.Cout.SetUp_Done;
+
+      Areas_ITF.A02.Part_Done := RollformingMng.COut.ProdManager.PartDone;
+
+      Areas_ITF.A02.LeadCutMem := RollformingMng_PERS.PersistentValues.Data.HeadingDone;
+
+      Areas_ITF.A02.StopInactivity := RollformingMng.Sts.StopInactivity;
+
+
+   END_REGION
+
+
+END_FUNCTION

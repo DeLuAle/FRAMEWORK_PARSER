@@ -1,0 +1,187 @@
+﻿// Block: A03_HMI
+
+DATA_BLOCK A03_HMI
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Area03 : Struct
+         Status : StatusArea;
+         SuperUser : SuperUser;
+      END_STRUCT;
+      MB3 : Struct
+         ManCode_REQ : Int;
+         ManCode_CMD : Int;
+         Button : Struct
+            A0301 : Struct
+               Trasporto : Ax_PB;
+               Ribaltatore : Struct
+                  Solleva_Rib : ValveMachine_PB;
+                  Rotazione : Ax_PB;
+               END_STRUCT;
+               P1 : Struct
+                  Fermi : ValveMachine_PB;
+                  Pareggiatore : ValveMachine_PB;
+               END_STRUCT;
+               P2 : Struct
+                  Fermi : ValveMachine_PB;
+                  Sollevatori : ValveMachine_PB;
+               END_STRUCT;
+               P3 : Struct
+                  Fermi : ValveMachine_PB;
+               END_STRUCT;
+               P4 : Struct
+                  Fermi : ValveMachine_PB;
+               END_STRUCT;
+               SpintoreLat : Struct
+                  OP : OP_PB;
+                  Vrt : ValveMachine_PB;
+                  Orz : ValveMachine_PB;
+                  Sollevatori : ValveMachine_PB;
+               END_STRUCT;
+            END_STRUCT;
+            A0302 : Struct
+               HU_Cytropack : Struct
+                  Start : Bool;
+                  Stop : Bool;
+               END_STRUCT;
+               SpintoreLong : Struct
+                  OP : OP_PB;
+                  Ax : Ax_PB;
+                  Vrt : ValveMachine_PB;
+                  Orz : ValveMachine_PB;
+               END_STRUCT;
+               Bordatrice : Struct
+                  OP_Ax : Ax_PB;
+                  Ax : Ax_PB;
+                  Regolazione : Struct
+                     Single_PB : Array[1..10] of Ax_PB;
+                     Passaggio_Combo : Array[1..4] of Ax_PB;
+                     Ax : Ax_PB;
+                  END_STRUCT;
+               END_STRUCT;
+               Rulliera : Struct
+                  OP : OP_PB;
+                  Ax : Ax_PB;
+               END_STRUCT;
+               Centratori : Struct
+                  OP : OP_PB;
+                  Centraggio : ValveMachine_PB;
+                  Sollevamento : ValveMachine_PB;
+               END_STRUCT;
+               PareggiatoreCoda : Struct
+                  OP_Ax : Ax_PB;
+                  OP_BattutaVrt : OP_PB;
+                  OP_PareggLong : OP_PB;
+                  Ax : Ax_PB;
+                  Bloccaggio : ValveMachine_PB;
+                  BattutaVerticale : ValveMachine_PB;
+                  PareggiatoreLongitudinale : ValveMachine_PB;
+               END_STRUCT;
+               PareggiatoreTesta : Struct
+                  OP_Ax : Ax_PB;
+                  OP_Sollevamento : OP_PB;
+                  OP_Centraggio : OP_PB;
+                  Ax : Ax_PB;
+                  Bloccaggio : ValveMachine_PB;
+                  Centratore : ValveMachine_PB;
+                  Sollevamento : ValveMachine_PB;
+               END_STRUCT;
+               Manipolatore : Struct
+                  OP_Ax : Struct
+                     MoveToPos : Bool;
+                  END_STRUCT;
+                  OP_Sollevamento : OP_PB;
+                  OP_Magneti : OP_PB;
+                  Ax : Ax_PB;
+                  Sollevatore : ValveMachine_PB;
+                  Magnete : ValveMachine_PB;
+               END_STRUCT;
+            END_STRUCT;
+            A0303 : Struct
+               Spalla : Struct
+                  Testa : Struct
+                     OP_Pos : Bool;
+                     Ax : Ax_PB;
+                  END_STRUCT;
+                  Coda : Struct
+                     OP_Pos : Bool;
+                     Ax : Ax_PB;
+                  END_STRUCT;
+               END_STRUCT;
+               SpintoreStrato : Struct
+                  OP_Work : Bool;
+                  OP_Rest : Bool;
+                  Vrt : ValveMachine_PB;
+                  Orz : ValveMachine_PB;
+               END_STRUCT;
+               TraslazioneStrato : Struct
+                  OP_Vai_A_Prelievo : Bool;
+                  OP_Prelievo : Bool;
+                  OP_Vai_A_Deposito : Bool;
+                  OP_Deposito : Bool;
+                  Ax : Ax_PB;
+                  Manip_Sostegno : ValveMachine_PB;
+                  Manip_Pareggiatore : ValveMachine_PB;
+                  SostegnoVrt : ValveMachine_PB;
+               END_STRUCT;
+               SollevamentoStrato : Struct
+                  OP_Prelievo : Bool;
+                  OP_Deposito : Bool;
+                  Ax : Ax_PB;
+               END_STRUCT;
+               SostegnoAntirib : Struct
+                  Testa : Struct
+                     OP_Ax : Struct
+                        MoveToPos : Bool;
+                     END_STRUCT;
+                     OP_Paletti : Struct
+                        Rest : Bool;
+                        Work : Bool;
+                     END_STRUCT;
+                     Ax : Ax_PB;
+                     Paletti : Struct
+                        Pos0 : Bool;
+                        Pos1 : Bool;
+                        Pos2 : Bool;
+                     END_STRUCT;
+                  END_STRUCT;
+                  Coda : Struct
+                     OP_Ax : Struct
+                        MoveToPos : Bool;
+                     END_STRUCT;
+                     OP_Paletti : Struct
+                        Rest : Bool;
+                        Work : Bool;
+                     END_STRUCT;
+                     Ax : Ax_PB;
+                     Paletti : Struct
+                        Pos0 : Bool;
+                        Pos1 : Bool;
+                        Pos2 : Bool;
+                     END_STRUCT;
+                  END_STRUCT;
+               END_STRUCT;
+            END_STRUCT;
+            A0304 : Struct
+               Navetta : Struct
+                  OP_Vai_A_Prelievo : Bool;
+                  OP_Prelievo : Bool;
+                  OP_Vai_A_Deposito : Bool;
+                  Ax : Ax_PB;
+                  Paletti : Struct
+                     Esterni : ValveMachine_PB;
+                     Interni : ValveMachine_PB;
+                  END_STRUCT;
+               END_STRUCT;
+            END_STRUCT;
+            PB_Empty : Struct
+               Valve : ValveMachine_PB;
+               Ax : Ax_PB;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

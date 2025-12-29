@@ -1,0 +1,35 @@
+﻿// Block: CoilHandlingMatCounter_CALL
+// Title: Coordination IN
+
+FUNCTION "CoilHandlingMatCounter_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Coordination IN
+   VAR_TEMP
+      Stratightener_Standstill : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Coordination IN"
+      CoilHandlingMatCounter.CIn.Rst := Area01.AreaInterface.RstAlarms;
+      Stratightener_Standstill := NOT ((NOT (Straightener.COut.Feed.Standstill) AND (A01_Straightener_Ax.VelocitySetpoint <> 0.0)));
+      CoilHandlingMatCounter.CIn.Standstill := ((Stratightener_Standstill AND JB.COut.Pinchroll_Feed.Standstill) OR (Stratightener_Standstill AND JB.COut.Pinchroll_Lift.Rest));
+      CoilHandlingMatCounter.CIn.CheckNextFeeding := (NOT ((((NOT (Straightener.COut.Feed.Bwd_CheckNext) AND NOT (Straightener.COut.Feed.Fwd_CheckNext)) AND NOT (JB.COut.Pinchroll_Feed.Fwd_CheckNext)) AND NOT (JB.COut.Pinchroll_Feed.Bwd_CheckNext))) AND CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit);
+      CoilHandlingMatCounter.CIn.EncoderValid := A01_Straightener_Ax.StatusWord;
+      CoilHandlingMatCounter.CIn.EncoderPosValid := (CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit OR (NOT (CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit) AND CoilHandlingMatCounter.CIn.EncoderValid));
+      CoilHandlingMatCounter.CIn.AxisPos := A01_Straightener_Ax.ActualPosition;
+   END_REGION
+
+   REGION "Main"
+      #CoilHandlingMatCounter(
+         en := TRUE,
+         Config := A01_Config.CoilHandlingMatCounter,
+         PersistentValues := CoilHandlingMatCounter_PERS.PersistentValues
+      );
+
+      #CoilHandlingMatCounter.Q;
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,327 @@
+﻿// Block: ValveMachine_FB
+// Title: Positive edges
+
+FUNCTION_BLOCK "ValveMachine_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Positive edges
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : ValveMachine_DataIn;
+      Cin : ValveMachine_Cin;
+      Config : ValveMachine_Config;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : ValveMachine_COut;
+      DataOut : ValveMachine_DataOut;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : ValveAlr;
+      Warning : ValveMachine_Wng;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Standstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         Rest_Cnd : Bool;
+         Work_Cnd : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         Work : Bool;
+         Rest : Bool;
+         Rest_Man : Bool;
+         Work_Man : Bool;
+         Rest_Aut : Bool;
+         Work_Aut : Bool;
+      END_STRUCT;
+      V : Valve;
+      TON_NoPendingCmd : TON_TIME;
+      TON_Rest_MissingExtEnable : TON_TIME;
+      TON_Work_MissingExtEnable : TON_TIME;
+      TON_PressureRunning_Timeout : TON_TIME;
+      Aux : Struct
+         Pb_Rest : Bool;
+         Pb_Work : Bool;
+         Pb_StartStop : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Pb_Rest : Bool;
+         Pb_Work : Bool;
+         Pb_StartStop : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "Positive edges"
+      PE.Pb_Rest := PosEdge(DataIn.PB.Rest);
+      PE.Pb_Work := PosEdge(DataIn.PB.Work);
+      PE.Pb_StartStop := PosEdge(DataIn.PB.StartStop);
+   END_REGION
+
+   REGION "Stop due next door opening"
+      Ctrl.StopDueDoorOpeningRequest := (((((TON_NoPendingCmd.Q AND Sts.Standstill) OR Ctrl.StopDueDoorOpeningRequest) AND Cin.Manager.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT (ZSI.Door_Opened));
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF Cin.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF Cin.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Aut"
+      Ctrl.Rest_Aut := ((Cin.Manager.Control_ON AND Cin.Manager.Rest) AND NOT (Cin.Manager.Work));
+      Ctrl.Work_Aut := ((Cin.Manager.Control_ON AND Cin.Manager.Work) AND NOT (Cin.Manager.Rest));
+   END_REGION
+
+   REGION "Man"
+      Ctrl.Rest_Man := (((((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND PE.Pb_StartStop) AND V.ValveSts.IsAtWork) OR ((((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND PE.Pb_StartStop) AND NOT (V.ValveSts.IsAtRest)) AND NOT (V.ValveSts.IsAtWork)) OR ((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND PE.Pb_Rest) OR (((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Rest_Man) AND DataIn.PB.StartStop) OR (((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Rest_Man) AND DataIn.PB.Rest) OR ((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Rest_Aut)) AND NOT (Ctrl.Work_Man));
+      Ctrl.Work_Man := (((((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND PE.Pb_StartStop) AND V.ValveSts.IsAtRest) OR ((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND PE.Pb_Work) OR (((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Work_Man) AND DataIn.PB.StartStop) OR (((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Work_Man) AND DataIn.PB.Work) OR ((AreaInterface.Man AND NOT (Cin.Manager.Control_ON)) AND Ctrl.Work_Aut)) AND NOT (Ctrl.Rest_Man));
+   END_REGION
+
+   REGION "Conditions"
+      Sts.Rest_Cnd := (((((NOT (Ctrl.StopDueDoorOpeningRequest) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) AND NOT (Ctrl.StopAborting)) AND Cin.Rest_ExtEnable) AND V.ValveSts.RestPermit);
+      Sts.Work_Cnd := (((((NOT (Ctrl.StopDueDoorOpeningRequest) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) AND NOT (Ctrl.StopAborting)) AND Cin.Work_ExtEnable) AND V.ValveSts.WorkPermit);
+   END_REGION
+
+   REGION "Valve control"
+      V.ValveCtrl.Rst := AreaInterface.RstAlarms;
+      V.ValveCtrl.SafeStop := NOT (((NOT (DSI.SafeStop) AND DSI.PowerEnable) AND NOT (DSI.DevicesInSafeState)));
+      COut.Rest_CheckNext := ((Ctrl.Rest_Man AND NOT (Cin.Manager.Control_ON)) OR Ctrl.Rest_Aut);
+      V.ValveCtrl.MoveRest := (((Ctrl.Rest_Man AND NOT (Cin.Manager.Control_ON)) OR Ctrl.Rest_Aut) AND Sts.Rest_Cnd);
+      COut.Work_CheckNext := ((Ctrl.Work_Man AND NOT (Cin.Manager.Control_ON)) OR Ctrl.Work_Aut);
+      V.ValveCtrl.MoveWork := (((Ctrl.Work_Man AND NOT (Cin.Manager.Control_ON)) OR Ctrl.Work_Aut) AND Sts.Work_Cnd);
+   END_REGION
+
+   REGION "Warning missing external enables"
+      #TON_Rest_MissingExtEnable(
+         IN := (COut.Rest_CheckNext AND NOT (Cin.Rest_ExtEnable)),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_Work_MissingExtEnable(
+         IN := (COut.Work_CheckNext AND NOT (Cin.Work_ExtEnable)),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_Rest_MissingExtEnable.Q;
+      Warning.Rest_MissingExtEnable := #TON_Rest_MissingExtEnable.Q;
+      #TON_Work_MissingExtEnable.Q;
+      Warning.Work_MissingExtEnable := #TON_Work_MissingExtEnable.Q;
+   END_REGION
+
+   REGION "Valve manager"
+      #V(
+         en := TRUE,
+         RestLimitSwitch := ((((((((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND DataIn.Rest_Ls[4]) AND DataIn.Rest_Ls[5]) AND DataIn.Rest_Ls[6]) AND DataIn.Rest_Ls[7]) AND DataIn.Rest_Ls[8]) OR (((((((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND DataIn.Rest_Ls[4]) AND DataIn.Rest_Ls[5]) AND DataIn.Rest_Ls[6]) AND DataIn.Rest_Ls[7]) AND (Config.Rest_LsQty <= 7)) OR ((((((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND DataIn.Rest_Ls[4]) AND DataIn.Rest_Ls[5]) AND DataIn.Rest_Ls[6]) AND (Config.Rest_LsQty <= 6)) OR (((((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND DataIn.Rest_Ls[4]) AND DataIn.Rest_Ls[5]) AND (Config.Rest_LsQty <= 5)) OR ((((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND DataIn.Rest_Ls[4]) AND (Config.Rest_LsQty <= 4)) OR (((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND DataIn.Rest_Ls[3]) AND (Config.Rest_LsQty <= 3)) OR ((DataIn.Rest_Ls[1] AND DataIn.Rest_Ls[2]) AND (Config.Rest_LsQty <= 2)) OR (DataIn.Rest_Ls[1] AND (Config.Rest_LsQty <= 1))),
+         WorkLimitSwitch := ((((((((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND DataIn.Work_Ls[4]) AND DataIn.Work_Ls[5]) AND DataIn.Work_Ls[6]) AND DataIn.Work_Ls[7]) AND DataIn.Work_Ls[8]) OR (((((((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND DataIn.Work_Ls[4]) AND DataIn.Work_Ls[5]) AND DataIn.Work_Ls[6]) AND DataIn.Work_Ls[7]) AND (Config.Work_LsQty <= 7)) OR ((((((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND DataIn.Work_Ls[4]) AND DataIn.Work_Ls[5]) AND DataIn.Work_Ls[6]) AND (Config.Work_LsQty <= 6)) OR (((((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND DataIn.Work_Ls[4]) AND DataIn.Work_Ls[5]) AND (Config.Work_LsQty <= 5)) OR ((((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND DataIn.Work_Ls[4]) AND (Config.Work_LsQty <= 4)) OR (((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND DataIn.Work_Ls[3]) AND (Config.Work_LsQty <= 3)) OR ((DataIn.Work_Ls[1] AND DataIn.Work_Ls[2]) AND (Config.Work_LsQty <= 2)) OR (DataIn.Work_Ls[1] AND (Config.Work_LsQty <= 1))),
+         OilInPressure := Cin.PressureRunning,
+         Config := Config.V,
+         Alarm := Alarm
+      );
+
+      #V.Q;
+   END_REGION
+
+   REGION "Warning missing REST Ls"
+      IF (((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND NOT (DataIn.Rest_Ls[1])) THEN
+         Warning.Missing_Rest_Ls_ON[1] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 2)) AND NOT (DataIn.Rest_Ls[2])) THEN
+         Warning.Missing_Rest_Ls_ON[2] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 3)) AND NOT (DataIn.Rest_Ls[3])) THEN
+         Warning.Missing_Rest_Ls_ON[3] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 4)) AND NOT (DataIn.Rest_Ls[4])) THEN
+         Warning.Missing_Rest_Ls_ON[4] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 5)) AND NOT (DataIn.Rest_Ls[5])) THEN
+         Warning.Missing_Rest_Ls_ON[5] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 6)) AND NOT (DataIn.Rest_Ls[6])) THEN
+         Warning.Missing_Rest_Ls_ON[6] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 7)) AND NOT (DataIn.Rest_Ls[7])) THEN
+         Warning.Missing_Rest_Ls_ON[7] := TRUE;
+      END_IF;
+      IF ((((Config.Rest_LsQty > 1) AND Alarm.TimeOutRest) AND (Config.Rest_LsQty >= 8)) AND NOT (DataIn.Rest_Ls[8])) THEN
+         Warning.Missing_Rest_Ls_ON[8] := TRUE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[1] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[2] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[3] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[4] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[5] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[6] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[7] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutRest) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Rest_Ls_ON[8] := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning missing WORK Ls"
+      IF (((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND NOT (DataIn.Work_Ls[1])) THEN
+         Warning.Missing_Work_Ls_ON[1] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 2)) AND NOT (DataIn.Work_Ls[2])) THEN
+         Warning.Missing_Work_Ls_ON[2] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 3)) AND NOT (DataIn.Work_Ls[3])) THEN
+         Warning.Missing_Work_Ls_ON[3] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 4)) AND NOT (DataIn.Work_Ls[4])) THEN
+         Warning.Missing_Work_Ls_ON[4] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 5)) AND NOT (DataIn.Work_Ls[5])) THEN
+         Warning.Missing_Work_Ls_ON[5] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 6)) AND NOT (DataIn.Work_Ls[6])) THEN
+         Warning.Missing_Work_Ls_ON[6] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 7)) AND NOT (DataIn.Work_Ls[7])) THEN
+         Warning.Missing_Work_Ls_ON[7] := TRUE;
+      END_IF;
+      IF ((((Config.Work_LsQty > 1) AND Alarm.TimeOutWork) AND (Config.Work_LsQty >= 8)) AND NOT (DataIn.Work_Ls[8])) THEN
+         Warning.Missing_Work_Ls_ON[8] := TRUE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[1] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[2] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[3] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[4] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[5] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[6] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[7] := FALSE;
+      END_IF;
+      IF (NOT (Alarm.TimeOutWork) OR AreaInterface.RstAlarms) THEN
+         Warning.Missing_Work_Ls_ON[8] := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning pressure running timeout"
+      #TON_PressureRunning_Timeout(
+         IN := (V.ReqOilPressure AND NOT (Cin.PressureRunning)),
+         PT := Config.DelayPressureRunningTimeout
+      );
+
+      #TON_PressureRunning_Timeout.Q;
+      Warning.PressureRunning_Timeout := #TON_PressureRunning_Timeout.Q;
+   END_REGION
+
+   REGION "Coordination out"
+      COut.ReqOilPressure := V.ReqOilPressure;
+      COut.CtrlSafe := (NOT (TON_NoPendingCmd.IN) OR (Cin.Manager.Control_ON AND NOT (Ctrl.StopDueDoorOpeningRequest)));
+      COut.Standstill := V.ValveSts.StandStill;
+      COut.Rest_CheckNext := COut.Rest_CheckNext;
+      COut.Work_CheckNext := COut.Work_CheckNext;
+      COut.Rest := V.ValveSts.IsAtRest;
+      COut.Work := V.ValveSts.IsAtWork;
+   END_REGION
+
+   REGION "Data Out"
+      DataOut.RestSolenoid := V.RestSolenoid;
+      DataOut.WorkSolenoid := V.WorkSolenoid;
+   END_REGION
+
+   REGION "Standstill"
+      Sts.Standstill := (V.ValveSts.StandStill OR DSI.DevicesInSafeState);
+   END_REGION
+
+   REGION "No pending commands"
+      #TON_NoPendingCmd(
+         IN := ((((NOT (Sys.FirstPLCCycle) AND NOT (COut.Rest_CheckNext)) AND NOT (COut.Work_CheckNext)) AND NOT (V.ValveCtrl.MoveRest)) AND NOT (V.ValveCtrl.MoveWork)),
+         PT := T#500ms
+      );
+
+      #TON_NoPendingCmd.Q;
+   END_REGION
+
+   REGION "Warnings presence"
+      Sts.WarningsPresence := NOT ((((NOT (Warning.NotAutReady) AND NOT (Warning.PressureRunning_Timeout)) AND NOT (Warning.Rest_MissingExtEnable)) AND NOT (Warning.Work_MissingExtEnable)));
+   END_REGION
+
+   REGION "Alarms presence"
+      Sts.AlarmsPresence := NOT ((NOT (V.ValveSts.AlarmPresence) AND NOT (Cin.ExternalAlarms)));
+   END_REGION
+
+   REGION "Stop aborting"
+      Ctrl.StopAborting := ((AreaInterface.Cycle OR AreaInterface.Aut) AND Sts.AlarmsPresence);
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      MachineInterface.MotionsStandStill := TON_NoPendingCmd.Q AND Sts.Standstill;
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+   END_REGION
+
+   REGION "Warning Machine not ready for automatic"
+      IF NOT ((NOT (AreaInterface.RstAlarms) AND NOT (AreaInterface.Cycle))) THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT (MachineInterface.AutReady)) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "ENO"
+      ENO := NOT Sts.AlarmsPresence;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

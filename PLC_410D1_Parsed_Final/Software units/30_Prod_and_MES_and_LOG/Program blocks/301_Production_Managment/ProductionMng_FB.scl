@@ -1,0 +1,1217 @@
+﻿FUNCTION_BLOCK "ProductionMng_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Cin : "Prod_CIn";
+   END_VAR
+
+   VAR_OUTPUT 
+      COut : "Prod_COut";
+   END_VAR
+
+   VAR_IN_OUT 
+      Pers : "Prod_Pers";
+   END_VAR
+
+   VAR 
+      Warnings : Struct
+         Error_Send_Message_To_MES_Cumulative : Bool;
+         SetUp { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+            PUSH_MSG101 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+            Caricamento_PPrf { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Struct
+               Err_Load_PPrf { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+               Err_Load_Timeout { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+               Err_NumeroProgrammaNonValido { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+               Err_NonCorrisponde_W_A { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+               Err_NonCorrisponde_H_B { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+               Err_NonCorrisponde_Spessore { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            END_STRUCT;
+            Attesa_Avvio_SetUp_Automatico { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            SetUp_Automatico_Avviato { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            Attesa_Completamento_SetUp_Manuale { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            Attesa_Inizio_Inserimento_lamiera { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            Attesa_Fine_inserimento_lamiera { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            Attesa_Taglio_di_Intestazione { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Bool;
+            PUSH_MSG102 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         END_STRUCT;
+         Error_Pop_O_ACT_to_O_ENDING { S7_SetPoint := 'False'} : "MES_Err";
+         Error_Pop_O_TODO_to_O_ACT { S7_SetPoint := 'False'} : "MES_Err";
+         O_ACT_Empty : Bool;
+      END_STRUCT;
+      Messages : Struct
+         Err_MSG131_Part_GOOD { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_Part_NG : "MES_Err_&_Msg";
+         Err_MSG131_Part_GOOD_R { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_Part_NG_R : "MES_Err_&_Msg";
+         Err_MSG131_Part_DELETE : "MES_Err_&_Msg";
+         Err_MSG131_Beam_GOOD { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_Beam_GOOD_R { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_Beam_NG_R { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_Beam_DELETE { S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG131_O_ACT_Status_Update : "MES_Err_&_Msg";
+         Err_MSG131_O_TODO_Status_Update : "MES_Err_&_Msg";
+         Err_MSG131_O_ENDING_Status_Update : "MES_Err_&_Msg";
+         Err_MSG131_O_OUT_Status_Update : "MES_Err_&_Msg";
+         Err_Msg201 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg211 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg310_O_ACT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg310_O_ENDING { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1.."PROD_ENDING_ITEMS"] of "MES_Err_&_Msg";
+         Err_Msg311_O_ACT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg311_O_ENDING { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Array[1.."PROD_ENDING_ITEMS"] of "MES_Err_&_Msg";
+         Err_Msg411 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg413 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_Msg423 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'; S7_SetPoint := 'False'} : "MES_Err_&_Msg";
+         Err_MSG431_Part_BAD : "MES_Err_&_Msg";
+         Err_MSG431_Part_NG : "MES_Err_&_Msg";
+         Err_MSG431_Part_NG_R : "MES_Err_&_Msg";
+         Err_MSG431_Part_DELETE : "MES_Err_&_Msg";
+         Err_MSG431_Beam_NG_R : "MES_Err_&_Msg";
+         Err_MSG431_Beam_DELETE : "MES_Err_&_Msg";
+         Err_Msg431_FineLamieraRF : "MES_Err_&_Msg";
+      END_STRUCT;
+      i : Int;
+      Part_Done_Event : Struct
+         Exe_Update : Bool;
+         ACK_Done : Bool;
+         Is_BAD_WELD : Bool;
+         IS_BAD_EXCEED_TOL : Bool;
+         Is_BAD_TEST : Bool;   // Incrementa conteggio lunghezza materiale scartato a causa di parti eseguite per test
+         is_GOOD : Bool;
+         Is_TO_CHECK_LEN : Bool;
+         OK_StampoSpessore : Bool;
+         OK_StampoColata : Bool;
+         Save_PTrk { S7_SetPoint := 'False'} : "PTrk_Item";
+         LenErr : Real;   // Errore lunghezza parte tagliata
+         LenErrAbs : Real;
+         LenErrBADLimit : Real;   // Errore massimo Lunghezza Parte per essere TO_CHECK
+         RETVAL_PTrk_Update : Int;
+         RETVAL_Next_To_Do : Int;
+      END_STRUCT;
+      Part_GOOD_R_Event : Struct
+         Exe : Bool;   // Un SemiGuscio è stato ricondizionato a Good
+         Save_PTrk { S7_SetPoint := 'False'} : "PTrk_Item";
+      END_STRUCT;
+      Part_NG_R_Event : Struct
+         Exe : Bool;   // Un SemiGuscio è stato ricondizionato a NotGood
+         Save_PTrk { S7_SetPoint := 'False'} : "PTrk_Item";
+         Indx { S7_SetPoint := 'True'} : Int;
+      END_STRUCT;
+      Part_Delete_Event : Struct
+         Exe : Bool;
+         index : Int;
+         P_Array_Code : Int;
+         PTrk_Save { S7_SetPoint := 'False'} : "PTrk_Item";
+      END_STRUCT;
+      Beam_Done_Event : Struct
+         GOOD : Bool;
+         TO_CHECK : Bool;
+      END_STRUCT;
+      Beam_Recondition_Event : Struct
+         GOOD_R : Bool;   // Un SemiGuscio è stato ricondizionato a Good
+         NG_R : Bool;   // Un SemiGuscio è stato ricondizionato a NotGood
+         NG_R_Index : Int;
+      END_STRUCT;
+      Beam_Delete_Event : Struct
+         Exe : Bool;   // Un SemiGuscio è stato ricondizionato a Good
+         Index : Int;
+         B_Array_Code : Int;
+         BTRK_Item_Save { S7_SetPoint := 'False'} : "BTrk_item";
+      END_STRUCT;
+      Update_Part_BAD { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Push_MSG431_PTRK";
+      Update_Part_GOOD { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_GOOD";
+      Update_Part_TOCHECK { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_TOCHECK";
+      Update_Part_NG { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_NG";
+      Update_Part_GOOD_R { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_GOOD_R";
+      Update_Part_NG_R { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_NG_R";
+      Update_Part_Delete { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Part_Delete";
+      Update_Beam_GOOD { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Beam_GOOD";
+      Update_Beam_GOOD_R { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Beam_GOOD_R";
+      Update_Beam_TOCHECK { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Beam_TOCHECK";
+      Update_Beam_NG_R { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Beam_NG_R";
+      Update_Beam_Delete { S7_SetPoint := 'False'} : "Prod_O_Counters_Update_Beam_Delete";
+      O_Status_Update { S7_SetPoint := 'False'} : "Prod_O_Status_Update";
+      Clean_O_ENDING : "Prod_O_ENDING_Clean";
+      Sospensioni : "Prod_Update_Stato_Sospensioni_Mng";
+      HMI_Mng : "Prod_HMI_Mng";
+      SetUp_Mng : "Prod_SetUp_Mng_Vrs2";
+      Stato_Pacchi : "Prod_O_Update_Stato_Pacchi_Mng";
+      Coils_Mng : "Prod_Coils_Mng";
+      OrdineKanban { S7_SetPoint := 'True'} : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      Max_Index : Int;
+      RETVAL_CHECK_EXECUTABLE : DInt;
+   END_VAR
+
+
+BEGIN
+	REGION inserimento ordini da MES è Acceso / è Spento
+	    
+	    
+	    #Pers.Data.MODE.MES_ON := #Pers.Par.MES_Operating >= 1;
+	    
+	END_REGION
+	
+	
+	REGION Cambio automatico dell'ordine di produzione è Acceso / è Spento
+	    
+	    #Pers.Data.MODE.Cambio_Ordine_Automatico := #Pers.Par.AUT_PushOrder_InProduction >= 1;
+	    
+	END_REGION
+	
+	
+	REGION Reset
+	    
+	    IF #Cin.Rst THEN
+	        #Warnings.Error_Pop_O_ACT_to_O_ENDING.Presence := FALSE;
+	        #Warnings.Error_Pop_O_TODO_to_O_ACT.Presence := FALSE;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	
+	REGION Cumulativo errori send message
+	    
+	    #Warnings.Error_Send_Message_To_MES_Cumulative :=
+	    
+	    #Warnings.SetUp.PUSH_MSG101.Presence
+	    OR
+	    #Warnings.SetUp.PUSH_MSG102.Presence
+	    OR
+	    #Messages.Err_MSG431_Part_BAD.Presence
+	    OR
+	    #Messages.Err_MSG131_Part_GOOD.Presence
+	    OR
+	    #Messages.Err_MSG131_Part_NG.Presence
+	    OR
+	    #Messages.Err_MSG431_Part_NG.Presence
+	    OR
+	    #Messages.Err_MSG131_Part_GOOD_R.Presence
+	    OR
+	    #Messages.Err_MSG131_Part_NG_R.Presence
+	    OR
+	    #Messages.Err_MSG431_Part_NG_R.Presence
+	    OR
+	    #Messages.Err_MSG131_Part_DELETE.Presence
+	    OR
+	    #Messages.Err_MSG431_Part_DELETE.Presence
+	    OR
+	    #Messages.Err_MSG131_Beam_GOOD.Presence
+	    OR
+	    #Messages.Err_MSG131_Beam_GOOD_R.Presence
+	    OR
+	    #Messages.Err_MSG131_Beam_NG_R.Presence
+	    OR
+	    #Messages.Err_MSG431_Beam_NG_R.Presence
+	    OR
+	    #Messages.Err_MSG131_Beam_DELETE.Presence
+	    OR
+	    #Messages.Err_MSG431_Beam_DELETE.Presence
+	    OR
+	    #Messages.Err_MSG131_O_ACT_Status_Update.Presence
+	    OR
+	    #Messages.Err_MSG131_O_TODO_Status_Update.Presence
+	    OR
+	    #Messages.Err_MSG131_O_ENDING_Status_Update.Presence
+	    OR
+	    #Messages.Err_MSG131_O_OUT_Status_Update.Presence
+	    OR
+	    #Messages.Err_Msg310_O_ACT.Presence
+	    OR
+	    #Messages.Err_Msg311_O_ACT.Presence
+	    OR
+	    #Messages.Err_Msg310_O_ENDING[1].Presence
+	    OR
+	    #Messages.Err_Msg310_O_ENDING[2].Presence
+	    OR
+	    #Messages.Err_Msg310_O_ENDING[3].Presence
+	    OR
+	    #Messages.Err_Msg310_O_ENDING[4].Presence
+	    OR
+	    #Messages.Err_Msg310_O_ENDING[5].Presence
+	    OR
+	    #Messages.Err_Msg311_O_ENDING[1].Presence
+	    OR
+	    #Messages.Err_Msg311_O_ENDING[2].Presence
+	    OR
+	    #Messages.Err_Msg311_O_ENDING[3].Presence
+	    OR
+	    #Messages.Err_Msg311_O_ENDING[4].Presence
+	    OR
+	    #Messages.Err_Msg311_O_ENDING[5].Presence
+	    OR
+	    #Messages.Err_Msg201.Presence
+	    OR
+	    #Messages.Err_Msg211.Presence
+	    ;
+	    
+	END_REGION
+	
+	
+	REGION < NUOVA PARTE PRODOTTA >
+	    
+	    #Part_Done_Event.Exe_Update := #Cin.Part_Execution.Done AND NOT #Part_Done_Event.ACK_Done;
+	    
+	    
+	    IF #Part_Done_Event.Exe_Update THEN
+	        
+	        // Push dati su item traking...
+	        
+	        #Part_Done_Event.Save_PTrk.O_ID := "Production".O_ACT.O_ID;
+	        
+	        #Part_Done_Event.Save_PTrk.C_ID := "Production".Coil_Data.TAGLIO_FINALE.C_ID;
+	        
+	        #Part_Done_Event.Save_PTrk.P_ID := #Cin.Part_Execution.P_ID;
+	        
+	        #Part_Done_Event.Save_PTrk.Quality := "UNKNOW";
+	        
+	        #Part_Done_Event.Save_PTrk.Beam_Code := "Production".O_ACT.Beam_Code;
+	        
+	        #Part_Done_Event.Save_PTrk.W_A := "Production".O_ACT.Beams_W_A;
+	        
+	        #Part_Done_Event.Save_PTrk.H_B := "Production".O_ACT.Beams_H_B;
+	        
+	        #Part_Done_Event.Save_PTrk.ShiftDone := FALSE;
+	        
+	        #Part_Done_Event.Save_PTrk.PLen_Meas := #Cin.Part_Execution.Part_LenMeas;
+	        
+	        
+	        // Errore lunghezza..Se > 0 il pezzo è più lungo del richiesto / Se > 0 è più corto
+	        #Part_Done_Event.LenErr := #Part_Done_Event.Save_PTrk.PLen_Meas - "Production".O_ACT.Parts_Len;
+	        
+	        // Errore lunghezza assoluto
+	        #Part_Done_Event.LenErrAbs := ABS(#Part_Done_Event.LenErr);
+	        
+	        // Errore lunghezza assoluto massimo per assegnazione diretta della parte tagliata tra le NotGood senza passare per TO_CHECK
+	        
+	        #Part_Done_Event.LenErrBADLimit := "Production".O_ACT.Parts_Tol * #Pers.Par.PartTolFactor_BAD_EXCEED_TOL;
+	        
+	        #Part_Done_Event.LenErrBADLimit := MAX_REAL(IN1 := "Production".O_ACT.Parts_Tol, IN2 := #Part_Done_Event.LenErrBADLimit);
+	        
+	        
+	        
+	        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	        // ELABORAZIONE RISULTATO QUALITY
+	        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	        
+	        #Part_Done_Event.Is_BAD_WELD := FALSE;
+	        #Part_Done_Event.Is_BAD_TEST := FALSE;
+	        #Part_Done_Event.is_GOOD := FALSE;
+	        #Part_Done_Event.Is_TO_CHECK_LEN := FALSE;
+	        #Part_Done_Event.IS_BAD_EXCEED_TOL := FALSE;
+	        
+	        #Part_Done_Event.OK_StampoSpessore := NOT (#Cin.Part_Execution.Tick_Mark XOR "Production".O_ACT.Use_Thick_Mark_Tool);
+	        
+	        #Part_Done_Event.OK_StampoColata := NOT (#Cin.Part_Execution.Trace_Mark XOR "Production".O_ACT.Use_Trace_Mark_Tool);
+	        
+	        
+	        
+	        IF #Cin.Part_Execution.Weld
+	        THEN
+	            #Part_Done_Event.Save_PTrk.Quality := "PART_BAD_WELD";
+	            
+	            #Part_Done_Event.Is_BAD_WELD := TRUE;
+	            
+	        ELSIF #Part_Done_Event.Save_PTrk.P_ID <> #COut.Part_Target_To_Execute_1.P_ID
+	            AND
+	            #Part_Done_Event.Save_PTrk.P_ID <> #COut.Part_Target_To_Execute_2.P_ID
+	        THEN
+	            #Part_Done_Event.Save_PTrk.Quality := "PART_BAD_TEST";
+	            #Part_Done_Event.Is_BAD_TEST := TRUE;
+	            
+	        ELSIF #Part_Done_Event.OK_StampoSpessore AND #Part_Done_Event.OK_StampoColata
+	        THEN
+	            IF #Part_Done_Event.LenErrAbs <= "Production".O_ACT.Parts_Tol
+	            THEN
+	                #Part_Done_Event.Save_PTrk.Quality := "GOOD";
+	                #Part_Done_Event.is_GOOD := TRUE;
+	                
+	            ELSIF #Part_Done_Event.LenErrAbs <= #Part_Done_Event.LenErrBADLimit
+	            THEN
+	                #Part_Done_Event.Save_PTrk.Quality := "TO_CHECK_LEN";
+	                #Part_Done_Event.Is_TO_CHECK_LEN := TRUE;
+	            ELSE
+	                #Part_Done_Event.Save_PTrk.Quality := "PART_BAD_EXCEED_TOL";
+	                #Part_Done_Event.IS_BAD_EXCEED_TOL := TRUE;
+	            END_IF;
+	        END_IF;
+	        
+	        
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	REGION Aggiornamento Contatori
+	    
+	    
+	    REGION Update PART BAD_WELD / BAD_TEST
+	        
+	        IF #Part_Done_Event.Is_BAD_WELD THEN
+	            #Part_Done_Event.Is_BAD_TEST := FALSE;
+	            
+	            #Update_Part_BAD(Exe             := #Part_Done_Event.Is_BAD_WELD,
+	                             "PTrk"          := #Part_Done_Event.Save_PTrk,
+	                             Err_Push_Msg431 := #Messages.Err_MSG431_Part_BAD);
+	            
+	            
+	        END_IF;
+	        
+	        IF #Part_Done_Event.Is_BAD_TEST THEN
+	            #Part_Done_Event.Is_BAD_WELD := FALSE;
+	            #Update_Part_BAD(Exe             := #Part_Done_Event.Is_BAD_TEST,
+	                             "PTrk"          := #Part_Done_Event.Save_PTrk,
+	                             Err_Push_Msg431 := #Messages.Err_MSG431_Part_BAD);
+	            
+	        END_IF;
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contatori caso PART GOOD
+	        
+	        // Aggiornamento conteggi ordine
+	        // 
+	        #Update_Part_GOOD(Exe             := #Part_Done_Event.is_GOOD  (*AND #Part_Done_Event.Exe_Update*),
+	                          PTrk            := #Part_Done_Event.Save_PTrk,
+	                          Err_Push_MSG131 := #Messages.Err_MSG131_Part_GOOD);
+	        
+	        
+	        
+	        // Aggiornamento campo "Quality" su posizione traking pezzo uscito dal taglio al volo
+	        // 
+	        IF #Update_Part_GOOD.ACK THEN
+	            
+	            #Part_Done_Event.is_GOOD := FALSE;
+	            
+	            IF (*#Part_Done_Event.Save_PTrk.Quality <> "UNKNOW"
+	                AND*)
+	                #Part_Done_Event.Save_PTrk.P_ID > 0
+	            THEN
+	                #Part_Done_Event.RETVAL_PTrk_Update := "PTrk_Single_Item_Update"("PTrk" := #Part_Done_Event.Save_PTrk);
+	            END_IF;
+	        END_IF;
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso PART TO_CHECK
+	        
+	        
+	        #Update_Part_TOCHECK(Exe  := #Part_Done_Event.Is_TO_CHECK_LEN,
+	                             PTrk := #Part_Done_Event.Save_PTrk);
+	        
+	        
+	        IF #Update_Part_TOCHECK.ACK THEN
+	            #Part_Done_Event.Is_TO_CHECK_LEN := FALSE;
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso PART NG
+	        
+	        
+	        #Update_Part_NG(Exe             := #Part_Done_Event.IS_BAD_EXCEED_TOL AND #Part_Done_Event.Exe_Update,
+	                        PTrk            := #Part_Done_Event.Save_PTrk,
+	                        Err_Push_MSG131 := #Messages.Err_MSG131_Part_NG,
+	                        Err_Push_MSG431 := #Messages.Err_MSG431_Part_NG);
+	        
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso PART GOOD_R
+	        
+	        // Controlla se su posizione tracking parti in battuta a fine rulliera di accelerazione
+	        // c'è un pezzo ricondizionato "RECOND_GOOD" e che quindi deve diventare "GOOD_R" 
+	        
+	        #Part_GOOD_R_Event.Exe := FALSE;
+	        
+	        IF "PTrk".A0301.P["PTRK_A0202_P0"].Quality = "RECOND_GOOD" THEN
+	            
+	            #Part_NG_R_Event.Save_PTrk := "PTrk".A0202.P["PTRK_A0202_P0"];
+	            #Part_NG_R_Event.Save_PTrk.Quality := "GOOD_R";
+	            #Part_GOOD_R_Event.Exe := TRUE;
+	            
+	        END_IF;
+	        
+	        #Update_Part_GOOD_R(Exe             := #Part_GOOD_R_Event.Exe,
+	                            PTrk            := #Part_Done_Event.Save_PTrk,
+	                            Err_Push_MSG131 := #Messages.Err_MSG131_Part_GOOD_R);
+	        
+	        
+	        IF #Update_Part_GOOD_R.ACK THEN
+	            
+	            "PTrk".A0301.P["PTRK_A0202_P0"].Quality := "GOOD_R";
+	            
+	        END_IF;
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso PART NG_R
+	        
+	        
+	        // Controlla se sullo scivolo uscita rulliera di accelerazione ci sono SemiGusci
+	        // Ricondizionati a "RECOND_NG" e che  quindi devono diventare "NG_R"
+	        // 
+	        #Part_NG_R_Event.Exe := FALSE;
+	        
+	        FOR #i := 1 TO "PTRK_A0202_EXIT_TOCHECK_ITEMS" DO
+	            
+	            IF "PTrk".A02_EXIT_TOCHECK[#i].Quality = "RECOND_NG" THEN
+	                
+	                #Part_NG_R_Event.Indx := #i;
+	                #Part_NG_R_Event.Save_PTrk := "PTrk".A02_EXIT_TOCHECK[#i];
+	                #Part_NG_R_Event.Exe := TRUE;
+	                
+	                EXIT;
+	            END_IF;
+	        END_FOR;
+	        
+	        #Update_Part_NG_R(Exe             := #Part_NG_R_Event.Exe,
+	                          PTrk            := #Part_NG_R_Event.Save_PTrk,
+	                          Err_Push_MSG131 := #Messages.Err_MSG131_Part_NG_R,
+	                          Err_Push_MSG431 := #Messages.Err_MSG431_Part_NG_R);
+	        
+	        
+	        IF #Update_Part_NG_R.ACK THEN
+	            "PTrk".A02_EXIT_TOCHECK[#Part_NG_R_Event.Indx].Quality := "NG_R";
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso PART DELETE
+	        
+	        
+	        
+	        #Part_Delete_Event.Exe := FALSE;
+	        #Part_Delete_Event.index := 1;
+	        #Part_Delete_Event.P_Array_Code := 0;
+	        
+	        
+	        IF #Part_Delete_Event.Exe = FALSE THEN
+	            FOR #i := 1 TO "PTRK_A0202_ITEMS" DO
+	                
+	                IF "PTrk".A0202.P[#i].Quality = "GOOD_DEL"
+	                    OR
+	                    "PTrk".A0202.P[#i].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Part_Delete_Event.index := #i;
+	                    #Part_Delete_Event.PTrk_Save := "PTrk".A0202.P[#i];
+	                    #Part_Delete_Event.P_Array_Code := 1;
+	                    #Part_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        IF #Part_Delete_Event.Exe = FALSE THEN
+	            FOR #i := 1 TO "PTRK_A0202_EXIT_TOCHECK_ITEMS" DO
+	                IF "PTrk".A02_EXIT_TOCHECK[#i].Quality = "GOOD_DEL"
+	                    OR
+	                    "PTrk".A02_EXIT_TOCHECK[#i].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Part_Delete_Event.index := #i;
+	                    #Part_Delete_Event.PTrk_Save := "PTrk".A02_EXIT_TOCHECK[#i];
+	                    #Part_Delete_Event.P_Array_Code := 2;
+	                    #Part_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        IF #Part_Delete_Event.Exe = FALSE THEN
+	            FOR #i := 1 TO "PTRK_A0301_ITEMS" DO
+	                IF "PTrk".A0301.P[#i].Quality = "GOOD_DEL"
+	                    OR
+	                    "PTrk".A0301.P[#i].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Part_Delete_Event.index := #i;
+	                    #Part_Delete_Event.PTrk_Save := "PTrk".A0301.P[#i];
+	                    #Part_Delete_Event.P_Array_Code := 3;
+	                    #Part_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        #Update_Part_Delete(Exe             := #Part_Delete_Event.Exe,
+	                            PTrk            := #Part_Delete_Event.PTrk_Save,
+	                            Err_Push_MSG131 := #Messages.Err_MSG131_Part_DELETE,
+	                            Err_Push_MSG431 := #Messages.Err_MSG431_Part_DELETE);
+	        
+	        
+	        IF #Update_Part_Delete.ACK
+	        THEN
+	            CASE #Part_Delete_Event.P_Array_Code OF
+	                1:
+	                    "PTrk".A0202.P[#Part_Delete_Event.index] := "PTrk".Empty;
+	                2:
+	                    "PTrk".A02_EXIT_TOCHECK[#Part_Delete_Event.index] := "PTrk".Empty;
+	                3:
+	                    "PTrk".A0301.P[#Part_Delete_Event.index] := "PTrk".Empty;
+	                ELSE:
+	                    ;
+	            END_CASE;
+	            
+	            #Part_Delete_Event.Exe := FALSE;
+	            
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso BEAM GOOD
+	        
+	        // Controlla se su posizione tracking beam pareggiato
+	        // c'è un pezzo con stato "BEAM_GOOD_N" e che quindi deve diventare "GOOD"
+	        
+	        #Beam_Done_Event.GOOD := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality = "BEAM_GOOD_N";
+	        
+	        
+	        #Update_Beam_GOOD(Exe             := #Beam_Done_Event.GOOD,
+	                          BTrk            := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"],
+	                          Err_Push_MSG131 := #Messages.Err_MSG131_Beam_GOOD);
+	        
+	        
+	        IF #Update_Beam_GOOD.ACK
+	        THEN
+	            "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality := "GOOD";
+	        END_IF;
+	        
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso BEAM TO_CHECK
+	        
+	        // Controlla se su posizione tracking beam pareggiato
+	        // c'è un pezzo con stato ""BEAM_TO_CHECK_N" e che quindi deve diventare "TO_CHECK" 
+	        
+	        #Beam_Done_Event.TO_CHECK := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality = "BEAM_TO_CHECK_N";
+	        
+	        
+	        #Update_Beam_TOCHECK(Exe  := #Beam_Done_Event.TO_CHECK,
+	                             BTrk := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"]);
+	        
+	        IF #Update_Beam_TOCHECK.ACK THEN
+	            "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality := "TO_CHECK";
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso BEAM GOOD_R
+	        
+	        // Controlla se su posizione tracking beam pareggiato
+	        // c'è un pezzo ricondizionato "RECOND_GOOD" e che quindi deve diventare "GOOD_R" 
+	        
+	        #Beam_Recondition_Event.GOOD_R := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality = "RECOND_GOOD";
+	        
+	        #Update_Beam_GOOD_R(Exe             := #Beam_Recondition_Event.GOOD_R,
+	                            BTrk            := "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"],
+	                            Err_Push_MSG131 := #Messages.Err_MSG131_Beam_GOOD_R);
+	        
+	        
+	        IF #Update_Beam_GOOD_R.ACK
+	        THEN
+	            "BTrk".A0302_EXIT.B["BTRK_A0302_RULL_PAREGGIATO"].Quality := "GOOD_R";
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso BEAM NG_R
+	        
+	        // Controlla se sullo scivolo uscita pareggiatore ci sono Pezzi
+	        // Ricondizionati a "RECOND_NG" e che  quindi devono diventare "NG_R"
+	        // 
+	        #Beam_Recondition_Event.NG_R := FALSE;
+	        #Beam_Recondition_Event.NG_R_Index := 1;
+	        
+	        FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	            
+	            IF "BTrk".A03_EXIT_TOCHECK.B[#i].Quality = "RECOND_NG" THEN
+	                
+	                #Beam_Recondition_Event.NG_R_Index := #i;
+	                #Beam_Recondition_Event.NG_R := TRUE;
+	                
+	                EXIT;
+	                
+	            END_IF;
+	        END_FOR;
+	        
+	        
+	        #Update_Beam_NG_R(Exe             := #Beam_Recondition_Event.NG_R,
+	                          BTrk            := "BTrk".A03_EXIT_TOCHECK.B[#Beam_Recondition_Event.NG_R_Index],
+	                          Err_Push_MSG131 := #Messages.Err_MSG131_Beam_NG_R,
+	                          Err_Push_MSG431 := #Messages.Err_MSG431_Beam_NG_R);
+	        
+	        
+	        IF #Update_Beam_NG_R.ACK
+	        THEN
+	            "BTrk".A03_EXIT_TOCHECK.B[#Beam_Recondition_Event.NG_R_Index].Quality := "NG_R";
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    REGION Agg.Contattori caso BEAM TRK Delete
+	        
+	        
+	        
+	        // Controlla se in qualsi posizione BTRK c'è un Beam che deve essere 
+	        // Cancellato che quindi Quality = "GOOD_DEL" opppure "GOOD_R_DEL"
+	        // 
+	        
+	        #Beam_Delete_Event.Exe := FALSE;
+	        #Beam_Delete_Event.Index := 1;
+	        #Beam_Delete_Event.B_Array_Code := 0;
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            FOR #i := 1 TO "BTRK_A0301_ITEMS" DO
+	                
+	                IF "BTrk".A0301.B[#Beam_Delete_Event.Index].Quality = "GOOD_DEL"
+	                    OR
+	                    "BTrk".A0301.B[#Beam_Delete_Event.Index].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Beam_Delete_Event.B_Array_Code := 1;
+	                    #Beam_Delete_Event.Index := #i;
+	                    #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A0301.B[#Beam_Delete_Event.Index];
+	                    #Beam_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                    
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            FOR #i := 1 TO "BTRK_A0302_ENTRY_ITEMS" DO
+	                
+	                IF "BTrk".A0302_ENTRY.B[#Beam_Delete_Event.Index].Quality = "GOOD_DEL"
+	                    OR
+	                    "BTrk".A0302_ENTRY.B[#Beam_Delete_Event.Index].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Beam_Delete_Event.B_Array_Code := 2;
+	                    #Beam_Delete_Event.Index := #i;
+	                    #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A0302_ENTRY.B[#Beam_Delete_Event.Index];
+	                    #Beam_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            FOR #i := 1 TO "BTRK_A0302_EXIT_ITEMS" DO
+	                
+	                IF "BTrk".A0302_EXIT.B[#Beam_Delete_Event.Index].Quality = "GOOD_DEL"
+	                    OR
+	                    "BTrk".A0302_EXIT.B[#Beam_Delete_Event.Index].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Beam_Delete_Event.B_Array_Code := 3;
+	                    #Beam_Delete_Event.Index := #i;
+	                    #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A0302_EXIT.B[#Beam_Delete_Event.Index];
+	                    #Beam_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	                
+	                IF "BTrk".A03_EXIT_TOCHECK.B[#Beam_Delete_Event.Index].Quality = "GOOD_DEL"
+	                    OR
+	                    "BTrk".A03_EXIT_TOCHECK.B[#Beam_Delete_Event.Index].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Beam_Delete_Event.B_Array_Code := 4;
+	                    #Beam_Delete_Event.Index := #i;
+	                    #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A03_EXIT_TOCHECK.B[#Beam_Delete_Event.Index];
+	                    #Beam_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            IF "BTrk".A0303.Preparation.B.Quality = "GOOD_DEL"
+	                OR
+	                "BTrk".A0303.Preparation.B.Quality = "GOOD_R_DEL"
+	            THEN
+	                #Beam_Delete_Event.B_Array_Code := 5;
+	                #Beam_Delete_Event.Index := 1;
+	                #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A0303.Preparation.B;
+	                #Beam_Delete_Event.Exe := TRUE;
+	            END_IF;
+	            
+	        END_IF;
+	        
+	        IF #Beam_Delete_Event.Exe = FALSE THEN
+	            
+	            FOR #i := 1 TO "BTRK_LAYER_ITEMS" DO
+	                
+	                IF "BTrk".A0303.Preparation.Layer[#Beam_Delete_Event.Index].Quality = "GOOD_DEL"
+	                    OR
+	                    "BTrk".A0303.Preparation.Layer[#Beam_Delete_Event.Index].Quality = "GOOD_R_DEL"
+	                THEN
+	                    #Beam_Delete_Event.B_Array_Code := 6;
+	                    #Beam_Delete_Event.Index := #i;
+	                    #Beam_Delete_Event.BTRK_Item_Save := "BTrk".A0303.Preparation.Layer[#Beam_Delete_Event.Index];
+	                    #Beam_Delete_Event.Exe := TRUE;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	        END_IF;
+	        
+	        
+	        
+	        #Update_Beam_Delete(Exe             := #Beam_Delete_Event.Exe,
+	                            "BTrk"          := #Beam_Delete_Event.BTRK_Item_Save,
+	                            Err_Push_MSG131 := #Messages.Err_MSG131_Beam_DELETE,
+	                            Err_Push_MSG431 := #Messages.Err_MSG431_Beam_DELETE);
+	        
+	        
+	        IF #Update_Beam_Delete.ACK THEN
+	            
+	            CASE #Beam_Delete_Event.B_Array_Code OF
+	                1:
+	                    "BTrk".A0301.B[#Beam_Delete_Event.Index] := "BTrk".Empty;
+	                    
+	                2:
+	                    "BTrk".A0302_ENTRY.B[#Beam_Delete_Event.Index] := "BTrk".Empty;
+	                3:
+	                    "BTrk".A0302_EXIT.B[#Beam_Delete_Event.Index] := "BTrk".Empty;
+	                4:
+	                    "BTrk".A03_EXIT_TOCHECK.B[#Beam_Delete_Event.Index] := "BTrk".Empty;
+	                5:
+	                    "BTrk".A0303.Preparation.B := "BTrk".Empty;
+	                6:
+	                    "BTrk".A0303.Preparation.Layer[#Beam_Delete_Event.Index] := "BTrk".Empty;
+	                    
+	                ELSE
+	                    ;
+	                    
+	            END_CASE;
+	            
+	            
+	            
+	        END_IF;
+	        
+	        
+	    END_REGION
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Status su Prod_Items
+	    
+	    #O_Status_Update(PART_PROD           := #Cin.Part_Prod,
+	                     BEAM_PROD           := #Cin.Beam_Prod,
+	                     Err_MSG131_O_ACT    := #Messages.Err_MSG131_O_ACT_Status_Update,
+	                     Err_MSG131_O_TODO   := #Messages.Err_MSG131_O_TODO_Status_Update,
+	                     Err_MSG131_O_ENDING := #Messages.Err_MSG131_O_ENDING_Status_Update,
+	                     Err_MSG131_O_OUT    := #Messages.Err_MSG131_O_OUT_Status_Update);
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestione Taglio Fine produzione
+	    
+	    "Prod_Material_To_Go_Mng"(Material_Presence_RollFormer    := #Cin.Part_Prod.Material_Presence,
+	                              Material_Full_CoilHandling      := (#Cin.Coil_Prod.Material_STS = 2) AND #Cin.Coil_Prod.Material_Presence_Straight_Exit,
+	                              Material_Qty_FromLastCut        := #Cin.Part_Prod.Material_Qty_FromLastCut,
+	                              Material_Extra                  := #Pers.Par.Material_To_Go_Additional,
+	                              SLOW_Space                      := #Pers.Par.Material_To_Go_Low_Speed,
+	                              Material_To_Go                  => "Production_HMI".Material_To_GO_Cumulative,
+	                              SLOW_Fine_Ordini                => #COut.Part_RF_Slow_Next_End_Of_Production,
+	                              STOP_Taglio_Lamiera_Fine_Ordini => #COut.Part_RF_Stop_End_Of_Production,
+	                              Kanban_Presence                 => "Production_HMI".OrdineKanban_Presence,
+	                              SET_UP                          := #Pers.Data.SET_UP);
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestione Parti ricondizionate
+	    
+	    "Prod_O_Part_Recondition"(PartsBeforeStop := 1,
+	                              Slow            => #COut.Part_RF_Slow_Part_Recondition,
+	                              Stop            => #COut.Part_RF_Stop_Part_Recondition);
+	    
+	END_REGION
+	
+	
+	REGION Gestione fine esecuzione parti dell'ordine
+	    
+	    "Prod_O_Parts_Complete"(N_PartsBeforeStop := 1,
+	                            Slow              => #COut.Part_RF_Slow_Order_Approach_To_Complete,
+	                            Stop              => #COut.Part_RF_Stop_Order_Complete);
+	    
+	END_REGION
+	
+	
+	REGION Cambio Ordine al taglio parti
+	    
+	    IF #COut.Part_RF_Stop_Order_Complete AND NOT #Warnings.Error_Pop_O_ACT_to_O_ENDING.Presence THEN
+	        
+	        #Warnings.Error_Pop_O_ACT_to_O_ENDING.Code := "Prod_O_ACT_Pop_&_O_ENDING_Push"();
+	        
+	        IF #Warnings.Error_Pop_O_ACT_to_O_ENDING.Code < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #Warnings.Error_Pop_O_ACT_to_O_ENDING.Presence := TRUE;
+	            #Warnings.Error_Pop_O_ACT_to_O_ENDING.Description := "Error_Code_To_Description_String"(#Warnings.Error_Pop_O_ACT_to_O_ENDING.Code);
+	        END_IF;
+	    END_IF;
+	    
+	    // Movimento automatico prossimo ordine
+	    // 
+	    IF "Production".O_ACT.O_ID <= 0
+	        AND
+	        "Production".O_TODO[1].O_ID > 0
+	    THEN
+	        
+	        IF #Pers.Data.MODE.Cambio_Ordine_Automatico
+	        THEN
+	            
+	            #RETVAL_CHECK_EXECUTABLE := "Prod_Item_Check_CanGoinProduction"("Production".O_TODO[1]);
+	            
+	            IF #RETVAL_CHECK_EXECUTABLE >= "PROD_FUN_RESULT_OK" AND NOT #Warnings.Error_Pop_O_TODO_to_O_ACT.Presence
+	            THEN
+	                
+	                #Warnings.Error_Pop_O_TODO_to_O_ACT.Code := "Prod_O_TODO_Pop_&_O_ACT_Push"(Index := 1, Evaluate_PPrf_ON_WORK_Matching := TRUE);
+	                
+	                IF #Warnings.Error_Pop_O_TODO_to_O_ACT.Code < "PROD_FUN_RESULT_OK" THEN
+	                    
+	                    #Warnings.Error_Pop_O_TODO_to_O_ACT.Presence := TRUE;
+	                    #Warnings.Error_Pop_O_TODO_to_O_ACT.Description := "Error_Code_To_Description_String"(#Warnings.Error_Pop_O_TODO_to_O_ACT.Code);
+	                    
+	                END_IF;
+	            END_IF;
+	        END_IF;
+	        
+	        
+	    END_IF;
+	    
+	    
+	    // Warning nessun ordine in lavoro
+	    // 
+	    #Warnings.O_ACT_Empty := "Production".O_ACT.O_ID <= 0;
+	    
+	    // Stop causa nessun ordine in lavoro
+	    //
+	    #COut.Part_RF_Stop_O_ACT_Empty := #Warnings.O_ACT_Empty AND (NOT #Cin.Part_Prod.Man OR NOT #Cin.Beam_Prod.Man);
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Target parti da eseguire
+	    
+	    IF #Cin.Part_Execution.Done AND NOT #Part_Done_Event.ACK_Done THEN
+	        
+	        // incremento ID perchè è stata eseguita una parte richiesta
+	        // 
+	        IF (#Cin.Part_Execution.P_ID = #COut.Part_Target_To_Execute_1.P_ID AND #COut.Part_Target_To_Execute_1.Ready)
+	            OR
+	            (#Cin.Part_Execution.P_ID = #COut.Part_Target_To_Execute_2.P_ID AND #COut.Part_Target_To_Execute_2.Ready)
+	        THEN
+	            "PTrk".Last_P_ID += 1;
+	        END_IF;
+	        
+	        
+	        #Part_Done_Event.ACK_Done := TRUE;
+	        
+	        
+	    ELSIF NOT #Cin.Part_Execution.Done THEN
+	        
+	        #Part_Done_Event.ACK_Done := FALSE;
+	        
+	        #COut.Part_Target_To_Execute_1.Ready := FALSE;
+	        #COut.Part_Target_To_Execute_2.Ready := FALSE;
+	        
+	        
+	        // Primo target è sempre prelevato da ordine in lavoro (ACT)
+	        // 
+	        IF "Production".O_ACT.O_ID >= 1 THEN
+	            
+	            IF ("Production".O_ACT.Parts_ToGo > 0) OR "Production".O_ACT.Kanban_Style THEN
+	                
+	                
+	                #COut.Part_Target_To_Execute_1.Tick_Mark := "Production".O_ACT.Use_Thick_Mark_Tool;
+	                #COut.Part_Target_To_Execute_1.Trace_Mark := "Production".O_ACT.Use_Trace_Mark_Tool;
+	                
+	                
+	                "PTrk".Last_P_ID := MAX(IN1 := 1, IN2 := "PTrk".Last_P_ID);
+	                
+	                
+	                #COut.Part_Target_To_Execute_1.P_ID := "PTrk".Last_P_ID;
+	                
+	                
+	                #COut.Part_Target_To_Execute_1.O_ID := "Production".O_ACT.O_ID;
+	                
+	                #COut.Part_Target_To_Execute_1.Part_ToGo := "Production".O_ACT.Parts_ToGo;
+	                #COut.Part_Target_To_Execute_1.Part_Len := "Production".O_ACT.Parts_Len;
+	                #COut.Part_Target_To_Execute_1.Part_Tol := "Production".O_ACT.Parts_Tol;
+	                #COut.Part_Target_To_Execute_1.Beam_Code := "Production".O_ACT.Beam_Code;
+	                
+	                #COut.Part_Target_To_Execute_1.Ready := TRUE;
+	                
+	            END_IF;
+	            
+	        END_IF;
+	        
+	    END_IF;
+	    
+	    
+	    // Se primo target esiste..
+	    // 
+	    IF #COut.Part_Target_To_Execute_1.Ready THEN
+	        
+	        // Secondo target da ordine in lavoro...
+	        // 
+	        IF ("Production".O_ACT.Parts_ToGo - 1 > 0) OR "Production".O_ACT.Kanban_Style THEN
+	            
+	            #COut.Part_Target_To_Execute_2.Tick_Mark := "Production".O_ACT.Use_Thick_Mark_Tool;
+	            #COut.Part_Target_To_Execute_2.Trace_Mark := "Production".O_ACT.Use_Trace_Mark_Tool;
+	            
+	            #COut.Part_Target_To_Execute_2.P_ID := #COut.Part_Target_To_Execute_1.P_ID + 1;
+	            #COut.Part_Target_To_Execute_2.O_ID := "Production".O_ACT.O_ID;
+	            
+	            #COut.Part_Target_To_Execute_2.Part_Len := "Production".O_ACT.Parts_Len;
+	            #COut.Part_Target_To_Execute_2.Part_Tol := "Production".O_ACT.Parts_Tol;
+	            #COut.Part_Target_To_Execute_2.Beam_Code := "Production".O_ACT.Beam_Code;
+	            
+	            #COut.Part_Target_To_Execute_2.Part_ToGo := "Production".O_ACT.Parts_ToGo - 1;
+	            
+	            #COut.Part_Target_To_Execute_2.Ready := TRUE;
+	            
+	            // Secondo target da ordine ancora nella lista di quelli da eseguire (TODO)
+	            // 
+	        ELSE
+	            
+	            // Ricerca primo indice di TODO con produzione eseguibile
+	            // 
+	            #Part_Done_Event.RETVAL_Next_To_Do := "Prod_TODO_FindIndex_Of_FirstExecutable"();
+	            
+	            // Indice valido
+	            // 
+	            IF #Part_Done_Event.RETVAL_Next_To_Do >= 1 THEN
+	                
+	                #i := #Part_Done_Event.RETVAL_Next_To_Do;
+	                
+	                IF ("Production".O_TODO[#i].Parts_ToGo > 0) OR "Production".O_TODO[#i].Kanban_Style THEN
+	                    
+	                    #COut.Part_Target_To_Execute_2.Tick_Mark := "Production".O_TODO[#i].Use_Thick_Mark_Tool;
+	                    #COut.Part_Target_To_Execute_2.Trace_Mark := "Production".O_TODO[#i].Use_Trace_Mark_Tool;
+	                    
+	                    #COut.Part_Target_To_Execute_2.P_ID := "PTrk".Last_P_ID + 1;
+	                    #COut.Part_Target_To_Execute_2.O_ID := "Production".O_TODO[#i].O_ID;
+	                    
+	                    #COut.Part_Target_To_Execute_2.Part_ToGo := "Production".O_TODO[#i].Parts_ToGo;
+	                    #COut.Part_Target_To_Execute_2.Part_Len := "Production".O_TODO[#i].Parts_Len;
+	                    #COut.Part_Target_To_Execute_2.Part_Tol := "Production".O_TODO[#i].Parts_Tol;
+	                    #COut.Part_Target_To_Execute_2.Beam_Code := "Production".O_TODO[#i].Beam_Code;
+	                    
+	                    #COut.Part_Target_To_Execute_2.Ready := TRUE;
+	                    
+	                END_IF;
+	            END_IF;
+	        END_IF;
+	        
+	    END_IF;
+	    
+	    
+	    
+	    
+	    #COut.Part_ACK_PartDone := #Part_Done_Event.ACK_Done;
+	    
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Pulizia Ordini in fase di completameto
+	    
+	    
+	    #Clean_O_ENDING("TEST_Production".O_ENDING_Cleaning);
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestione sospensioni
+	    
+	    #Sospensioni(PART_PROD           := #Cin.Part_Prod,
+	                 BEAM_PROD           := #Cin.Beam_Prod,
+	                 SET_UP              := #Pers.Data.SET_UP,
+	                 INTERRUZIONI        := #Pers.Data.INTERRUZIONI,
+	                 Err_Msg310_O_ACT    := #Messages.Err_Msg310_O_ACT,
+	                 Err_Msg311_O_ACT    := #Messages.Err_Msg311_O_ACT,
+	                 Err_Msg310_O_ENDING := #Messages.Err_Msg310_O_ENDING,
+	                 Err_Msg311_O_ENDING := #Messages.Err_Msg311_O_ENDING,
+	                 COut                := #COut);
+	    
+	    
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Stato pacchi su baia preparazione / baia di uscita
+	    
+	    
+	    #Stato_Pacchi(Err_Msg201 := #Messages.Err_Msg201,
+	                  Err_Msg211 := #Messages.Err_Msg211);
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestione Setup
+	    
+	    #SetUp_Mng(Rst                  := #Cin.Rst,
+	               PB_LineSetUp_Start   := "Production_HMI".SETUP.Button_LinePreparation_Start.Pressed,
+	               PB_LineSetUp_Stop    := "Production_HMI".SETUP.Button_LinePreparation_Stop.Pressed,
+	               PART_PROD            := #Cin.Part_Prod,
+	               BEAM_PROD            := #Cin.Beam_Prod,
+	               MODE                 := #Pers.Data.MODE,
+	               CTRL_LinePreparation => #COut.Setup_LinePreparation_Exe,
+	               SETUP                := #Pers.Data.SET_UP,
+	               Warning              := #Warnings.SetUp);
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestione HMI
+	    
+	    
+	    #HMI_Mng(CTRL_LinePreraration := #SetUp_Mng.CTRL_LinePreparation,
+	             MODE                 := #Pers.Data.MODE,
+	             PART_PROD            := #Cin.Part_Prod,
+	             BEAM_PROD            := #Cin.Beam_Prod,
+	             SET_UP               := #Pers.Data.SET_UP);
+	    
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	REGION Gestion COILS
+	    
+	    
+	    #Coils_Mng(Coil_Production                           := #Cin.Coil_Prod,
+	               Part_Production                           := #Cin.Part_Prod,
+	               Par_CoilInterruption_ExtraMaterialNeedFor := #Pers.Par.Material_To_Go_Additional,
+	               COut                                      := #COut,
+	               Err_Msg411                                := #Messages.Err_Msg411,
+	               Err_Msg413                                := #Messages.Err_Msg413,
+	               Err_Msg423                                := #Messages.Err_Msg423,
+	               Err_Msg431_FineLamieraRF                  := #Messages.Err_Msg431_FineLamieraRF,
+	               Aspo_In_Linea_Prev_Values                 := #Pers.Data.Aspo_In_Linea_Prev_Values,
+	               Aspo_In_Carico_Prev_Values                := #Pers.Data.Aspo_In_Carico_Prev_Values,
+	               Taglio_Finale_Prev_Values                 := #Pers.Data.Taglio_Finale_Prev_Values);
+	    
+	END_REGION
+	
+	
+	REGION Orders info for Beams production
+	    
+	    #COut.BEAM_Orders_Data.O_ACT := "Prod_Item_To_Prod_items_small"("Production".O_ACT);
+	    
+	    #Max_Index := MIN(IN1 := "PROD_TODO_ITEMS", IN2 := 15);
+	    FOR #i := 1 TO "PROD_TODO_ITEMS" DO
+	        #COut.BEAM_Orders_Data.O_TODO[#i] := "Prod_Item_To_Prod_items_small"("Production".O_TODO[#i]);
+	    END_FOR;
+	    
+	    #Max_Index := MIN(IN1 := "PROD_ENDING_ITEMS", IN2 := 5);
+	    FOR #i := 1 TO #Max_Index DO
+	        #COut.BEAM_Orders_Data.O_ENDING[#i] := "Prod_Item_To_Prod_items_small"("Production".O_ENDING[#i]);
+	    END_FOR;
+	    
+	    #Max_Index := MIN(IN1 := "PROD_OUT_ITEMS", IN2 := 5);
+	    FOR #i := 1 TO "PROD_OUT_ITEMS" DO
+	        #COut.BEAM_Orders_Data.O_OUT[#i] := "Prod_Item_To_Prod_items_small"("Production".O_OUT[#i]);
+	    END_FOR;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

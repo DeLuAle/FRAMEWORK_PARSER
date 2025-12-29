@@ -1,0 +1,48 @@
+﻿// Block: A02_ButtonSafe_CALL
+// Title: LB114 Feed material of area 02
+
+FUNCTION "A02_ButtonSafe_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// LB114 Feed material of area 02
+
+BEGIN
+   REGION "LB114 Feed material of area 02"
+      #LB114_FeedA02(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((Area02.AreaInterface.Man AND NOT (LB211.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (Areas_ITF.A01.PB.LB114_Interlock_PB_FeedA02))),
+         Reset_OthersPBs_Activation_OUT => Areas_ITF.A02.PB.LB114_Interlock_PB_FeedA01
+      );
+
+      #LB114_FeedA02.Q;
+   END_REGION
+
+   REGION "LB211"
+      #LB211(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212_FeedA02.Reset_OthersPBs_Activation_OUT)))
+      );
+
+      #LB211.Q;
+   END_REGION
+
+   REGION "LB212"
+      #LB212(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB211.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212_FeedA02.Reset_OthersPBs_Activation_OUT)))
+      );
+
+      #LB212.Q;
+   END_REGION
+
+   REGION "LB212 Feed material of area 02"
+      #LB212_FeedA02(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT ((((Area02.AreaInterface.Man AND NOT (LB114_FeedA02.Reset_OthersPBs_Activation_OUT)) AND NOT (LB211.Reset_OthersPBs_Activation_OUT)) AND NOT (LB212.Reset_OthersPBs_Activation_OUT)))
+      );
+
+      #LB212_FeedA02.Q;
+   END_REGION
+
+
+END_FUNCTION

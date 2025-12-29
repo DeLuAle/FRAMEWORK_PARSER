@@ -1,0 +1,68 @@
+﻿// Block: A0301_Trasporto_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0301_Trasporto_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+   VAR CONSTANT
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // TRASFERIMENTO #CIn MANAGER
+      A0301_Trasporto.CIn.OP_SemiAut_PB := A0301_Manager.DataIn.SemiAut_Pb;
+
+      // TRASFERIMENTO #CIn DRIVE
+      A0301_Trasporto.CIn.Drive.Manager := A0301_Manager.COut.Trasporto;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn  >>"
+      // "Sys".ByPass ===> SOSTITUIRE CON INGRESSI
+
+      // TRASFERIMENTO #DataIn STATI BUTTON TRASPORTO
+      // PB TRASPORTO
+      A0301_Trasporto.DataIn.PB.Bwd_Minus := A03_HMI.MB3.Button.A0301.Trasporto.Bwd_Minus;
+      A0301_Trasporto.DataIn.PB.Fwd_Plus := A03_HMI.MB3.Button.A0301.Trasporto.Fwd_Plus;
+
+
+   END_REGION
+
+   REGION "DSI"
+      //
+      A0301_Trasporto.DSI := F_DB.DSI_Trasporto;
+
+   END_REGION
+
+   REGION "HW"
+      //
+      A0301_Trasporto.HWID_Ax_TEL1 := HW_Const_Values.CU5_PN_1480A1_1_Standard_telegram_1;
+
+   END_REGION
+
+   REGION "Drive"
+      // 
+      A0301_Trasporto.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;;
+      A0301_Trasporto.Drive.AccessPoint := HW_Const_Values.CU5_PN_600A1_ModuleAccessPoint;
+      A0301_Trasporto.Drive.AxisID := CU5_ID_3_1480A1_1_1480M1;
+      A0301_Trasporto.Drive.TokenChain := TOKENCHAIN_CU5;
+
+   END_REGION
+
+   REGION "<< RICHIAMO - TRASPORTO >>"
+      #A0301_Trasporto(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone21,
+         Config := PrjConfig_A03.A0301.Trasporto,
+         Par := A0301_Trasporto_PERS.Par
+      );
+
+      #A0301_Trasporto.Q;
+   END_REGION
+
+
+END_FUNCTION

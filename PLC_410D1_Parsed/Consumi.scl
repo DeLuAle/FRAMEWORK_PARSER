@@ -1,0 +1,27 @@
+﻿// Block: Consumi
+// Title: Lettura strumento PAC3220 
+
+FUNCTION "Consumi" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Lettura strumento PAC3220 
+
+BEGIN
+   REGION "Lettura strumento PAC3220"
+      "PAC3220"(
+         en := TRUE
+      );
+
+      "PAC3220"();
+   END_REGION
+
+   REGION "Lettura comsumi aria"
+      #Air_Flow_IDB(
+         en := TRUE
+      );
+
+      #Air_Flow_IDB.Q;
+   END_REGION
+
+
+END_FUNCTION

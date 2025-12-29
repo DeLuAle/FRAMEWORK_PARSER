@@ -1,0 +1,74 @@
+﻿FUNCTION "Coil_Item_Check_Provino_Can_be_Add" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item_Delete : "Coil_Item";
+   END_VAR
+
+
+BEGIN
+	
+	
+	
+	REGION INIT
+	    
+	    #Coil_Item_Check_Provino_Can_be_Add := "PROD_FUN_RESULT_OK";
+	    
+	END_REGION
+	
+	
+	REGION Check Coil at decoiler in line
+	    
+	    
+	    IF #Item_Delete.MES_CN <> "Production".Coil_Data.ASPO_IN_LINEA.MES_CN THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "ERR_COIL_DATA_CAN_NOT_INC_PROVINO_DATA_NOT_MATCH";
+	    END_IF;
+	    
+	    IF #Item_Delete.MES_HN <> "Production".Coil_Data.ASPO_IN_LINEA.MES_HN THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "ERR_COIL_DATA_CAN_NOT_INC_PROVINO_DATA_NOT_MATCH";
+	    END_IF;
+	    
+	    // Selected decoiler is that in line
+	    // 
+	    IF #Coil_Item_Check_Provino_Can_be_Add = "PROD_FUN_RESULT_OK"
+	    THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "PROD_FUN_RESULT_COIL_AT_DECOILER_IN_LINE";
+	        RETURN; 
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	REGION Check Coil at decoiler in load
+	    
+	    IF #Item_Delete.MES_CN <> "Production".Coil_Data.ASPO_IN_CARICO.MES_CN THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "ERR_COIL_DATA_CAN_NOT_INC_PROVINO_DATA_NOT_MATCH";
+	    END_IF;
+	    
+	    IF #Item_Delete.MES_HN <> "Production".Coil_Data.ASPO_IN_CARICO.MES_HN THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "ERR_COIL_DATA_CAN_NOT_INC_PROVINO_DATA_NOT_MATCH";
+	    END_IF;
+	    
+	   
+	    // Selected decoiler is that in load
+	    // 
+	    IF #Coil_Item_Check_Provino_Can_be_Add = "PROD_FUN_RESULT_OK"
+	    THEN
+	        #Coil_Item_Check_Provino_Can_be_Add := "PROD_FUN_RESULT_COIL_AT_DECOILER_IN_LOAD";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	    RETURN;
+	   
+	   
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+END_FUNCTION
+

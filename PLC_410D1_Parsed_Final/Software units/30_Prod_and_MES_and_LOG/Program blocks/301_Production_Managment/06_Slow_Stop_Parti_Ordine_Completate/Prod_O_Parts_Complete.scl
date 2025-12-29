@@ -1,0 +1,57 @@
+﻿FUNCTION "Prod_O_Parts_Complete" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      N_PartsBeforeStop : DInt;
+   END_VAR
+
+   VAR_OUTPUT 
+      Slow : Bool;
+      Stop : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      N : DInt;
+   END_VAR
+
+
+BEGIN
+	#Stop := FALSE;
+	#Slow := FALSE;
+	
+	
+	IF "Production".O_ACT.O_ID <= 0 THEN
+	    RETURN;
+	END_IF;
+	
+	
+	IF "Production".O_ACT.Parts_REQ <= 0 THEN
+	    RETURN;
+	END_IF;
+	
+	
+	IF "Production".O_ACT.Kanban_Style THEN
+	    RETURN;
+	END_IF;
+	
+	// Numero di pezzi per anticipo rallentamento (minimo = 1)
+	// 
+	#N := MAX(IN1 := 1, IN2 := #N_PartsBeforeStop);
+	
+	
+	// STOP Il numero di parti da produrre è stato raggiunto
+	// 
+	#Stop := "Production".O_ACT.Parts_ToGo <= 0;
+	
+	IF #Stop THEN
+	    RETURN;
+	END_IF;
+	
+	
+	// RALLENTAMENTO - Il numero di parti da produrre è quasi raggiunto)
+	// 
+	#Slow := "Production".O_ACT.Parts_ToGo <= #N;
+	
+	
+END_FUNCTION
+

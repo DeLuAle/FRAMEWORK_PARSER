@@ -1,0 +1,511 @@
+﻿// Block: A0303_Sostegno_FB
+// Title: Reset allarmi 
+
+FUNCTION_BLOCK "A0303_Sostegno_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset allarmi 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI_Feed : udt_DeviceSafetyInterface;
+      DSI_Valve : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         OP_Work_PB : Bool;
+         OP_Rest_PB : Bool;
+         Pos0_Ls : Bool;
+         Pos1_Ls : Bool;
+         Pos2_Ls : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+            Control_ON : Bool;
+            CanMoveFreely : Bool;
+            Phase : Struct
+               VAI_A_LAVORO : Bool;
+               VAI_A_RIPOSO : Bool;
+            END_STRUCT;
+            Ax : Struct
+               Pos : LReal;
+            END_STRUCT;
+            Paletti : Struct
+               PosPaletto : Int;
+               Pos1Collision : Bool;
+               Pos2Collision : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         Navetta : Struct
+            OutOfWorkspace : Bool;
+         END_STRUCT;
+         Trasporto : Struct
+            OutOfWorkspace : Bool;
+         END_STRUCT;
+         CycleModeShortPiece : Bool;
+      END_STRUCT;
+      Config : Struct
+         Ax : Positioning_DOL_Machine_Config;
+         V_1 : ValveMachine_Config;
+         V_2 : ValveMachine_Config;
+         DelayMissingCondition : Time;
+      END_STRUCT;
+      HWID : Struct
+         Ax_TEL1 : HW_SUBMODULE;
+         Enc_IO : HW_SUBMODULE;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Ax : Positioning_DOL_Machine_COut;
+         Paletto : Struct
+            CtrlSafe : Bool;
+            Standstill : Bool;
+            Rest_CheckNext : Bool;
+            Work_CheckNext : Bool;
+            Pos : Int;
+            RestPosition : Bool;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : Struct
+         Ax : Positioning_DOL_Machine_Par;
+         Ax_Pers : Positioning_DOL_Machine_Pers_Data;
+         Enc : PosFbk_RTN;
+      END_STRUCT;
+      Par_Mach : Struct
+         RestPosition : LReal;
+         ToleranceWindow : LReal;
+         PosTimeout : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Ax : Positioning_DOL_Machine_Alr;
+         V_1 : ValveAlr;
+         V_2 : ValveAlr;
+         Enc : PosFbk_Encoder_Alr;
+         Missing_Pos0_Ls_ON : Bool;
+         Missing_Pos1_Ls_ON : Bool;
+         Missing_Pos2_Ls_ON : Bool;
+         LimitSwitch : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Ax : Positioning_DOL_Machine_Wng;
+         V_1 : ValveMachine_Wng;
+         V_2 : ValveMachine_Wng;
+         V_Paletti : ValveMachine_Wng;
+         MissingCnd : Struct
+            OP_REST : Bool;
+            OP_WORK : Bool;
+            AxInRestPos : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         Man : Struct
+            OP_Vai_A_Lavoro : Bool;
+            OP_Vai_A_Riposo : Bool;
+         END_STRUCT;
+         Aut : Struct
+            OP_Vai_A_Lavoro : Bool;
+            OP_Vai_A_Riposo : Bool;
+         END_STRUCT;
+         Pos0 : Bool;
+         Pos1 : Bool;
+         Pos2 : Bool;
+         OP_Vai_A_Lavoro : Bool;
+         OP_Vai_A_Riposo : Bool;
+      END_STRUCT;
+      Sts : Struct
+         OP_Ax_CanMoveFreely : Bool;
+         OP_CanMoveFreely : Bool;
+         OP_Rest_Cnd : Bool;
+         OP_Work_Cnd : Bool;
+         InRestPos : Bool;
+      END_STRUCT;
+      HMI : Struct
+         PbPreset : Bool;
+         PresetValue : LReal;
+      END_STRUCT;
+      Ax : Positioning_DOL_Machine_FB;
+      Enc : PosFbk_SickAFM60;
+      Enc_ITF : PosFbk_ITF;
+      V_1 : ValveMachine_FB;
+      V_2 : ValveMachine_FB;
+      AUX : Struct
+         OP_Work_PB : Bool;
+         OP_Rest_PB : Bool;
+         OP_MoveToPos : Bool;
+         PbPos0 : Bool;
+         PbPos1 : Bool;
+         PbPos2 : Bool;
+      END_STRUCT;
+      TON_MissingLsPos0 : IEC_TIMER;
+      TON_MissingLsPos1 : IEC_TIMER;
+      TON_MissingLsPos2 : IEC_TIMER;
+      TON_OP_REST_MissingCnd : IEC_TIMER;
+      TON_OP_WORK_MissingCnd : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+         PbPos0 : Bool;
+         PbPos1 : Bool;
+         PbPos2 : Bool;
+      END_STRUCT;
+      V1_Work_1 : Bool;
+      V1_Work_2 : Bool;
+      V1_Rest : Bool;
+      V1_Rest_2 : Bool;
+      V2_Work : Bool;
+      V2_Rest_1 : Bool;
+      V2_Rest_2 : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset allarmi"
+      IF AreaInterface.RstAlarms THEN
+          Warning.MissingCnd.AxInRestPos:=FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "[Ax] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_Ax_CanMoveFreely := CIn.Manager.CanMoveFreely;
+   END_REGION
+
+   REGION "Comando Operazione fasi (AUT)"
+      Ctrl.Aut.OP_Vai_A_Lavoro := (CIn.Manager.Control_ON AND CIn.Manager.Phase.VAI_A_LAVORO);
+      Ctrl.Aut.OP_Vai_A_Riposo := (CIn.Manager.Control_ON AND CIn.Manager.Phase.VAI_A_RIPOSO);
+   END_REGION
+
+   REGION "Comando Operazione vai a Riposo (MAN)"
+      PE.OP_Rest_PB := PosEdge(DataIn.OP_Rest_PB);
+      Ctrl.Man.OP_Vai_A_Riposo := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Rest_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Man.OP_Vai_A_Riposo)) AND DataIn.OP_Rest_PB) AND NOT (DataIn.OP_Work_PB));
+   END_REGION
+
+   REGION "Comando Operazione vai a Lavoro (MAN)"
+      PE.OP_Work_PB := PosEdge(DataIn.OP_Work_PB);
+      Ctrl.Man.OP_Vai_A_Lavoro := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Work_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Man.OP_Vai_A_Lavoro)) AND DataIn.OP_Work_PB) AND NOT (DataIn.OP_Rest_PB));
+   END_REGION
+
+   REGION "[Paletti] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      // Bisogna tener conto della posizione dell'asse perche si potrebbe andare in collisione con i sollevatori
+
+      Sts.OP_CanMoveFreely := CIn.Manager.CanMoveFreely;
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Vai_A_Lavoro := NOT ((NOT (Ctrl.Man.OP_Vai_A_Lavoro) AND NOT (Ctrl.Aut.OP_Vai_A_Lavoro)));
+      Ctrl.OP_Vai_A_Riposo := NOT ((NOT (Ctrl.Man.OP_Vai_A_Riposo) AND NOT (Ctrl.Aut.OP_Vai_A_Riposo)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Rest_Cnd := (CIn.Manager.Phase.VAI_A_RIPOSO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Work_Cnd := (CIn.Manager.Phase.VAI_A_LAVORO OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Ax in posizione di riposo"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := Ax.Sts.ActualPosition,
+         Target := Par_Mach.RestPosition,
+         PosWin := Par_Mach.ToleranceWindow,
+         Ret_Val => Sts.InRestPos
+      );
+
+      Sts.InRestPos := "TolWindow"(ActPos := Ax.Sts.ActualPosition, Target := Par_Mach.RestPosition, PosWin := Par_Mach.ToleranceWindow);
+   END_REGION
+
+   REGION "Warning Paletto non puo muoversi perche asse non in posizione di riposo"
+      IF ((NOT (Sts.InRestPos) AND V_1.COut.Work_CheckNext) OR (NOT (Sts.InRestPos) AND V_2.COut.Work_CheckNext) OR (NOT (Sts.InRestPos) AND V_1.COut.Rest_CheckNext) OR (NOT (Sts.InRestPos) AND V_2.COut.Rest_CheckNext)) THEN
+         Warning.MissingCnd.AxInRestPos := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "CIn Abilitazioni Manager"
+      //Stop Door Opening Request
+      Ax.CIn.Manager.EnableStopDoorOpeningReq :=
+      V_1.Cin.Manager.EnableStopDoorOpeningReq := V_2.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+
+      //Stop In Phase
+      Ax.CIn.Manager.EnableStopInPhase := 
+      V_1.Cin.Manager.EnableStopInPhase := V_2.Cin.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+
+      //Stop Programmed
+      Ax.CIn.Manager.EnableStopProgrammed := 
+      V_1.Cin.Manager.EnableStopProgrammed := V_2.Cin.Manager.EnableStopProgrammed :=CIn.Manager.EnableStopProgrammed;
+
+   END_REGION
+
+   REGION "Cin Manager (Esecuzione sequenza comandi)"
+      //CTRL ON
+      Ax.CIn.Manager.Control_ON :=V_1.Cin.Manager.Control_ON :=V_2.Cin.Manager.Control_ON := Ctrl.OP_Vai_A_Lavoro OR Ctrl.OP_Vai_A_Riposo;
+
+
+      IF Ctrl.OP_Vai_A_Lavoro AND Sts.OP_Work_Cnd THEN
+          
+          
+          IF CIn.Manager.Paletti.PosPaletto = 1 THEN
+              Ctrl.Pos1 := NOT DataIn.Pos1_Ls;
+          ELSIF CIn.Manager.Paletti.PosPaletto = 2 THEN
+              Ctrl.Pos2 := NOT DataIn.Pos2_Ls;
+          END_IF;
+          
+          Ax.CIn.Manager.Speed := 100;
+          Ax.CIn.Manager.MoveToPos := CIn.Manager.Paletti.PosPaletto = COut.Paletto.Pos;
+          Ax.CIn.Manager.Pos := CIn.Manager.Ax.Pos;
+          
+
+
+
+      ELSIF Ctrl.OP_Vai_A_Riposo AND Sts.OP_Rest_Cnd THEN
+          
+          
+
+          IF NOT CIn.CycleModeShortPiece THEN
+              
+              Ax.CIn.Manager.Speed := 100;
+              Ax.CIn.Manager.MoveToPos := CIn.Manager.Paletti.PosPaletto = COut.Paletto.Pos;
+              Ax.CIn.Manager.Pos := Par_Mach.RestPosition;
+              
+              IF Sts.InRestPos THEN
+                  Ctrl.Pos0 := NOT DataIn.Pos0_Ls;
+              END_IF;
+              
+          ELSE
+              
+              Ctrl.Pos0 := NOT DataIn.Pos0_Ls;
+              
+              
+          END_IF;
+          
+      ELSE
+          Ctrl.Pos0 := Ctrl.Pos1 := Ctrl.Pos2 :=  Ax.CIn.Manager.MoveToPos:= FALSE;
+          
+          
+      END_IF;
+          
+
+          
+          
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_OP_REST_MissingCnd(
+         IN := Ctrl.OP_Vai_A_Riposo,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_WORK_MissingCnd(
+         IN := Ctrl.OP_Vai_A_Lavoro,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_REST_MissingCnd.Q;
+      IF (Sts.OP_Rest_Cnd OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_REST := FALSE;
+      ELSIF #TON_OP_REST_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_REST := TRUE;
+      END_IF;
+      #TON_OP_WORK_MissingCnd.Q;
+      IF (Sts.OP_Work_Cnd OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_WORK := FALSE;
+      ELSIF #TON_OP_WORK_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_WORK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax] -  Cin Ext Enable"
+      Ax.CIn.MinusExtEnable := ((CIn.Manager.Control_ON OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND (COut.Paletto.Pos = 1)) OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely) AND (COut.Paletto.Pos = 2))) AND (COut.Paletto.Pos <> 0));
+      Ax.CIn.PlusExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "[Ax] - CIn External alarm"
+      Ax.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Ax] Encoder - Main"
+      #Enc(
+         en := TRUE,
+         HW_IO := HWID.Enc_IO,
+         Interface := Enc_ITF,
+         Retain := Par.Enc,
+         Alarm := Alarm.Enc
+      );
+
+      #Enc.Q;
+   END_REGION
+
+   REGION "[Ax] HMI preset position"
+      Ax.HMI.B_Preset := HMI.PbPreset;
+      Ax.HMI.PresetPosition := HMI.PresetValue;
+   END_REGION
+
+   REGION "[Ax] Axis Manger"
+      #Ax(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed,
+         Config := Config.Ax,
+         HW_ID_TEL1 := HWID.Ax_TEL1,
+         PosFeedback := Enc_ITF,
+         Par := Par.Ax,
+         Pers_Data := Par.Ax_Pers,
+         Warning := Warning.Ax,
+         Alarm := Alarm.Ax,
+         COut => COut.Ax
+      );
+
+      #Ax.Q;
+   END_REGION
+
+   REGION "CIn External Alarm"
+      V_1.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "CIn External Enable"
+      V_1.Cin.Rest_ExtEnable := (((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND Sts.InRestPos) OR ((((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND CIn.Manager.Control_ON) AND CIn.CycleModeShortPiece) AND CIn.Trasporto.OutOfWorkspace));
+      V_1.Cin.Work_ExtEnable := (((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND Sts.InRestPos) OR ((((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND CIn.Manager.Control_ON) AND CIn.CycleModeShortPiece) AND CIn.Trasporto.OutOfWorkspace));
+   END_REGION
+
+   REGION "Valve Manager"
+      #V_1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.V_1,
+         Alarm := Alarm.V_1,
+         Warning := Warning.V_1
+      );
+
+      #V_1.Q;
+   END_REGION
+
+   REGION "CIn External Alarm"
+      V_2.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "CIn External Enable"
+      V_2.Cin.Rest_ExtEnable := (((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND Sts.InRestPos) OR ((((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND CIn.Manager.Control_ON) AND CIn.CycleModeShortPiece) AND CIn.Trasporto.OutOfWorkspace));
+      V_2.Cin.Work_ExtEnable := (((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND Sts.InRestPos) OR ((((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_CanMoveFreely)) AND CIn.Manager.Control_ON) AND CIn.CycleModeShortPiece) AND CIn.Trasporto.OutOfWorkspace));
+   END_REGION
+
+   REGION "Valve Manager"
+      #V_2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.V_2,
+         Alarm := Alarm.V_2,
+         Warning := Warning.V_2
+      );
+
+      #V_2.Q;
+   END_REGION
+
+   REGION "[Paletti] - Alarm Ls"
+      #TON_MissingLsPos0(
+         IN := ((V_1.COut.Rest AND V_2.COut.Rest) AND NOT (DataIn.Pos0_Ls)),
+         PT := Par_Mach.PosTimeout
+      );
+
+      #TON_MissingLsPos1(
+         IN := ((V_1.COut.Work AND V_2.COut.Rest) AND NOT (DataIn.Pos1_Ls)),
+         PT := Par_Mach.PosTimeout
+      );
+
+      #TON_MissingLsPos2(
+         IN := ((V_1.COut.Work AND V_2.COut.Work) AND NOT (DataIn.Pos2_Ls)),
+         PT := Par_Mach.PosTimeout
+      );
+
+      #TON_MissingLsPos0.Q;
+      IF #TON_MissingLsPos0.Q THEN
+         Alarm.Missing_Pos0_Ls_ON := TRUE;
+      END_IF;
+      #TON_MissingLsPos1.Q;
+      IF #TON_MissingLsPos1.Q THEN
+         Alarm.Missing_Pos1_Ls_ON := TRUE;
+      END_IF;
+      #TON_MissingLsPos2.Q;
+      IF #TON_MissingLsPos2.Q THEN
+         Alarm.Missing_Pos2_Ls_ON := TRUE;
+      END_IF;
+      IF ((DataIn.Pos0_Ls AND DataIn.Pos1_Ls) OR (DataIn.Pos0_Ls AND DataIn.Pos2_Ls) OR (DataIn.Pos1_Ls AND DataIn.Pos2_Ls)) THEN
+         Alarm.LimitSwitch := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Paletti] Warning"
+      Warning.V_Paletti.NotAutReady:= Warning.V_1.NotAutReady OR Warning.V_2.NotAutReady;
+      Warning.V_Paletti.PressureRunning_Timeout := Warning.V_1.PressureRunning_Timeout OR Warning.V_2.PressureRunning_Timeout;
+      Warning.V_Paletti.Rest_MissingExtEnable := Warning.V_1.Rest_MissingExtEnable OR Warning.V_2.Rest_MissingExtEnable;
+      Warning.V_Paletti.Work_MissingExtEnable := Warning.V_1.Work_MissingExtEnable OR Warning.V_2.Work_MissingExtEnable;
+      Warning.V_Paletti.Missing_Rest_Ls_ON[1] := Warning.V_1.Missing_Rest_Ls_ON[1] OR Warning.V_2.Missing_Rest_Ls_ON[1];
+      Warning.V_Paletti.Missing_Work_Ls_ON[1] := Warning.V_1.Missing_Work_Ls_ON[1] OR Warning.V_2.Missing_Work_Ls_ON[1];
+
+   END_REGION
+
+   REGION "[Paletti] - Ctrl"
+      V1_Rest := Ctrl.Pos0;
+      V2_Rest_1 := Ctrl.Pos0;
+      V1_Work_1 := Ctrl.Pos1;
+      V2_Rest_2 := Ctrl.Pos1;
+      V1_Work_2 := Ctrl.Pos2;
+      V2_Work := Ctrl.Pos2;
+      V_1.Cin.Manager.Rest := V1_Rest;
+      V_1.Cin.Manager.Work := ((((V1_Work_1 OR V1_Work_2) AND CIn.CycleModeShortPiece) AND CIn.Navetta.OutOfWorkspace) OR ((V1_Work_1 OR V1_Work_2) AND NOT (CIn.CycleModeShortPiece)));
+      V_2.Cin.Manager.Rest := (V2_Rest_1 OR V2_Rest_2);
+      V_2.Cin.Manager.Work := (((V2_Work AND CIn.CycleModeShortPiece) AND CIn.Navetta.OutOfWorkspace) OR (V2_Work AND NOT (CIn.CycleModeShortPiece)));
+   END_REGION
+
+   REGION "[Paletti] - COut"
+      COut.Paletto.CtrlSafe := (V_1.COut.CtrlSafe OR V_2.COut.CtrlSafe);
+      COut.Paletto.Standstill := (V_1.COut.Standstill AND V_2.COut.Standstill);
+      COut.Paletto.Rest_CheckNext := (V_1.COut.Rest_CheckNext OR V_2.COut.Rest_CheckNext);
+      COut.Paletto.Work_CheckNext := (V_1.COut.Work_CheckNext OR V_2.COut.Work_CheckNext);
+      IF ((DataIn.Pos0_Ls AND NOT (DataIn.Pos1_Ls)) AND NOT (DataIn.Pos2_Ls)) THEN
+         COut.Paletto.Pos := 0;
+      END_IF;
+      COut.Paletto.RestPosition := TRUE;
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Ax.MachineInterface,
+         MachineInterface_2 := V_1.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_REST) AND NOT (Warning.MissingCnd.OP_WORK)) AND NOT (Warning.MissingCnd.AxInRestPos))),
+         MachineInterface_1 := V_1.MachineInterface,
+         MachineInterface_2 := V_2.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Ax.MachineInterface, MachineInterface_2 := V_1.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := NOT (((NOT (Warning.MissingCnd.OP_REST) AND NOT (Warning.MissingCnd.OP_WORK)) AND NOT (Warning.MissingCnd.AxInRestPos))), MachineInterface_1 := V_1.MachineInterface, MachineInterface_2 := V_2.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

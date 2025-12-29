@@ -1,0 +1,215 @@
+﻿// Block: Straightener_FB
+// Title: <<< FEED >>>
+
+FUNCTION_BLOCK "Straightener_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< FEED >>>
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         Feed : udt_DeviceSafetyInterface;
+         Lift_Entry : udt_DeviceSafetyInterface;
+         Lift_Exit : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : Struct
+         Feed : TAx_DriveInterface;
+      END_STRUCT;
+      DataIn : Struct
+         Feed : PositioningMachine_DataIn;
+         Lift_Entry : ValveMachine_DataIn;
+         Lift_Exit : ValveMachine_DataIn;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Straightener_Manager;
+         Feed_BwdEnable : Array[1..8] of Bool;
+         Feed_FwdEnable : Array[1..8] of Bool;
+      END_STRUCT;
+      Config : Struct
+         Feed : PositioningMachine_Config;
+         Lift_Entry : ValveMachine_Config;
+         Lift_Exit : ValveMachine_Config;
+         Lift_Entry_Exist : Bool;
+         Lift_Exit_Exist : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         Feed : PositioningMachine_DataOut;
+         Lift_Entry : ValveMachine_DataOut;
+         Lift_Exit : ValveMachine_DataOut;
+      END_STRUCT;
+      COut : Straightener_Status;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+      PersistentValues : Struct
+         Data : Struct
+            Feed : PositioningMachine_DataPers;
+         END_STRUCT;
+         Feed : PositioningMachine_Par;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Feed : PositioningMachine_Alr;
+         Lift_Entry : ValveAlr;
+         Lift_Exit : ValveAlr;
+      END_STRUCT;
+      Warning : Struct
+         Feed : PositioningMachine_Wng;
+         Lift_Entry : ValveMachine_Wng;
+         Lift_Exit : ValveMachine_Wng;
+      END_STRUCT;
+      Feed : PositioningMachine_FB;
+      Lift_Entry : ValveMachine_FB;
+      Lift_Exit : ValveMachine_FB;
+   END_VAR
+
+   VAR_TEMP
+      ExternalWorkCmd : Bool;
+      InternalWorkCmd : Bool;
+      ExternalRestEnable : Bool;
+      InternalRestEnable : Bool;
+      ExternaleWorkEnable : Bool;
+      InternalWorkEnable : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "CIn (External Bwd / Fwd enable)"
+      Feed.CIn.Bwd_ExtEnable := (((((((CIn.Feed_BwdEnable[1] AND CIn.Feed_BwdEnable[2]) AND CIn.Feed_BwdEnable[3]) AND CIn.Feed_BwdEnable[4]) AND CIn.Feed_BwdEnable[5]) AND CIn.Feed_BwdEnable[6]) AND CIn.Feed_BwdEnable[7]) AND CIn.Feed_BwdEnable[8]);
+      Feed.CIn.Fwd_ExtEnable := (((((((CIn.Feed_FwdEnable[1] AND CIn.Feed_FwdEnable[2]) AND CIn.Feed_FwdEnable[3]) AND CIn.Feed_FwdEnable[4]) AND CIn.Feed_FwdEnable[5]) AND CIn.Feed_FwdEnable[6]) AND CIn.Feed_FwdEnable[7]) AND CIn.Feed_FwdEnable[8]);
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      Feed.CIn.Manager := CIn.Manager.Feed;
+   END_REGION
+
+   REGION "Positioning Machine Manager"
+      #Feed(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Feed,
+         Drive := Drive.Feed,
+         DataIn := DataIn.Feed,
+         Config := Config.Feed,
+         TO_Ax := TO_Ax,
+         Par := PersistentValues.Feed,
+         Pers_Data := PersistentValues.Data.Feed,
+         Warning := Warning.Feed,
+         Alarm := Alarm.Feed,
+         DataOut => DataOut.Feed,
+         COut => COut.Feed
+      );
+
+      #Feed.Q;
+   END_REGION
+
+   REGION "CIn (Extrnal enables)"
+      Lift_Entry.Cin.Rest_ExtEnable := TRUE;
+      Lift_Entry.Cin.Work_ExtEnable := TRUE;
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      Lift_Entry.Cin.Manager := CIn.Manager.Lift_Entry;
+   END_REGION
+
+   REGION "Valve machine Manager"
+      #Lift_Entry(
+         en := Config.Lift_Entry_Exist,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Lift_Entry,
+         DataIn := DataIn.Lift_Entry,
+         Config := Config.Lift_Entry,
+         Alarm := Alarm.Lift_Entry,
+         Warning := Warning.Lift_Entry
+      );
+
+      "ValveMachine_NotExist"(
+         en := NOT (Config.Lift_Entry_Exist),
+         Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))),
+         ValveMachine := Lift_Entry,
+         V_Alarm => Alarm.Lift_Entry,
+         V_Warning => Warning.Lift_Entry
+      );
+
+      IF Config.Lift_Entry_Exist THEN
+         #Lift_Entry.Q;
+      END_IF;
+      IF NOT (Config.Lift_Entry_Exist) THEN
+         "ValveMachine_NotExist"(Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))), ValveMachine := Lift_Entry);
+      END_IF;
+      COut.Lift_Entry := Lift_Entry.COut;
+   END_REGION
+
+   REGION "CIn (Extrnal enables)"
+      Lift_Exit.Cin.Rest_ExtEnable := TRUE;
+      Lift_Exit.Cin.Work_ExtEnable := TRUE;
+   END_REGION
+
+   REGION "CIn ( Area manager controls)"
+      Lift_Exit.Cin.Manager := CIn.Manager.Lift_Exit;
+   END_REGION
+
+   REGION "Valve machine Manager"
+      #Lift_Exit(
+         en := Config.Lift_Exit_Exist,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Lift_Exit,
+         DataIn := DataIn.Lift_Exit,
+         Config := Config.Lift_Exit,
+         Alarm := Alarm.Lift_Exit,
+         Warning := Warning.Lift_Exit
+      );
+
+      "ValveMachine_NotExist"(
+         en := NOT (Config.Lift_Exit_Exist),
+         Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))),
+         ValveMachine := Lift_Exit,
+         V_Alarm => Alarm.Lift_Exit,
+         V_Warning => Warning.Lift_Exit
+      );
+
+      IF Config.Lift_Exit_Exist THEN
+         #Lift_Exit.Q;
+      END_IF;
+      IF NOT (Config.Lift_Exit_Exist) THEN
+         "ValveMachine_NotExist"(Execute := NOT (((Sys.FirstPLCCycle AND NOT (AreaInterface.ManOneShot)) AND NOT (AreaInterface.AutOneShot))), ValveMachine := Lift_Exit);
+      END_IF;
+      COut.Lift_Exit := Lift_Exit.COut;
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := Feed.MachineInterface,
+         MachineInterface_2 := Lift_Entry.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         MachineInterface_1 := MachineInterface,
+         MachineInterface_2 := Lift_Exit.MachineInterface,
+         AdditionalAlarms := FALSE,
+         AdditionalWarnings := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := Feed.MachineInterface, MachineInterface_2 := Lift_Entry.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+      MachineInterface := "MachineInterface_2_To_1"(MachineInterface_1 := MachineInterface, MachineInterface_2 := Lift_Exit.MachineInterface, AdditionalAlarms := FALSE, AdditionalWarnings := FALSE);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

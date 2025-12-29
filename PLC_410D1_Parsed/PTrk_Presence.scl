@@ -1,0 +1,18 @@
+﻿// Block: PTrk_Presence
+
+FUNCTION "PTrk_Presence" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Item : PTrk_Item;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      ENO := Item.P_ID <> 0;
+
+   END_REGION
+
+
+END_FUNCTION

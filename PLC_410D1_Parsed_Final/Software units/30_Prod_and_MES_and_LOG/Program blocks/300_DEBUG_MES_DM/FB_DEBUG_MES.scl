@@ -1,0 +1,1465 @@
+﻿// Block: FB_DEBUG_MES
+// Title: Barriere sempre chiuse
+
+FUNCTION_BLOCK "FB_DEBUG_MES"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Barriere sempre chiuse
+   VAR
+      i : Int;
+      CodiceAllarmePARTS : Int;
+      CodiceAllarmeBEAMS : Int;
+      R_TRIG_Deroga : R_TRIG;
+      R_TRIG_Provino_Eseguito : R_TRIG;
+      R_TRIG_SetUp_PartProd_Done : R_TRIG;
+      R_TRIG_SetUp_BeamProd_Done : R_TRIG;
+      R_TRIG_NewPart : R_TRIG;
+      R_TRIG_NewBeam : R_TRIG;
+      R_TRIG_TaglioLamiera : R_TRIG;
+      R_TRIG_Giunzione : R_TRIG;
+      R_TRIG_Giunzione_Dopo_Taglio_Finale : R_TRIG;
+      R_TRIG_Step_Introduzione : R_TRIG;
+      R_TRIG_Step_Vuotamento : R_TRIG;
+      R_TRIG_SimulaAllarmePARTS : R_TRIG;
+      R_TRIG_SimulaAllarmeBEAMS : R_TRIG;
+      R_TRIG_AutomaticoPARTS : R_TRIG;
+      R_TRIG_AutomaticoBEAMS : R_TRIG;
+      R_TRIG_PausaPARTS : R_TRIG;
+      R_TRIG_PausaBEAMS_2 : R_TRIG;
+      R_TRIG_PausaBEAMS_1 : R_TRIG;
+      R_TRIG_CambioAspo : R_TRIG;
+      CumulativoAllarmiProduzionePart : Bool;
+      CumulativoAllarmiProduzioneBeams : Bool;
+      WarningNoBeamsToHandle : Bool;
+      R_TRIG_ResetStops : R_TRIG;
+      RETVAL_GetOrderData_O_ENDING : DInt;
+      Sel_ProdEndingIndx : Int;
+      RETVAL_GetOrderData_O_ACT : DInt;
+      Sel_Free : Int;
+      Ordine_Trovato : Bool;
+      R_TRIG_MuoveSuBaiaDiUscita : R_TRIG;
+      RETVAL_INT : Int;
+      RETVAL_GetOrderData_Stacker : DInt;
+      Stacker_Order : Prod_Item;
+      Stacker_Index_O_Ending : Int;
+   END_VAR
+
+   VAR_TEMP
+      Max_Beams : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Barriere sempre chiuse"
+
+      REGION BARRIERE Sempre chiuse !
+          
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Doors_Closed := TRUE;
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Doors_Closed := TRUE;
+          
+      END_REGION
+
+
+
+
+
+   END_REGION
+
+   REGION "Network 2"
+      DEBUG_MES.Materiale_Area01.DiametroCoil := (MN := 500.0, IN := DEBUG_MES.Materiale_Area01.DiametroCoil, MX := 1800.0);
+      DEBUG_MES.Process_Data.Cin.Coil_Prod.Coil_Diameter := DEBUG_MES.Materiale_Area01.DiametroCoil;
+
+   END_REGION
+
+   REGION "Network 3"
+      DEBUG_MES.Materiale_Area01.Sensore_Misura := (MN := PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness - 0.75,
+                                                                IN := DEBUG_MES.Materiale_Area01.Sensore_Misura,
+                                                                MX := PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness + 0.75);
+
+      DEBUG_MES.Materiale_Area01.Sensore_Errore := PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness - DEBUG_MES.Materiale_Area01.Sensore_Misura;
+
+      IF (DEBUG_MES.Materiale_Area01.Sensore_Errore) > PPrf_MAIN.ON_WORK.GeneralData.Material_Tol_Max
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Spessore_Lamiera_Errore_Valore := DEBUG_MES.Materiale_Area01.Sensore_Errore;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Spessore_Lamiera_Errato := TRUE;
+      ELSE
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Spessore_Lamiera_Errore_Valore := DEBUG_MES.Materiale_Area01.Sensore_Errore;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Spessore_Lamiera_Errato := FALSE;
+      END_IF;
+
+      R_TRIG_Deroga(CLK := DEBUG_MES.Materiale_Area01.PB_Deroga);
+
+      IF R_TRIG_Deroga.Q AND NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Deroga_Spessore_Errato
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Deroga_Spessore_Errato := TRUE;
+          
+      ELSIF R_TRIG_Deroga.Q
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Deroga_Spessore_Errato := FAlsE;
+      END_IF;
+
+      IF NOT  DEBUG_MES.Process_Data.Cin.Coil_Prod.Spessore_Lamiera_Errato
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Deroga_Spessore_Errato := FAlsE;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Limiti delle variabili impostate"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Cambio Aspo in linea / in carico"
+      DEBUG_MES.Process_Data.Cin.Coil_Prod.Decoiler_InLine := (MN := 1, IN := DEBUG_MES.Process_Data.Cin.Coil_Prod.Decoiler_InLine, MX := 2);
+
+
+      R_TRIG_CambioAspo(CLK := DEBUG_MES.Materiale_Area01.PB_CambioAspo);
+
+      IF R_TRIG_CambioAspo.Q
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit
+      THEN
+          IF DEBUG_MES.Process_Data.Cin.Coil_Prod.Decoiler_InLine = 1
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Decoiler_InLine := 2;
+          ELSE
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Decoiler_InLine := 1;
+          END_IF;
+      END_IF;
+              
+          
+          
+
+   END_REGION
+
+   REGION "Presenze Materiale"
+      R_TRIG_Step_Introduzione(CLK := DEBUG_MES.Materiale_Area01.PB_Introduzione_Next_Step);
+
+      IF R_TRIG_Step_Introduzione.Q AND NOT DEBUG_MES.Process_Data.Cout.COIL_Stop_Manca_Dati_AspoInLinea THEN
+          
+          IF NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry := TRUE;
+              
+          ELSIF NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit := TRUE;
+              
+          ELSIF NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit := TRUE;
+              
+          ELSIF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceEntry
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceEntry := TRUE;
+              
+          ELSIF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceExit
+              OR
+              NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence
+              
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceExit := TRUE;
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence := TRUE;
+          END_IF;
+          
+      END_IF;
+
+
+
+
+      R_TRIG_Step_Vuotamento(CLK := DEBUG_MES.Materiale_Area01.PB_Svuotamento_Next_Step);
+
+
+      IF R_TRIG_Step_Vuotamento.Q
+      THEN
+          
+          IF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry := FALSE;
+              
+          ELSIF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit := FALSE;
+              
+          ELSIF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit
+          THEN
+              DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit := FALSE;
+              
+          ELSIF DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceEntry
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceEntry := FALSE;
+              
+          ELSIF DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceExit
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceExit := FALSE;
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence := FALSE;
+          END_IF;
+          
+      END_IF;
+
+
+      IF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Prod.LeadCutMem := FALSE;
+      END_IF;
+
+
+
+
+
+   END_REGION
+
+   REGION "Network 7"
+
+      IF NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 0; // = EMPTY;
+          
+      END_IF;
+
+
+      IF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 0
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 1; // = THREADING;
+      END_IF;
+
+
+
+      IF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 1
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_JB_Exit
+          AND
+          DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialPresenceEntry
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 2; // = FULL;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Weld_Presence := FALSE;
+      END_IF;
+
+
+
+
+      IF NOT DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 2 // = FULL
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 3; // = END OF COIL
+          
+      END_IF;
+
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Network 8"
+
+
+      R_TRIG_TaglioLamiera(CLK := DEBUG_MES.Materiale_Area01.PB_TaglioLamieraAspo);
+
+      IF R_TRIG_TaglioLamiera.Q
+          AND
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 2 // = FULL
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 4; // = ABORT CUT DONE
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry := FALSE;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit := FALSE;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Network 9"
+      R_TRIG_Giunzione(CLK := DEBUG_MES.Materiale_Area01.PB_Giunzione);
+
+      IF R_TRIG_Giunzione.Q
+          AND
+          (
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 3
+          OR
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS = 4
+          )
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS := 2;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Entry := TRUE;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_Presence_Straight_Exit := TRUE;
+          
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Weld_Presence := TRUE;
+          
+      END_IF;
+
+      R_TRIG_Giunzione_Dopo_Taglio_Finale(CLK := DEBUG_MES.Materiale_Area01.PB_Giunzione_Dopo_Taglio_Finale);
+
+      IF R_TRIG_Giunzione_Dopo_Taglio_Finale.Q
+      THEN
+          DEBUG_MES.Materiale_Area01.PB_Giunzione_Dopo_Taglio_Finale := FALSE;
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Weld_Presence := FALSE;
+      END_IF;
+
+
+
+
+   END_REGION
+
+   REGION "Network 10"
+      R_TRIG_Provino_Eseguito(CLK := DEBUG_MES.Materiale_Area01.PB_Provino);
+
+      IF R_TRIG_Provino_Eseguito.Q
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Provino_Eseguito := TRuE;
+          
+      ELSIF DEBUG_MES.Process_Data.Cout.COIL_ACK_Provino_Eseguito
+      THEN
+          DEBUG_MES.Process_Data.Cin.Coil_Prod.Provino_Eseguito := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "SET UP"
+      R_TRIG_SetUp_PartProd_Done(CLK := DEBUG_MES.SetUp.PB_PART_DONE);
+      R_TRIG_SetUp_BeamProd_Done(CLK := DEBUG_MES.SetUp.PB_BEAM_DONE);
+
+      IF R_TRIG_SetUp_PartProd_Done.Q AND NOT DEBUG_MES.Process_Data.Cin.Part_Prod.SetUpDone
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Prod.SetUpDone := TRUE;
+          
+      ELSIF R_TRIG_SetUp_PartProd_Done.Q
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Prod.SetUpDone := FALSE;
+      END_IF;
+
+      IF R_TRIG_SetUp_BeamProd_Done.Q AND NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.SetUpDone
+      THEN
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.SetUpDone := TRUE;
+      ELSIF R_TRIG_SetUp_BeamProd_Done.Q
+      THEN
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.SetUpDone := FALSE;
+      END_IF;
+
+
+      DEBUG_MES.Process_Data.Cin.Part_Prod.LeadCutMem := TRUE;
+
+      IF ProductionMng_PERS.Pers.Data.SET_UP.Status = 5 THEN
+          ProductionMng_PERS.Pers.Data.SET_UP.STS_Man_SetUp.Done := true;
+          ProductionMng_PERS.Pers.Data.SET_UP.STS_Man_SetUp.Done_X := true;
+          ProductionMng_PERS.Pers.Data.SET_UP.STS_Man_SetUp.Done_Z := true;
+          
+          
+          
+          FOR i := 1 TO SETUP_MAN_OPERATIONS_QTY DO
+              ProductionMng_PERS.Pers.Data.SET_UP.STS_Man_SetUp.Ack_Eseguito_X[i] := TRUE;
+              
+          END_FOR;
+          
+          
+          FOR i := 1 TO SETUP_MAN_OP_WITH_CODE_QTY DO
+              
+              ProductionMng_PERS.Pers.Data.SET_UP.STS_Man_SetUp.Ack_Eseguito_Y[i] := TRUE;
+              
+              
+          END_FOR;
+          
+          
+          
+          
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Reset STOP"
+      R_TRIG_ResetStops(CLK := DEBUG_MES.Produzione_Parti.PB_Reset_STOP);
+
+      IF R_TRIG_ResetStops.Q AND DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Part_Recondition
+      THEN
+          Production.O_ACT.Parts_TOCHECK := 0;
+      END_IF;
+
+   END_REGION
+
+   REGION "PARTS - Allarme / Man / Aut / Pausa / Standstill"
+      REGION Simula Allarme produzione PARTS
+          
+          
+          // Stop ciclo per motivi Funzionamento produzione
+          // 
+          CumulativoAllarmiProduzionePart := FALSE;
+          
+          IF DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+              AND
+              (
+              DEBUG_MES.Process_Data.Cout.STOP_FineTurno
+              OR
+              DEBUG_MES.Process_Data.Cout.STOP_ControlloQualita
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_End_Of_Production
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Part_Recondition
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Order_Complete
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_O_ACT_Empty
+              OR
+              DEBUG_MES.Process_Data.Cout.COIL_Stop_Provino
+              OR
+              DEBUG_MES.Process_Data.Cout.COIL_Stop_Manca_Dati_AspoInLinea
+              )
+          THEN
+              CumulativoAllarmiProduzionePart := TRUE;
+              DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON := FALSE;
+          END_IF;
+          
+          
+          
+          R_TRIG_SimulaAllarmePARTS(CLK := DEBUG_MES.Produzione_Parti.SimulaAllarme);
+          
+          
+          IF R_TRIG_SimulaAllarmePARTS.Q
+          THEN
+              IF NOT DEBUG_MES.Produzione_Parti.MemAllarme
+              THEN
+                  DEBUG_MES.Produzione_Parti.MemAllarme := TRUE;
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON := FALSE;
+                  
+              ELSIF DEBUG_MES.Produzione_Parti.MemAllarme
+              THEN
+                  DEBUG_MES.Produzione_Parti.MemAllarme := FALSE;
+              END_IF;
+              
+          END_IF;
+          
+          
+          
+          
+          
+          
+      END_REGION
+
+
+      REGION Ciclo automatico produzione PARTS
+          
+          R_TRIG_AutomaticoPARTS(CLK := DEBUG_MES.Produzione_Parti.Start);
+          
+          IF R_TRIG_AutomaticoPARTS.Q
+          THEN
+              
+              IF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON := TRUE;
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.Running := TRUE;
+                  
+              ELSIF DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON := FALSE;
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.Running := FALSE;
+              END_IF;
+              
+             
+              
+              
+              
+          END_IF;
+          
+          IF NOT (ProductionMng_PERS.Pers.Data.SET_UP.ProductionReady AND DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence)
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON := FALSE;
+          END_IF;
+          
+          
+          
+      END_REGION
+
+
+      REGION Pausa ciclo automatico PARTS
+          
+          R_TRIG_PausaPARTS(CLK := DEBUG_MES.Produzione_Parti.Pausa);
+          
+          IF R_TRIG_PausaPARTS.Q
+          THEN
+              IF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Running
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.Running := TRUE;
+              ELSE
+                  DEBUG_MES.Process_Data.Cin.Part_Prod.Running := FALSE;
+              END_IF;
+              
+          END_IF;
+          
+          // Fine la lamiera alla aspo -> Pausa
+          // 
+          IF DEBUG_MES.Process_Data.Cin.Coil_Prod.Material_STS <> 2 // FULL
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Running := FALSE;
+          END_IF;
+          
+          // Se non ciclo ON -> Pausa
+          IF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Running := FALSE;
+          END_IF;
+          
+          
+          
+      END_REGION
+
+
+
+      REGION Manuale produzione PARTS
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Man := NOT DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON;
+      END_REGION
+
+
+      REGION Standstill Material Feeding PARTS
+          
+          DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialFeedingStandstill := DEBUG_MES.Process_Data.Cin.Part_Prod.Man;
+          
+          IF NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Man
+              AND
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Running
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.MaterialFeedingStandstill := FALSE;
+          END_IF;
+          
+          
+      END_REGION
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "BEAMS Allarme / Man / Aut / Pausa / Standstill"
+
+      REGION Simula Allarme produzione BEAMS
+          
+          
+          // Stop ciclo per motivi Funzionamento produzione
+          // 
+          CumulativoAllarmiProduzioneBeams := FALSE;
+          
+          IF DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+              AND
+              (
+              DEBUG_MES.Process_Data.Cout.STOP_FineTurno
+              OR
+              DEBUG_MES.Process_Data.Cout.STOP_ControlloQualita
+              OR
+              (
+              (DEBUG_MES.Process_Data.Cout.Part_RF_Stop_End_Of_Production
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Order_Complete
+              OR
+              DEBUG_MES.Process_Data.Cout.Part_RF_Stop_O_ACT_Empty
+              )
+              AND
+              (
+              (DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID > 0  AND  DEBUG_MES.Porduzione_Pezzi.Sel_Order.Beams_ToGo = 0)
+              OR
+              DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID = 0
+              )
+              AND
+              BTrk.A0303.Stacker.Beams_Qty = 0
+              AND
+              BTrk.A0304.Beams_Qty = 0
+              )
+              )
+          THEN
+              CumulativoAllarmiProduzioneBeams := TRUE;
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON := FALSE;
+          END_IF;
+          
+          
+          
+          
+          
+          
+          
+          // Allarme impostato da pulsante
+          // 
+          R_TRIG_SimulaAllarmeBEAMS(CLK := DEBUG_MES.Porduzione_Pezzi.SimulaAllarme);
+          
+          
+          IF R_TRIG_SimulaAllarmeBEAMS.Q
+          THEN
+              IF NOT DEBUG_MES.Porduzione_Pezzi.MemAllarme
+              THEN
+                  DEBUG_MES.Porduzione_Pezzi.MemAllarme := TRUE;
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON := FALSE;
+                  
+              ELSIF DEBUG_MES.Porduzione_Pezzi.MemAllarme
+              THEN
+                  DEBUG_MES.Porduzione_Pezzi.MemAllarme := FALSE;
+              END_IF;
+              
+          END_IF;
+          
+          
+          
+      END_REGION
+
+
+
+
+
+
+      REGION Ciclo automatico produzione BEAMS
+          
+          R_TRIG_AutomaticoBEAMS(CLK := DEBUG_MES.Porduzione_Pezzi.Start);
+          
+          IF R_TRIG_AutomaticoBEAMS.Q
+          THEN
+              
+              IF NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON := TRUE;
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := TRUE;
+                  
+              ELSIF DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON := FALSE;
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := FALSE;
+              END_IF;
+              
+              
+          END_IF;
+          
+          
+          IF NOT ProductionMng_PERS.Pers.Data.SET_UP.ProductionReady
+              AND
+              NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON := FALSE;
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := FALSE;
+          END_IF;
+          
+          
+          
+      END_REGION
+
+
+
+      REGION Pausa ciclo automatico BEAMS
+          
+          WarningNoBeamsToHandle :=
+          NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Material_Presence
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+          AND
+          //
+          ("Production".O_ACT.O_ID = 0 OR "Production".O_ACT.Parts_ToGo = 0)
+          AND
+          
+          BTrk.A0303.Stacker.Beams_Qty = 0
+          AND
+          BTrk.A0304.Beams_Qty = 0;
+          
+          R_TRIG_PausaBEAMS_2(CLK := NOT WarningNoBeamsToHandle);
+          
+          IF WarningNoBeamsToHandle THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := FALSE;
+          END_IF;
+          
+          IF DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+              AND
+              R_TRIG_PausaBEAMS_2.Q
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := TRUE;
+          END_IF;
+              
+              
+              
+          R_TRIG_PausaBEAMS_1(CLK := DEBUG_MES.Porduzione_Pezzi.Pausa);
+          
+          IF R_TRIG_PausaBEAMS_1.Q
+          THEN
+              IF NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.Running
+              THEN
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := TRUE;
+              ELSE
+                  DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := FALSE;
+              END_IF;
+              
+          END_IF;
+          
+          IF NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Running := FALSE;
+          END_IF;
+          
+         
+          
+          
+          
+          
+      END_REGION
+
+
+      REGION Manuale produzione BEAMS
+          
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Man := NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON;
+      END_REGION
+
+
+
+
+
+   END_REGION
+
+   REGION "Gestione sospensioni PARTS"
+      // Numero allarme in autoincremento
+      // 
+      CodiceAllarmePARTS := (IN := CodiceAllarmePARTS, MN := 1, MX := 100);
+
+      IF CodiceAllarmePARTS = 100
+      THEN
+          CodiceAllarmePARTS := 1;
+      END_IF;
+
+
+
+
+      // Caso tutto OK
+      // 
+      IF (DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+          AND
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Running)
+          OR
+          NOT ProductionMng_PERS.Pers.Data.SET_UP.ProductionReady
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code := 0;
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 0;
+          
+          
+
+          
+          // Caso ciclo arrestato da allarme
+          // 
+      ELSIF //"DEBUG_MES".Process_Data.Cin.Part_Prod.CycleON
+          //AND
+          DEBUG_MES.Produzione_Parti.MemAllarme
+      THEN
+          
+          IF DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code <> 2
+          THEN
+              CodiceAllarmePARTS += 1;
+          END_IF;
+          
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code := 2;
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := CodiceAllarmePARTS;
+          
+          IF DEBUG_MES.Process_Data.Cout.STOP_FineTurno
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 200;
+          ELSIF DEBUG_MES.Process_Data.Cout.STOP_ControlloQualita
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 201;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_End_Of_Production
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 202;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Part_Recondition
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 203;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Order_Complete
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 204;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_O_ACT_Empty
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 205;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.COIL_Stop_Provino
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 206;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.COIL_Stop_Manca_Dati_AspoInLinea
+          THEN
+              DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 207;
+          END_IF;
+          
+          
+          
+          // Caso ciclo no avviato o fermato da operatore
+          // 
+      ELSIF ProductionMng_PERS.Pers.Data.SET_UP.ProductionReady
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+          AND
+          NOT DEBUG_MES.Produzione_Parti.MemAllarme
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code := 1;
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := 0;
+          
+          
+          
+          
+          // Caso ciclo in pausa
+          // 
+      ELSIF DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Part_Prod.Running
+      THEN
+          
+          IF DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code <> 3
+          THEN
+              CodiceAllarmePARTS += 1;
+          END_IF;
+          
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Code := 3;
+          DEBUG_MES.Process_Data.Cin.Part_Prod.Halted.Message_N := CodiceAllarmePARTS;
+          
+      END_IF;
+          
+
+          
+
+
+
+
+   END_REGION
+
+   REGION "Gestione sospensioni BEAMS"
+      // Numero allarme in autoincremento
+      // 
+      CodiceAllarmeBEAMS := (IN := CodiceAllarmeBEAMS, MN := 1, MX := 100);
+
+      IF CodiceAllarmeBEAMS = 100
+      THEN
+          CodiceAllarmeBEAMS := 1;
+      END_IF;
+
+
+
+
+      // Caso tutto OK
+      // 
+      IF (DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+          AND
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Running)
+          OR
+          NOT ProductionMng_PERS.Pers.Data.SET_UP.ProductionReady
+      THEN
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code := 0;
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 0;
+          
+          
+
+          
+          // Caso ciclo arrestato da allarme
+          // 
+      ELSIF //"DEBUG_MES".Process_Data.Cin.Part_Prod.CycleON
+          //AND
+          DEBUG_MES.Porduzione_Pezzi.MemAllarme OR CumulativoAllarmiProduzioneBeams
+      THEN
+          
+          IF DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code <> 2
+          THEN
+              CodiceAllarmeBEAMS += 1;
+          END_IF;
+          
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code := 2;
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := CodiceAllarmeBEAMS;
+          
+          IF DEBUG_MES.Process_Data.Cout.STOP_FineTurno
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 200;
+          ELSIF DEBUG_MES.Process_Data.Cout.STOP_ControlloQualita
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 201;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_End_Of_Production
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 202;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Part_Recondition
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 203;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_Order_Complete
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 204;
+          ELSIF DEBUG_MES.Process_Data.Cout.Part_RF_Stop_O_ACT_Empty
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 205;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.COIL_Stop_Provino
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 206;
+              
+          ELSIF DEBUG_MES.Process_Data.Cout.COIL_Stop_Manca_Dati_AspoInLinea
+          THEN
+              DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 207;
+          END_IF;
+          
+          
+          
+          // Caso ciclo no avviato o fermato da operatore
+          // 
+      ELSIF //"ProductionMng_PERS".Pers.Data.SET_UP.ProductionReady
+          
+          
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+          AND
+          NOT DEBUG_MES.Porduzione_Pezzi.MemAllarme
+          AND
+          DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID > 0
+          
+      THEN
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code := 1;
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := 0;
+          
+          
+          // Caso ciclo in pausa
+          // 
+      ELSIF DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+          AND
+          NOT DEBUG_MES.Process_Data.Cin.Beam_Prod.Running
+      THEN
+          
+          IF DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code <> 3
+          THEN
+              CodiceAllarmeBEAMS += 1;
+          END_IF;
+          
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Code := 3;
+          DEBUG_MES.Process_Data.Cin.Beam_Prod.Halted.Message_N := CodiceAllarmeBEAMS;
+          
+          
+          
+          
+          
+          
+          
+      END_IF;
+          
+
+
+
+
+
+   END_REGION
+
+   REGION "Nuova parte ESEGUITA"
+
+
+
+      DEBUG_MES.Produzione_Parti.New_Part_TYPE := (IN := DEBUG_MES.Produzione_Parti.New_Part_TYPE, MN := GOOD, MX := PART_BAD_TEST);
+
+
+
+
+
+      DEBUG_MES.Produzione_Parti.New_Part_Allow :=
+      DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Ready
+      AND
+      NOT DEBUG_MES.Process_Data.Cin.Part_Execution.Done
+      AND
+      DEBUG_MES.Process_Data.Cin.Part_Prod.CycleON
+      AND
+      DEBUG_MES.Process_Data.Cin.Part_Prod.Running;
+
+
+
+      // ACK part done !!
+
+      IF DEBUG_MES.Process_Data.Cin.Part_Execution.Done
+          AND
+          DEBUG_MES.Process_Data.Cout.Part_ACK_PartDone
+      THEN
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Done := FALSE;
+      END_IF;
+
+
+
+      R_TRIG_NewPart(CLK := DEBUG_MES.Produzione_Parti.New_Part);
+
+
+      IF R_TRIG_NewPart.Q
+          AND
+          DEBUG_MES.Produzione_Parti.New_Part_TYPE > 0
+          AND
+          DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Ready
+          AND
+          NOT DEBUG_MES.Process_Data.Cout.Part_ACK_PartDone
+      THEN
+          
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Done := TRUE;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.LeadCut := FALSE;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Weld := FALSE;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Tick_Mark := DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Tick_Mark;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Trace_Mark := DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Trace_Mark;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.P_ID := DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.P_ID;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.O_ID := DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.O_ID;
+          DEBUG_MES.Process_Data.Cin.Part_Execution.Part_LenMeas := DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Part_Len;
+          
+          
+          
+          
+          CASE DEBUG_MES.Produzione_Parti.New_Part_TYPE OF
+                  
+              GOOD:
+                  ;
+                  
+              TO_CHECK:
+                  DEBUG_MES.Process_Data.Cin.Part_Execution.Part_LenMeas -= (DEBUG_MES.Process_Data.Cout.Part_Target_To_Execute_1.Part_Tol * 2);
+                  
+              PART_BAD_WELD:
+                  DEBUG_MES.Process_Data.Cin.Part_Execution.Weld := TRUE;
+                  
+              PART_BAD_EXCEED_TOL:
+                  DEBUG_MES.Process_Data.Cin.Part_Execution.Part_LenMeas += 50.0;
+                  
+              PART_BAD_TEST:
+                  DEBUG_MES.Process_Data.Cin.Part_Execution.P_ID := 0;
+                  DEBUG_MES.Process_Data.Cin.Part_Execution.O_ID := 0;
+                  
+                  
+          END_CASE;
+         
+          
+      END_IF;
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Nuovo BEAM eseguito"
+      REGION Abilita funzionamento simulazione BEAM
+          
+          DEBUG_MES.Porduzione_Pezzi.New_Beam_TYPE := (IN := DEBUG_MES.Porduzione_Pezzi.New_Beam_TYPE, MN := 1, MX := 3);
+          
+          
+          
+          DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod := FALSE;
+          
+          RETVAL_GetOrderData_O_ENDING := -1;
+          RETVAL_GetOrderData_O_ACT := -1;
+          
+          
+          
+          IF BTrk.A0303.Stacker.Beams_Qty > 0
+              AND
+              BTrk.A0303.Stacker.O_ID > 0
+          THEN
+              
+              
+              RETVAL_GetOrderData_O_ENDING := Prod_item_GetData(O_ID :=  BTrk.A0303.Stacker.O_ID,
+                                                                   MES_IDP := '',
+                                                                   Item => DEBUG_MES.Porduzione_Pezzi.Sel_Order,
+                                                                   indx => Sel_ProdEndingIndx);
+              
+              IF RETVAL_GetOrderData_O_ENDING >= 0
+              THEN
+                  DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod := TRUE;
+              END_IF;
+              
+          END_IF;
+          
+          
+          
+          IF NOT DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod
+          THEN
+              
+              FOR i := PROD_ENDING_ITEMS TO 1 BY -1 DO
+                  IF Production.O_ENDING[i].O_ID > 0
+                      AND
+                      Production.O_ENDING[i].Beam_Code = 1
+                      AND
+                      Production.O_ENDING[i].Beams_ToGo > 0
+                  THEN
+                      DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod := TRUE;
+                      
+                      RETVAL_GetOrderData_O_ENDING := Prod_item_GetData(O_ID := Production.O_ENDING[i].O_ID,
+                                                                           MES_IDP := '',
+                                                                           Item => DEBUG_MES.Porduzione_Pezzi.Sel_Order,
+                                                                           indx => Sel_ProdEndingIndx);
+                      
+                      IF RETVAL_GetOrderData_O_ENDING >= 0
+                      THEN
+                          DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod := TRUE;
+                          EXIT;
+                      END_IF;
+                      
+                  END_IF;
+                  
+              END_FOR;
+          END_IF;
+          
+          
+          
+          
+          IF NOT DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod
+          THEN
+              
+              IF Production.O_ACT.O_ID > 0
+                  AND Production.O_ACT.Beam_Code = 1
+                  
+              THEN
+                  
+                  DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod := TRUE;
+                  RETVAL_GetOrderData_O_ACT := Prod_item_GetData(O_ID := Production.O_ACT.O_ID,
+                                                                    MES_IDP := '',
+                                                                    Item => DEBUG_MES.Porduzione_Pezzi.Sel_Order,
+                                                                    indx => Sel_Free);
+              END_IF;
+              
+              
+          END_IF;
+          
+          
+          Ordine_Trovato :=
+          (RETVAL_GetOrderData_O_ENDING >= 0 AND RETVAL_GetOrderData_O_ACT < 0)
+          OR
+          (RETVAL_GetOrderData_O_ACT >= 0 AND RETVAL_GetOrderData_O_ENDING < 0);
+          
+          IF NOT Ordine_Trovato
+          THEN
+              DEBUG_MES.Porduzione_Pezzi.Sel_Order := Production.O_Empty;
+          END_IF;
+              
+              
+          
+      END_REGION
+
+
+      // Abilitazione esecuzione nuovo BEAM
+      // 
+      DEBUG_MES.Porduzione_Pezzi.New_Beam_Allow :=
+
+      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].Quality = UNKNOW
+      AND
+      DEBUG_MES.Process_Data.Cin.Beam_Prod.CycleON
+      AND
+      DEBUG_MES.Process_Data.Cin.Beam_Prod.Running
+      AND
+      Ordine_Trovato;
+
+
+
+
+      R_TRIG_NewBeam(CLK := DEBUG_MES.Porduzione_Pezzi.New_Beam);
+
+      IF R_TRIG_NewBeam.Q 
+          AND
+          DEBUG_MES.Porduzione_Pezzi.New_Beam_TYPE > 0
+          AND
+          DEBUG_MES.Porduzione_Pezzi.Enable_Beam_Prod
+          AND
+          DEBUG_MES.Porduzione_Pezzi.New_Beam_Allow
+          
+      THEN
+       
+       
+          CASE DEBUG_MES.Porduzione_Pezzi.New_Beam_TYPE OF
+                  
+              1: // GOOD
+                  
+                  // Nuovo GOOD permesso solo se la baia di preparazione non è già piena !
+                  // 
+                  IF  NOT BTrk.A0303.Stacker.Completato
+                      AND
+                      (BTrk.A0303.Stacker.O_ID = 0 OR  BTrk.A0303.Stacker.O_ID = DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID)
+                  THEN
+                      
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].Quality := BEAM_GOOD_N;
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].B_ID := BTrk.Last_B_ID += 1;
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].O_ID := DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID;
+                      
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].BLen_Meas := DEBUG_MES.Porduzione_Pezzi.Sel_Order.Beams_Len;
+                  END_IF;
+                  
+              2: // TO CHECK
+                  
+                  IF BTrk.A03_EXIT_TOCHECK.B[1].Quality = UNKNOW
+                  THEN
+                      
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].Quality := BEAM_TO_CHECK_N;
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].B_ID := BTrk.Last_B_ID += 1;
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].O_ID := DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID;
+                      
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].BLen_Meas := DEBUG_MES.Porduzione_Pezzi.Sel_Order.Beams_Len_Min;
+                      BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].BLen_Meas -= 0.1;
+                  END_IF;
+                  
+              3: // NOT GOOD
+                  
+                  IF BTrk.A03_EXIT_TOCHECK.B[1].Quality = TO_CHECK
+                  THEN
+                      BTrk.A03_EXIT_TOCHECK.B[1].Quality := RECOND_NG;
+                      BTrk.A03_EXIT_TOCHECK.B[1].B_ID := BTrk.Last_B_ID += 1;
+                      BTrk.A03_EXIT_TOCHECK.B[1].O_ID := DEBUG_MES.Porduzione_Pezzi.Sel_Order.O_ID;
+                      BTrk.A03_EXIT_TOCHECK.B[1].BLen_Meas := DEBUG_MES.Porduzione_Pezzi.Sel_Order.Beams_Len_Max;
+                      BTrk.A03_EXIT_TOCHECK.B[1].BLen_Meas += 1.0;
+                  END_IF;
+          END_CASE;
+          
+      END_IF;
+
+
+
+
+
+
+
+      REGION Spostamento BEAM dopo incremento contattori
+          
+          // Dopo aver contato il GOOD va direttamente su baia di preparazione
+          // 
+          IF BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].Quality = GOOD 
+          THEN
+              BTrk.A0303.Stacker.O_ID := BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].O_ID;
+              
+              
+              BTrk.A0303.Stacker.Beams_Qty += 1;
+              
+              
+              BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO] := BTrk.Empty;
+              
+          END_IF;
+          
+          
+          BTrk.A0303.Stacker.Completato := FALSE;
+          
+          IF BTrk.A0303.Stacker.O_ID > 0
+          THEN
+              RETVAL_GetOrderData_Stacker := Prod_item_GetData(O_ID := BTrk.A0303.Stacker.O_ID,
+                                                                   MES_IDP := '',
+                                                                   Item => Stacker_Order,
+                                                                   indx => Stacker_Index_O_Ending);
+              
+              
+              
+               IF RETVAL_GetOrderData_Stacker >= 0 AND RETVAL_GetOrderData_Stacker <3  THEN
+                   
+                   
+                   
+                   BTrk.A0303.Stacker.BeamsPerLayer_Target := Stacker_Order.PackLayout_BeamsPerLayer;
+                   BTrk.A0303.Stacker.Layers_Target := Stacker_Order.PackLayout_Layers_Qty;
+                   
+                   
+                   IF BTrk.A0303.Stacker.BeamsPerLayer_Target > 0
+                   THEN
+                       BTrk.A0303.Stacker.Layers_Qty := BTrk.A0303.Stacker.Beams_Qty / BTrk.A0303.Stacker.BeamsPerLayer_Target;
+                   ELSE
+                       BTrk.A0303.Stacker.Layers_Qty := 0;
+                   END_IF;
+                   
+                   Max_Beams := BTrk.A0303.Stacker.BeamsPerLayer_Target * BTrk.A0303.Stacker.Layers_Target;
+                   
+                   BTrk.A0303.Stacker.Beams_Qty := (IN1 := Max_Beams, IN2 := BTrk.A0303.Stacker.Beams_Qty);
+                   
+                   BTrk.A0303.Stacker.Completato := (BTrk.A0303.Stacker.Beams_Qty = Max_Beams) AND Max_Beams > 0;
+                   
+                   IF  Stacker_Order.Beams_ToGo = 0
+                       OR
+                       (
+                       BTrk.A0303.Stacker.Beams_Qty >=  (BTrk.A0303.Stacker.BeamsPerLayer_Target * BTrk.A0303.Stacker.Layers_Target)
+                       )
+                       
+                   THEN
+                       BTrk.A0303.Stacker.Completato := TRUE;
+                   END_IF;
+               ELSE
+                   BTrk.A0303.Stacker.O_ID := 0;
+                   BTrk.A0303.Stacker.Beams_Qty := 0;
+               END_IF;
+             
+          END_IF;;
+          
+          
+          
+          
+          
+              // Dopo aver contato il TO_CHECK il Beam va direttamente sullo scivolo di uscita
+              // 
+              IF BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO].Quality = TO_CHECK THEN
+                  
+                  BTrk.A03_EXIT_TOCHECK.B[1] := BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO];
+                  BTrk.A0302_EXIT.B[BTRK_A0302_RULL_PAREGGIATO] := BTrk.Empty;
+              END_IF;
+              
+              // Dopoo aver contato il NG il Beam è cancellato
+              // 
+              IF BTrk.A03_EXIT_TOCHECK.B[1].Quality = NG_R THEN
+                  
+                  BTrk.A03_EXIT_TOCHECK.B[1] := BTrk.Empty;
+              END_IF;
+         
+          
+      END_REGION
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Network 20"
+
+
+      R_TRIG_MuoveSuBaiaDiUscita(CLK := DEBUG_MES.Porduzione_Pezzi.PB_Exit_Pack_Next_Step);
+
+      IF R_TRIG_MuoveSuBaiaDiUscita.Q
+          AND
+          BTrk.A0303.Stacker.Completato
+          AND
+          BTrk.A0304.Beams_Qty  = 0
+      THEN
+          
+          BTrk.A0304.O_ID := BTrk.A0303.Stacker.O_ID;
+          BTrk.A0304.BeamsPerLayer_Target := BTrk.A0303.Stacker.BeamsPerLayer_Target;
+          BTrk.A0304.Layers_Target := BTrk.A0303.Stacker.Layers_Target;
+          BTrk.A0304.Layers_Qty := BTrk.A0303.Stacker.Layers_Qty;
+          BTrk.A0304.Beams_Qty := BTrk.A0303.Stacker.Beams_Qty;
+          BTrk.A0304.Beams_Len := BTrk.A0303.Stacker.Beams_Len;
+          BTrk.A0304.Beams_W_A := BTrk.A0303.Stacker.Beams_W_A;
+          BTrk.A0304.Beams_H_B := BTrk.A0303.Stacker.Beams_H_B;
+          BTrk.A0304.Layers := BTrk.A0303.Stacker.Layers;
+          BTrk.A0304.NavettaInReggiatura := FALSE;
+          BTrk.A0304.ReggiaturaConclusa := FALSE;
+          BTrk.A0304.PaccoRimosso := FALSE;
+          
+          
+          BTrk.A0303.Stacker.Completato := FALSE;
+          BTrk.A0303.Stacker.O_ID := 0;
+          BTrk.A0303.Stacker.BeamsPerLayer_Target := 0;
+          BTrk.A0303.Stacker.Layers_Target := 0;
+          BTrk.A0303.Stacker.Layers_Qty := 0;
+          BTrk.A0303.Stacker.Beams_Qty := 0;
+          BTrk.A0303.Stacker.Beams_Len := 0;
+          BTrk.A0303.Stacker.Beams_W_A := 0;
+          BTrk.A0303.Stacker.Beams_H_B := 0;
+          BTrk.A0303.Stacker.Layers := BTrk.EmptyLayers;
+          
+          
+          
+          RETURN;
+          
+      END_IF;
+
+
+      IF R_TRIG_MuoveSuBaiaDiUscita.Q
+          AND
+          BTrk.A0304.Beams_Qty > 0
+          AND
+          NOT BTrk.A0304.NavettaInReggiatura
+      THEN
+          BTrk.A0304.NavettaInReggiatura := TRUE;
+          RETURN;
+      END_IF;
+
+
+      IF R_TRIG_MuoveSuBaiaDiUscita.Q
+      AND
+      BTrk.A0304.Beams_Qty > 0
+      AND
+      BTrk.A0304.NavettaInReggiatura
+      AND
+      NOT BTrk.A0304.ReggiaturaConclusa
+      THEN
+          BTrk.A0304.ReggiaturaConclusa := TRUE;
+          RETURN;
+      END_IF;
+
+
+      IF R_TRIG_MuoveSuBaiaDiUscita.Q
+          AND
+          BTrk.A0304.Beams_Qty > 0
+          AND
+          BTrk.A0304.NavettaInReggiatura
+          AND
+          BTrk.A0304.ReggiaturaConclusa
+          AND
+          NOT BTrk.A0304.PaccoRimosso
+      THEN
+          BTrk.A0304.PaccoRimosso := TRUE;
+          RETURN;
+      END_IF;
+
+
+      IF //#R_TRIG_MuoveSuBaiaDiUscita.Q
+          AND
+          BTrk.A0304.Beams_Qty > 0
+          AND
+          BTrk.A0304.NavettaInReggiatura
+          AND
+          BTrk.A0304.ReggiaturaConclusa
+          AND
+          BTrk.A0304.PaccoRimosso
+          AND
+          BTrk.A0304.AbilitazioneCancellazioneDatiPacco
+      THEN
+          
+          BTrk.A0304.NavettaInReggiatura := FALSE;
+          BTrk.A0304.ReggiaturaConclusa := FALSE;
+          BTrk.A0304.PaccoRimosso := FALSE;
+          BTrk.A0304.AbilitazioneCancellazioneDatiPacco := FALSE;
+          BTrk.A0304.O_ID := 0;
+          BTrk.A0304.BeamsPerLayer_Target := 0;
+          BTrk.A0304.Layers_Target := 0;
+          BTrk.A0304.Layers_Qty := 0;
+          BTrk.A0304.Beams_Qty := 0;
+          BTrk.A0304.Beams_Len := 0;
+          BTrk.A0304.Beams_W_A := 0;
+          BTrk.A0304.Beams_H_B := 0;
+          BTrk.A0304.Layers := BTrk.EmptyLayers;
+      END_IF;
+          
+          
+          
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

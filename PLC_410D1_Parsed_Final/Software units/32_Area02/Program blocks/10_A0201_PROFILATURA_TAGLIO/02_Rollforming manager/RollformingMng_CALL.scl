@@ -1,0 +1,100 @@
+﻿// Block: RollformingMng_CALL
+// Title: Data In - Buttons
+
+FUNCTION "RollformingMng_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - Buttons
+   VAR CONSTANT
+      MIN_ROLLWAY_SPEED_RATIO : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - Buttons"
+      RollformingMng.DataIn.PbMaterialFwd := NOT ((((NOT (LB211.PB.Rollformer_Fwd) AND NOT (LB212_FeedA02.PB.Rollformer_Fwd)) AND NOT (LB211.PB.Rollformer_Fwd)) AND NOT (MB2_Pb_Materiale_Fwd)));
+      RollformingMng.DataIn.PbCutRest := LB212.PB.DieT1CutHead_Rest;
+      RollformingMng.DataIn.PbCutWork := LB212.PB.DieT1CutHead_Work;
+   END_REGION
+
+   REGION "Data in - Rollformer sensors"
+      RollformingMng.DataIn.SensorMatPresence_Entry := A0201_Banco_1_Phc_Ingresso;
+      RollformingMng.DataIn.SensorMatPresence_BeforeMW := A0201_Profila_Phc_Prima_Encoder;
+      RollformingMng.DataIn.SensorMatPresence_AfterMW := A0201_Profila_Phc_Dopo_Encoder;
+   END_REGION
+
+   REGION "Data in - Roll Conveyor"
+      RollformingMng.DataIn.SensorMatPresence_ConveyorEntry := A0301_Rulliera_Phc_1;
+   END_REGION
+
+   REGION "Coordination In: Pit Table"
+      RollformingMng.CIn.PitTable.IsAtRest := PitTable1.Lift.COut.Rest;
+      RollformingMng.CIn.PitTable.IsAtWork := PitTable1.Lift.COut.Work;
+   END_REGION
+
+   REGION "Coordination In: Upstream"
+      RollformingMng.CIn.Upstream.EnableMove := Areas_ITF.A01.Loop1_COut.Exit_EnableFeedFwd;
+      RollformingMng.CIn.Upstream.InCycleOrEmptying := ((Areas_ITF.A01.AreaInterface.Cycle AND Areas_ITF.A01.StraightnerPowerOn) OR Areas_ITF.A01.EmptyingConfirmed);
+      RollformingMng.CIn.Upstream.NextEndOfMaterial := Areas_ITF.A01.NxtEndOfMaterial;
+   END_REGION
+
+   REGION "Coordination In - Profile program"
+      RollformingMng.CIn.PPrf := PPrf_MAIN.ON_WORK;
+   END_REGION
+
+   REGION "Coordination IN - Prod Manager"
+      RollformingMng.CIn.ProdManager := Areas_ITF.Prod.A02;
+
+   END_REGION
+
+   REGION "Coordination In - Rollformer"
+      RollformingMng.CIn.Rollformer.IsStandstill := Rollformer.COut.Feed.Standstill;
+      RollformingMng.CIn.Rollformer.InTargetPosition := Rollformer.COut.Feed.InPosition;
+      RollformingMng.CIn.Rollformer.TargetPosAx := Rollformer.COut.Feed.ActualTargetPos;
+   END_REGION
+
+   REGION "Coordination In - Final Cut"
+      RollformingMng.CIn.FinalCut.AlarmsPresence := FinalCut.MachineInterface.AlarmsPresence;
+      RollformingMng.CIn.FinalCut.IsStandstill := FinalCut.MachineInterface.MotionsStandStill;
+      RollformingMng.CIn.FinalCut.AllHeadAtRest := FinalCut.COut.AllAtRest;
+      RollformingMng.CIn.FinalCut.CutHead.IsAtRest := FinalCut.COut.CutHead.Rest;
+      RollformingMng.CIn.FinalCut.CutHead.IsAtWork := FinalCut.COut.CutHead.Work;
+      RollformingMng.CIn.FinalCut.DrawHead.IsAtRest := FinalCut.COut.DrawHead.Rest;
+      RollformingMng.CIn.FinalCut.DrawHead.IsAtWork := FinalCut.COut.DrawHead.Work;
+      RollformingMng.CIn.FinalCut.MarkHead.IsAtRest := FinalCut.COut.MarkHead.Rest;
+      RollformingMng.CIn.FinalCut.MarkHead.IsAtWork := FinalCut.COut.MarkHead.Work;
+      RollformingMng.CIn.FinalCut.Avg_R_to_W_Time := FinalCut.COut.Avg_R_to_W_Time;
+   END_REGION
+
+   REGION "Coordination in - Material counter"
+      RollformingMng.CIn.MaterialCounter.AlrPresence := PostPunchingMatCounter.COut.AlarmsPresence;
+      RollformingMng.CIn.MaterialCounter.WngPresence := PostPunchingMatCounter.COut.WarningsPresence;
+      RollformingMng.CIn.MaterialCounter.Data := PostPunchingMatCounter_PERS.PersistentValues.Data;
+   END_REGION
+
+   REGION "Coordination in - Weld Reg"
+      RollformingMng.CIn.WeldReg := WeldReg.COut.Manager;
+   END_REGION
+
+   REGION "Coordination in - Acc dec rollway"
+      RollformingMng.CIn.AccDecRollway := AccRollConveyor.COut.Manager;
+   END_REGION
+
+   REGION "Main"
+      #RollformingMng(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface,
+         ZSI_Area := F_DB.ZSI_Zone20,
+         Config := A02_Config.RollformingMng,
+         Pers := RollformingMng_PERS.PersistentValues
+      );
+
+      #RollformingMng.Q;
+   END_REGION
+
+   REGION "Data out"
+      LB212_DieSetOP_Lp_Req := RollformingMng.FlyingCutoff.COut.Tool.Exe_Work;
+   END_REGION
+
+
+END_FUNCTION

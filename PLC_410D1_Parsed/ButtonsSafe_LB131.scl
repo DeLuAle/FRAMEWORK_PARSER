@@ -1,0 +1,354 @@
+﻿// Block: ButtonsSafe_LB131
+// Title: Interlocks between operations selected
+
+FUNCTION_BLOCK "ButtonsSafe_LB131"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Interlocks between operations selected
+   VAR_INPUT
+      Reset_OthersPBs_Activation_IN : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Reset_OthersPBs_Activation_OUT : Bool;
+   END_VAR
+
+   VAR
+      i : Int;
+      iOperation : Int;
+      iConcurrentOperation : Int;
+      SettingWriteDone : Bool;
+      PbPanel : Buttons2Hands;
+      PB : Struct
+         ResetAlarms : Bool;
+         Decoiler_Fwd : Bool;
+         Decoiler_Bwd : Bool;
+         SnubberLift_Up : Bool;
+         SnubberLift_Down : Bool;
+         SnubberRoll_Fwd : Bool;
+         SnubberRoll_Bwd : Bool;
+         PeelerLift_Up : Bool;
+         PeelerLift_Down : Bool;
+         PeelerExtension_Fwd : Bool;
+         PeelerExtension_Bwd : Bool;
+         Straightner_Fwd : Bool;
+         Straightner_Bwd : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      ITEMS : Int;
+      DECOILER_FWD : Int;
+      DECOILER_BWD : Int;
+      SNUBBER_LIFT_UP : Int;
+      SNUBBER_LIFT_DOWN : Int;
+      SNUBBER_ROLL_FWD : Int;
+      SNUBBER_ROLL_BWD : Int;
+      PEELER_LIFT_UP : Int;
+      PEELER_LIFT_DOWN : Int;
+      PEELER_EXTENSION_FWD : Int;
+      PEELER_EXTENSION_BWD : Int;
+      STRAIGHTNER_FWD : Int;
+      STRAIGHTNER_BWD : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Interlocks between operations selected"
+      IF Area01.AreaInterface.ManOneShot THEN
+          SettingWriteDone := FALSE;
+      END_IF;
+
+      // Interblocco tra operazioni
+      // 
+      IF NOT SettingWriteDone THEN
+          SettingWriteDone := TRUE;
+          
+          FOR iOperation := 1 TO ITEMS DO
+              FOR iConcurrentOperation := 1 TO ITEMS DO
+                  PbPanel.Enables[iOperation, iConcurrentOperation] := FALSE;
+              END_FOR;
+          END_FOR;
+          
+          // Decoiler Bwd
+          // 
+          PbPanel.Enables[DECOILER_BWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[DECOILER_BWD, SNUBBER_ROLL_BWD] := TRUE;
+          PbPanel.Enables[DECOILER_BWD, STRAIGHTNER_BWD] := TRUE;
+          
+          
+          // Decoiler Fwd
+          // 
+          PbPanel.Enables[DECOILER_FWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[DECOILER_FWD, SNUBBER_ROLL_FWD] := TRUE;
+          PbPanel.Enables[DECOILER_FWD, STRAIGHTNER_FWD] := TRUE;
+          
+          
+          // Snubber Bwd
+          // 
+          PbPanel.Enables[SNUBBER_ROLL_BWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[SNUBBER_ROLL_BWD, DECOILER_BWD] := TRUE;
+          PbPanel.Enables[SNUBBER_ROLL_BWD, STRAIGHTNER_BWD] := TRUE;
+          
+          // Snubber Fwd
+          // 
+          PbPanel.Enables[SNUBBER_ROLL_FWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[SNUBBER_ROLL_FWD, DECOILER_FWD] := TRUE;
+          PbPanel.Enables[SNUBBER_ROLL_FWD, STRAIGHTNER_FWD] := TRUE;
+          
+          // Snubber Lift Down
+          //
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, SNUBBER_ROLL_FWD] := TRUE;
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, DECOILER_FWD] := TRUE;
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, STRAIGHTNER_FWD] := TRUE;
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, SNUBBER_ROLL_BWD] := TRUE;
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, DECOILER_BWD] := TRUE;
+          PbPanel.Enables[SNUBBER_LIFT_DOWN, STRAIGHTNER_BWD] := TRUE;
+          
+          
+          // Straightner Bwd
+          PbPanel.Enables[STRAIGHTNER_BWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[STRAIGHTNER_BWD, DECOILER_BWD] := TRUE;
+          PbPanel.Enables[STRAIGHTNER_BWD, SNUBBER_ROLL_BWD] := TRUE;
+          
+          
+          
+          
+          // Straightner Fwd
+          PbPanel.Enables[STRAIGHTNER_FWD, SNUBBER_LIFT_DOWN] := TRUE;
+          PbPanel.Enables[STRAIGHTNER_FWD, DECOILER_FWD] := TRUE;
+          PbPanel.Enables[STRAIGHTNER_FWD, SNUBBER_ROLL_FWD] := TRUE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Buttons for Op selection"
+      PbPanel.Buttons[DECOILER_FWD] := LB131_Decoiler_Pb_Fwd;
+      PbPanel.Buttons[DECOILER_BWD] := LB131_Decoiler_Pb_Bwd;
+
+      PbPanel.Buttons[SNUBBER_LIFT_UP] := LB131_Snubber_Pb_Up;
+      PbPanel.Buttons[SNUBBER_LIFT_DOWN] :=LB131_Snubber_Pb_Down;
+      PbPanel.Buttons[SNUBBER_ROLL_FWD] := LB131_Snubber_Pb_Fwd;
+      PbPanel.Buttons[SNUBBER_ROLL_BWD] := LB131_Snubber_Pb_Bwd;
+
+      PbPanel.Buttons[PEELER_LIFT_UP] := LB131_Peeler_Pb_Up;
+      PbPanel.Buttons[PEELER_LIFT_DOWN] := LB131_Peeler_Pb_Down;
+      PbPanel.Buttons[PEELER_EXTENSION_FWD] := LB131_Peeler_Pb_Fwd;
+      PbPanel.Buttons[PEELER_EXTENSION_BWD] := LB131_Peeler_Pb_Bwd;
+
+      PbPanel.Buttons[STRAIGHTNER_FWD] := LB131_Straightener_Pb_Fwd;
+      PbPanel.Buttons[STRAIGHTNER_BWD] := LB131_Straightener_Pb_Bwd;
+
+
+   END_REGION
+
+   REGION "Operation enable"
+
+      PbPanel.OpEnabled[DECOILER_FWD] := FALSE;
+      PbPanel.OpEnabled[DECOILER_BWD] := FALSE;
+      PbPanel.OpEnabled[SNUBBER_LIFT_UP] := FALSE;
+      PbPanel.OpEnabled[SNUBBER_LIFT_DOWN] := FALSE;
+      PbPanel.OpEnabled[SNUBBER_ROLL_FWD] := FALSE;
+      PbPanel.OpEnabled[SNUBBER_ROLL_BWD] := FALSE;
+      PbPanel.OpEnabled[PEELER_LIFT_UP] := FALSE;
+      PbPanel.OpEnabled[PEELER_LIFT_DOWN] := FALSE;
+      PbPanel.OpEnabled[PEELER_EXTENSION_FWD] := FALSE;
+      PbPanel.OpEnabled[PEELER_EXTENSION_BWD] := FALSE;
+      PbPanel.OpEnabled[STRAIGHTNER_FWD] := FALSE;
+      PbPanel.OpEnabled[STRAIGHTNER_BWD] := FALSE;
+
+      IF DecoilersHRot.COut.Decoiler1_InLine THEN
+          
+          PbPanel.OpEnabled[DECOILER_FWD] := Decoiler1.COut.Feed.Fwd_CheckNext;
+          PbPanel.OpEnabled[DECOILER_BWD] := Decoiler1.COut.Feed.Bwd_CheckNext;
+          
+          PbPanel.OpEnabled[SNUBBER_LIFT_UP] := Decoiler1.COut.SnubberLift.Rest_CheckNext;
+          PbPanel.OpEnabled[SNUBBER_LIFT_DOWN] := Decoiler1.COut.SnubberLift.Work_CheckNext;
+          
+          PbPanel.OpEnabled[SNUBBER_ROLL_FWD] := Decoiler1.COut.SnubberRoll.Work_CheckNext;
+          PbPanel.OpEnabled[SNUBBER_ROLL_BWD] := Decoiler1.COut.SnubberRoll.Rest_CheckNext;
+      END_IF;
+
+      IF DecoilersHRot.COut.Decoiler2_InLine THEN
+          
+          PbPanel.OpEnabled[DECOILER_FWD] := Decoiler2.COut.Feed.Fwd_CheckNext;
+          PbPanel.OpEnabled[DECOILER_BWD] := Decoiler2.COut.Feed.Bwd_CheckNext;
+          
+          PbPanel.OpEnabled[SNUBBER_LIFT_UP] := Decoiler2.COut.SnubberLift.Rest_CheckNext;
+          PbPanel.OpEnabled[SNUBBER_LIFT_DOWN] := Decoiler2.COut.SnubberLift.Work_CheckNext;
+          
+          PbPanel.OpEnabled[SNUBBER_ROLL_FWD] := Decoiler2.COut.SnubberRoll.Work_CheckNext;
+          PbPanel.OpEnabled[SNUBBER_ROLL_BWD] := Decoiler2.COut.SnubberRoll.Rest_CheckNext;
+      END_IF;
+
+      PbPanel.OpEnabled[PEELER_LIFT_UP] := Peeler.COut.Lift.Rest_CheckNext;
+      PbPanel.OpEnabled[PEELER_LIFT_DOWN] := Peeler.COut.Lift.Work_CheckNext;
+
+      PbPanel.OpEnabled[PEELER_EXTENSION_FWD] := Peeler.COut.Extension.Work_CheckNext;
+      PbPanel.OpEnabled[PEELER_EXTENSION_BWD] := Peeler.COut.Extension.Rest_CheckNext;
+
+      PbPanel.OpEnabled[STRAIGHTNER_FWD] := Straightener.COut.Feed.Fwd_CheckNext;
+      PbPanel.OpEnabled[STRAIGHTNER_BWD] := Straightener.COut.Feed.Bwd_CheckNext;
+
+   END_REGION
+
+   REGION "Operation running"
+
+      PbPanel.OpRunning[DECOILER_FWD] := FALSE;
+      PbPanel.OpRunning[DECOILER_BWD] := FALSE;
+      PbPanel.OpRunning[SNUBBER_LIFT_UP] := FALSE;
+      PbPanel.OpRunning[SNUBBER_LIFT_DOWN] := FALSE;
+      PbPanel.OpRunning[SNUBBER_ROLL_FWD] := FALSE;
+      PbPanel.OpRunning[SNUBBER_ROLL_BWD] := FALSE;
+      PbPanel.OpRunning[PEELER_LIFT_UP] := FALSE;
+      PbPanel.OpRunning[PEELER_LIFT_DOWN] := FALSE;
+      PbPanel.OpRunning[PEELER_EXTENSION_FWD] := FALSE;
+      PbPanel.OpRunning[PEELER_EXTENSION_BWD] := FALSE;
+      PbPanel.OpRunning[STRAIGHTNER_FWD] := FALSE;
+      PbPanel.OpRunning[STRAIGHTNER_BWD] := FALSE;
+
+
+      IF DecoilersHRot.COut.Decoiler1_InLine THEN
+          
+          PbPanel.OpRunning[DECOILER_FWD] := Decoiler1.COut.Feed.Fwd_Running;
+          PbPanel.OpRunning[DECOILER_BWD] := Decoiler1.COut.Feed.Bwd_Running;
+          
+          PbPanel.OpRunning[SNUBBER_LIFT_UP] := Decoiler1.SnubberLift.V.ValveSts.RestInProgress;
+          PbPanel.OpRunning[SNUBBER_LIFT_DOWN] := Decoiler1.SnubberLift.V.ValveSts.WorkInProgress;
+          
+          PbPanel.OpRunning[SNUBBER_ROLL_FWD] := Decoiler1.SnubberRoll.V.ValveSts.WorkInProgress;
+          PbPanel.OpRunning[SNUBBER_ROLL_BWD] := Decoiler1.SnubberRoll.V.ValveSts.RestInProgress;
+      END_IF;
+
+      IF DecoilersHRot.COut.Decoiler2_InLine THEN
+          
+          PbPanel.OpRunning[DECOILER_FWD] := Decoiler2.COut.Feed.Fwd_Running;
+          PbPanel.OpRunning[DECOILER_BWD] := Decoiler2.COut.Feed.Bwd_Running;
+          
+          PbPanel.OpRunning[SNUBBER_LIFT_UP] := Decoiler2.SnubberLift.V.ValveSts.RestInProgress;
+          PbPanel.OpRunning[SNUBBER_LIFT_DOWN] := Decoiler2.SnubberLift.V.ValveSts.WorkInProgress;
+          
+          PbPanel.OpRunning[SNUBBER_ROLL_FWD] := Decoiler2.SnubberRoll.V.ValveSts.WorkInProgress;
+          PbPanel.OpRunning[SNUBBER_ROLL_BWD] := Decoiler2.SnubberRoll.V.ValveSts.RestInProgress;
+      END_IF;
+
+      PbPanel.OpRunning[PEELER_LIFT_UP] := Peeler.Lift.V.ValveSts.RestInProgress;
+      PbPanel.OpRunning[PEELER_LIFT_DOWN] := Peeler.Lift.V.ValveSts.WorkInProgress;
+
+      PbPanel.OpRunning[PEELER_EXTENSION_FWD] := Peeler.Extension.V.ValveSts.WorkInProgress;
+      PbPanel.OpRunning[PEELER_EXTENSION_BWD] := Peeler.Extension.V.ValveSts.RestInProgress;
+
+      PbPanel.OpRunning[STRAIGHTNER_FWD] := Straightener.COut.Feed.VelFwd_Running OR Straightener.COut.Feed.PosFwd_Running;
+      PbPanel.OpRunning[STRAIGHTNER_BWD] := Straightener.COut.Feed.VelBwd_Running OR Straightener.COut.Feed.PosBwd_Running;
+
+   END_REGION
+
+   REGION "Operation done"
+      PbPanel.OpDone[DECOILER_FWD] := FALSE;
+      PbPanel.OpDone[DECOILER_BWD] := FALSE;
+      PbPanel.OpDone[SNUBBER_LIFT_UP] := FALSE;
+      PbPanel.OpDone[SNUBBER_LIFT_DOWN] := FALSE;
+      PbPanel.OpDone[SNUBBER_ROLL_FWD] := FALSE;
+      PbPanel.OpDone[SNUBBER_ROLL_BWD] := FALSE;
+      PbPanel.OpDone[PEELER_LIFT_UP] := FALSE;
+      PbPanel.OpDone[PEELER_LIFT_DOWN] := FALSE;
+      PbPanel.OpDone[PEELER_EXTENSION_FWD] := FALSE;
+      PbPanel.OpDone[PEELER_EXTENSION_BWD] := FALSE;
+      PbPanel.OpDone[STRAIGHTNER_FWD] := FALSE;
+      PbPanel.OpDone[STRAIGHTNER_BWD] := FALSE;
+
+       
+      IF DecoilersHRot.COut.Decoiler1_InLine THEN
+          
+          PbPanel.OpDone[SNUBBER_LIFT_UP] := Decoiler1.COut.SnubberLift.Rest;
+          PbPanel.OpDone[SNUBBER_LIFT_DOWN] := Decoiler1.COut.SnubberLift.Work;
+          
+          PbPanel.OpDone[SNUBBER_ROLL_FWD] := Decoiler1.COut.SnubberRoll.Work;
+          PbPanel.OpDone[SNUBBER_ROLL_BWD] := Decoiler1.COut.SnubberRoll.Rest;
+      END_IF;
+
+      IF DecoilersHRot.COut.Decoiler2_InLine THEN
+          
+          PbPanel.OpDone[SNUBBER_LIFT_UP] := Decoiler2.COut.SnubberLift.Rest;
+          PbPanel.OpDone[SNUBBER_LIFT_DOWN] := Decoiler2.COut.SnubberLift.Work;
+          
+          PbPanel.OpDone[SNUBBER_ROLL_FWD] := Decoiler2.COut.SnubberRoll.Work;
+          PbPanel.OpDone[SNUBBER_ROLL_BWD] := Decoiler2.COut.SnubberRoll.Rest;
+      END_IF;
+
+      PbPanel.OpRunning[PEELER_LIFT_UP] := Peeler.COut.Lift.Rest;
+      PbPanel.OpRunning[PEELER_LIFT_DOWN] := Peeler.COut.Lift.Work;
+
+      PbPanel.OpRunning[PEELER_EXTENSION_FWD] := Peeler.COut.Extension.Work;
+      PbPanel.OpRunning[PEELER_EXTENSION_BWD] := Peeler.COut.Extension.Rest;
+
+
+   END_REGION
+
+   REGION "Main"
+      #PbPanel(
+         en := TRUE,
+         Activation := (NOT (Reset_OthersPBs_Activation_IN) AND F_DB.LB131.Enable),
+         Items := #ITEMS,
+         TwoHandsPushed := F_DB.LB131.SafeMotion,
+         ResetAlarms => PB.ResetAlarms
+      );
+
+      #PbPanel.Q;
+   END_REGION
+
+   REGION "Safe Buttons"
+      PB.Decoiler_Fwd := PbPanel.Operations[DECOILER_FWD];
+      PB.Decoiler_Bwd := PbPanel.Operations[DECOILER_BWD];
+      PB.SnubberLift_Up := PbPanel.Operations[SNUBBER_LIFT_UP];
+      PB.SnubberLift_Down := PbPanel.Operations[SNUBBER_LIFT_DOWN];
+      PB.SnubberRoll_Fwd := PbPanel.Operations[SNUBBER_ROLL_FWD];
+      PB.SnubberRoll_Bwd := PbPanel.Operations[SNUBBER_ROLL_BWD];
+      PB.PeelerLift_Up := PbPanel.Operations[PEELER_LIFT_UP];
+      PB.PeelerLift_Down := PbPanel.Operations[PEELER_LIFT_DOWN];
+      PB.PeelerExtension_Fwd := PbPanel.Operations[PEELER_EXTENSION_FWD];
+      PB.PeelerExtension_Bwd := PbPanel.Operations[PEELER_EXTENSION_BWD];
+      PB.Straightner_Fwd := PbPanel.Operations[STRAIGHTNER_FWD];
+      PB.Straightner_Bwd := PbPanel.Operations[STRAIGHTNER_BWD];
+
+
+   END_REGION
+
+   REGION "Lamp selection"
+      LB131_Decoiler_Lp_Bwd := PbPanel.Lamps[DECOILER_BWD];
+      LB131_Decoiler_Lp_Fwd := PbPanel.Lamps[DECOILER_FWD];
+
+      LB131_Snubber_Lp_Up := PbPanel.Lamps[SNUBBER_LIFT_UP];
+      LB131_Snubber_Lp_Down := PbPanel.Lamps[SNUBBER_LIFT_DOWN];
+
+      LB131_Snubber_Lp_Fwd := PbPanel.Lamps[SNUBBER_ROLL_FWD];
+      LB131_Snubber_Lp_Bwd := PbPanel.Lamps[SNUBBER_ROLL_BWD];
+
+      LB131_Peeler_Lp_Up := PbPanel.Lamps[PEELER_LIFT_UP];
+      LB131_Peeler_Lp_Down := PbPanel.Lamps[PEELER_LIFT_DOWN];
+
+      LB131_Peeler_Lp_Fwd := PbPanel.Lamps[PEELER_EXTENSION_FWD];
+      LB131_Peeler_Lp_Bwd := PbPanel.Lamps[PEELER_EXTENSION_BWD];
+
+      LB131_Straighetner_Lp_Fwd := PbPanel.Lamps[STRAIGHTNER_FWD];
+      LB131_Straighetner_Lp_Bwd := PbPanel.Lamps[STRAIGHTNER_BWD];
+
+   END_REGION
+
+   REGION "Reset others safe push buttons activation / execution"
+      Reset_OthersPBs_Activation_OUT := FALSE;
+
+      FOR i := 1 TO ITEMS DO
+          
+          IF PbPanel.Buttons[i] OR PbPanel.Operations[i] THEN
+              Reset_OthersPBs_Activation_OUT := TRUE;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

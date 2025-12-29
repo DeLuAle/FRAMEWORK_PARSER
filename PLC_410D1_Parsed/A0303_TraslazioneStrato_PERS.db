@@ -1,0 +1,34 @@
+﻿// Block: A0303_TraslazioneStrato_PERS
+
+DATA_BLOCK A0303_TraslazioneStrato_PERS
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Par : Struct
+         Ax_Man : Positioning_EPOS_Machine_Par;
+         Ax_Aut : Mach_Speed_Par;
+         ToleranceHeight : LReal;
+         TimeoutTolerance : Time;
+         Pers_Data_Testa : Struct
+            EncoderAbsolute_Preset_OK : Bool;
+            Persistent_ActualPosition : LReal;
+         END_STRUCT;
+         Pers_Data_Coda : Struct
+            EncoderAbsolute_Preset_OK : Bool;
+            Persistent_ActualPosition : LReal;
+         END_STRUCT;
+         Sens_Testa : Analogic_SensorManagement_Par;
+         Sens_Coda : Analogic_SensorManagement_Par;
+      END_STRUCT;
+      Data_Testa : Analogic_SensorManagement_Data;
+      Data_Coda : Analogic_SensorManagement_Data;
+      Par_Mach : Struct
+         PosPrelievo : LReal;
+         PosDeposito : LReal;
+         ToleranceWindow : LReal;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

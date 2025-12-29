@@ -1,0 +1,228 @@
+﻿FUNCTION_BLOCK "Rulliera_Control_FB"
+
+
+
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+VAR_INPUT
+  PLen : LReal;   // Lunghezza pezzo (mm)
+  V_Prof : LReal;   // Velocità profilatrice (mm/min)
+  Pos_Coda : LReal := 0.0; // Posizione coda pezzo al distacco (mm)
+  
+  T_Cut : LReal := 1.1; // Durata taglio lama (s)
+  T_Dev : LReal := 0.5; // Durata deviazione (s)
+  
+  A_FlyC : LReal := 6000.0; // ± accelerazione carro taglio (mm/s²)
+  A_Prof : LReal := 1000.0; // Decelerazione profilatrice (mm/s²)
+  A_Rull : LReal := 3330.0; // ± accelerazione rulliera (mm/s²)
+  V_RullMIn : LReal := 10000.0; // velocità minima rulliera (mm/min)
+  
+  D_Min : LReal := 300.0;  // Gap minimo richiesto a fine deviazione (mm)
+  
+  Pos_S4_mm : LReal := 6100.0; // Sensore S4 (400 mm prima battuta)
+  Rul_len_mm : LReal := 6500.0; // Lunghezza utile rulliera
+END_VAR
+
+VAR_OUTPUT
+  V_Rull : LReal; // Set‑point rulliera (mm/min) scelto fra i due casi
+  RitStop_Rull : Time; // Ritardo da S2=TRUE allo STOP (ms) per fermare in battuta
+END_VAR
+
+
+
+
+VAR
+  // Conversioni base
+  v_prof_mms : LReal;  // Velocità profila in mm/s
+  T_piece : LReal;  // Tempo totale fra due pezzi (s)
+  
+  // Caso 1: DEVIAZIONE
+  v_case1 : LReal;  // Velocità minima con deflessione
+  
+  // Caso 2: INTASAMENTO
+  D1_mm : LReal;  // Distanza testa pezzo1 → battuta (mm)
+  d_acc_mm : LReal;  // Spazio acc. carro (mm)
+  d_dec_mm : LReal;  // Spazio dec. profila (mm)
+  v_case2 : LReal;  // Velocità minima in intasamento (mm/s)
+  
+  // Iteratore intasamento
+  v_guess : LReal;
+  gap_mm : LReal;
+  d_safe_mm : LReal;
+  t_arrive_s : LReal;
+  t_start_s : LReal;
+  t_rem_s : LReal;
+  iter : Int;
+  
+  // Selezione finale
+  v_set_mms : LReal;
+  v_miin_mms : LReal;
+  
+  // Stop in battuta
+  t_ramp_s : LReal;
+  d_S2_mm : LReal;
+  delay_s : LReal;
+  
+  A : LReal;
+  B : LReal;
+  C : LReal;
+  disc : LReal;
+  
+END_VAR
+
+
+
+
+
+
+
+
+BEGIN
+	REGION 1. Velocità profila in mm/s (conversione + protezione)
+	    
+	   
+	    #v_prof_mms := #V_Prof / 60.0;        // da mm/min a mm/s
+	    IF #v_prof_mms < 0.1 THEN           // evita divisioni per 0
+	        #v_prof_mms := 0.1;
+	    END_IF;
+	END_REGION
+	
+	
+	REGION 2. Tempo tra pezzi (finestre utili per creare gap)
+	    
+	    #T_piece := #PLen / #v_prof_mms;       // s = lunghezza / velocità
+	END_REGION
+	
+	
+	REGION 3. CASO DEVIAZIONE: risoluzione quadratica
+	    
+	    // Equazione: (v-vp)*T_piece - v*T_Dev - v²/(2*A_Rull) = D_Min
+	    // Forma Ax² + Bx + C = 0   con A = 0.5/A_Rull, B = T_Dev-T_piece, C = D_Min+vp*T_piece
+	    
+	    #A := 0.5 / #A_Rull;
+	    #B := #T_Dev - #T_piece;
+	    #C := #D_Min + #v_prof_mms * #T_piece;
+	    
+	    #disc := #B * #B - 4.0 * #A * #C;             // discriminante
+	    IF #disc < 0.0 THEN
+	        #disc := 0.0;
+	    END_IF; // forza 0 se numericamente negativo
+	    
+	    //#v_case1 := (- #B + SQRT(#disc)) / (2.0 * #A); // radice positiva = velocità minima
+	    
+	    // Scegli la radice fisicamente corretta (B è negativo → bisogna usare “−”)
+	    IF #B < 0 THEN
+	        #v_case1 := (- #B - SQRT(#disc)) / (2.0 * #A);   // radice “piccola”, quella utile
+	    ELSE
+	        #v_case1 := (- #B + SQRT(#disc)) / (2.0 * #A);   // caso teorico con B positivo
+	    END_IF;
+	    
+	    IF #v_case1 < 0.0 THEN
+	        #v_case1 := 0.0;
+	    END_IF;
+	END_REGION
+	
+	
+	
+	REGION 4. CASO INTASAMENTO: preparazione dati di sicurezza 
+	    // Distanza residua testa pezzo1 → battuta immediatamente dopo il taglio
+	    #D1_mm := #Rul_len_mm - (#Pos_Coda + #PLen);
+	    IF #D1_mm <= 1.0 THEN
+	        #D1_mm := 1.0;
+	    END_IF;
+	    
+	    
+	    // Spazi fissi legati a carro e profila
+	    #d_acc_mm := #v_prof_mms * #v_prof_mms / (2.0 * #A_FlyC);
+	    #d_dec_mm := #v_prof_mms * #v_prof_mms / (2.0 * #A_Prof);
+	END_REGION
+	
+	
+	REGION 4a. Iterazione per trovare v_case2 (minima con intasamento) 
+	    
+	    #v_guess := #v_prof_mms;  // parte dalla stessa velocità della profila
+	    #iter := 0;
+	    REPEAT
+	        // Tempo per arrivare in battuta alla velocità ipotizzata
+	        #t_arrive_s := #D1_mm / #v_guess;
+	        // Quando partirebbe la lama di taglio del pezzo 2
+	        #t_start_s := #T_piece - #T_Cut;
+	        
+	        // Valuta lo stato del taglio al momento dell’intasamento
+	        // 
+	        IF #t_arrive_s < #t_start_s THEN               // lama NON ancora partita
+	            #d_safe_mm := #d_dec_mm;                   // basta la frenata profila
+	            
+	        ELSIF #t_arrive_s < #t_start_s + #T_Cut THEN    // lama IN CORSO
+	            #t_rem_s := (#t_start_s + #T_Cut) - #t_arrive_s;
+	            #d_safe_mm := #d_acc_mm + #v_prof_mms * #t_rem_s + #d_dec_mm;
+	            
+	        ELSE                                         // lama GIà finita
+	            #d_safe_mm := #d_dec_mm;
+	        END_IF;
+	        
+	        // Gap realmente creato alla velocità ipotizzata
+	        #gap_mm := (#v_guess - #v_prof_mms) * #t_arrive_s;
+	        
+	        // Se il gap non è sufficiente incrementa di 10 mm/s (≈0,01 m/s)
+	        IF #gap_mm < #d_safe_mm THEN
+	            #v_guess := #v_guess + 10.0;
+	        END_IF;
+	        #iter := #iter + 1;
+	    UNTIL (#gap_mm >= #d_safe_mm) OR (#v_guess >= 1000.0) OR (#iter >= 100)
+	    END_REPEAT;
+	    
+	    #v_case2 := #v_guess; // velocità minima per intasamento trovata dal loop
+	    
+	END_REGION
+	
+	
+	REGION 5. Selezione e arrotondamento velocità finale
+	    
+	    #v_set_mms := MAX(IN1 := #v_case1, IN2 := #v_case2);      // prende la più restrittiva
+	    
+	    #v_set_mms := CEIL_LREAL(#v_set_mms / 10.0) * 10.0; // arrotonda a 10 mm/s
+	    
+	    
+	    IF #v_set_mms > 1000.0 THEN               // limite hardware (60 m/min)
+	        #v_set_mms := 1000.0;
+	    END_IF;
+	    
+	    #v_miin_mms := #V_RullMIn / 60.0;
+	    
+	    IF #v_set_mms < #v_miin_mms THEN               // limite hardware (60 m/min)
+	        #v_set_mms := #v_miin_mms;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	REGION 6. Calcolo ritardo arresto in battuta (S2 TRUE → RUN OFF) 
+	    
+	    #d_S2_mm := #Pos_S4_mm;  //#Rul_len_mm - #Pos_S4_mm;       // sempre 400 mm
+	    IF #v_set_mms > 0 THEN
+	        #t_ramp_s := #v_set_mms / #A_Rull;      // tempo rampa inverter
+	        #delay_s := (#d_S2_mm - 0.5 * #v_set_mms * #t_ramp_s) / #v_set_mms;
+	        IF #delay_s < 0.0 THEN
+	            #delay_s := 0.0;
+	        END_IF;
+	    ELSE
+	        #delay_s := 0.0;
+	    END_IF;
+	END_REGION
+	
+	REGION 7. Uscite verso movimento rulliera 
+	    
+	    #RitStop_Rull := DINT_TO_TIME(LREAL_TO_DINT(#delay_s * 1000.0)); // s → ms
+	    
+	    #V_Rull := #v_set_mms * 60.0;               // mm/s → mm/min
+	END_REGION
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

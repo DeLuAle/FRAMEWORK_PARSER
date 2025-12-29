@@ -1,0 +1,333 @@
+﻿// Block: ExternalEncoder
+// Title: Info
+
+FUNCTION_BLOCK "ExternalEncoder"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      EncoderCtrl : TExtEncoder_Ctrl;
+   END_VAR
+
+   VAR_OUTPUT
+      EncoderSts : TExtEncoder_Sts;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Encoder : TO_ExternalEncoder;
+      Alarm : TExtEncoder_Alarms;
+      Diag : TO_Diagnostic;
+   END_VAR
+
+   VAR
+      Status : UInt;
+      PrevPos : LReal;
+      POWER : MC_POWER;
+      RESET : MC_RESET;
+      HOME : MC_HOME;
+      TO_Status : TExtEncoder_StatusWord;
+      TO_Errors : TExtEncoder_ErrorWord;
+      tonTimeOut : IEC_TIMER;
+      tonStandstill : IEC_TIMER;
+      Sts : Struct
+         AlarmPresence : Bool;
+         Standstill : Bool;
+         MC_Power_IDLE : Bool;
+         MC_Reset_IDLE : Bool;
+         MC_Home_IDLE : Bool;
+      END_STRUCT;
+      Local : Struct
+         RestartConditions : Bool;
+         ErrorMC_Reset : Bool;
+         ErrorMC_Power : Bool;
+         ErrorMC_Home : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      NoMove : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      "00_INIT" : UInt;
+      "01_CHECK_POWER_ON" : UInt;
+      "10_WAIT_HOMING_START" : UInt;
+      "11_CHECK_HOMING_DONE" : UInt;
+      "20_OPERATION" : UInt;
+      "90_WAIT_RESET" : UInt;
+      "91_CHECK_RESET_DONE" : UInt;
+      TIMEOUT_PT : Time;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: External Encoder device
+      //
+      // v1.0.0  28/12/2022 
+      //=============================================================================
+
+
+   END_REGION
+
+   REGION "Get TO Status"
+      TO_Status.Enable := TO_Encoder.StatusWord.%X0;
+      TO_Status.Error := TO_Encoder.StatusWord.%X1;
+      TO_Status.RestartActive := TO_Encoder.StatusWord.%X2;
+      TO_Status.OnlineStartValuesChanged := TO_Encoder.StatusWord.%X3;
+      TO_Status.HomingDone := TO_Encoder.StatusWord.%X5;
+      TO_Status.Done := TO_Encoder.StatusWord.%X6;
+      TO_Status.HomingCommand := TO_Encoder.StatusWord.%X11;
+
+   END_REGION
+
+   REGION "Get TO Error"
+      TO_Errors.SystemFault :=  TO_Encoder.ErrorWord.%X0;
+      TO_Errors.ConfigFault :=  TO_Encoder.ErrorWord.%X1;
+      TO_Errors.UserFault :=  TO_Encoder.ErrorWord.%X2;
+      TO_Errors.CommandNotAccepted :=  TO_Encoder.ErrorWord.%X3;
+      TO_Errors.SensorFault :=  TO_Encoder.ErrorWord.%X5;
+      TO_Errors.CommunicationFault :=  TO_Encoder.ErrorWord.%X7;
+      TO_Errors.HomingError :=  TO_Encoder.ErrorWord.%X10;
+      TO_Errors.PeripheralError :=  TO_Encoder.ErrorWord.%X13;
+
+   END_REGION
+
+   REGION "Is Standstill"
+      "TolWindow"(
+         en := TRUE,
+         ActPos := TO_Encoder.ActualPosition,
+         Target := PrevPos,
+         PosWin := 0.01,
+         Ret_Val => NoMove
+      );
+
+      #tonStandstill(
+         IN := ((TO_Encoder.ActualVelocity < 0.1) AND NoMove),
+         PT := t#200ms
+      );
+
+      NoMove := "TolWindow"(ActPos := TO_Encoder.ActualPosition, Target := PrevPos, PosWin := 0.01);
+      PrevPos := TO_Encoder.ActualPosition;
+      #tonStandstill.Q;
+      Sts.Standstill := #tonStandstill.Q;
+   END_REGION
+
+   REGION "Alarms & Diagnostic"
+      IF TO_Encoder.ErrorDetail.Reaction > 0 THEN
+          Alarm.TOEncoder := TRUE;
+          Diag.TO_Message := TO_Encoder.ErrorDetail.Number;
+      ELSE
+          Diag.TO_Message := 0;
+      END_IF;
+
+      IF  tonTimeOut.Q THEN
+          Alarm.TimeOutExecution := TRUE;
+      END_IF;
+
+      IF POWER.Error THEN
+          Local.ErrorMC_Power := TRUE;
+          Diag.MC_Message := POWER.ErrorId;
+      ELSIF HOME.Error THEN
+          Local.ErrorMC_Home := TRUE;
+          Diag.MC_Message := HOME.ErrorId;
+      ELSIF RESET.Error THEN
+          Local.ErrorMC_Reset := TRUE;
+          Diag.MC_Message := RESET.ErrorId;
+      END_IF;
+
+      Alarm.MCFunction := Local.ErrorMC_Reset
+                          OR Local.ErrorMC_Power
+                          OR Local.ErrorMC_Home;
+
+      IF NOT Alarm.MCFunction THEN
+          Diag.MC_Message := 0;
+      END_IF;
+
+      Diag.ErrorMC_Reset := Local.ErrorMC_Reset;
+      Diag.ErrorMC_Power := Local.ErrorMC_Power;
+      Diag.ErrorMC_Home := Local.ErrorMC_Home;
+
+      Diag.MC_ErrorPresence := Alarm.MCFunction;
+      Diag.TO_ErrorPresence := Alarm.TOEncoder;
+
+      Diag.DeviceType := 4;
+
+      IF Sts.AlarmPresence THEN
+          Diag.MessageType := 2;
+      ELSIF TO_Status.OnlineStartValuesChanged
+          OR TO_Status.RestartActive THEN
+          Diag.MessageType := 1;
+      ELSE
+          Diag.MessageType := 0;
+      END_IF;
+
+   END_REGION
+
+   REGION "Status Error"
+      Sts.AlarmPresence := NOT (((NOT (Alarm.TOEncoder) AND NOT (Alarm.MCFunction)) AND NOT (Alarm.TimeOutExecution)));
+      IF (NOT (((NOT (Alarm.TOEncoder) AND NOT (Alarm.MCFunction)) AND NOT (Alarm.TimeOutExecution))) AND (Status < #90_WAIT_RESET)) THEN
+         Status := #90_WAIT_RESET;
+      END_IF;
+   END_REGION
+
+   REGION "Main"
+      IF Status = 00_INIT THEN
+          tonTimeOut.(IN := FALSE,PT:=TIMEOUT_PT);
+          POWER.Enable := FALSE;
+          RESET.Execute := FALSE;
+          HOME.Execute := FALSE;
+          IF Sts.Standstill AND NOT
+              tonTimeOut.Q AND
+              Sts.MC_Power_IDLE AND
+              Sts.MC_Home_IDLE AND
+              Sts.MC_Reset_IDLE
+          THEN
+              POWER.Enable := TRUE;
+              Status := 01_CHECK_POWER_ON;
+          END_IF;
+      END_IF;
+
+      IF  Status = 01_CHECK_POWER_ON THEN
+          tonTimeOut.(IN:=TRUE,PT:=TIMEOUT_PT);
+          IF POWER.Status THEN
+              Status := 20_OPERATION;
+          END_IF;
+      END_IF;
+
+      IF  Status = 10_WAIT_HOMING_START THEN
+          tonTimeOut.(IN:=FALSE,PT:=TIMEOUT_PT);
+          HOME.Execute := FALSE;
+          IF  Sts.Standstill AND NOT
+              tonTimeOut.Q AND
+              Sts.MC_Home_IDLE
+          THEN
+              HOME.Execute := TRUE;
+              Status := 11_CHECK_HOMING_DONE;
+          END_IF;
+      END_IF;
+
+      IF  Status = 11_CHECK_HOMING_DONE THEN
+          tonTimeOut.(IN:=TRUE,PT:=TIMEOUT_PT);
+          IF  HOME.Done AND
+              TO_Status.HomingDone AND NOT
+              TO_Status.HomingCommand
+          THEN
+              HOME.Execute := FALSE;
+              Status := 20_OPERATION;
+          END_IF;
+      END_IF;
+
+      IF  Status = 20_OPERATION THEN
+          tonTimeOut.(IN:=FALSE,PT:=TIMEOUT_PT);
+          POWER.Enable := TRUE;
+          HOME.Execute := FALSE;  
+          RESET.Execute := FALSE;
+          IF  Sts.Standstill AND EncoderCtrl.Home THEN
+              Status := 10_WAIT_HOMING_START;
+          END_IF;
+      END_IF;
+
+      IF Status =  90_WAIT_RESET THEN
+          tonTimeOut.(IN:=FALSE,PT:=TIMEOUT_PT);
+          RESET.Execute := FALSE;
+          IF Sts.Standstill THEN
+              IF Local.ErrorMC_Power THEN
+                  POWER.Enable := FALSE;
+              END_IF;
+              IF Local.ErrorMC_Home THEN
+                  HOME.Execute := FALSE;
+              END_IF;
+              
+              IF EncoderCtrl.Rst AND Sts.MC_Reset_IDLE AND NOT
+                  tonTimeOut.Q AND
+                  (Sts.MC_Power_IDLE OR NOT Local.ErrorMC_Power) AND
+                  (Sts.MC_Home_IDLE OR NOT Local.ErrorMC_Home)
+              THEN
+                  RESET.Execute := TRUE;
+                  Alarm.TOEncoder := FALSE;
+                  Local.ErrorMC_Power := FALSE;
+                  Local.ErrorMC_Home := FALSE;
+                  Local.ErrorMC_Reset := FALSE;
+                  Alarm.TimeOutExecution := FALSE;
+                  Status := 91_CHECK_RESET_DONE;
+              END_IF;
+          END_IF;
+      END_IF;
+
+      IF  Status = 91_CHECK_RESET_DONE THEN
+          tonTimeOut.(IN:=TRUE,PT:=TIMEOUT_PT);
+          IF  RESET.Done THEN
+              IF  NOT POWER.Enable OR NOT POWER.Busy THEN
+                  Status := 00_INIT;
+              ELSIF NOT NOT TO_Status.HomingDone THEN
+                  Status := 10_WAIT_HOMING_START;
+              ELSE    
+                  Status := 20_OPERATION;
+              END_IF;     
+          END_IF;
+      END_IF;
+
+   END_REGION
+
+   REGION "Power"
+      #POWER(
+         en := TRUE,
+         Axis := TO_Encoder
+      );
+
+      #POWER.Q;
+      Sts.MC_Power_IDLE := (NOT (POWER.Status) AND NOT (POWER.Busy));
+   END_REGION
+
+   REGION "Restart TO"
+      Local.RestartConditions := NOT (EncoderCtrl.Home
+                                  OR HOME.Busy)
+                                  AND NOT NOT EncoderCtrl.Rst;
+
+      Diag.TO_RestartNeeded := TO_Status.OnlineStartValuesChanged;
+      Diag.TO_RestartActive := TO_Status.RestartActive;
+      Diag.TO_RestartEnable := Local.RestartConditions;
+
+   END_REGION
+
+   REGION "Reset"
+      #RESET(
+         en := TRUE,
+         Axis := TO_Encoder
+      );
+
+      #RESET.Q;
+      Sts.MC_Reset_IDLE := ((NOT (RESET.Busy) AND NOT (RESET.Done)) AND NOT (RESET.Error));
+   END_REGION
+
+   REGION "Home"
+      #HOME(
+         en := TRUE,
+         Axis := TO_Encoder,
+         Position := EncoderCtrl.HomePosition,
+         Mode := EncoderCtrl.HomeMode
+      );
+
+      #HOME.Q;
+      Sts.MC_Home_IDLE := ((NOT (HOME.Busy) AND NOT (HOME.Done)) AND NOT (HOME.Error));
+   END_REGION
+
+   REGION "Status"
+      EncoderSts.AlarmPresence := Sts.AlarmPresence;
+      EncoderSts.Standstill := Sts.Standstill;
+      EncoderSts.InOperation := (Status = #20_OPERATION);
+      EncoderSts.HomingDone := TO_Status.HomingDone;
+      EncoderSts.ActualPosition := TO_Encoder.ActualPosition;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,26 @@
+﻿// Block: Production
+
+DATA_BLOCK Production
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Last_O_ID : DInt;
+      O_Empty : Prod_Item;
+      O_ACT : Prod_Item;
+      O_TODO : Array[1..PROD_TODO_ITEMS] of Prod_Item;
+      O_ENDING : Array[1..PROD_ENDING_ITEMS] of Prod_Item;
+      O_OUT : Array[1..PROD_OUT_ITEMS] of Prod_Item;
+      Coil_Data : Struct
+         Last_C_ID : DInt;
+         Empty : Coil_Item;
+         ASPO_IN_CARICO : Coil_Item;
+         ASPO_IN_LINEA : Coil_Item;
+         JB : Coil_Item;
+         TAGLIO_FINALE : Coil_Item;
+         OUT : Array[1..PROD_COILS_OUT_ITEMS] of Coil_Item;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

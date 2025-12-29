@@ -1,0 +1,34 @@
+﻿FUNCTION "FS_CHK_TPRE" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      tempo : Time;
+   END_VAR
+
+   VAR_IN_OUT 
+      Ax : "FlyingShearAxis";
+   END_VAR
+
+   VAR CONSTANT 
+      FCT_WAIT_WORKPOS : USInt := 0;
+      FCT_WAIT_START_SYNC : USInt := 1;
+      FCT_WAIT_SYNC : USInt := 2;
+      FCT_WAIT_ERR : USInt := 3;
+      FCT_WAIT_CUT_DONE : USInt := 4;
+      FCT_GO_HOME_1 : USInt := 5;
+      FCT_GO_HOME_2 : USInt := 6;
+      FCT_GO_HOME_3 : USInt := 7;
+      FCT_STOP : USInt := 9;
+      FCT_RESTART : USInt := 10;
+   END_VAR
+
+
+BEGIN
+	IF #Ax.FSCore.MasterVelocity>0.0 AND #Ax.FSCore.Fct>#FCT_WAIT_WORKPOS THEN
+	    #FS_CHK_TPRE:=(#Ax.FSCore.iSpaceToGo/#Ax.FSCore.MasterVelocity*1000.0)<=TIME_TO_INT(#tempo);
+	ELSE
+	    #FS_CHK_TPRE:=FALSE;
+	END_IF;
+	
+END_FUNCTION
+

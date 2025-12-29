@@ -1,0 +1,2023 @@
+﻿FUNCTION_BLOCK "MES_Receive_Msg_Topic1XX_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PART_PROD_Halted : "Prod_Halted";
+      BEAM_PROD_Halted : "Prod_Halted";
+   END_VAR
+
+   VAR_IN_OUT 
+      DEBUG : Struct
+         Enable : Bool;
+         AckChangeStep : Bool;
+         ActualStep : Int;
+      END_STRUCT;
+      Err : "MES_Msg_Receive_Topic1xx_Err";
+   END_VAR
+
+   VAR 
+      Status : Int;
+      Save_Msg_ID : DInt;
+      ACK : DInt;
+      MSG100 : Struct
+         item_Prod { S7_SetPoint := 'False'} : "Prod_Item";
+         RETVAL_Decoder : DInt;
+         RETVAL_CheckValueLimit : DInt;
+         PPrf_Pivot_index : Int;
+         PPrf_No : DInt;
+         RETVAL_PPrf_LookUp : DInt;
+         PPrf_Data : "PPrf_Data";
+         RETVAL_Get_PPrf { S7_SetPoint := 'True'} : DInt;
+         RETVAL_Check_Prf_Check_Mismatch_Msg_Request : DInt;
+         RETVAL_CalcData : DInt;
+         RETVAL_Push_O_TODO : DInt;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+      MSG130 : Struct
+         Decoder_IDP { S7_SetPoint := 'True'} : String;
+         item_Prod { S7_SetPoint := 'False'} : "Prod_Item";
+         RETVAL_Decoder : DInt;
+         RETVAL_GetData : DInt;
+         indx_GetData : Int;
+         RETVAL_Push_MSG131 : DInt;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+      MSG140 : Struct
+         item_Prod { S7_SetPoint := 'False'} : "Prod_Item";
+         RETVAL_Decoder : DInt;
+         Decoder_IDP { S7_SetPoint := 'True'} : String;
+         Order_Position_Code : DInt;
+         Order_Index : Int;
+         RETVAL_Check_Can_Be_Delete : DInt;
+         RETVAL_Pop_O_TODO_to_O_OUT : DInt;
+         RETVAL_Push_MSG141 : DInt;
+         Mem_Pop_Done : Bool;
+         Mem_Push_Done : Bool;
+      END_STRUCT;
+      MSG142 : Struct
+         RETVAL_Decoder : DInt;
+         RETVAL_Push_Msg143 : DInt;
+         Mem_Push_Done_Msg143 : Bool;
+         RETVAL_Push_Msg144 : DInt;
+         Mem_Push_Done_Msg144 : Bool;
+         RETVAL_Push_Msg145 : DInt;
+         Mem_Push_Done_Msg145 : Bool;
+      END_STRUCT;
+      PPrf_Get { S7_SetPoint := 'False'} : "GetPrg";
+      TON_Timeout {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;
+   END_VAR
+
+   VAR_TEMP 
+      Tol_Min : Real;
+      Tol_Max : Real;
+      adj : Real;
+   END_VAR
+
+   VAR CONSTANT 
+      IDLE : Int := 0;
+      WAIT_NEXT_MSG : Int := 1;
+      ACK_TO_MES : Int := 100;
+      MSG100_1 : Int := 1001;
+      MSG100_2 : Int := 1002;
+      MSG100_3 : Int := 1003;
+      MSG100_4 : Int := 1004;
+      MSG100_5 : Int := 1005;
+      MSG100_6 : Int := 1006;
+      MSG100_7 : Int := 1007;
+      MSG100_8 : Int := 1008;
+      MSG100_9 : Int := 1009;
+      MSG130_1 : Int := 1301;
+      MSG130_2 : Int := 1302;
+      MSG130_3 : Int := 1303;
+      MSG130_4 : Int := 1304;
+      MSG130_5 : Int := 1305;
+      MSG140_1 : Int := 1401;
+      MSG140_2 : Int := 1402;
+      MSG140_3 : Int := 1403;
+      MSG140_4 : Int := 1404;
+      MSG140_5 : Int := 1405;
+      MSG140_6 : Int := 1406;
+      MSG142_1 : Int := 1421;
+      MSG142_2 : Int := 1422;
+      MSG142_3 : Int := 1423;
+      MSG142_4 : Int := 1424;
+      MSG142_5 : Int := 1425;
+      MSG142_6 : Int := 1426;
+   END_VAR
+
+
+BEGIN
+	
+	#DEBUG.ActualStep := #Status;
+	
+	
+	
+	
+	REGION ACK TO MES        
+	    
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// ACK TO MES
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    IF #Status = #ACK_TO_MES THEN
+	        
+	        
+	        "MES_Com_Channel_Topic1XX".RECEIVE.ack := #ACK;
+	        
+	        // OK → CAMBIO PASSO
+	        // 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        // Uscita traferendo ACK alla gestione al MES
+	        //
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        
+	        
+	        // Invio messaggio a IPC per registrazione evento ricezione messaggio
+	        // 
+	        "IPC_Push_Log_MES"(Msg := "MES_Com_Channel_Topic1XX".RECEIVE.msg,
+	                           Ack := "MES_Com_Channel_Topic1XX".RECEIVE.ack);
+	        
+	        
+	        CASE "MES_Com_Channel_Topic1XX".RECEIVE.msg.topic OF
+	                
+	            100: // MES → PLC – Topic = 100: Messaggio di invio ordine di produzione al PLC
+	                #Err.Recive_MSG100 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic1XX".RECEIVE.msg);
+	                
+	            130: // MES → PLC – Topic = 130: Interrogazione stato ordine
+	                #Err.Recive_MSG130 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic1XX".RECEIVE.msg);
+	                
+	            140:// MES → PLC – Topic = 140: Cancella ordine
+	                #Err.Recive_MSG140 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic1XX".RECEIVE.msg);
+	                
+	            142:// MES → PLC – Topic = 142: Interrogazione lista ordini di produzione in coda
+	                #Err.Recive_MSG142 := "MES_Error_Set"(msg_RETVAL := #ACK, msg := "MES_Com_Channel_Topic1XX".RECEIVE.msg);
+	        END_CASE;
+	        
+	        
+	        #Status := #"IDLE";
+	        
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	
+	
+	
+	REGION IDLE       
+	(*        
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	//
+	// IDLE
+	//
+	//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    IF #Status = #IDLE THEN
+	        
+	        // MES non ha ancore cambiato ID e messaggio precedente era terminato OK 
+	        // 
+	        IF "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id = "MES_Com_Channel_Topic1XX".RECEIVE.ack THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES non ha ancora cambiato ID e messaggio precedente è terminato con errore
+	        // 
+	        IF "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id = #Save_Msg_ID THEN
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // MES ha inviato messaggio con ID <= 0 →  ACK immediato
+	        // 
+	        IF "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id <= 0 THEN
+	            #ACK := "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id;
+	            #Save_Msg_ID := "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id;
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        // Avvio ricezione nuovo messaggio
+	        // 
+	        #Save_Msg_ID := "MES_Com_Channel_Topic1XX".RECEIVE.msg.Id;
+	        
+	        CASE "MES_Com_Channel_Topic1XX".RECEIVE.msg.topic OF
+	                
+	            100: // MES → PLC – Topic = 100: Messaggio di invio ordine di produzione al PLC
+	                #Status := #"MSG100_1";
+	                RETURN;
+	                
+	                
+	            130: // MES → PLC – Topic = 130: Interrogazione stato ordine
+	                #Status := #MSG130_1;
+	                RETURN;
+	                
+	                
+	            140:// MES → PLC – Topic = 140: Cancella ordine
+	                #Status := #MSG140_1;
+	                RETURN;
+	                
+	            142:// MES → PLC – Topic = 142: Interrogazione lista ordini di produzione in coda
+	                #Status := #MSG142_1;
+	                RETURN;
+	                
+	            ELSE
+	                // Topic del messaggio non gestita
+	                // 
+	                #ACK := "PROD_ERR_BUFFER_MSGs_UNKNOW_TOPIC";
+	                #Status := #ACK_TO_MES;
+	                RETURN;
+	        END_CASE;
+	        
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	
+	
+	REGION MSG100 STEP 1 (INIT)       
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 1
+	    
+	    INITIAZZA VARIABILI
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_1 THEN
+	        
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        #MSG100.item_Prod := "Production".O_Empty;
+	        #MSG100.PPrf_Data := "PPrf_MAIN".RWD.EMPTY;
+	        
+	        #MSG100.RETVAL_Decoder :=
+	        #MSG100.RETVAL_CheckValueLimit :=
+	        #MSG100.RETVAL_PPrf_LookUp :=
+	        #MSG100.RETVAL_Get_PPrf :=
+	        #MSG100.RETVAL_Check_Prf_Check_Mismatch_Msg_Request :=
+	        #MSG100.RETVAL_Push_O_TODO := "PROD_FUN_RESULT_OK";
+	        
+	        #MSG100.PPrf_Pivot_index := 0;
+	        #MSG100.PPrf_No := 0;
+	        
+	        #MSG100.Mem_Push_Done := FALSE;
+	        
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 2 (DECODER PAYLOAD)    
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 2
+	    
+	    DECODIFICA DEL MESSAGGIO
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_2 THEN
+	        
+	        
+	        // Decoder messaggio da MES
+	        //
+	        #MSG100.RETVAL_Decoder :=
+	        
+	        "MES_Msg100_Decoder"(payLoad := "MES_Com_Channel_Topic1XX".RECEIVE.msg.payLoad,
+	                             Item => #MSG100.item_Prod);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG100.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 3 (CHECK KEY VALUES) 
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 3
+	    
+	    VERIFICA VALORI CHIAVI DEL MESSAGGIO MES
+	       
+	     
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_3 THEN
+	        
+	        // Controlla errori dei valori caricati su item produzione temporaneo da decodifica messaggio MES
+	        // Aggiorna "Errors" su item di produzione
+	        // 
+	        
+	        #MSG100.RETVAL_CheckValueLimit := "Prod_Item_Check_MES_Order_ValueLimit"(Item := #MSG100.item_Prod);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //#########################
+	        IF #MSG100.RETVAL_CheckValueLimit < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_CheckValueLimit;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        #TON_Timeout(IN := FALSE,
+	                     PT := T#3s);
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 4 (FIND PPRF)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 4
+	    
+	    RICERCA IL NUMERO DI PROGRAMMA PROFILO ASSOCIATO AL NOME DECODIFICATO DA MESSAGGIO MES
+	       
+	     
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    
+	    IF #Status = #MSG100_4 THEN
+	        
+	        
+	        #MSG100.RETVAL_PPrf_LookUp :=
+	        
+	        "PPrf_PrgNo_LookUp_From_Name"(PPrf_Name := #MSG100.item_Prod.MES_PPrf_Name,
+	                                      PPrf_Pivot_Index => #MSG100.PPrf_Pivot_index,
+	                                      PPrf_No => #MSG100.PPrf_No);
+	        
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG100.RETVAL_PPrf_LookUp < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_PPrf_LookUp;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        //#######################################
+	        // ATTESA PER ABILITAZIONE CAMBIO PASSO
+	        //#######################################
+	        IF TRUE THEN
+	            #MSG100.item_Prod.PPrf_No := #MSG100.PPrf_No;
+	            
+	            #TON_Timeout(IN := FALSE,
+	                         PT := T#3s);
+	            
+	            #PPrf_Get(Execute  := FALSE,
+	                      PrgNo    := #MSG100.PPrf_No,
+	                      GET_ITF  := "PPrf_MAIN".GET_ITF,
+	                      GET_Data := "PPrf_MAIN".RWD.GET,
+	                      PRG_Data := #MSG100.PPrf_Data);
+	            
+	            
+	            IF #PPrf_Get.Busy OR #PPrf_Get.Error THEN
+	                
+	                RETURN;
+	                
+	            END_IF;
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	
+	REGION MSG100 STEP 5 (LOAD PPRF)  
+	    
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 5
+	    
+	    CARICAMENTO PROGRAMMA PROFILO DA USARE PER I PROSSIMI STEP
+	       
+	     
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    
+	    IF #Status = #MSG100_5 THEN
+	        
+	        
+	        // Carica programma profilo
+	        // 
+	        #PPrf_Get(Execute  := TRUE,
+	                  PrgNo    := #MSG100.PPrf_No,
+	                  GET_ITF  := "PPrf_MAIN".GET_ITF,
+	                  GET_Data := "PPrf_MAIN".RWD.GET,
+	                  PRG_Data := #MSG100.PPrf_Data);
+	        
+	        
+	        #TON_Timeout(IN := NOT #PPrf_Get.Done,
+	                     PT := T#2s);
+	        
+	        
+	        
+	        
+	        //#############################
+	        // USCITA CON ERRORE GET PPRG
+	        //#############################
+	        //
+	        IF #PPrf_Get.Error THEN
+	            
+	            #MSG100.RETVAL_Get_PPrf := "PROD_ERR_PPrf_Get_Error";
+	            
+	            
+	            
+	            
+	            #ACK := #MSG100.RETVAL_Get_PPrf;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	            
+	        END_IF;
+	        
+	        //#####################################
+	        // USCITA CON ERRORE TIMEOUT GET PPRG
+	        //#####################################
+	        //
+	        IF #TON_Timeout.Q THEN
+	            
+	            #MSG100.RETVAL_Get_PPrf := "PROD_ERR_PPrf_Get_Timeout";
+	            
+	            
+	            
+	            #ACK := #MSG100.RETVAL_Get_PPrf;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        // Dati programma acquisiti
+	        // 
+	        IF NOT #PPrf_Get.Done THEN
+	            
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 6 (CHECK MISMATCH PPRF)       
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 6
+	    
+	    CONTROLLO COERENZA DATI PROFILO CON RICHIESTE MES
+	        
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_6 THEN
+	        
+	        
+	        #MSG100.RETVAL_Check_Prf_Check_Mismatch_Msg_Request :=
+	        
+	        "Prod_Item_Check_Mismatch_PPrf"(Prg := #MSG100.PPrf_Data,
+	                                        item_Prod := #MSG100.item_Prod);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //#########################
+	        IF #MSG100.RETVAL_Check_Prf_Check_Mismatch_Msg_Request < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_Check_Prf_Check_Mismatch_Msg_Request;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 7 (PROD ITEM UPDATE)        
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 7
+	    
+	    AGGIORNAMENTO DATI ITEM DI PRODUZIONE IN BASE AL PROGRAMMA PROFILO
+	        
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_7 THEN
+	        
+	        // Calcolo Lunghezze MIN / MAX
+	        // Calcolo contatori parti e pezzi
+	        // Calcolo quantità materiale richiesto
+	        // Scelta layout pacco
+	        // 
+	        #MSG100.RETVAL_CalcData := "Prod_Item_CalcData_Msg100"(Item_Prod := #MSG100.item_Prod, Prg := #MSG100.PPrf_Data);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG100.RETVAL_CalcData < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_CalcData;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        #MSG100.Mem_Push_Done := FALSE;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 8 (PUSH O_TODO)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 100: STEP 8
+	    
+	    PUSH ORDINE SU O_TODO
+	        
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG100_8 THEN
+	        
+	        
+	        IF NOT #MSG100.Mem_Push_Done THEN
+	            
+	            
+	            // Assegnazione O_ID
+	            // 
+	            "Production".Last_O_ID := "Inc_DINT_Circ"("Production".Last_O_ID);
+	            
+	            #MSG100.item_Prod.O_ID := "Production".Last_O_ID;
+	            
+	            
+	            // Push Item su array produzione "TO_DO".
+	            // Almeno una posizione libera perchè riservata nelle operazioni si movimento ordine da ACT a TODO (per poter essere sempre possibile)
+	            // 
+	            #MSG100.RETVAL_Push_O_TODO := "PROD_item_Push_to_Bottom"(Item := #MSG100.item_Prod, Reserve := "PROD_ENDING_ITEMS", Buffer := "Production".O_TODO);
+	            
+	            
+	            
+	            #MSG100.Mem_Push_Done := TRUE;
+	        END_IF;
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG100.RETVAL_Push_O_TODO < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG100.RETVAL_Push_O_TODO;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION ;
+	
+	
+	
+	REGION MSG100 STEP 9 (WAIT BEFORE ACK)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	                   
+	    MES → PLC – Topic = 100 : STEP 9
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	         
+	      
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG100_9 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	
+	
+	
+	REGION MSG130 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 130: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG130_1 THEN
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        #MSG130.item_Prod := "Production".O_Empty;
+	        
+	        #MSG130.RETVAL_Decoder :=
+	        #MSG130.RETVAL_GetData :=
+	        #MSG130.RETVAL_Push_MSG131 := "PROD_FUN_RESULT_OK";
+	        
+	        #MSG130.indx_GetData := 0;
+	        #MSG130.Decoder_IDP := '';
+	        
+	        #MSG130.Mem_Push_Done := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION MSG130 STEP 2 (DECODER PAYLOAD)
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	
+	MES → PLC – Topic = 130: STEP 2
+	
+	DECODIFICA PAYLOAD  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    IF #Status = #MSG130_2 THEN
+	        
+	        #MSG130.RETVAL_Decoder :=
+	        
+	        "MES_Msg130_Decoder"(payLoad := "MES_Com_Channel_Topic1XX".RECEIVE.msg.payLoad,
+	                             IDP => #MSG130.Decoder_IDP);
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG130.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG130.RETVAL_Decoder;
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	REGION MSG130 STEP 3 (FIND O_ID)
+	    
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	
+	MES → PLC – Topic = 130: STEP 3
+	
+	TROVA O_ID  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    IF #Status = #MSG130_3 THEN
+	        
+	        // Trova Ordine (ProdItem) O_ID dell'ordine con MES_IDP
+	        // 
+	        
+	        #MSG130.RETVAL_GetData :=
+	        
+	        "Prod_item_GetData"(O_ID := -1, MES_IDP := #MSG130.Decoder_IDP,
+	                            Item => #MSG130.item_Prod,
+	                            indx => #MSG130.indx_GetData);
+	        
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG130.RETVAL_GetData < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG130.RETVAL_GetData;
+	            
+	            
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION
+	
+	
+	
+	
+	REGION MSG130 STEP 4 (PUSH MSG 131)
+	    
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	MES → PLC – Topic = 130: STEP 4
+	
+	PUSH MESSAGGIO SU BUFFER SEND  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    
+	    IF #Status = #MSG130_4 THEN
+	        
+	        
+	        // Push messaggio 131 stato ordine richiesto dal messaggio 130 del MES  
+	        //
+	        IF NOT #MSG130.Mem_Push_Done THEN
+	            
+	            #MSG130.Mem_Push_Done := TRUE;
+	            
+	            #MSG130.RETVAL_Push_MSG131 := "MES_Msg131_Push"(O_ID := #MSG130.item_Prod.O_ID,
+	                                                            MES_IDI := #Save_Msg_ID,
+	                                                            PART_PROD_Halted := #PART_PROD_Halted,
+	                                                            BEAM_PROD_Halted := #BEAM_PROD_Halted,
+	                                                            Err => #Err.Send_MSG131_Follow_MSG130);
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG130.RETVAL_Push_MSG131 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG130.RETVAL_Push_MSG131;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	
+	
+	
+	
+	
+	
+	REGION MSG130 STEP 5 (WAIT BEFORE ACK)
+	    
+	    
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	MES → PLC – Topic = 130: STEP 5
+	
+	PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    
+	    IF #Status = #MSG130_5 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION MSG140 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 130: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    IF #Status = #MSG140_1 THEN
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        #MSG140.item_Prod := "Production".O_Empty;
+	        #MSG140.Order_Position_Code := -1;
+	        #MSG140.Order_Index := -1;
+	        
+	        #MSG140.RETVAL_Decoder :=
+	        #MSG140.RETVAL_Check_Can_Be_Delete :=
+	        #MSG140.RETVAL_Pop_O_TODO_to_O_OUT :=
+	        #MSG140.RETVAL_Push_MSG141 := "PROD_FUN_RESULT_OK";
+	        
+	        #MSG140.Decoder_IDP := '';
+	        
+	        #MSG140.Mem_Pop_Done := FALSE;
+	        #MSG140.Mem_Push_Done := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION MSG140 STEP 2 (DECODER PAYLOAD) 
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 140: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG140_2 THEN
+	        
+	        #MSG140.RETVAL_Decoder :=
+	        
+	        "MES_Msg140_Decoder"(payLoad := "MES_Com_Channel_Topic1XX".RECEIVE.msg.payLoad,
+	                             IDP => #MSG140.Decoder_IDP);
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG140.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG140.RETVAL_Decoder;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	REGION MSG140 STEP 3 (? CAN BE DELETE ?)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 140: STEP 3
+	    
+	    VERIFICA SE ORDINE PUO' ESSERE CANCELLATO  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG140_3 THEN
+	        
+	        
+	        #MSG140.RETVAL_Check_Can_Be_Delete :=
+	        
+	        "Prod_Item_Check_O_Can_be_Deleted"(O_ID := -1,
+	                                           MES_IDP := #MSG140.Decoder_IDP,
+	                                           Enable_O_TODO := TRUE,
+	                                           Enable_O_ENDING := FALSE,
+	                                           O_Position => #MSG140.Order_Position_Code,
+	                                           O_Index => #MSG140.Order_Index);
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG140.RETVAL_Check_Can_Be_Delete < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG140.RETVAL_Check_Can_Be_Delete;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	END_REGION
+	
+	
+	
+	REGION MSG140 STEP 4 (POP ORDER)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 140: STEP 4
+	    
+	    POP MESSAGGIO DA BUFFER O_TODO..
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG140_4 THEN
+	        
+	        IF NOT #MSG140.Mem_Pop_Done THEN
+	            
+	            #MSG140.Mem_Pop_Done := TRUE;
+	            
+	            #MSG140.RETVAL_Pop_O_TODO_to_O_OUT := "Prod_O_TODO_Pop_&_O_OUT_Push"(#MSG140.Order_Index);
+	            
+	        END_IF;
+	        
+	        
+	        
+	        
+	        //########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG140.RETVAL_Pop_O_TODO_to_O_OUT < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG140.RETVAL_Pop_O_TODO_to_O_OUT;
+	            
+	            // #DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	
+	
+	
+	
+	
+	REGION MSG140 STEP 5 (PUSH MSG 141)
+	    
+	(*
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	
+	MES → PLC – Topic = 140: STEP 5
+	
+	PUSH MESSAGGIO SU BUFFER SEND  ...
+	
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)
+	    
+	    
+	    IF #Status = #MSG140_5 THEN
+	        
+	        
+	        
+	        // Push messaggio 141 stato ordine richiesto dal messaggio 140 del MES  
+	        //
+	        IF NOT #MSG140.Mem_Push_Done THEN
+	            
+	            #MSG140.Mem_Push_Done := TRUE;
+	            
+	            #MSG140.RETVAL_Push_MSG141 := "MES_Msg141_Push"(item_Prod:="Production".O_OUT[1], Err:=#Err.Send_MSG141_Follow_MSG140);
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG140.RETVAL_Push_MSG141 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG140.RETVAL_Push_MSG141;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION ;
+	
+	
+	
+	
+	
+	REGION MSG140 STEP 6 (WAIT BEFORE ACK)
+	    
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 140: STEP 6
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG140_6 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION MSG142 STEP 1 (INIT)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 130: STEP 1
+	    
+	    INIT VALORI  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    IF #Status = #MSG142_1 THEN
+	        
+	        // Cancella dati dell'item profilo candidato
+	        // 
+	        
+	        #MSG142.RETVAL_Decoder :=
+	        #MSG142.RETVAL_Push_Msg143 :=
+	        #MSG142.RETVAL_Push_Msg144 :=
+	        #MSG142.RETVAL_Push_Msg145 := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        #MSG142.Mem_Push_Done_Msg143 := 
+	        #MSG142.Mem_Push_Done_Msg144 :=
+	        #MSG142.Mem_Push_Done_Msg145 := FALSE;
+	        
+	        #ACK := "PROD_FUN_RESULT_OK";
+	        
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        // Uscita al prossimo step
+	        // 
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION MSG142 STEP 2 (DECODER PAYLOAD) 
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 142: STEP 2
+	    
+	    DECODIFICA PAYLOAD  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG142_2 THEN
+	        
+	        #MSG142.RETVAL_Decoder :=
+	        
+	        "MES_Msg142_Decoder"(payLoad := "MES_Com_Channel_Topic1XX".RECEIVE.msg.payLoad);
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG142.RETVAL_Decoder < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG142.RETVAL_Decoder;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	            
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	    END_IF;
+	    
+	END_REGION ;
+	
+	
+	
+	REGION MSG142 STEP 3 (PUSH MSG 143)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 142: STEP 3
+	    
+	    ESEGUI PUSH MESSAGGIO 143  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG142_3 THEN
+	        
+	        
+	        IF NOT #MSG142.Mem_Push_Done_Msg143 THEN
+	            
+	            #MSG142.Mem_Push_Done_Msg143 := TRUE;
+	            
+	            #MSG142.RETVAL_Push_Msg143 := "MES_Msg143_Push"(MES_IDI := #Save_Msg_ID, Err := #Err.Send_MSG143_Follow_MSG142);
+	            
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG142.RETVAL_Push_Msg143 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG142.RETVAL_Push_Msg143;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION
+	
+	
+	
+	REGION MSG142 STEP 4 (PUSH MSG 144)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 142: STEP 4
+	    
+	    ESEGUI PUSH MESSAGGIO 144  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG142_4 THEN
+	        
+	        
+	        IF NOT #MSG142.Mem_Push_Done_Msg144 THEN
+	            
+	            #MSG142.Mem_Push_Done_Msg144 := TRUE;
+	            
+	            #MSG142.RETVAL_Push_Msg144 := "MES_Msg144_Push"(MES_IDI := #Save_Msg_ID, Err := #Err.Send_MSG144_Follow_MSG142);
+	            
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG142.RETVAL_Push_Msg144 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG142.RETVAL_Push_Msg144;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION
+	
+	
+	
+	
+	REGION MSG142 STEP 5 (PUSH MSG 145)
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@        
+	    
+	    MES → PLC – Topic = 142: STEP 5
+	    
+	    ESEGUI PUSH MESSAGGIO 145  ...
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    IF #Status = #MSG142_5 THEN
+	        
+	        
+	        IF NOT #MSG142.Mem_Push_Done_Msg145 THEN
+	            
+	            #MSG142.Mem_Push_Done_Msg145 := TRUE;
+	            
+	            #MSG142.RETVAL_Push_Msg145 := "MES_Msg145_Push"(MES_IDI := #Save_Msg_ID, Err := #Err.Send_MSG145_Follow_MSG142);
+	            
+	            
+	        END_IF;
+	        
+	        
+	        
+	        //#########################
+	        // USCITA CON ERRORE
+	        //########################
+	        IF #MSG142.RETVAL_Push_Msg145 < "PROD_FUN_RESULT_OK" THEN
+	            
+	            #ACK := #MSG142.RETVAL_Push_Msg145;
+	            
+	            // DEBUG Attesa consenso per proseguire
+	            // 
+	            IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	                RETURN;
+	            END_IF;
+	            #DEBUG.AckChangeStep := FALSE;
+	            
+	            #Status := #ACK_TO_MES;
+	            RETURN;
+	        END_IF;
+	        
+	        
+	        //###########################
+	        // OK → CAMBIO PASSO
+	        //########################### 
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        #Status += 1;
+	        RETURN;
+	        
+	    END_IF;
+	END_REGION
+	
+	
+	
+	
+	REGION MSG142 STEP 6 (WAIT BEFORE ACK)
+	    
+	    
+	    
+	    (*
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    MES → PLC – Topic = 142: STEP 6
+	    
+	    PASSO DI ATTESA PRIMA DI ACK A MES  ... USATO ESCLUSIVAMENTE PER DEBUG
+	    
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    *)
+	    
+	    
+	    IF #Status = #MSG142_6 THEN
+	        
+	        //######################################
+	        // ACK CON ESITO POSITIVO
+	        //######################################
+	        #ACK := #Save_Msg_ID;
+	        
+	        
+	        // DEBUG Attesa consenso per proseguire
+	        // 
+	        IF #DEBUG.Enable AND NOT #DEBUG.AckChangeStep THEN
+	            RETURN;
+	        END_IF;
+	        #DEBUG.AckChangeStep := FALSE;
+	        
+	        
+	        #Status := #ACK_TO_MES;
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	(*    
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	Status errato
+	@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	*)        
+	
+	
+	
+	
+	#Status := #"IDLE";
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

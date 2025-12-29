@@ -1,0 +1,130 @@
+﻿// Block: PrjConfig_A03
+
+DATA_BLOCK PrjConfig_A03
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Area03_Main : AreaConfig;
+      A0301 : Struct
+         Fermi_P1 : Struct
+            Fermi : Array[1..6] of ValveMachine_Config;
+            Sfalsatore : ValveMachine_Config;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Fermi_P2 : Struct
+            Fermi : Array[1..6] of ValveMachine_Config;
+            Sollevatori : Array[1..6] of ValveMachine_Config;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Fermi_P3 : Struct
+            Fermi : Array[1..6] of ValveMachine_Config;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Fermi_P4 : Struct
+            Fermi : Array[1..6] of ValveMachine_Config;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Trasporto : SpeedMachine_Config;
+         Ribaltatore : Struct
+            Ax : Positioning_EPOS_Machine_Config_NEW;
+            Solleva_Rib : Array[1..6] of ValveMachine_Config;
+         END_STRUCT;
+         SpintoreLaterale : Struct
+            Vrt_1 : ValveMachine_Config;
+            Orz_1 : ValveMachine_Config;
+            Vrt_2 : ValveMachine_Config;
+            Orz_2 : ValveMachine_Config;
+            Sollevatori : Array[1..7] of ValveMachine_Config;
+            QuotaIngombro_SpinLat2 : Real;
+            QuotaIngombro_SpinLat1 : Real;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+      END_STRUCT;
+      A0302 : Struct
+         Spintore : Struct
+            Ax : Positioning_EPOS_Machine_Config_NEW;
+            Vrt : ValveMachine_Config;
+            Orz : ValveMachine_Config;
+            SpintoreLat : Struct
+               QuotaIngombro_SpinLat2 : Real;
+               QuotaIngombro_SpinLat1 : Real;
+            END_STRUCT;
+            Bordatrice : Struct
+               QuotaIngresso : Real;
+            END_STRUCT;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Bordatrice : Struct
+            Ax : Positioning_EPOS_Machine_Config_NEW;
+            Measure : Struct
+               K1_CarroPost : LReal;
+               K2_BancoIngresso : LReal;
+            END_STRUCT;
+         END_STRUCT;
+         Regolaz_Bordatrice : Struct
+            Formato : Struct
+               Ax_D : Array[1..1] of Positioning_DOL_Machine_Config;
+               Ax_M : Array[1..10] of Positioning_MOL_Machine_Config;
+               M1_1 : Positioning_DOL_Machine_Config;
+               M1_2 : Positioning_DOL_Machine_Config;
+               M1_3 : Positioning_MOL_Machine_Config;
+               M1_4 : Positioning_MOL_Machine_Config;
+            END_STRUCT;
+         END_STRUCT;
+         Rulliera : Struct
+            Ax : SpeedMachine_Config;
+         END_STRUCT;
+         Centratori : Struct
+            Centraggio : Array[1..3] of ValveMachine_Config;
+            Sollevamento : Array[1..3] of ValveMachine_Config;
+            DelayMissingCondition : Time;
+            WorkWindows : Struct
+               Coda : Struct
+                  Min : LReal;
+                  Max : LReal;
+               END_STRUCT;
+               Testa : Struct
+                  Min : LReal;
+                  Max : LReal;
+               END_STRUCT;
+            END_STRUCT;
+         END_STRUCT;
+         PareggiatoreCoda : Struct
+            Ax : Positioning_DOL_Machine_Config;
+            Bloccaggio : ValveMachine_Config;
+            BattutaVerticale : ValveMachine_Config;
+            PareggiatoreLong : ValveMachine_Config;
+            PosPareggiatore : Struct
+               QuotaMin_Work : LReal;
+               QuotaMax_Work : LReal;
+            END_STRUCT;
+            MinDistanzaConSpalla : LReal;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         PareggiatoreTesta : Struct
+            Ax : Positioning_DOL_Machine_Config;
+            Bloccaggio : ValveMachine_Config;
+            Sollevamento : ValveMachine_Config;
+            Centraggio : ValveMachine_Config;
+            MinDistanzaConSpalla : LReal;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+         Manipolatore : Struct
+            Testa : Struct
+               Ax : Positioning_EPOS_Machine_Config_NEW;
+               Sollevatore : ValveMachine_Config;
+               Magnete : ValveMachine_Config;
+            END_STRUCT;
+            Coda : Struct
+               Ax : Positioning_EPOS_Machine_Config_NEW;
+               Sollevatore : ValveMachine_Config;
+               Magnete : ValveMachine_Config;
+            END_STRUCT;
+            DelayMissingCondition : Time;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

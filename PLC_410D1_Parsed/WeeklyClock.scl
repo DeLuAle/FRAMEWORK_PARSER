@@ -1,0 +1,73 @@
+﻿// Block: WeeklyClock
+// Title: Get actual date and time
+
+FUNCTION_BLOCK "WeeklyClock"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Get actual date and time
+   VAR_INPUT
+      DaySetup : Array[1..7] of WkClockSet;
+      CabinetCooling : WkClockSet;
+      ClockEnable : Bool;
+      CabinetCoolingEnable : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      ClockActive : Bool;
+      CabinetCoolingActive : Bool;
+   END_VAR
+
+   VAR
+      ActualDT : DTL;
+      ActualTime : Time_Of_Day;
+      ActualDate : Date;
+      ActuaDtON : DTL;
+      ActualDtOFF : DTL;
+      DayEnable : Array[1..7] of Bool;
+      CabinetEnable : Bool;
+   END_VAR
+
+   VAR_TEMP
+      retVal : Int;
+      IsGt : Bool;
+      IsLt : Bool;
+      TimeOfD : Time_Of_Day;
+   END_VAR
+
+
+BEGIN
+   REGION "Get actual date and time"
+   END_REGION
+
+   REGION "Days of week for oil Heating"
+      ActualDate := (ActualDT);
+      ActuaDtON := (IN1 := ActualDate, IN2 := DaySetup[ActualDT.WEEKDAY].Set_ON);
+      ActualDtOFF := (IN1 := ActualDate, IN2 := DaySetup[ActualDT.WEEKDAY].Set_OFF);
+      IsGt := ActualDT >= ActuaDtON;
+      IsLt := ActualDT <= ActualDtOFF;
+
+      DayEnable[ActualDT.WEEKDAY] := IsGt AND IsLt AND DaySetup[ActualDT.WEEKDAY].Enable;
+
+   END_REGION
+
+   REGION "Cabinet cooling"
+      ActualDate := (ActualDT);
+      ActuaDtON := (IN1 := ActualDate, IN2 := CabinetCooling.Set_ON);
+      ActualDtOFF := (IN1 := ActualDate, IN2 := CabinetCooling.Set_OFF);
+      IsGt := ActualDT >= ActuaDtON;
+      IsLt := ActualDT <= ActualDtOFF;
+
+      CabinetEnable := IsGt AND IsLt AND CabinetCooling.Enable;
+
+   END_REGION
+
+   REGION "Coordination Out - Day"
+      ClockActive := (NOT (((((((NOT (DayEnable[1]) AND NOT (DayEnable[2])) AND NOT (DayEnable[3])) AND NOT (DayEnable[4])) AND NOT (DayEnable[5])) AND NOT (DayEnable[6])) AND NOT (DayEnable[7]))) AND ClockEnable);
+   END_REGION
+
+   REGION "Coordination Out - Cabinet cooling"
+      CabinetCoolingActive := CabinetEnable;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

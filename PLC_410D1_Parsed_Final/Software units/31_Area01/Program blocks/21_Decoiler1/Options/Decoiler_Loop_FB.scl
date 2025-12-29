@@ -1,0 +1,150 @@
+﻿// Block: Decoiler_Loop_FB
+// Title: Loop min high --> stop to next machines
+
+FUNCTION_BLOCK "Decoiler_Loop_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Loop min high --> stop to next machines
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      DataIn : Struct
+         Connector : Bool;
+         S_MinHigh : Bool;
+         S_SpeedAsjust : Bool;
+         S_MaxLow : Bool;
+      END_STRUCT;
+      Enable : Bool;
+      Config : Struct
+         Exist_S_MinHigh : Bool;
+         Exist_S_SpeedAsjust : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MinHigh : Bool;
+      MaxLow : Bool;
+      Override : LReal;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Struct
+         Par : Struct
+            DelayRestartAfterMaxLoop : Time;
+            DelayStopMaxLoop : Time;
+            SensoAdjVel_PercentageMinus : LReal;
+            SensoAdjVel_PercentagePlus : LReal;
+            SensoAdjVel_PercentagePlusPlus : LReal;
+            SensoAdjVel_DelayPlusPlus : Time;
+         END_STRUCT;
+      END_STRUCT;
+      Alarm : Struct
+         ConnectorUnplugged : Bool;
+      END_STRUCT;
+      Warning : Struct
+         MinHigh : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Standstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+      END_STRUCT;
+      TON_DelayNotLoopMax : IEC_TIMER;
+      TON_DelayLoopMax : IEC_TIMER;
+      TON_LoopSAdjOffDelay : TON_TIME;
+   END_VAR
+
+
+BEGIN
+   REGION "Loop min high --> stop to next machines"
+      IF (DataIn.S_MaxLow OR (AreaInterface.Man AND AreaInterface.RstAlarms) OR NOT (Enable) OR NOT (Config.Exist_S_MinHigh)) THEN
+         MinHigh := FALSE;
+      ELSIF (DataIn.S_MinHigh OR NOT (DataIn.Connector)) THEN
+         MinHigh := TRUE;
+      END_IF;
+      Warning.MinHigh := MinHigh;
+   END_REGION
+
+   REGION "Loop max low --> stop material feeding"
+      #TON_DelayLoopMax(
+         IN := DataIn.S_MaxLow,
+         PT := PersistentValues.Par.DelayStopMaxLoop
+      );
+
+      #TON_DelayNotLoopMax(
+         IN := NOT (DataIn.S_MaxLow),
+         PT := PersistentValues.Par.DelayRestartAfterMaxLoop
+      );
+
+      #TON_DelayLoopMax.Q;
+      #TON_DelayNotLoopMax.Q;
+      IF (#TON_DelayNotLoopMax.Q OR NOT (Enable)) THEN
+         MaxLow := FALSE;
+      ELSIF #TON_DelayLoopMax.Q THEN
+         MaxLow := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Loop Alarm  connector unplugger = Voltage sensing = LOW"
+      IF (Enable AND NOT (DataIn.Connector)) THEN
+         Alarm.ConnectorUnplugged := TRUE;
+      ELSIF AreaInterface.RstAlarms THEN
+         Alarm.ConnectorUnplugged := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Loop speed adjust sensor is OFF delayed"
+      #TON_LoopSAdjOffDelay(
+         IN := NOT (DataIn.S_SpeedAsjust),
+         PT := PersistentValues.Par.SensoAdjVel_DelayPlusPlus
+      );
+
+      #TON_LoopSAdjOffDelay.Q;
+   END_REGION
+
+   REGION "Override control"
+      Override := 100.0;
+
+
+      // Additional speed override with middle photocell
+      IF Enable THEN
+          
+          IF MaxLow THEN
+              
+              Override := 0.0;
+              
+          ELSIF NOT Config.Exist_S_SpeedAsjust THEN
+              ;
+              
+          ELSIF DataIn.S_SpeedAsjust THEN
+              
+              Override := 100.0 - PersistentValues.Par.SensoAdjVel_PercentageMinus;
+              
+          ELSIF TON_LoopSAdjOffDelay.Q THEN
+              Override := 100.0 + PersistentValues.Par.SensoAdjVel_PercentagePlusPlus;
+              
+          ELSIF NOT DataIn.S_SpeedAsjust THEN
+              
+              Override := 100.0 + PersistentValues.Par.SensoAdjVel_PercentagePlus;
+          END_IF;
+          
+      END_IF;
+
+
+
+
+
+   END_REGION
+
+   REGION "Alarms presence"
+      Sts.AlarmsPresence := Alarm.ConnectorUnplugged;
+   END_REGION
+
+   REGION "Warnings presece"
+      Sts.WarningsPresence := Warning.MinHigh;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,122 @@
+﻿// Block: Buttons2Hands
+// Title: Max operation limits
+
+FUNCTION_BLOCK "Buttons2Hands"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Max operation limits
+   VAR_INPUT
+      Items : Int;
+      Activation : Bool;
+      TwoHandsPushed : Bool;
+      Buttons : Array[1..32] of Bool;
+      Enables : Array[1..32, 1..32] of Bool;
+      OpEnabled : Array[1..32] of Bool;
+      OpRunning : Array[1..32] of Bool;
+      OpDone : Array[1..32] of Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      ResetAlarms : Bool;
+      Operations : Array[1..32] of Bool;
+      Lamps : Array[1..32] of Bool;
+   END_VAR
+
+   VAR
+      iMax : Int;
+      i : Int;
+      j : Int;
+      ButtonsSelected : Array[1..32] of Bool;
+      ButtonsOneShot : Array[1..32] of Bool;
+      ButtonsOneShotAux : Array[1..32] of Bool;
+      ResDone : Bool;
+      LampTestMem : Bool;
+      NoSelection : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Max operation limits"
+      iMax := LIMIT(MN:=0, IN:=0, MX:=0);
+   END_REGION
+
+   REGION "Operations control"
+      ResetAlarms := FALSE;
+      NoSelection := TRUE;
+
+      // CASE NO ACTIAVATION (RESET ALL)
+      IF  NOT Activation THEN
+          
+          IF  NOT ResDone THEN
+              FOR i := 1 TO iMax DO
+                  Operations[i] := FALSE;
+                  ButtonsOneShot[i] := FALSE; 
+                  ButtonsOneShotAux[i] := FALSE; 
+                  ButtonsSelected[i] := FALSE; 
+              END_FOR;
+              ResDone := TRUE;
+          END_IF;
+          
+      // CASE NO BI-MANUAL PRESSED (CHANCE OPERATIONS SELECTION)    
+      ELSIF   NOT TwoHandsPushed THEN
+          
+          ResDone := FALSE;
+          
+          FOR i := 1 TO iMax DO
+              
+                  Operations[i] := FALSE;
+          
+                  ButtonsOneShot[i] := Buttons[i] AND NOT ButtonsOneShotAux[i]; 
+                  ButtonsOneShotAux[i] := Buttons[i]; 
+          
+                  ButtonsSelected[i] := ButtonsSelected[i] XOR ButtonsOneShot[i]; 
+                 
+                 
+                  // ciclo per deselezionare i comandi che non possono essere eseguiti in contemporanea..
+                  IF      ButtonsOneShot[i] AND ButtonsSelected[i] THEN
+                          FOR     j := 1 TO iMax DO
+                                  IF      j <> i AND NOT Enables[i,j] THEN
+                                          ButtonsSelected[j] := FALSE;
+                                  END_IF;
+                          END_FOR;
+                  END_IF;
+          END_FOR;
+
+      // CASE BI-MANUAL PRESSED (OPERATIONS EXECUTION)   
+      ELSE
+
+          ResDone := FALSE;
+
+          Operations :=   ButtonsSelected;
+          
+          // verifica se non c'è nessuna selezione
+          FOR i := 1 TO iMax DO
+              IF ButtonsSelected[i] THEN 
+                  NoSelection := FALSE;
+                  EXIT;       
+              END_IF;
+          END_FOR;
+
+          // Reset alarms se nessun comando selezionato e bimanuale premuto    
+          ResetAlarms :=  NoSelection;
+          
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Lamp control"
+      FOR i := 1 TO iMax DO
+          
+          Lamps[i] := PB_Lamp(OpSelect := ButtonsSelected[i],
+                                  OpRequest := Operations[i] AND OpEnabled[i],
+                                  OpRunning := Operations[i] AND OpRunning[i],
+                                  OpDone := Operations[i] AND OpDone[i]);
+          
+      END_FOR;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

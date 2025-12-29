@@ -1,0 +1,126 @@
+﻿// Block: FinalCut_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "FinalCut_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+   VAR_TEMP
+      MissIO : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - PB Feed"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.Locking,
+         LB_PB_Rest := LB212.PB.DieClamp_Rest,
+         LB_PB_Work := LB212.PB.DieClamp_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.Locking.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.CutHead,
+         LB_PB_Rest := LB212.PB.DieT1CutHead_Rest,
+         LB_PB_Work := LB212.PB.DieT1CutHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.CutHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.DrawHead,
+         LB_PB_Rest := LB212.PB.DieT3MarkHead_Rest,
+         LB_PB_Work := LB212.PB.DieT3MarkHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.DrawHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A02_HMI.MB2.Button.FinalCut.MarkHead,
+         LB_PB_Rest := LB212.PB.DieT2MarkHead_Rest,
+         LB_PB_Work := LB212.PB.DieT2MarkHead_Work,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve,
+         PB => FinalCut.DataIn.MarkHead.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.Locking, LB_PB_Rest := LB212.PB.DieClamp_Rest, LB_PB_Work := LB212.PB.DieClamp_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.CutHead, LB_PB_Rest := LB212.PB.DieT1CutHead_Rest, LB_PB_Work := LB212.PB.DieT1CutHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.DrawHead, LB_PB_Rest := LB212.PB.DieT3MarkHead_Rest, LB_PB_Work := LB212.PB.DieT3MarkHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A02_HMI.MB2.Button.FinalCut.MarkHead, LB_PB_Rest := LB212.PB.DieT2MarkHead_Rest, LB_PB_Work := LB212.PB.DieT2MarkHead_Work, LB_PB_StartStop := FALSE, Other_PB := A02_HMI.MB2.Button.PB_Empty.Valve);
+   END_REGION
+
+   REGION "Data In - Sensor"
+      FinalCut.DataIn.CutHead.Rest_Ls[1] := A0201_Testa_Taglio_T1_Ls_Rest;
+      FinalCut.DataIn.CutHead.Work_Ls[1] := A0201_Testa_Taglio_T1_Ls_Work;
+
+      FinalCut.DataIn.DrawHead.Rest_Ls[1] := A0201_Testa_Imbottitura_T2_Ls_Rest;
+      FinalCut.DataIn.DrawHead.Work_Ls[1] := A0201_Testa_Imbottitura_T2_Ls_Work;
+
+      FinalCut.DataIn.MarkHead.Rest_Ls[1] := A0201_Testa_Marchiatura_T3_Ls_Rest;
+      FinalCut.DataIn.MarkHead.Work_Ls[1] := A0201_Testa_Marchiatura_T3_Ls_Work;
+
+      FinalCut.DataIn.Locking_PressureAI := A0201_Banco_Taglio_AI_Pressione_Testa_T1;
+
+   END_REGION
+
+   REGION "CIn"
+
+      FinalCut.CIn.PressureRunning := Area02_HU.Pump.COut.PressureRunning;
+      FinalCut.CIn.MaterialStandstill := FlyingCarriage.COut.InSynch OR Rollformer.COut.Feed.Standstill;
+
+      FinalCut.CIn.EnableCutHead := RollformingMng.COut.FinalCut.CutHead_Enable;
+      FinalCut.CIn.EnableDrawHead := RollformingMng.COut.FinalCut.DrawHead_Enable;
+      FinalCut.CIn.EnableMarkHead := RollformingMng.COut.FinalCut.MarkHead_Enable;
+
+      FinalCut.CIn.PPrf_PrgNo := PPrf_MAIN.ON_WORK.Header.PrgNo;
+
+      FinalCut.CIn.CutHead_Manager := RollformingMng.COut.FinalCut.CutHead;
+      FinalCut.CIn.DrawHead_Manager := RollformingMng.COut.FinalCut.DrawHead;
+      FinalCut.CIn.MarkHead_Manager := RollformingMng.COut.FinalCut.MarkHead;
+
+   END_REGION
+
+   REGION "Cut Head - Main"
+      #FinalCut(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface,
+         ZSI := F_DB.ZSI_Zone13,
+         DSI := F_DB.DSI_V_FinalCut,
+         Config := A02_Config.FinalCut,
+         PersistentValues := FinalCut_PERS.PersistentValues
+      );
+
+      #FinalCut.Q;
+   END_REGION
+
+   REGION "Data Out"
+      A0201_V_Bloccaggio_Matrici_Testa_Taglio_T1_Rest := FinalCut.DataOut.Locking.RestSolenoid;
+      A0201_V_Bloccaggio_Matrici_Testa_Taglio_T1_Work := FinalCut.DataOut.Locking.WorkSolenoid;
+
+      A0201_Testa_Taglio_T1_V_Rest := FinalCut.DataOut.CutHead.RestSolenoid;
+      A0201_Testa_Taglio_T1_V_Work := FinalCut.DataOut.CutHead.WorkSolenoid;
+
+      A0201_Testa_Imbottitura_T2_V_Rest := FinalCut.DataOut.DrawHead.RestSolenoid;
+      A0201_Testa_Imbottitura_T2_V_Work := FinalCut.DataOut.DrawHead.WorkSolenoid;
+
+      A0201_Testa_Marchiatura_T3_V_Rest := FinalCut.DataOut.MarkHead.RestSolenoid;
+      A0201_Testa_Marchiatura_T3_V_Work := FinalCut.DataOut.MarkHead.WorkSolenoid;
+
+
+   END_REGION
+
+
+END_FUNCTION

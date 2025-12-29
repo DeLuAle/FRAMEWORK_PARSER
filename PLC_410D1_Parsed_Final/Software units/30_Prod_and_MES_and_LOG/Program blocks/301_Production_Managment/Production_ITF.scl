@@ -1,0 +1,122 @@
+﻿FUNCTION "Production_ITF" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+
+BEGIN
+	
+	REGION INTERFACE SIGNALS TO AREA GEN
+	    
+	    
+	  
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Errore_Invio_MSG101_InizioSetup := "ProductionMng".Warnings.SetUp.PUSH_MSG101.Presence;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_Load_PPrf := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_Load_PPrf;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_Load_Timeout := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_Load_Timeout;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NumeroProgrammaNonValido := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_NumeroProgrammaNonValido;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_W_A := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_W_A;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_H_B := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_H_B;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_Spessore := "ProductionMng".Warnings.SetUp.Caricamento_PPrf.Err_NonCorrisponde_Spessore;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.SetUp_Automatico_Avviato := "ProductionMng".Warnings.SetUp.SetUp_Automatico_Avviato;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Attesa_SetUp_Manuale := "ProductionMng".Warnings.SetUp.Attesa_Completamento_SetUp_Manuale;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Attesa_Avvio_Inserimento_lamiera := "ProductionMng".Warnings.SetUp.Attesa_Inizio_Inserimento_lamiera;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Attesa_Fine_inserimento_lamiera := "ProductionMng".Warnings.SetUp.Attesa_Fine_inserimento_lamiera;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Attesa_Taglio_di_Intestazione := "ProductionMng".Warnings.SetUp.Attesa_Taglio_di_Intestazione;
+	    "Areas_ITF".Prod.GEN.Warnings.SetUp.Errore_Invio_MSG102_FineSetup := "ProductionMng".Warnings.SetUp.PUSH_MSG102.Presence;
+	    "Areas_ITF".Prod.GEN.Warnings.Presenza_Errore_Invio_Messaggio_a_MES := "ProductionMng".Warnings.Error_Send_Message_To_MES_Cumulative;
+	    "Areas_ITF".Prod.GEN.Warnings.Err_Movimento_Ordine_InFaseDiCompletamento := "ProductionMng".Warnings.Error_Pop_O_ACT_to_O_ENDING.Presence;
+	    "Areas_ITF".Prod.GEN.Warnings.Err_Movimento_Ordine_InEsecuzioneSemiGusci := "ProductionMng".Warnings.Error_Pop_O_TODO_to_O_ACT.Presence;
+	    "Areas_ITF".Prod.GEN.Warnings.Nessun_Ordine_InEsecuzioneSemiGusci := "ProductionMng".Warnings.O_ACT_Empty;
+	    
+	    
+	    
+	   
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION INTERFACE SIGNALS TO AREA 01
+	    
+	    "Areas_ITF".Prod.A01.Setup_LinePreparation_Exe := "ProductionMng".COut.Setup_LinePreparation_Exe;
+	    
+	    "Areas_ITF".Prod.A01.STOP_Provino := "ProductionMng".COut.COIL_Stop_Provino;
+	    
+	    "Areas_ITF".Prod.A01.ACK_Provino := "ProductionMng".COut.COIL_ACK_Provino_Eseguito;
+	    
+	    "Areas_ITF".Prod.A01.STOP_Taglio_Fine_Ordini := "ProductionMng".COut.Part_RF_Stop_Order_Complete AND "Areas_ITF".A02.Rollformer.VelocitySetpoint = 0;
+	    
+	    
+	    "Areas_ITF".Prod.A01.STOP_Manca_Dati_AspoInLinea := "ProductionMng".COut.COIL_Stop_Manca_Dati_AspoInLinea;
+	    "Areas_ITF".Prod.A01.STOP_Manca_Dati_AspoInCarico := "ProductionMng".COut.COIL_Stop_Manca_Dati_AspoInCarico;
+	    
+	    "Areas_ITF".Prod.A01.STOP_FineTurno := "ProductionMng".COut.STOP_FineTurno AND NOT "Areas_ITF".A02.AreaInterface.Cycle;
+	    "Areas_ITF".Prod.A01.STOP_ControlloQualita := "ProductionMng".COut.STOP_ControlloQualita AND NOT "Areas_ITF".A02.AreaInterface.Cycle;
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	REGION INTERFACE SIGNALS TO AREA 02
+	    
+	    
+	    "Areas_ITF".Prod.A02.Setup_LinePreparation_Exe := "ProductionMng".COut.Setup_LinePreparation_Exe;
+	    
+	    "Areas_ITF".Prod.A02.ACK_PartDone := "ProductionMng".COut.Part_ACK_PartDone;
+	    
+	    "Areas_ITF".Prod.A02.Target_To_Execute_1 := "ProductionMng".COut.Part_Target_To_Execute_1;
+	    
+	    "Areas_ITF".Prod.A02.Target_To_Execute_2 := "ProductionMng".COut.Part_Target_To_Execute_2;
+	    
+	    "Areas_ITF".Prod.A02.SLOW_Part_Recondition := "ProductionMng".COut.Part_RF_Slow_Part_Recondition;
+	    "Areas_ITF".Prod.A02.STOP_Part_Recondition := "ProductionMng".COut.Part_RF_Stop_Part_Recondition;
+	    "Areas_ITF".Prod.A02.SLOW_Order_Approach_To_Complete := "ProductionMng".COut.Part_RF_Slow_Order_Approach_To_Complete;
+	    "Areas_ITF".Prod.A02.STOP_Order_Complete := "ProductionMng".COut.Part_RF_Stop_Order_Complete;
+	    "Areas_ITF".Prod.A02.STOP_O_ACT_Empty := "ProductionMng".COut.Part_RF_Stop_O_ACT_Empty;
+	    
+	    "Areas_ITF".Prod.A02.SLOW_End_Of_Production := "ProductionMng".COut.Part_RF_Slow_Next_End_Of_Production ;
+	    "Areas_ITF".Prod.A02.STOP_End_Of_Proroduction := "ProductionMng".COut.Part_RF_Stop_End_Of_Production ;
+	    "Areas_ITF".Prod.A02.STOP_FineTurno := "ProductionMng".COut.STOP_FineTurno ;
+	    "Areas_ITF".Prod.A02.STOP_ControlloQualita := "ProductionMng".COut.STOP_ControlloQualita ;
+	    "Areas_ITF".Prod.A02.Stop_Matrice_Colata_Coil := "ProductionMng".COut.Part_RF_Stop_Matrice_Colata_Coil;
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	REGION INTERFACE SIGNALS TO AREA 03 / 04
+	    
+	    
+	    "Areas_ITF".Prod.A03_A04.Setup_LinePreparation_Exe := "ProductionMng".COut.Setup_LinePreparation_Exe;
+	    "Areas_ITF".Prod.A03_A04.STOP_FineTurno := "ProductionMng".COut.STOP_FineTurno;
+	    "Areas_ITF".Prod.A03_A04.STOP_ControlloQualita := "ProductionMng".COut.STOP_ControlloQualita;
+	    "Areas_ITF".Prod.A03_A04.STOP_End_Of_Production := "ProductionMng".COut.Part_RF_Stop_End_Of_Production AND NOT "Areas_ITF".A02.AreaInterface.Cycle;
+	    "Areas_ITF".Prod.A03_A04.Beams_Data := "ProductionMng".COut.BEAM_Orders_Data;
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

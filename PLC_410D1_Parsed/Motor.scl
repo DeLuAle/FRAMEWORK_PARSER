@@ -1,0 +1,106 @@
+﻿// Block: Motor
+// Title: Info
+
+FUNCTION_BLOCK "Motor"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      MotorCtrl : MotorCtrl;
+      ThermalProtection : Bool;
+      FdbkRunning : Bool;
+      FeedbackTimeout : Time;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      MotorSts : MotorSts;
+      Contactor : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : MotorAlr;
+   END_VAR
+
+   VAR
+      DelayContactorFeedbackON : IEC_TIMER;
+      Ctrl_RunContactor : Bool;
+   END_VAR
+
+   VAR_TEMP
+      DelayOnStart : Bool;
+      DelayOffStart : Bool;
+      AlarmPresence : Bool;
+      RunPermitted : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Motor device manager
+      //
+      // v1.0.0  28/12/2022 
+      // v1.1.0  23/01/2023 Added Simulation Input
+      //=============================================================================
+
+   END_REGION
+
+   REGION "Alarm reset"
+      IF MotorCtrl.Rst THEN
+         Alarm.ThermalProtection := FALSE;
+      END_IF;
+      IF MotorCtrl.Rst THEN
+         Alarm.Feedback := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm Circuit Breaker"
+      IF (ThermalProtection AND NOT (Simulation)) THEN
+         Alarm.ThermalProtection := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm timeout contactor feedback"
+      #DelayContactorFeedbackON(
+         IN := (((Ctrl_RunContactor AND NOT (FdbkRunning)) OR (NOT (Ctrl_RunContactor) AND FdbkRunning)) AND NOT (Simulation)),
+         PT := FeedbackTimeout
+      );
+
+      #DelayContactorFeedbackON.Q;
+      IF #DelayContactorFeedbackON.Q THEN
+         Alarm.Feedback := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Status alarm presence"
+      AlarmPresence := NOT ((NOT (Alarm.ThermalProtection) AND NOT (Alarm.Feedback)));
+   END_REGION
+
+   REGION "Status run permitted"
+      RunPermitted := (NOT (AlarmPresence) AND NOT (MotorCtrl.SafeStop));
+   END_REGION
+
+   REGION "Contactor Control"
+      Ctrl_RunContactor := (MotorCtrl.Run AND RunPermitted);
+   END_REGION
+
+   REGION "Out"
+      Contactor := (Ctrl_RunContactor AND NOT (Simulation));
+   END_REGION
+
+   REGION "Coordination out"
+      MotorSts.AlarmPresence := AlarmPresence;
+      MotorSts.RunPermitted := RunPermitted;
+      MotorSts.Running := ((Ctrl_RunContactor AND FdbkRunning) OR (Ctrl_RunContactor AND Simulation));
+   END_REGION
+
+
+END_FUNCTION_BLOCK

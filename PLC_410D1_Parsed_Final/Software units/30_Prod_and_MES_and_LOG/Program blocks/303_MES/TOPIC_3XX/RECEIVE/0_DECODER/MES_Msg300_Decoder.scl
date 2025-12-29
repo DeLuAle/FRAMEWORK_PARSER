@@ -1,0 +1,37 @@
+﻿FUNCTION "MES_Msg300_Decoder" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      payLoad : String;
+   END_VAR
+
+
+BEGIN
+	REGION INFO
+	    (*
+	        
+	    MES → PLC – Topic = 300: Sospensione per fine turno
+	    
+	   Quando il PLC riceve questo messaggio:
+	    •   taglia l’ultimo semi-guscio necessario per completare eventuali coppie in fase di composizione,
+	    •   arresta la profilatura,
+	    •   completa tutte le operazioni residue nella coda di produzione,
+	    •   quindi arresta il ciclo automatico.
+	    
+	    Una volta completata l’intera sequenza, il PLC invia l’ACK di conferma al MES.
+	    
+	    Payload: vuoto
+	
+	    
+	    *)
+	    
+	END_REGION
+	
+	
+	
+	#MES_Msg300_Decoder := "PROD_FUN_RESULT_OK";
+	
+	
+	
+END_FUNCTION
+

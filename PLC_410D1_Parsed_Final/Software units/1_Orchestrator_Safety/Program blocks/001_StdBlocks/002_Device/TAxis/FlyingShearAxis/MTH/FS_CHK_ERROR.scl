@@ -1,0 +1,22 @@
+﻿FUNCTION "FS_CHK_ERROR" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      Ax : "FlyingShearAxis";
+   END_VAR
+
+   VAR_TEMP 
+      Err : Int;
+   END_VAR
+
+
+BEGIN
+	#Err := 0;
+	#Err.%X0 := #Ax.FSCore.Sts.NotReachable;
+	#Err.%X1 := #Ax.FSCore.Sts.NotSynched;
+	#Err.%X2 := #Ax.FSCore.Sts.NotPermitted;
+	#Err.%X3 := #Ax.FSCore.Sts.ErrTimeout;
+	#FS_CHK_ERROR := #Err;
+	
+END_FUNCTION
+

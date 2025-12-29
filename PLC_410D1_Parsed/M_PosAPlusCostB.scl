@@ -1,0 +1,41 @@
+﻿// Block: M_PosAPlusCostB
+// Title: Xc = PosA + CostB
+
+FUNCTION "M_PosAPlusCostB" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Xc = PosA + CostB
+   VAR_INPUT
+      PosA : LReal;
+      CostB : LReal;
+      MODULE : LReal;
+   END_VAR
+
+   VAR_TEMP
+      Xc : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Xc = PosA + CostB"
+      Xc := PosA + CostB;
+      M_PosAPlusCostB := Xc;
+
+      IF MODULE > 0.0 THEN
+          
+          IF Xc >= MODULE THEN
+              M_PosAPlusCostB := Xc - MODULE;
+          ELSIF Xc < 0 THEN
+              M_PosAPlusCostB := MODULE + Xc;
+          END_IF;
+          
+          IF (M_PosAPlusCostB - MODULE) < 0.01 THEN
+              M_PosAPlusCostB := 0;
+          END_IF;
+          
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION

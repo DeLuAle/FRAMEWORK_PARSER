@@ -1,0 +1,53 @@
+﻿FUNCTION_BLOCK "TonEna"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      IN : Bool;
+      ENA : Bool;
+      PT : Time;
+   END_VAR
+
+   VAR_OUTPUT 
+      Q : Bool;
+      ET : Time;
+   END_VAR
+
+   VAR 
+      ton {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      LocalPT { S7_SetPoint := 'True'} : Time;
+      AuxSavePT { S7_SetPoint := 'True'} : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      SavePT : Bool;
+   END_VAR
+
+
+BEGIN
+	// TON with enable, no reset passed time
+	
+	#SavePT := NOT #ENA AND #IN AND NOT #AuxSavePT;
+	#AuxSavePT := NOT #ENA AND #IN;
+	
+	IF NOT #IN THEN
+	    #LocalPT := #PT;
+	ELSIF #SavePT THEN
+	    #LocalPT := #LocalPT - #ton.ET;
+	    IF #LocalPT < T#0s THEN
+	        #LocalPT := T#0s;
+	    END_IF;
+	END_IF;
+	    
+	#ton.TON(IN := #IN AND #ENA,
+	         PT := #LocalPT);
+	
+	
+	#ET := #PT - #LocalPT + #ton.ET;
+	#Q := #ton.Q OR #ET >= #PT;
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

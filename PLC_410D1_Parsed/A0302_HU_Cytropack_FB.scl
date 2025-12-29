@@ -1,0 +1,318 @@
+﻿// Block: A0302_HU_Cytropack_FB
+// Title:  << HU Bosch Rexroth>>
+
+FUNCTION_BLOCK "A0302_HU_Cytropack_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//  << HU Bosch Rexroth>>
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         Pb_Stop : Bool;
+         Pb_Start : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+            Control_ON : Bool;
+            Rest : Bool;
+            Work : Bool;
+         END_STRUCT;
+         SemiAut_Pb : Bool;
+         PressureReq : Bool;
+         PressureRunning : Bool;
+         CarroPareggTesta : Struct
+            Bloccaggio : ValveMachine_COut;
+         END_STRUCT;
+         CarroPareggCoda : Struct
+            Bloccaggio : ValveMachine_COut;
+            PareggiatoreLong : ValveMachine_COut;
+         END_STRUCT;
+      END_STRUCT;
+      InputADDR : HW_IO;
+      OutputADDR : HW_IO;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Standstill : Bool;
+         Run_CheckNext : Bool;
+         CtrlSafe : Bool;
+         PressureRunning : Bool;
+         PressureInTarget : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : Struct
+         Bloccaggio : Struct
+            TargetPressure : Real;
+            TargetSpeed : Real;
+            Delta : Struct
+               Min : Real;
+               Max : Real;
+            END_STRUCT;
+         END_STRUCT;
+         Pareggiamento : Struct
+            TargetPressure : Real;
+            TargetSpeed : Real;
+            Delta : Struct
+               Min : Real;
+               Max : Real;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      M_Chiller : Motor;
+      Sts : Struct
+         Standstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         Cnd : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         Run : Bool;
+         Run_Man : Bool;
+         Run_Aut : Bool;
+      END_STRUCT;
+      Alarm : Struct
+         M_Chiller : MotorAlr;
+         Fc_P5020 : Struct
+            Error : Bool;
+            Warning : Bool;
+         END_STRUCT;
+         Fc_Diagn : Struct
+            "0" : Bool;
+            "1" : Bool;
+            "2" : Bool;
+            "3" : Bool;
+            "4" : Bool;
+            "5" : Bool;
+            "6" : Bool;
+            "7" : Bool;
+            "8" : Bool;
+            "9" : Bool;
+            "10" : Bool;
+            "11" : Bool;
+            "12" : Bool;
+            "13" : Bool;
+            "14" : Bool;
+            "15" : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Warning : Struct
+         NotAutReady : Bool;
+      END_STRUCT;
+      TON_NoPendingCmd : IEC_TIMER;
+      TON_Inactivity : IEC_TIMER;
+      TON_Pressure : IEC_TIMER;
+      Aux : Struct
+         Pb_Start : Bool;
+         ReqParBloccaggio : Bool;
+         ReqParParegg : Bool;
+      END_STRUCT;
+      iReturnVal : Int;
+      Error : Bool;
+      bFBErrorDPRD_DPWR : Bool;
+      stInputData : FCP_IN;
+      stOutputData : FCP_OUT;
+      Range_TargetBlocc : Struct
+         Min : Real;
+         Max : Real;
+      END_STRUCT;
+      Range_TargetParegg : Struct
+         Min : Real;
+         Max : Real;
+      END_STRUCT;
+      Target : Struct
+         Pressure_Value : Real;
+         MaxSpeed_Value : Real;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "<< HU Bosch Rexroth>>"
+      COut.CtrlSafe := (NOT (AreaInterface.EStop) AND NOT (ZSI.Door_SafeStop));
+      TIA_PN_FcP5020_DB.Enable := (NOT (AreaInterface.EStop) AND NOT (ZSI.Door_SafeStop));
+   END_REGION
+
+   REGION "Stop next door opening"
+      Ctrl.StopDueDoorOpeningRequest := (((((TON_NoPendingCmd.Q AND Sts.Standstill) OR Ctrl.StopDueDoorOpeningRequest) AND CIn.Manager.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT (ZSI.Door_Opened));
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Pending Cnd"
+      #TON_NoPendingCmd(
+         IN := (NOT (TIA_PN_FcP5020_DB.MotorStarted) AND NOT (CIn.PressureReq)),
+         PT := T#20S
+      );
+
+      #TON_NoPendingCmd.Q;
+   END_REGION
+
+   REGION "Incativity"
+      #TON_Inactivity(
+         IN := (TIA_PN_FcP5020_DB.MotorStarted AND NOT (CIn.PressureReq)),
+         PT := T#10M
+      );
+
+      #TON_Inactivity.Q;
+   END_REGION
+
+   REGION "Man"
+      IF (DataIn.Pb_Stop OR TON_Inactivity.Q OR TIA_PN_FcP5020_DB.Error) THEN
+         Ctrl.Run_Man := FALSE;
+      ELSIF PosEdge(DataIn.Pb_Start) THEN
+         Ctrl.Run_Man := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Aut"
+      Ctrl.Run_Aut := (((((CIn.Manager.Control_ON AND CIn.Manager.Work) AND NOT (TON_Pressure.Q)) OR ((CIn.Manager.Control_ON AND CIn.Manager.Work) AND Ctrl.Run_Aut)) AND CIn.PressureReq) OR (AreaInterface.Man AND CIn.PressureReq));
+   END_REGION
+
+   REGION "Cnd"
+      Sts.Cnd := ((((NOT (Ctrl.StopInPhase) AND NOT (Ctrl.StopProgrammed)) AND NOT (Ctrl.StopAborting)) AND NOT (TIA_PN_FcP5020_DB.Error)) AND NOT (DSI.SafeStop));
+   END_REGION
+
+   REGION "= Control enable e trasferimento parametri target ="
+      IF (((CIn.CarroPareggTesta.Bloccaggio.Rest_CheckNext OR CIn.CarroPareggCoda.Bloccaggio.Rest_CheckNext OR CIn.CarroPareggTesta.Bloccaggio.Work_CheckNext OR CIn.CarroPareggCoda.Bloccaggio.Work_CheckNext) AND NOT (CIn.CarroPareggCoda.PareggiatoreLong.Work_CheckNext)) OR (A03_DEBUG.HU_Test.Req_Par-Bloccaggio AND NOT (A03_DEBUG.HU_Test.Req_Par-Paregg))) THEN
+         Target.Pressure_Value := Par.Bloccaggio.TargetPressure;
+      END_IF;
+      Aux.ReqParBloccaggio := TRUE;
+      Aux.ReqParParegg := TRUE;
+      COut.Run_CheckNext := ((AreaInterface.Man AND Ctrl.Run_Man) OR (AreaInterface.Man AND Ctrl.Run_Aut) OR (NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Aut))) AND Ctrl.Run_Aut));
+   END_REGION
+
+   REGION "= Limiti sul target controllo pressione richiesta ="
+      // Limiti controllo Target Richiesta Bloccaggio
+      Range_TargetBlocc.Min := Par.Bloccaggio.TargetPressure - Par.Bloccaggio.Delta.Min;
+      Range_TargetBlocc.Max := Par.Bloccaggio.TargetPressure + Par.Bloccaggio.Delta.Max;
+
+      // Limiti controllo Target Richiesta Pareggiamento Long
+      Range_TargetParegg.Min := Par.Pareggiamento.TargetPressure - Par.Pareggiamento.Delta.Min;
+      Range_TargetParegg.Max := Par.Pareggiamento.TargetPressure + Par.Pareggiamento.Delta.Max;
+
+
+   END_REGION
+
+   REGION "Control enable drive"
+      TIA_PN_FcP5020_DB.EnableDrive := (((NOT (((NOT (Ctrl.Run_Man) AND NOT (Ctrl.Run_Aut)) AND NOT (TON_NoPendingCmd.Q))) AND NOT (TON_Inactivity.Q)) AND COut.Run_CheckNext) AND Sts.Cnd);
+      TIA_PN_FcP5020_DB.ClearError := AreaInterface.RstAlarms;
+   END_REGION
+
+   REGION "Check Pressure"
+      #TON_Pressure(
+         IN := (TIA_PN_FcP5020_DB.InOperation AND TIA_PN_FcP5020_DB.MotorStarted),
+         PT := T#500ms
+      );
+
+      #TON_Pressure.Q;
+   END_REGION
+
+   REGION "== Gestione Centralina Cytropack =="
+      #TIA_PN_FcP5020_DB(
+         en := TRUE,
+         Enable := (TIA_PN_FcP5020_DB.Enable OR A03_DEBUG.HU_Test.Enable),
+         EnableDrive := (TIA_PN_FcP5020_DB.EnableDrive OR A03_DEBUG.HU_Test.EnableDrive),
+         ClearError := TIA_PN_FcP5020_DB.ClearError,
+         PressureCmd := Target.Pressure_Value,
+         MaxSpeedLimit := Target.MaxSpeed_Value,
+         InputADDR := InputADDR,
+         OutputADDR := OutputADDR
+      );
+
+      #TIA_PN_FcP5020_DB.Q;
+   END_REGION
+
+   REGION "= Controllo pressione in target ="
+      COut.PressureInTarget := ((((COut.PressureRunning AND Aux.ReqParBloccaggio) AND (TIA_PN_FcP5020_DB.PressureAct > Range_TargetBlocc.Min)) AND (TIA_PN_FcP5020_DB.PressureAct <= Range_TargetBlocc.Max)) OR (((COut.PressureRunning AND Aux.ReqParParegg) AND (TIA_PN_FcP5020_DB.PressureAct > Range_TargetParegg.Min)) AND (TIA_PN_FcP5020_DB.PressureAct <= Range_TargetParegg.Max)));
+   END_REGION
+
+   REGION "Alarms presence"
+      Sts.AlarmsPresence := NOT ((NOT (TIA_PN_FcP5020_DB.Error) AND (TIA_PN_FcP5020_DB.Status <> 1)));
+   END_REGION
+
+   REGION "Warnings presence"
+      Sts.WarningsPresence := Warning.NotAutReady;
+   END_REGION
+
+   REGION "Standstill"
+      Sts.Standstill := NOT (TIA_PN_FcP5020_DB.MotorStarted);
+      COut.Standstill := NOT (TIA_PN_FcP5020_DB.MotorStarted);
+   END_REGION
+
+   REGION "Stop for aborting"
+      Ctrl.StopAborting := ((AreaInterface.Aut OR AreaInterface.Man) AND Sts.AlarmsPresence);
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      MachineInterface.MotionsStandStill := TON_NoPendingCmd.Q AND Sts.Standstill;
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase  AND MachineInterface.MotionsStandStill;
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+          
+
+   END_REGION
+
+   REGION "Warning Machine not ready for automatic"
+      IF NOT ((NOT (AreaInterface.RstAlarms) AND NOT (AreaInterface.Cycle))) THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT (MachineInterface.AutReady)) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Return value variable"
+      // LBO TEST
+      // Read data from EFC's PROFINET input area
+      #iReturnVal := DPRD_DAT(LADDR := #InputADDR, RECORD => #stInputData);
+      // Read data failed
+      IF (#iReturnVal <> 0) THEN
+          #Error := TRUE;
+          #bFBErrorDPRD_DPWR := TRUE;
+          RETURN;
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

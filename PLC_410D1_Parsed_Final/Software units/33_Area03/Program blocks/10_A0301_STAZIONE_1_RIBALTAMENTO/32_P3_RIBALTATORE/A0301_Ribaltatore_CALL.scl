@@ -1,0 +1,161 @@
+﻿// Block: A0301_Ribaltatore_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0301_Ribaltatore_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+   VAR CONSTANT
+      MinimumPos : Real;
+      MaximumPos : Real;
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // SOSTITUIRE SYS BYPASS CON INGRESSI DIGITALI
+
+      // TRASFERIMENTO COMANDI CIn MANAGER
+      A0301_Ribaltatore.CIn.Manager.Ax := A0301_Manager.COut.Ribaltatore.Ax;
+      A0301_Ribaltatore.CIn.Manager.Solleva := A0301_Manager.COut.Ribaltatore.Solleva;
+      //
+      A0301_Ribaltatore.CIn.SemiAut_PB := A0301_Manager.DataIn.SemiAut_Pb;
+
+
+      REGION TRASFERIMENTO DataIn DIGITAL INPUT dei LIMIT SWITCH
+
+          A0301_Ribaltatore.Ax.CIn.PositionLimits.EnableMin := 1;
+          A0301_Ribaltatore.Ax.CIn.PositionLimits.EnableMax := 1;
+          
+          // Limiti di Posizione Minima & Massima (IMPOSTARE LE COSTANTI DOPO LA PROVA MANUALE)
+          A0301_Ribaltatore.Ax.CIn.PositionLimits.PosMin := MinimumPos;
+          A0301_Ribaltatore.Ax.CIn.PositionLimits.PosMax := MaximumPos;
+      END_REGION ;
+
+      REGION TRASFERIMENTO REQ. DI POSIZIONE E STATI
+          A0301_Ribaltatore.CIn.Ax_Req := A0301_Manager.COut.Ribaltatore.Ax_Req;
+      END_REGION ;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn  >>"
+      REGION TRASFERIMENTO #DataIn STATI BUTTON RIBALTATORE
+          // PB RIBALTATORE
+          A0301_Ribaltatore.Ax.DataIn.PB.Bwd_Minus := A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.Bwd_Minus;
+          A0301_Ribaltatore.Ax.DataIn.PB.Fwd_Plus := A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.Fwd_Plus;
+          A0301_Ribaltatore.Ax.DataIn.PB.MoveToPos := A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.MoveToPos;
+          
+        
+      END_REGION ;
+
+      //SOLLEVATORE RIBALTATORE - Stato dei sensori Ls
+      // EV SOLLEVA RIBALTATORE
+      A0301_Ribaltatore.Solleva_Rib[1].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_1.1_Ls_Rest_1;
+      A0301_Ribaltatore.Solleva_Rib[2].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_2.1_Ls_Rest_1;
+      A0301_Ribaltatore.Solleva_Rib[3].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_3.1_Ls_Rest_1;
+      A0301_Ribaltatore.Solleva_Rib[4].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_4.1_Ls_Rest_1;
+      A0301_Ribaltatore.Solleva_Rib[5].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_5.1_Ls_Rest_1;
+      A0301_Ribaltatore.Solleva_Rib[6].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_6.1_Ls_Rest_1;
+      //
+      A0301_Ribaltatore.Solleva_Rib[1].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_1.1_Ls_Work_2;
+      A0301_Ribaltatore.Solleva_Rib[2].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_2.1_Ls_Work_2;
+      A0301_Ribaltatore.Solleva_Rib[3].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_3.1_Ls_Work_2;
+      A0301_Ribaltatore.Solleva_Rib[4].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_4.1_Ls_Work_2;
+      A0301_Ribaltatore.Solleva_Rib[5].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_5.1_Ls_Work_2;
+      A0301_Ribaltatore.Solleva_Rib[6].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_6.1_Ls_Work_2;
+          
+      // RIBALTATORE - Ax    
+      // Trasferimento ingressi digitali Limit Switch Bassa e Alta
+      A0301_Ribaltatore.Ax.DataIn.LS_Minus :=  A0301_Ribaltatore_Ls_Minimo;
+      A0301_Ribaltatore.Ax.DataIn.LS_Plus := Sys.ByPass;
+      //"A0301_Ribaltatore_Ls_Massimo";
+      //
+
+   END_REGION
+
+   REGION "DataIn - Solleva Ribalta"
+      "ValveMachine_PB_Connector"(
+         en := TRUE,
+         Enable := TRUE,
+         HMI_PB := A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib,
+         LB_PB_Rest := FALSE,
+         LB_PB_Work := FALSE,
+         LB_PB_StartStop := FALSE,
+         Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve,
+         PB => A0301_Ribaltatore.Solleva_Rib[1].DataIn.PB
+      );
+
+      "ValveMachine_PB_Connector"(Enable := TRUE, HMI_PB := A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib, LB_PB_Rest := FALSE, LB_PB_Work := FALSE, LB_PB_StartStop := FALSE, Other_PB := A03_HMI.MB3.Button.PB_Empty.Valve);
+   END_REGION
+
+   REGION "DataIn - Fermi [1..6]"
+      // TRASFERIMENTO STATO PULSANTI - Comando manuale diretto 
+      A0301_Ribaltatore.Solleva_Rib[6].DataIn.PB := A0301_Ribaltatore.Solleva_Rib[5].DataIn.PB := A0301_Ribaltatore.Solleva_Rib[4].DataIn.PB :=
+      A0301_Ribaltatore.Solleva_Rib[3].DataIn.PB := A0301_Ribaltatore.Solleva_Rib[2].DataIn.PB := A0301_Ribaltatore.Solleva_Rib[1].DataIn.PB;
+
+   END_REGION
+
+   REGION "DSI"
+      //
+      A0301_Ribaltatore.DSI_Feed := F_DB.DSI_Ribaltatore;
+      A0301_Ribaltatore.DSI_Valve := F_DB.DSI_V_Air_A0301_A0302;
+
+   END_REGION
+
+   REGION "HW"
+      //
+      A0301_Ribaltatore.HWID_Ax_TEL111 := HW_Const_Values.CU5_PN_1560A1_1_SIEMENS_telegram_111;
+
+   END_REGION
+
+   REGION "Drive"
+      //
+      A0301_Ribaltatore.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;;
+      A0301_Ribaltatore.Drive.AccessPoint := HW_Const_Values.CU5_PN_600A1_ModuleAccessPoint;
+      A0301_Ribaltatore.Drive.AxisID := CU5_ID_5_1560A1_1_1560M1;
+      A0301_Ribaltatore.Drive.TokenChain := TOKENCHAIN_CU5;
+
+   END_REGION
+
+   REGION "<< RICHIAMO STAZIONE 3 - RIBALTATORE >>"
+      #A0301_Ribaltatore(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone21,
+         Config := PrjConfig_A03.A0301.Ribaltatore,
+         Par_Manu := A0301_Ribaltatore_PERS.Par_Manu,
+         Par_Aut := A0301_Ribaltatore_PERS.Par_Aut,
+         Pers_Data := A0301_Ribaltatore_PERS.Pers_Data
+      );
+
+      #A0301_Ribaltatore.Q;
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataOut  >>"
+
+      // COMANDO DELLE USCITE SUL SOLLEVAMENTO RIBALTATORE
+      // 
+      REGION COMANDO DELLE USCITE SOLLEVATORE RIBALTA P3
+          // Sollevatore Ribalta Semi guscio prodotto Stazione P3 - RIPOSO
+          A0301_CinghiaTrasporto_1.1_V_Rest_1:= A0301_Ribaltatore.Solleva_Rib[1].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Rest_1 := A0301_Ribaltatore.Solleva_Rib[2].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Rest_1 := A0301_Ribaltatore.Solleva_Rib[3].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Rest_1  := A0301_Ribaltatore.Solleva_Rib[4].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Rest_1 := A0301_Ribaltatore.Solleva_Rib[5].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Rest_1 := A0301_Ribaltatore.Solleva_Rib[6].DataOut.RestSolenoid;
+          
+          // Sollevatore Ribalta Semi guscio prodotto Stazione P3 - LAVORO
+          A0301_CinghiaTrasporto_1.1_V_Work_2:= A0301_Ribaltatore.Solleva_Rib[1].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Work_2 := A0301_Ribaltatore.Solleva_Rib[2].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Work_2 := A0301_Ribaltatore.Solleva_Rib[3].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Work_2 := A0301_Ribaltatore.Solleva_Rib[4].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Work_2 := A0301_Ribaltatore.Solleva_Rib[5].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Work_2:= A0301_Ribaltatore.Solleva_Rib[6].DataOut.WorkSolenoid;
+          
+      END_REGION;
+
+   END_REGION
+
+
+END_FUNCTION

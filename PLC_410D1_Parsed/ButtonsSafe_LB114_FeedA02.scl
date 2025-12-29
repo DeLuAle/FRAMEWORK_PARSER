@@ -1,0 +1,130 @@
+﻿// Block: ButtonsSafe_LB114_FeedA02
+// Title: Interlocks between operations selected
+
+FUNCTION_BLOCK "ButtonsSafe_LB114_FeedA02"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Interlocks between operations selected
+   VAR_INPUT
+      Reset_OthersPBs_Activation_IN : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Reset_OthersPBs_Activation_OUT : Bool;
+   END_VAR
+
+   VAR
+      i : Int;
+      iOperation : Int;
+      iConcurrentOperation : Int;
+      SettingWriteDone : Bool;
+      PbPanel : Buttons2Hands;
+      PB : Struct
+         ResetAlarms : Bool;
+         Rollformer_Bwd : Bool;
+         Rollformer_Fwd : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      ITEMS : Int;
+      ROLLFORMER_BWD : Int;
+      ROLLFORMER_FWD : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Interlocks between operations selected"
+      IF Area02.AreaInterface.ManOneShot THEN
+          SettingWriteDone := FALSE;
+      END_IF;
+
+      // Interblocco tra operazioni
+      // 
+      IF NOT SettingWriteDone THEN
+          SettingWriteDone := TRUE;
+          
+          FOR iOperation := 1 TO ITEMS DO
+              FOR iConcurrentOperation := 1 TO ITEMS DO
+                  PbPanel.Enables[iOperation, iConcurrentOperation] := FALSE;
+              END_FOR;
+          END_FOR;
+          
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Buttons for Op selection"
+
+      PbPanel.Buttons[ROLLFORMER_BWD] := LB114_Rollformer_Pb_Bwd;
+      PbPanel.Buttons[ROLLFORMER_FWD] := LB114_Rollformer_Pb_Fwd;
+
+
+   END_REGION
+
+   REGION "Operation enable"
+      PbPanel.OpEnabled[ROLLFORMER_BWD] := Rollformer.COut.Feed.Bwd_CheckNext;
+      PbPanel.OpEnabled[ROLLFORMER_FWD] := Rollformer.COut.Feed.Fwd_CheckNext;
+
+
+
+   END_REGION
+
+   REGION "Operation running"
+      PbPanel.OpRunning[ROLLFORMER_BWD] := Rollformer.COut.Feed.VelBwd_Running;
+      PbPanel.OpRunning[ROLLFORMER_FWD] := Rollformer.COut.Feed.VelFwd_Running OR Rollformer.COut.Feed.PosFwd_Running;
+
+
+   END_REGION
+
+   REGION "Operation done"
+      PbPanel.OpDone[ROLLFORMER_BWD] := FALSE;
+      PbPanel.OpDone[ROLLFORMER_FWD] := Rollformer.COut.Feed.InPosition;
+
+
+
+   END_REGION
+
+   REGION "Main"
+      #PbPanel(
+         en := TRUE,
+         Activation := (F_DB.LB114_FeedA02.Enable AND NOT (Reset_OthersPBs_Activation_IN)),
+         Items := #ITEMS,
+         TwoHandsPushed := F_DB.LB114_FeedA02.SafeMotion,
+         ResetAlarms => PB.ResetAlarms
+      );
+
+      #PbPanel.Q;
+   END_REGION
+
+   REGION "Safe Buttons"
+      PB.Rollformer_Bwd := PbPanel.Operations[ROLLFORMER_BWD];
+      PB.Rollformer_Fwd := PbPanel.Operations[ROLLFORMER_FWD];
+
+
+   END_REGION
+
+   REGION "Lamp selection"
+      LB114_Rollformer_Lp_Bwd := PbPanel.Lamps[ROLLFORMER_BWD];
+      LB114_Rollformer_Lp_Fwd := PbPanel.Lamps[ROLLFORMER_FWD];
+
+
+   END_REGION
+
+   REGION "Reset others safe push buttons activation / execution"
+      Reset_OthersPBs_Activation_OUT := FALSE;
+
+      FOR i := 1 TO ITEMS DO
+          
+          IF PbPanel.Buttons[i] OR PbPanel.Operations[i] THEN
+              Reset_OthersPBs_Activation_OUT := TRUE;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

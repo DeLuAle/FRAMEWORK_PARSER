@@ -1,0 +1,16 @@
+﻿FUNCTION "TolWindow" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ActPos : LReal;
+      Target : LReal;
+      PosWin : LReal;
+   END_VAR
+
+
+BEGIN
+	
+	#TolWindow := ABS_LREAL(#ActPos - #Target) <= #PosWin;
+	
+END_FUNCTION
+

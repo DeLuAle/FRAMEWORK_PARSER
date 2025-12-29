@@ -1,0 +1,75 @@
+﻿// Block: Prod_O_ACT_Pop_&_O_ENDING_Push
+// Title: SPOSTA ACT TO ENDING
+
+FUNCTION "Prod_O_ACT_Pop_&_O_ENDING_Push" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// SPOSTA ACT TO ENDING
+   VAR_TEMP
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+   REGION "SPOSTA ACT TO ENDING"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // PUSH O_ENDING
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+      RETVAL := PROD_item_Push_to_Top(item := Production.O_ACT, Evaluate_FULL := TRUE, Buffer := Production.O_ENDING);
+
+
+
+      // Uscita per errore PUSH
+      // 
+      IF RETVAL < 0 THEN
+          
+          Prod_O_ACT_Pop_&_O_ENDING_Push := RETVAL;
+          
+      END_IF;
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // POP_O_ACT
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+      RETVAL := Prod_O_ACT_Pop();
+
+
+      // Uscita per errore OP
+      // 
+      IF RETVAL < 0 THEN
+          
+          Prod_O_ACT_Pop_&_O_ENDING_Push := RETVAL;
+          
+      END_IF;
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // OK
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+      Prod_O_ACT_Pop_&_O_ENDING_Push := PROD_FUN_RESULT_OK;;
+
+
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

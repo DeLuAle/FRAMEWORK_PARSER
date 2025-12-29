@@ -1,0 +1,380 @@
+﻿// Block: Lubr_Valve
+// Title: Info
+
+FUNCTION_BLOCK "Lubr_Valve"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      DataIn : Struct
+         PbStartLubr : Bool;
+         PbStopLubr : Bool;
+         CycleFbk : Bool;
+         ConnectorPlugged : Bool;
+      END_STRUCT;
+      CIn : Struct
+         LubrEnable : Bool;
+         ActualPosition : LReal;
+         OperationDone : Bool;
+      END_STRUCT;
+      Config : LubrValve_Config;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         LubrReq : Bool;
+      END_STRUCT;
+      ValveCmd : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      LubrInterface : LubrValve_ITF;
+      Pers : LubrValve_Pers;
+   END_VAR
+
+   VAR
+      Ctrl : Struct
+         ManualReq : Bool;
+         AutomaticReq : Bool;
+         LubrReq : Bool;
+         ValveCmd : Bool;
+      END_STRUCT;
+      Sts : Struct
+         EstopDelayed : Bool;
+         ValveEnabled : Bool;
+         WorkEnable : Bool;
+         CycleDone : Bool;
+         LastFeed : LReal;
+         IsStandstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+      END_STRUCT;
+      Alarm : LubrValve_Alr;
+      Warning : LubrValve_Wng;
+      HMI : LubrValve_HMI;
+      tonEStopDelayed : IEC_TIMER;
+      tonCycleDoneON : IEC_TIMER;
+      tonCycleDoneOFF : IEC_TIMER;
+      tonManualCycleReset : IEC_TIMER;
+      tonValveOn : IEC_TIMER;
+      tonValveOff : IEC_TIMER;
+      tonWorkTime : TonEna;
+      Aux_PbStartLubr : Bool;
+      Pe_PbStartLubr : Bool;
+      Aux_CyckeFkb : Bool;
+      Pe_CycleFbk : Bool;
+      Aux_OpDone : Bool;
+      Pe_OpDone : Bool;
+      Aux_ValveCount : Bool;
+      Pe_ValveCount : Bool;
+   END_VAR
+
+   VAR_TEMP
+      ActualFeed : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Lubrication Valve Machine
+      //
+      // v1.0.0  28/12/2022 
+      // v1.1.0  14/02/2023 Simulation added
+      // v1.1.1  14/02/2023 Cout Lubrication Request added
+      // v1.1.4  27/09/2023 Bug fixes
+      // v1.1.6  27/10/2023 Bug fixes
+      //=============================================================================
+      //
+
+   END_REGION
+
+   REGION "Reset Alarms"
+      IF AreaInterface.RstAlarms THEN
+          Alarm.CycleFeedback := FALSE;
+          Alarm.ConnectorNotPlugged := FALSE;
+          Alarm.ConfigError := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Safety"
+      //Delayed EStop
+      tonEStopDelayed.(IN :=AreaInterface.EStop,
+                       PT := T#2S,
+                       Q => Sts.EstopDelayed);
+
+   END_REGION
+
+   REGION "Valve Chain"
+      LubrInterface.ValveChain.MaxValve += 1;
+
+      IF Pers.Par.SystemOn THEN
+          Sts.ValveEnabled := LubrInterface.ValveChain.MaxValve = LubrInterface.ValveChain.ActualValve;
+          IF (Ctrl.LubrReq AND (CIn.LubrEnable OR Ctrl.ManualReq))  AND
+              LubrInterface.ValveChain.MaxValve = LubrInterface.ValveChain.ActualValve
+          THEN
+              LubrInterface.ValveChain.ActualValve := LubrInterface.ValveChain.MaxValve;
+          ELSIF LubrInterface.ValveChain.MaxValve = LubrInterface.ValveChain.ActualValve AND
+              NOT ValveCmd
+          THEN
+              LubrInterface.ValveChain.ActualValve += 1;
+          END_IF;
+      ELSE
+          Sts.ValveEnabled := FALSE;
+          IF LubrInterface.ValveChain.MaxValve = LubrInterface.ValveChain.ActualValve THEN
+              LubrInterface.ValveChain.ActualValve += 1;
+          END_IF;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Alarms & Warnings"
+      Warning.SystemNotON := NOT Pers.Par.SystemOn;
+
+      // Connector not plugged
+      IF NOT DataIn.ConnectorPlugged AND Pers.Par.SystemOn AND NOT Simulation THEN
+          Alarm.ConnectorNotPlugged := TRUE;
+      END_IF;
+
+      //Lubrication cycle feedback alarm
+      tonCycleDoneON.(IN := LubrInterface.Sts.Running AND Sts.ValveEnabled AND Pers.Par.EnableCheckFdbk AND DataIn.CycleFbk,
+                          PT := Pers.Par.CycleFdbkCheckTime);
+      tonCycleDoneOFF.(IN := LubrInterface.Sts.Running AND Sts.ValveEnabled AND Pers.Par.EnableCheckFdbk AND NOT DataIn.CycleFbk,
+                           PT := Pers.Par.CycleFdbkCheckTime);
+
+      IF (tonCycleDoneON.Q OR tonCycleDoneOFF.Q) AND Config.WorkMode = 0 AND NOT Ctrl.ManualReq AND NOT Simulation THEN
+          Alarm.CycleFeedback := TRUE;
+          Sts.CycleDone := FALSE;
+      END_IF;
+
+      //COnfiguration Error
+
+      IF LubrInterface.Sts.PumpType = 1 AND Config.ValveType = 1 THEN
+          Alarm.ConfigError := TRUE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Safety"
+      //Delayed EStop
+      tonEStopDelayed.(IN :=AreaInterface.EStop,
+                       PT := T#2S,
+                       Q => Sts.EstopDelayed);
+
+   END_REGION
+
+   REGION "Pe"
+      Pe_PbStartLubr := DataIn.PbStartLubr AND NOT Aux_PbStartLubr;
+      Aux_PbStartLubr := DataIn.PbStartLubr;
+
+      Pe_CycleFbk := DataIn.CycleFbk AND NOT Aux_CyckeFkb;
+      Aux_CyckeFkb := DataIn.CycleFbk;
+
+      Pe_OpDone := CIn.OperationDone AND NOT Aux_OpDone;
+      Aux_OpDone := CIn.OperationDone;
+
+
+   END_REGION
+
+   REGION "Manual"
+      IF DataIn.PbStopLubr OR NOT AreaInterface.Man OR tonManualCycleReset.Q OR NOT Sts.WorkEnable THEN
+          Ctrl.ManualReq := FALSE;
+      ELSIF Pe_PbStartLubr AND AreaInterface.Man THEN
+          Ctrl.ManualReq := TRUE;
+      END_IF;
+
+      tonManualCycleReset.(IN:=Ctrl.ManualReq AND Ctrl.ValveCmd,PT:=Config.ManualCmdTimeOut);
+          
+
+   END_REGION
+
+   REGION "Lubr Counter"
+
+      CASE Config.CounterMode OF
+              
+          0:
+              // Feeding step  
+              ActualFeed := (CIn.ActualPosition - Sts.LastFeed); //Count executed in meters
+              Sts.LastFeed := CIn.ActualPosition;
+              
+              // Check Feed Possible
+              IF ActualFeed > 1000.0 OR ActualFeed < 0.005 THEN
+                  ActualFeed := 0;
+              END_IF;
+              
+              //Total count
+              Pers.LubrReqCounter := (Pers.LubrReqCounter + (ActualFeed / 1000.0));
+              
+          1:
+              
+              IF Pe_OpDone THEN
+                  Pers.LubrReqCounter := Pers.LubrReqCounter + 1.0;
+              END_IF;
+              
+          ELSE
+              Alarm.ConfigError := TRUE;
+              
+      END_CASE;
+
+   END_REGION
+
+   REGION "Condition"
+      Sts.WorkEnable := NOT Sts.EstopDelayed AND NOT Sts.AlarmsPresence AND Pers.Par.SystemOn; //(#Pers.Par.SystemOn OR #Ctrl.ManualReq) ;
+
+   END_REGION
+
+   REGION "Automatic"
+
+      Ctrl.AutomaticReq := (Pers.LubrReqCounter > Pers.Par.LubrReqSetPoint);
+
+      Ctrl.LubrReq := Ctrl.AutomaticReq OR Ctrl.ManualReq;
+
+      Ctrl.ValveCmd := Ctrl.LubrReq AND Sts.WorkEnable AND Sts.ValveEnabled AND (CIn.LubrEnable OR Ctrl.ManualReq);
+
+      // VALVE TYPE 
+      CASE Config.ValveType OF
+              
+          0:
+              ValveCmd := Ctrl.ValveCmd;
+              
+          1:
+              IF tonValveOn.Q OR NOT Sts.WorkEnable OR NOT Ctrl.ValveCmd THEN
+                  ValveCmd := FALSE;
+              ELSIF Ctrl.ValveCmd AND tonValveOff.Q THEN
+                  ValveCmd := TRUE;
+              END_IF;
+              
+              tonValveOn.(IN := ValveCmd,
+                              PT := Pers.Par.ValveONTime);
+              
+              tonValveOff.(IN := NOT ValveCmd,
+                               PT := Pers.Par.ValveOFFTime);
+          ELSE
+              Alarm.ConfigError := TRUE;
+      END_CASE;
+
+
+      // WORK MODE 
+      CASE Config.WorkMode OF
+              
+          0:
+              //Work Mode Fdbk
+             
+              IF Pe_CycleFbk AND Ctrl.LubrReq AND LubrInterface.Sts.Running AND ValveCmd THEN
+                  Sts.CycleDone := TRUE;
+              ELSIF NOT DataIn.CycleFbk AND Sts.CycleDone THEN
+                  Pers.LubrReqCounter := 0.0;
+                  Sts.CycleDone := FALSE;
+              END_IF;
+              
+              tonWorkTime(IN := Ctrl.LubrReq AND NOT Pers.Par.EnableCheckFdbk,
+                           PT := Pers.Par.CycleFdbkCheckTime,
+                           ET => HMI.ActualWorkTime,
+                           ENA := LubrInterface.Sts.Running AND ValveCmd);
+              
+              IF  tonWorkTime.Q THEN
+                  Pers.LubrReqCounter := 0.0;
+              END_IF;
+              
+          1:
+              //Work Mode TIME
+              //
+              tonWorkTime(IN := Ctrl.LubrReq,
+                           PT := Pers.Par.WorkTime,
+                           ET => HMI.ActualWorkTime,
+                           ENA := LubrInterface.Sts.Running AND ValveCmd);
+              
+              IF tonWorkTime.Q THEN
+                  Pers.LubrReqCounter := 0.0;
+              END_IF;
+              
+          2:
+              //Work Mode Count Valve Cmd
+              HMI.ActualWorkTime := T#0S;
+              
+              IF LubrInterface.Sts.PumpType = 1 THEN
+                  Pe_ValveCount := NOT LubrInterface.Sts.Running AND NOT Aux_ValveCount;
+                  Aux_ValveCount := NOT LubrInterface.Sts.Running;
+                  
+                  IF Ctrl.LubrReq AND Pe_ValveCount AND Sts.ValveEnabled THEN
+                      Pers.ValvePumpCounter += 1;
+                  END_IF;
+                  
+              ELSE
+                  Pe_ValveCount := NOT ValveCmd AND NOT Aux_ValveCount;
+                  Aux_ValveCount := NOT ValveCmd;
+                  
+                  IF Ctrl.LubrReq AND Pe_ValveCount THEN
+                      Pers.ValvePumpCounter += 1;
+                  END_IF;
+              END_IF;
+                  
+              IF Pers.ValvePumpCounter >= Pers.Par.ValvePumpSetPoint THEN
+                  Pers.ValvePumpCounter := 0;
+                  Pers.LubrReqCounter := 0.0;
+              END_IF;
+              
+          ELSE
+              Alarm.ConfigError := TRUE;
+      END_CASE;
+          
+          
+
+   END_REGION
+
+   REGION "Interface Command"
+      LubrInterface.Ctrl.RstAlarms := AreaInterface.RstAlarms;
+
+      IF Sts.ValveEnabled THEN
+          LubrInterface.Ctrl.WorkReq := (Ctrl.ValveCmd OR ValveCmd) AND Sts.ValveEnabled;
+      END_IF;
+
+          
+
+   END_REGION
+
+   REGION "Status"
+      Sts.AlarmsPresence := Alarm.CycleFeedback OR Alarm.ConnectorNotPlugged OR Alarm.ConfigError OR (LubrInterface.Sts.Error AND Sts.ValveEnabled);
+      Sts.WarningsPresence := Warning.SystemNotON;
+      Sts.IsStandstill := NOT ValveCmd;
+
+   END_REGION
+
+   REGION "HMI"
+      HMI.Alarm := Alarm.CycleFeedback OR Alarm.ConnectorNotPlugged OR Alarm.ConfigError;
+      HMI.AutoReq := Ctrl.AutomaticReq;
+      HMI.ManReq := Ctrl.ManualReq;
+      HMI.Running := ValveCmd;
+
+   END_REGION
+
+   REGION "Cout"
+      COut.LubrReq := Ctrl.LubrReq AND Pers.Par.SystemOn;
+
+   END_REGION
+
+   REGION "Machine Interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      MachineInterface.Aborting := Sts.AlarmsPresence;
+      MachineInterface.AckStopInPhase := AreaInterface.StopInPhase;
+      MachineInterface.AckStopProgrammed := AreaInterface.StopProgrammed;
+      MachineInterface.MotionsStandStill := Sts.IsStandstill;
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

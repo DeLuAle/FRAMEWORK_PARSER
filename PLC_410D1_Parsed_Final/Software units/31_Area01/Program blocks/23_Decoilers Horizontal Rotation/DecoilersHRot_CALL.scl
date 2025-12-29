@@ -1,0 +1,107 @@
+﻿// Block: DecoilersHRot_CALL
+// Title: DataIn
+
+FUNCTION "DecoilersHRot_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// DataIn
+
+BEGIN
+   REGION "DataIn"
+      // Gen
+      DecoilersHRot.DataIn.PB_Decoiler1_MoveInLine := A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler1 OR LB101.PB.Decoiler1InLine;
+      DecoilersHRot.DataIn.PB_Decoiler2_MoveInLine := A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Move_InLineDecoiler2 OR LB101.PB.Decoiler2InLine;
+
+
+      // Rotation
+      DecoilersHRot.DataIn.Rotation.PB := A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Rotation;
+
+      DecoilersHRot.DataIn.Rotation.Rest_Ls[1] := D02_Ls;
+      DecoilersHRot.DataIn.Rotation.Work_Ls[1] := D03_Ls;
+
+      //Pivot
+      DecoilersHRot.DataIn.Pivot.PB := A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Pivot;
+
+      DecoilersHRot.DataIn.Pivot.Rest_Ls[1] := DecoilersHRot_Pivot_Ls_Rest;
+      DecoilersHRot.DataIn.Pivot.Work_Ls[1] := DecoilersHRot_Pivot_Ls_Work;
+
+
+      //Traslation
+      DecoilersHRot.DataIn.Traslation.PB := A01_HMI.MB1.Button.CoilHandling.DecoilersHRot.Translation;
+
+      DecoilersHRot.DataIn.Traslation.LS_Minus :=
+      DecoilersHRot.DataIn.Traslation.LS_Plus :=
+      DecoilersHRot.DataIn.Traslation.Fan_M_ThermalProtection :=
+      DecoilersHRot.DataIn.Traslation.Fan_M_Feedback :=
+      DecoilersHRot.DataIn.Traslation.Brake_M_Q :=
+      DecoilersHRot.DataIn.Traslation.Brake_M_Feedback := Sys.ByPass;
+
+   END_REGION
+
+   REGION "CIn - Manager"
+      DecoilersHRot.CIn.Manager := CoilHandling.COut.DecoilersHRot;
+
+      DecoilersHRot.CIn.CoilCar_OutOfLine := Coilcar.COut.IsOutline;
+
+   END_REGION
+
+   REGION "CIn - Pressure running"
+      DecoilersHRot.CIn.PressureRunning_Rotation := ((DecoilersHU.COut.PressureRunning AND FDo_V_DecoilersHorizRot) AND NOT (Fdbk_C_RotazioneOrizzontaleAspi));
+      DecoilersHRot.CIn.PressureRunning_Pivot := ((DecoilersHU.COut.PressureRunning AND FDo_V_DecoilersHorizRot) AND NOT (Fdbk_C_RotazioneOrizzontaleAspi));
+   END_REGION
+
+   REGION "DSI"
+      DecoilersHRot.DSI.Translation := F_DB.DSI_S120_DecoilersTranslation;
+      DecoilersHRot.DSI.Rotation :=
+      DecoilersHRot.DSI.Pivot := F_DB.DSI_V_DecoilersHorizRotation;
+
+   END_REGION
+
+   REGION "Drive"
+      DecoilersHRot.Drive.Traslation.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      DecoilersHRot.Drive.Traslation.AccessPoint := HW_Const_Values.CU1_PN_690A1_1_ModuleAccessPoint;
+      DecoilersHRot.Drive.Traslation.AxisID := CU1_ID_5_690A1_1_690M1;
+      DecoilersHRot.Drive.Traslation.TokenChain := TOKENCHAIN_CU1;
+
+
+
+   END_REGION
+
+   REGION "HW ID"
+      DecoilersHRot.HW_ID.Traslation_TEL1 := HW_Const_Values.CU1_PN_690A1_1_Standard_telegram_1;
+      DecoilersHRot.HW_ID.TraslationEnc_IO := HW_Const_Values.HW_694P1_Telegram_81_DI_DO;
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #DecoilersHRot(
+         en := TRUE,
+         AreaInterface := Area01.AreaInterface,
+         Config := A01_Config.DecoilersHRot,
+         PersistentValues := DecoilersHRot_PERS.PersistentValues
+      );
+
+      #DecoilersHRot.Q;
+   END_REGION
+
+   REGION "Data Out"
+      //Gen
+      //
+      "DecoilersHRot_TowerLamp_SL102" := "DecoilersHRot".DataOut.Tower_Lamp;
+      "DecoilersHRot_TowerHorn_SL102" := "DecoilersHRot".DataOut.Tower_Horn;
+
+
+      //Rotation
+      DecoilersHRot_Rotation_V_Dec1InLine := DecoilersHRot.DataOut.Rotation.RestSolenoid;
+      DecoilersHRot_Rotation_V_Dec2InLine := DecoilersHRot.DataOut.Rotation.WorkSolenoid;
+
+      //Pivot
+      DecoilersHRot_Pivot_V_Rest := DecoilersHRot.Pivot.V.RestSolenoid;
+      DecoilersHRot_Pivot_V_Work := DecoilersHRot.Pivot.V.WorkSolenoid;
+
+
+
+   END_REGION
+
+
+END_FUNCTION

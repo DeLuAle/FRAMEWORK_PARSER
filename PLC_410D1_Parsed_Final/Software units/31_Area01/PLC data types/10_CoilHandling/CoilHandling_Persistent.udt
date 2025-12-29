@@ -1,0 +1,64 @@
+﻿TYPE "CoilHandling_Persistent"
+VERSION : 0.1
+// Block: CoilHandling_Persistent
+   STRUCT
+      Data : Struct
+         MaterialPresence : Bool;
+         MaterialPresence_Decoiler : Bool;
+         MaterialPresence_StraightenerEntry : Bool;
+         MaterialPresence_StraightenerExit : Bool;
+         MaterialPresence_JBPinchExit : Bool;
+         MaterialPresence_RF_Entry : Bool;
+         MaterialFullLoaded : Bool;
+         VelocityOverride : Real;
+         MATERIAL_SEPARATION : Struct
+            Mem : Bool;
+            CutDoneAndConfirmed : Bool;
+         END_STRUCT;
+         END_OF_COIL : Struct
+            Mem : Bool;
+            Tail_ReachCutPosition : Bool;
+            Tail_CutDone : Bool;
+            Tail_ReachJunctionPos : Bool;
+            SaveEncPosAx_EndOfMaterialStraightEntry : LReal;
+            SaveEncPosAx_EndOfMaterialStraightExit : LReal;
+            SaveEncPosMat_CutDone : LReal;
+         END_STRUCT;
+         CoilLoadedInDecoiler1 : Bool;
+         CoilLoadedInDecoiler2 : Bool;
+         Thickness : Thickness_PersData;
+      END_STRUCT;
+      Par : Struct
+         MaterialBkw_PercentageStraightener : Real;
+         ExtraLowSpeed_Percentage : Real;
+         TimeStopInactivity : Time;
+         SemiAut : Struct
+            Vel_Fwd : Real;
+            Vel_Bkw : Real;
+            Acc : Real;
+            Dec : Real;
+            Jerk : Real;
+         END_STRUCT;
+         CoilEnd : Struct
+            EnableCoilTailSequence : Bool;
+            Distance_StraightEntry_To_StraightExit : LReal;
+            Distance_StraightEntry_To_CutExecution : LReal;
+            Distance_StraightEntry_to_JunctionExecution : LReal;
+            Distance_CutHead_to_JB : LReal;
+            Tol_CheckSensorStraightExit : LReal;
+            Tol_PosCutExecution : LReal;
+            Tol_PosJunctionExecution : LReal;
+            Delay_PinchrollFwd : Time;
+            Delay_StraightnerBwd : Time;
+            Delay_StraightnerFwd : Time;
+            Vel : LReal;
+            Acc : LReal;
+            Dec : LReal;
+            Jerk : LReal;
+            PercentageStraightener : LReal;
+         END_STRUCT;
+         Thickness : Thickness_Par;
+      END_STRUCT;
+   END_STRUCT;
+
+END_TYPE

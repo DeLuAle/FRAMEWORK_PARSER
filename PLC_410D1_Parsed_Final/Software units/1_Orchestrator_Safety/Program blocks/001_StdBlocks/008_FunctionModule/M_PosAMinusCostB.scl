@@ -1,0 +1,38 @@
+﻿// Block: M_PosAMinusCostB
+// Title: Xc = PosA - CostB
+
+FUNCTION "M_PosAMinusCostB" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Xc = PosA - CostB
+   VAR_INPUT
+      PosA : LReal;
+      CostB : LReal;
+      MODULE : LReal;
+   END_VAR
+
+   VAR_TEMP
+      Xc : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Xc = PosA - CostB"
+      Xc := PosA - CostB;
+      M_PosAMinusCostB := Xc;
+
+      IF MODULE > 0.0 THEN
+          IF Xc >= MODULE THEN
+              M_PosAMinusCostB := Xc - MODULE;
+          ELSIF Xc < 0 THEN
+              M_PosAMinusCostB := MODULE + Xc;
+          END_IF;
+          IF (M_PosAMinusCostB - MODULE) < 0.01 THEN
+              M_PosAMinusCostB := 0;
+          END_IF;
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION

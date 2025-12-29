@@ -1,0 +1,130 @@
+﻿// Block: A01_HMI
+
+DATA_BLOCK A01_HMI
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Area01 : Struct
+         Status : StatusArea;
+         SuperUser : SuperUser;
+      END_STRUCT;
+      MB1 : Struct
+         ManCode_REQ : Int;
+         ManCode_CMD : Int;
+         Button : Struct
+            CoilHandling : Struct
+               Area01HU : Struct
+                  Stop : Bool;
+                  Start : Bool;
+               END_STRUCT;
+               DecoilersHU : Struct
+                  Stop : Bool;
+                  Start : Bool;
+               END_STRUCT;
+               Decoiler_InLine : Struct
+                  Feed : Ax_PB;
+                  Jaws : ValveMachine_PB;
+                  Coupling : ValveMachine_PB;
+                  SnubberLift : ValveMachine_PB;
+                  SnubberRoll : ValveMachine_PB;
+                  PneumaticBrake : Struct
+                     BrakeOpenClose : Bool;
+                     PartialOpenClose : Bool;
+                  END_STRUCT;
+               END_STRUCT;
+               Decoiler_OutLine : Struct
+                  Feed : Ax_PB;
+                  Jaws : ValveMachine_PB;
+                  Coupling : ValveMachine_PB;
+                  SnubberLift : ValveMachine_PB;
+                  SnubberRoll : ValveMachine_PB;
+                  PneumaticBrake : Struct
+                     BrakeOpenClose : Bool;
+                     PartialOpenClose : Bool;
+                  END_STRUCT;
+               END_STRUCT;
+               DecoilersHRot : Struct
+                  Move_InLineDecoiler1 : Bool;
+                  Move_InLineDecoiler2 : Bool;
+                  Rotation : ValveMachine_PB;
+                  Pivot : ValveMachine_PB;
+                  Translation : Ax_PB;
+               END_STRUCT;
+               Peeler : Struct
+                  Lift : ValveMachine_PB;
+                  Extension : ValveMachine_PB;
+               END_STRUCT;
+               Straightener : Struct
+                  Feed : Ax_PB;
+                  LiftEntry : ValveMachine_PB;
+                  LiftExit : ValveMachine_PB;
+               END_STRUCT;
+               JB : Struct
+                  WeldingCycle_Stop : Bool;
+                  WeldingCycle_Start : Bool;
+                  Welder_Man : Bool;
+                  Torch : Ax_PB;
+                  ClampEntry : ValveMachine_PB;
+                  ClampExit : ValveMachine_PB;
+                  CutHead : ValveMachine_PB;
+                  Pinchroll_Feed : Ax_PB;
+                  Pinchroll_Lift : ValveMachine_PB;
+                  Pinchroll_Coupling : ValveMachine_PB;
+               END_STRUCT;
+               Loop1 : Struct
+                  Stop : Bool;
+                  Start : Bool;
+               END_STRUCT;
+            END_STRUCT;
+            PB_Empty : Struct
+               Valve : ValveMachine_PB;
+               Ax : Ax_PB;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+      SYNOPTIC : Struct
+         Decoiler : Struct
+            Decoiler_InLine_Number : Int;
+            Decoiler_InLine_ActualVelocity : LReal;
+            Decoiler_InLine_DiameterValue : LReal;
+            Decoiler_InLine_LoopOverride : LReal;
+            Decoiler_InLine_SemiAutomaticMode : Int;
+            Decoiler_InLine_Feed_VelFwd_Zero : Bool;
+            Decoiler_InLine_Feed_VelFwd_Running : Bool;
+            Decoiler_InLine_Feed_VelBwd_Zero : Bool;
+            Decoiler_InLine_Feed_VelBwd_Running : Bool;
+            Decoiler_InLine_Brake_Open : Bool;
+            Decoiler_InLine_Brake_Partial : Bool;
+            Decoiler_InLine_Brake_Close : Bool;
+            Decoiler_InLine_Snubber_Lift_Rest : Bool;
+            Decoiler_InLine_Snubber_Lift_Work : Bool;
+            Decoiler_InLine_Roll_RestInProgress : Bool;
+            Decoiler_InLine_Roll_WorkInPorgress : Bool;
+            Decoiler_Material_Sts : Int;
+         END_STRUCT;
+         Straightner : Struct
+            Straight_MatPresence_Entry : Bool;
+            Straight_MatPresence_Exit : Bool;
+            Straight_ActualVelocity : LReal;
+         END_STRUCT;
+         Loop : Struct
+            Loop_Phc_MinHigh : Bool;
+            Loop_Phc_MaxLow : Bool;
+            Loop_SystemOn : Bool;
+            Loop_MaterialCounterValid : Bool;
+            Loop_MaterialCounter : LReal;
+            Loop_AllowableFeedFwd : LReal;
+            Loop_ActVelOverrideEntry_Code : UInt;
+            Loop_ActVelOverrideExit_Code : UInt;
+            Loop_MatMissToSynch : LReal;
+            Loop_MatMissToMaxLow : LReal;
+            Loop_MatMissToMinHigh : LReal;
+            Loop_ActVelOverrideEntry : LReal;
+            Loop_ActVelOverrideExit : LReal;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

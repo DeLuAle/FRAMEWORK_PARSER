@@ -1,0 +1,356 @@
+﻿FUNCTION_BLOCK "SpeedMotor"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+AUTHOR : PM
+FAMILY : Motion
+VERSION : 1.0
+   VAR_INPUT 
+      AxisCtrl : "SpeedMotor_Ctrl";
+      AxisConfig : "SpeedMotor_Config";
+      Drive : "TAx_DriveInterface";
+      PowerOffDelay : Time;   // Delay for power off axis with no cmd
+      StandtillVelocity : LReal;   // Standstill theshold (rpm)
+      StandstillDelay : Time;   // Stanstille delay
+   END_VAR
+
+   VAR_OUTPUT 
+      AxisSts : "SpeedMotor_Sts";
+      Infeed_REQ_ON : Bool;   // Request to infeed 
+   END_VAR
+
+   VAR_IN_OUT 
+      TEL1_IN {InstructionName := 'PD_TEL1_IN'; LibVersion := '8.0'} : PD_TEL1_IN;
+      TEL1_OUT {InstructionName := 'PD_TEL1_OUT'; LibVersion := '8.0'} : PD_TEL1_OUT;
+      Alarm : Struct
+         Drive : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Drive : Bool;
+      END_STRUCT;
+      Diag : "TO_Diagnostic";
+   END_VAR
+
+   VAR 
+      ReadAlarm { S7_SetPoint := 'False'} : "RW_SINAMICS_Par";
+      ReadWarning { S7_SetPoint := 'False'} : "RW_SINAMICS_Par";
+      WriteAcc : "RW_SINAMICS_Par";
+      WriteDec : "RW_SINAMICS_Par";
+      Ctrl : Struct
+         InfeedPower : Bool;
+         PowerEnable : Bool;
+         PowerOn : Bool;
+         MovePlus : Bool;
+         MoveMinus : Bool;
+         Acceleration : LReal;
+         Deceleration : LReal;
+         ChangeAcc : Bool;
+         ChangeDec : Bool;
+      END_STRUCT;
+      Sts : Struct
+         Standstill : Bool;
+         GeneralConditions : Bool;
+         PowerPermit : Bool;
+         MoveVelPlusPermitted : Bool;
+         MoveVelMinusPermitted : Bool;
+         AxisEnabled : Bool;
+         ActualVelocity : LReal;
+      END_STRUCT;
+      tonPowerOFF {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tofInfeedPowerRequest {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonStandstill {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;
+      OldAcc : LReal;
+      OldDec : LReal;
+   END_VAR
+
+   VAR_TEMP 
+      NormX : LReal;
+   END_VAR
+
+
+BEGIN
+	
+	REGION Info
+	    //=============================================================================
+	    //PM FORMING
+	    //-----------------------------------------------------------------------------
+	    // Library: StandardBlocks
+	    // Tested with: S7-1518TF
+	    // Engineering: TIA Portal V18
+	    // Restrictions: -
+	    // Requirements: S7-1500
+	    // Functionality: Speed axis without TO
+	    //
+	    // v1.0.0  28/12/2022 
+	    //=============================================================================
+	    
+	END_REGION
+	
+	REGION Axis Status
+	    
+	    #NormX := INT_TO_LREAL(WORD_TO_INT(#TEL1_IN.NIST_A)) / 16384;
+	    #Sts.ActualVelocity := #NormX * #AxisConfig.ReferenceVelocity;
+	    
+	    
+	    //Standstill
+	    #tonStandstill(IN := ABS(#Sts.ActualVelocity) < #StandtillVelocity,
+	                   PT := #StandstillDelay);
+	    #Sts.Standstill := #tonStandstill.Q;
+	    
+	END_REGION
+	
+	
+	REGION Alarms & Diagnostic
+	    //=============================================================
+	    // Reset
+	    //=============================================================
+	    IF #AxisCtrl.Rst THEN
+	        ;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Drive Alarm 
+	    //=============================================================
+	    #Alarm.Drive := #TEL1_IN.ZSW1.FaultPresent;
+	    
+	    //=============================================================
+	    // Drive Warning
+	    //=============================================================
+	    #Warning.Drive := #TEL1_IN.ZSW1.AlarmPresent;
+	    
+	    // #Diag.Drive_ErrorPresence := #Alarm.Drive;
+	    
+	END_REGION
+	
+	
+	REGION Drive Diagnostic
+	    
+	    #Diag.DeviceType := 6;
+	    
+	    IF #Drive.AccessPoint > 0 AND #Drive.TokenChain > 0 THEN
+	        
+	        #ReadAlarm(Enable := #Alarm.Drive,
+	                   ReadWrite := 0,
+	                   ParNo := 2131,
+	                   Index := 0,
+	                   AxisNo := #Drive.AxisID,
+	                   HW_ID := #Drive.AccessPoint,
+	                   "TokenChain" := #Drive.TokenChain);
+	        
+	        #ReadWarning(Enable := #Warning.Drive AND NOT #Alarm.Drive,
+	                     ReadWrite := 0,
+	                     ParNo := 2132,
+	                     Index := 0,
+	                     AxisNo := #Drive.AxisID,
+	                     HW_ID := #Drive.AccessPoint,
+	                     "TokenChain" := #Drive.TokenChain);
+	        
+	        
+	        IF #Alarm.Drive THEN
+	            IF #ReadAlarm.Done THEN
+	                #Diag.Drive_Message := REAL_TO_UINT(#ReadAlarm.ValueReadReal);
+	            END_IF;
+	        ELSIF #Warning.Drive THEN
+	            IF #ReadWarning.Done THEN
+	                #Diag.Drive_Message := REAL_TO_UINT(#ReadWarning.ValueReadReal);
+	            END_IF;
+	        ELSE
+	            #Diag.Drive_Message := 0;
+	        END_IF;
+	    ELSE
+	        #Diag.Drive_Message := 0;
+	    END_IF;
+	    
+	    IF #Alarm.Drive THEN
+	        #Diag.MessageType := 2;
+	    ELSIF #Warning.Drive THEN
+	        #Diag.MessageType := 1;
+	    ELSE
+	        #Diag.MessageType := 0;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION Conditions
+	    //=============================================================
+	    // General condition to execute MC operation
+	    //=============================================================
+	    #Sts.GeneralConditions := NOT #AxisCtrl.SafeStop
+	                        AND NOT #TEL1_IN.ZSW1.FaultPresent;
+	    
+	END_REGION
+	
+	
+	REGION Power
+	    //=============================================================
+	    // Power permit
+	    //=============================================================
+	    #Sts.PowerPermit := #TEL1_IN.ZSW1.ReadyToSwitchOn AND
+	                        #Drive.Infeed_ON AND
+	                        #Sts.GeneralConditions;
+	
+	    //=============================================================
+	    // Power command
+	    //=============================================================
+	    #Ctrl.PowerEnable := (#AxisCtrl.Power OR
+	                        #AxisCtrl.MovePlus OR
+	                        #AxisCtrl.MoveMinus) AND
+	                        #Sts.PowerPermit ;    
+	
+	    //=============================================================
+	    // Delay OFF Power
+	    //=============================================================
+	    
+	    #tonPowerOFF.TON(IN := NOT #Ctrl.PowerEnable AND #Ctrl.PowerOn AND #Sts.Standstill,
+	                     PT := #PowerOffDelay);
+	    
+	    IF #tonPowerOFF.Q OR (NOT #Sts.PowerPermit AND #Sts.Standstill) THEN
+	        #Ctrl.PowerOn := FALSE;
+	    ELSIF #Ctrl.PowerEnable THEN
+	        #Ctrl.PowerOn := TRUE;
+	    END_IF;
+	    
+	   
+	    #Sts.AxisEnabled := #TEL1_IN.ZSW1.ReadyToOperate;
+	    
+	    //=============================================================
+	    // Power request to INFEED
+	    //=============================================================
+	    #Ctrl.InfeedPower := #AxisCtrl.Power
+	                        OR #AxisCtrl.MovePlus
+	                        OR #AxisCtrl.MoveMinus
+	                        OR #Ctrl.PowerOn;
+	    
+	    
+	    #tofInfeedPowerRequest.TOF(IN := #Ctrl.InfeedPower,
+	                               PT := T#300MS,
+	                               Q => #Infeed_REQ_ON);
+	    
+	END_REGION
+	
+	
+	REGION Move Velocity
+	    
+	    //=============================================================
+	    // Move Bkw permitted
+	    //=============================================================
+	    #Sts.MoveVelMinusPermitted := NOT #Ctrl.MovePlus 
+	                                  AND #Sts.GeneralConditions;
+	       
+	
+	    //=============================================================
+	    // Move Bkw Command
+	    //=============================================================
+	    #Ctrl.MoveMinus := #AxisCtrl.MoveMinus 
+	                    AND #Sts.MoveVelMinusPermitted 
+	                    AND #Sts.AxisEnabled;
+	       
+	
+	    //=============================================================
+	    // Move Fwd permitted
+	    //=============================================================
+	    #Sts.MoveVelPlusPermitted := NOT #Ctrl.MoveMinus
+	                                AND #Sts.GeneralConditions;
+	
+	    //=============================================================
+	    // Move Fwd Command
+	    //=============================================================
+	    #Ctrl.MovePlus := #AxisCtrl.MovePlus 
+	                    AND #Sts.MoveVelPlusPermitted 
+	                    AND #Sts.AxisEnabled;
+	                    
+	    //=============================================================
+	    // Main
+	    //=============================================================
+	    #TEL1_OUT.STW1.SetpointInversion := (#Ctrl.MoveMinus AND NOT #AxisConfig.InvertDirection) OR (#Ctrl.MovePlus AND #AxisConfig.InvertDirection);
+	
+	    #NormX := #AxisCtrl.Velocity / #AxisConfig.ReferenceVelocity;
+	    #TEL1_OUT.NSOLL_A := INT_TO_WORD(LREAL_TO_INT(#NormX * 16384));
+	    
+	END_REGION
+	    
+	    
+	REGION Change Acc/Dec
+	    
+	    //=============================================================
+	    // Change Acceleration
+	    //============================================================= 
+	    
+	    IF #OldAcc <> #AxisCtrl.Acceleration THEN
+	        #Ctrl.ChangeAcc := TRUE;
+	    END_IF;
+	    #OldAcc := #AxisCtrl.Acceleration;
+	    
+	    #Ctrl.Acceleration := #AxisConfig.ReferenceVelocity / 60.0 / #AxisCtrl.Acceleration;
+	    
+	    #WriteAcc(Enable := #Ctrl.ChangeAcc,
+	               ReadWrite := 1,
+	               ParNo := 1120,
+	               Index := 0,
+	               AxisNo := #Drive.AxisID,
+	               HW_ID := #Drive.AccessPoint,
+	               ValueWriteReal := LREAL_TO_REAL(#Ctrl.Acceleration),
+	               "TokenChain" := #Drive.TokenChain);
+	    
+	     IF #WriteAcc.Done OR #WriteAcc.Error THEN
+	         #Ctrl.ChangeAcc := FALSE;
+	     END_IF;
+	    
+	     //=============================================================
+	     // Change Deceleration
+	     //============================================================= 
+	     
+	     IF #OldDec <> #AxisCtrl.Deceleration THEN
+	         #Ctrl.ChangeDec := TRUE;
+	     END_IF;
+	     #OldDec := #AxisCtrl.Deceleration;
+	     
+	     #Ctrl.Deceleration := #AxisConfig.ReferenceVelocity / 60.0 / #AxisCtrl.Deceleration;
+	    
+	    #WriteDec(Enable := #Ctrl.ChangeDec,
+	              ReadWrite := 1,
+	              ParNo := 1121,
+	              Index := 0,
+	              AxisNo := #Drive.AxisID,
+	              HW_ID := #Drive.AccessPoint,
+	              ValueWriteReal := LREAL_TO_REAL(#Ctrl.Deceleration),
+	              "TokenChain" := #Drive.TokenChain);
+	    
+	    IF #WriteDec.Done OR #WriteDec.Error THEN
+	        #Ctrl.ChangeDec := FALSE;
+	    END_IF;
+	    
+	 
+	    
+	END_REGION
+	    
+	    
+	REGION Coordination Out
+	    //=============================================================
+	    // Coordination Out
+	    //=============================================================  
+	    
+	    #AxisSts.AlarmPresence := #Alarm.Drive;
+	    #AxisSts.WarningPresence := #Warning.Drive;
+	    #AxisSts.Enabled := #Sts.AxisEnabled;
+	    #AxisSts.Standstill := #Sts.Standstill;
+	    #AxisSts.AtProgrammedSpeed := #TEL1_OUT.NSOLL_A = #TEL1_IN.NIST_A;
+	    #AxisSts.MoveMinusPermitted := #Sts.MoveVelMinusPermitted;
+	    #AxisSts.MovePlusPermitted := #Sts.MoveVelPlusPermitted;
+	    #AxisSts.ActualVelocity := #Sts.ActualVelocity;
+	    
+	    // TEL OUT
+	    #TEL1_OUT.STW1.On := #Ctrl.PowerOn; 
+	    #TEL1_OUT.STW1.EnableOperation := TRUE; 
+	    #TEL1_OUT.STW1.FaultAcknowledge := #AxisCtrl.Rst;
+	    #TEL1_OUT.STW1.NoCoastStop := TRUE;
+	    #TEL1_OUT.STW1.NoQuickStop := NOT #AxisCtrl.SafeStop;
+	    #TEL1_OUT.STW1.ControlByPlc := TRUE;
+	    #TEL1_OUT.STW1.EnableRampGenerator := TRUE;
+	    #TEL1_OUT.STW1.UnfreezeRampGenerator := TRUE;
+	    #TEL1_OUT.STW1.EnableSetpoint := #Ctrl.MovePlus OR #Ctrl.MoveMinus; 
+	    
+	END_REGION
+	
+	
+END_FUNCTION_BLOCK
+

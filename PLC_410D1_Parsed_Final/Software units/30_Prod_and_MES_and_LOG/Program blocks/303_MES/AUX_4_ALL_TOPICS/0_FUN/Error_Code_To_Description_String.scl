@@ -1,0 +1,26 @@
+﻿FUNCTION "Error_Code_To_Description_String" : String
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ErrCode : DInt;
+   END_VAR
+
+
+BEGIN
+	
+	// Decodifica i codici di allarme in una stringa descrittiva
+	// 
+	
+	CASE #ErrCode OF
+	        
+	    "PROD_FUN_RESULT_OK":
+	        #Error_Code_To_Description_String := 'OK';
+	        
+	    "PROD_ERR_PPrfNo_Empty":
+	        #Error_Code_To_Description_String := 'Numero del programma profilo <= 0';
+	    ELSE
+	        #Error_Code_To_Description_String := '? SCONOCIUTO ?';
+	        
+	END_CASE;
+END_FUNCTION
+

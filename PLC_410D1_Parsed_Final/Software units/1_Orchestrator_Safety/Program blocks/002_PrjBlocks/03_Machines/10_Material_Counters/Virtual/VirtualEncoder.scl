@@ -1,0 +1,65 @@
+﻿FUNCTION_BLOCK "VirtualEncoder"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ActualSpeed : LReal;   // Actual conveyor speed [mm/min], signed (positive = forward, negative = reverse)
+      OB_Cycle : UDInt;   // OB cycle time in microseconds [µs]
+   END_VAR
+
+   VAR_IN_OUT 
+      VCounter : LReal;   // Virtual encoder counter (accumulated displacement) [mm], wraps manually if needed
+   END_VAR
+
+   VAR 
+      InitDone : Bool;   // Internal flag: TRUE after first initialization cycle
+      ActualSpeed_mm_s : LReal;   // Current speed converted to mm/s
+      PrevSpeed_mm_s : LReal;   // Previous cycle speed in mm/s
+      DeltaT_s : LReal;   // OB cycle duration in seconds
+      DeltaV : LReal;   // Change in speed between cycles [mm/s]
+      DeltaS : LReal;   // Displacement increment during this cycle [mm]
+   END_VAR
+
+
+BEGIN
+	
+	// Calculate time delta in seconds from OB cycle time in microseconds
+	#DeltaT_s := UDINT_TO_LREAL(#OB_Cycle) / 1000000.0;
+	
+	// Convert actual speed from mm/min to mm/s
+	#ActualSpeed_mm_s := #ActualSpeed / 60.0;
+	
+	// Initialize previous speed on first scan
+	IF NOT #InitDone THEN
+	    #PrevSpeed_mm_s := #ActualSpeed_mm_s;
+	    #InitDone := TRUE;
+	    RETURN;
+	END_IF;
+	
+	// Compute speed variation
+	#DeltaV := #ActualSpeed_mm_s - #PrevSpeed_mm_s;
+	
+	// Update previous speed
+	#PrevSpeed_mm_s := #ActualSpeed_mm_s;
+	
+	// Compute displacement for current cycle using acceleration-based approximation
+	#DeltaS := #DeltaV * #DeltaT_s;
+	
+	// Accumulate in virtual counter
+	#VCounter := #VCounter + #DeltaS;
+	
+	
+	// Apply modular count logic
+	WHILE #VCounter >= "MATERIAL_COUNTERS_MODULE" DO
+	    // Wrap around if counter exceeds module threshold
+	    #VCounter := #VCounter - "MATERIAL_COUNTERS_MODULE";
+	END_WHILE;
+	
+	WHILE #VCounter < 0.0 DO
+	    // Correct if counter goes negative
+	    #VCounter := #VCounter + "MATERIAL_COUNTERS_MODULE";
+	END_WHILE;
+	
+	
+	
+END_FUNCTION_BLOCK
+

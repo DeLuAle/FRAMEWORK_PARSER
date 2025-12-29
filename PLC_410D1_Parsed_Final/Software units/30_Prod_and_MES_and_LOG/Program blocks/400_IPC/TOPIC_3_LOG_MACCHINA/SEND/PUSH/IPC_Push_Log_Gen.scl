@@ -1,0 +1,27 @@
+﻿FUNCTION "IPC_Push_Log_Gen" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      topic : UDInt;
+   END_VAR
+
+   VAR_TEMP 
+      msg : "IPC_Msg_Generico";
+   END_VAR
+
+
+BEGIN
+	
+	// Da usare quando i dati del payload si possono ricavare da variabili globali
+	
+	#msg.topic := #topic;
+	
+	
+	#msg.payLoad := '';
+	
+	(*
+	
+	"Usare O_Act per completare i dati"
+	*)
+END_FUNCTION
+

@@ -1,0 +1,652 @@
+﻿// Block: FlyingCarriage_FB
+// Title: Push buttons positive edges
+
+FUNCTION_BLOCK "FlyingCarriage_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Push buttons positive edges
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      CIn : udt_FlyingCarriage_CIn;
+      DataIn : Struct
+         Pb_Bkw : Bool;
+         Pb_Fwd : Bool;
+         Pb_Pos : Bool;
+         Pb_Zero : Bool;
+         Pb_PresetPos : Bool;
+         Fbk_Fan : Bool;
+      END_STRUCT;
+      Config : udt_FlyingCarriage_Config;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         Fan : Bool;
+         LP_ZeroOK : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Carriage : TO_SynchronousAxis;
+      TO_Master : TO_PositioningAxis;
+      TO_ZeroChk : TO_MeasuringInput;
+      Parameter : udt_FlyingCarriage_Parameter;
+      FsParameter : udt_FsParameter;
+   END_VAR
+
+   VAR
+      Warning : Struct
+         NotAutReady : Bool;
+         ZeroChkRequest : Bool;
+         Axis : TAx_Warnings;
+      END_STRUCT;
+      Alarm : Struct
+         NotHomed : Bool;
+         ZeroChkFailed : Bool;
+         ZeroChk_NotCatched : Bool;
+         ZeroChk_NotReleased : Bool;
+         TargetPosition_OutOfRange : Bool;
+         Axis : TAx_Alarms;
+         ZeroChk : TMeasuring_Alarms;
+         Fan : MotorAlr;
+      END_STRUCT;
+      Diag : Struct
+         Ax : TO_Diagnostic;
+         ZeroChk : TO_Diagnostic;
+      END_STRUCT;
+      COut : Struct
+         Infeed_ReqON : Bool;
+         CtrlSafe : Bool;
+         Ax_InOperation : Bool;
+         Standstill : Bool;
+         CheckNext_Minus : Bool;
+         CheckNext_Plus : Bool;
+         PositioningDone : Bool;
+         InSynch : Bool;
+         ActualTargetPosAx : LReal;
+      END_STRUCT;
+      HMI : Struct
+         Pb_PresetPos : Bool;
+         PresetPosValue : LReal;
+         LastPositionDetect : LReal;
+         ManPosTarget : LReal;
+         PositionNorm : Real;
+      END_STRUCT;
+      Ax : FlyingShearAxis;
+      MeasInp_ZeroChk : MeasuringInput;
+      M_MotorFan : Motor;
+      tonDelayFanOff : IEC_TIMER;
+      tonDelayNoPendingCommands : IEC_TIMER;
+      Sts : Struct
+         IsStandstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         DriveMessagesPresence : Bool;
+         AxisMessagePresence : Bool;
+         InOperatin : Bool;
+         DriveParReadWriteDone : Bool;
+         DriveMessagesReadDone : Bool;
+         Gen_Condition : Bool;
+         Bkw_Condition : Bool;
+         Fwd_Condition : Bool;
+         NoManCmd : Bool;
+         Positioning_Condition : Bool;
+         MotionRequestInNegativeDirection : Bool;
+         MotionRequestInPositiveDirection : Bool;
+         InPosition : Bool;
+         AtHomePosition : Bool;
+         Target_PosAx : LReal;
+         MissingToTarget : LReal;
+         ActualLimitMinus : LReal;
+         ActualLimitPlus : LReal;
+         ZeroChk_LastPositionDetect : LReal;
+         ZeroChk_MeasInLastID : UInt;
+      END_STRUCT;
+      Ctrl : Struct
+         RstAlarms : Bool;
+         SafeMotion : Bool;
+         StopDueDoorOpeningRequest : Bool;
+         StopSafe : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         ReadSLSParam : Bool;
+         DriveParReadWrite_Exe : Bool;
+         DriveMessageRead_Exe : Bool;
+         Fan : Bool;
+         Man_JogPosBkw : Bool;
+         Man_JogPosFwd : Bool;
+         Man_Pos : Bool;
+         Man_Zero : Bool;
+         Zero_Bkw : Bool;
+         Zero_Fwd : Bool;
+         Zero_Home : Bool;
+         Man_Zero_Bkw : Bool;
+         Man_Zero_Fwd : Bool;
+         Man_Zero_Home : Bool;
+         Man_PresetPosition : Bool;
+         Aut_Zero : Bool;
+         Aut_PosAbs : Bool;
+         Aut_GearPos : Bool;
+      END_STRUCT;
+      AckRstAlarms : Bool;
+      Pb_Bkw_PEAux : Bool;
+      Pb_Fwd_PEAux : Bool;
+      Pb_Pos_PEAux : Bool;
+      Pb_Zero_PEAux : Bool;
+      Pb_PresetPos_PEAux : Bool;
+      ZeroChk_LastID : UInt;
+   END_VAR
+
+   VAR_TEMP
+      NOP : Bool;
+      Pb_Bkw_PositiveEdge : Bool;
+      Pb_Fwd_PositiveEdge : Bool;
+      Pb_Pos_PositiveEdge : Bool;
+      Pb_Zero_PositiveEdge : Bool;
+      Pb_PresetPos_PositiveEdge : Bool;
+      KP_FromProfilePrg : Real;
+      KI_FromProfilePrg : Real;
+      Delta_KP : Real;
+      Delta_KI : Real;
+      Delta_ChkZero : LReal;
+      Jerk_Multi : LReal;
+      Req : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      EXTENDED_SAFETY : Bool;
+      SLS_VEL : LReal;
+      DEFAULT_KV : LReal;
+      DEFAULT_KP : Real;
+      DEFAULT_KI : Real;
+      PAR_FLT : UInt;
+      PAR_ALM : UInt;
+      PAR_SLS : UInt;
+      PAR_KP : UInt;
+      PAR_KI : UInt;
+      DPS_IDLE : USInt;
+      DPS_REQUEST : USInt;
+      DPS_ACTIVE : USInt;
+      DPS_DONE : USInt;
+      DPS_ERROR : USInt;
+   END_VAR
+
+
+BEGIN
+   REGION "Push buttons positive edges"
+      Pb_Bkw_PositiveEdge := PosEdge(DataIn.Pb_Bkw);
+      Pb_Fwd_PositiveEdge := PosEdge(DataIn.Pb_Fwd);
+      Pb_Pos_PositiveEdge := PosEdge(DataIn.Pb_Pos);
+      Pb_Zero_PositiveEdge := PosEdge(DataIn.Pb_Zero);
+      Pb_PresetPos_PositiveEdge := PosEdge(DataIn.Pb_PresetPos);
+   END_REGION
+
+   REGION "Reset alarms command"
+      Ctrl.RstAlarms := AreaInterface.RstAlarms AND NOT AckRstAlarms; 
+      AckRstAlarms := AreaInterface.RstAlarms;
+
+      IF    Ctrl.RstAlarms THEN
+          
+          Warning.NotAutReady := FALSE;
+          Alarm.TargetPosition_OutOfRange := 
+          Alarm.ZeroChk_NotCatched :=
+          Alarm.ZeroChk_NotReleased :=
+          Alarm.ZeroChkFailed :=
+          FALSE;
+
+      END_IF;
+
+   END_REGION
+
+   REGION "Controllo Zero"
+      // Zero Check Control
+      MeasInp_ZeroChk.MeasuringCtrl.MeasureEnable := 
+              NOT Alarm.NotHomed
+              AND (NOT Sts.IsStandstill OR MeasInp_ZeroChk.MeasuringCtrl.MeasureEnable)
+              AND NOT AreaInterface.EStop
+              AND NOT Sys.SimulationDevice;        
+
+      MeasInp_ZeroChk.MeasuringCtrl.Mode := 0;
+      MeasInp_ZeroChk.MeasuringCtrl.Rst := Ctrl.RstAlarms;
+
+      // Main
+      MeasInp_ZeroChk(TO_Measuring:=TO_ZeroChk,
+                       Alarm := Alarm.ZeroChk,
+                       Diag := Diag.ZeroChk);
+
+      // Zero Check - Warning checking is request (each time EStop is rise up)
+      IF AreaInterface.EStop THEN 
+          ZeroChk_LastID :=
+          MeasInp_ZeroChk.Trigger_ID := 0;
+          Warning.ZeroChkRequest := TRUE;
+      END_IF;
+
+      IF (AreaInterface.EStop OR  ZeroChk_LastID = 0) AND NOT Sys.SimulationDevice THEN
+          Warning.ZeroChkRequest  := TRUE;
+      END_IF;
+
+
+
+      // Zero Check - New position value detect
+      IF  MeasInp_ZeroChk.Trigger_ID <> ZeroChk_LastID THEN
+          ZeroChk_LastID := MeasInp_ZeroChk.Trigger_ID;
+          HMI.LastPositionDetect := MeasInp_ZeroChk.MeasuringSts.MeasuringValue1;
+          // Zero Check - Alarm Sensor position detect NOT match with deisred position
+          IF (HMI.LastPositionDetect - Parameter.ZeroChk_SensorPosition) > Parameter.ZeroChk_PosTolerance THEN
+              Alarm.ZeroChkFailed := TRUE;
+          ELSE
+              Warning.ZeroChkRequest := FALSE;
+          END_IF;
+      END_IF;       
+
+
+   END_REGION
+
+   REGION "Axis KV (Paramater direct write)"
+      IF AreaInterface.AutOneShot THEN
+         TO_Carriage.PositionControl.Kv := Parameter.Axis_Kv;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm axis not Homed"
+      Alarm.NotHomed := NOT (Ax.AxisSts.Homed);
+   END_REGION
+
+   REGION "Status Axis in operation mode when it is homed"
+      Sts.InOperatin := NOT (Alarm.NotHomed);
+   END_REGION
+
+   REGION "Stop due next door opening"
+      Ctrl.StopDueDoorOpeningRequest := ((((((tonDelayNoPendingCommands.Q AND CIn.LeadAxisStandstill) AND Sts.IsStandstill) OR Ctrl.StopDueDoorOpeningRequest) AND CIn.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT (ZSI.Door_Opened));
+   END_REGION
+
+   REGION "Safe Stop (Door or Emergency)"
+      IF ((NOT (DSI.SafeStop) AND NOT (DSI.DevicesInSafeState)) AND NOT (AreaInterface.EStop)) THEN
+         Ctrl.StopSafe := FALSE;
+      ELSIF (tonDelayNoPendingCommands.Q OR (((NOT (AreaInterface.Cycle) AND NOT (CIn.Semiauto)) OR AreaInterface.EStop) AND CIn.ToolAtRest) OR DSI.DevicesInSafeState) THEN
+         Ctrl.StopSafe := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Safe Motion"
+      Ctrl.SafeMotion := ZSI.Door_Opened;
+   END_REGION
+
+   REGION "Cycle stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cycle stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Condition General"
+      Sts.Gen_Condition := ((((((NOT (Ctrl.StopDueDoorOpeningRequest) AND NOT (Ctrl.StopSafe)) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) AND NOT (Ctrl.StopAborting)) AND Sts.InOperatin) AND CIn.MovePermit);
+   END_REGION
+
+   REGION "Condition Fwd / Bkw"
+      Sts.Bkw_Condition := ((Sts.Gen_Condition AND Ax.AxisSts.InSynch) OR (Sts.Gen_Condition AND CIn.ToolAtRest));
+      Sts.Fwd_Condition := ((Sts.Gen_Condition AND Ax.AxisSts.InSynch) OR (Sts.Gen_Condition AND CIn.ToolAtRest) OR (((Sts.Gen_Condition AND CIn.ToolAtRestManEmptyng) AND AreaInterface.Man) AND NOT (CIn.Semiauto)));
+   END_REGION
+
+   REGION "No manual command"
+      Sts.NoManCmd := (((NOT (Ctrl.Man_JogPosBkw) AND NOT (Ctrl.Man_JogPosFwd)) AND NOT (Ctrl.Man_Pos)) AND NOT (Ctrl.Man_Zero));
+   END_REGION
+
+   REGION "Man Jog Bkw / Fwd using positioning / Preset position"
+      Ctrl.Man_JogPosBkw := (((((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Pb_Bkw_PositiveEdge) AND Sts.NoManCmd) OR ((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Ctrl.Man_JogPosBkw)) AND DataIn.Pb_Bkw);
+      Ctrl.Man_JogPosFwd := (((((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Pb_Fwd_PositiveEdge) AND Sts.NoManCmd) OR ((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Ctrl.Man_JogPosFwd)) AND DataIn.Pb_Fwd);
+      Ctrl.Man_Pos := (((((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Pb_Pos_PositiveEdge) AND Sts.NoManCmd) OR ((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Ctrl.Man_Pos)) AND DataIn.Pb_Pos);
+      Ctrl.Man_Zero := (((((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Pb_Zero_PositiveEdge) AND Sts.NoManCmd) OR ((AreaInterface.Man AND Ax.Sts.AxisSts.HomingDone) AND Ctrl.Man_Zero)) AND DataIn.Pb_Zero);
+      Ctrl.Man_PresetPosition := ((((((AreaInterface.Man AND Pb_PresetPos_PositiveEdge) AND Ax.Sts.AxisSts.Standstill) AND Sts.NoManCmd) OR (AreaInterface.Man AND Ctrl.Man_PresetPosition)) AND Ax.AxisSts.HomingPermitted) AND DataIn.Pb_PresetPos);
+   END_REGION
+
+   REGION "Auto Zero Chk"
+      Ctrl.Aut_Zero := (((AreaInterface.Cycle OR CIn.Semiauto) AND CIn.Exe_Zero) AND NOT (CIn.Exe_PosAbs));
+   END_REGION
+
+   REGION "Zero Check Direction"
+      Ctrl.Man_Zero_Bkw := (((Ctrl.Man_Zero OR Ctrl.Aut_Zero) AND Warning.ZeroChkRequest) AND NOT (MeasInp_ZeroChk.MeasuringSts.InputState));
+      Ctrl.Man_Zero_Fwd := (((Ctrl.Man_Zero OR Ctrl.Aut_Zero) AND Warning.ZeroChkRequest) AND MeasInp_ZeroChk.MeasuringSts.InputState);
+      Ctrl.Man_Zero_Home := ((Ctrl.Man_Zero OR Ctrl.Aut_Zero) AND NOT (Warning.ZeroChkRequest));
+   END_REGION
+
+   REGION "Auto Cycle Positioning"
+      Ctrl.Aut_PosAbs := ((AreaInterface.Cycle OR CIn.Semiauto) AND CIn.Exe_PosAbs);
+   END_REGION
+
+   REGION "Axis Sowftware Limits"
+      TO_Carriage.PositionLimits_SW.MinPosition := Parameter.Limits.SwLimNegative;
+      TO_Carriage.PositionLimits_SW.Active := TRUE;
+   END_REGION
+
+   REGION "Actual position Limits"
+      Sts.ActualLimitMinus := TO_Carriage.PositionLimits_SW.MinPosition + Parameter.PosTolerance;
+      Sts.ActualLimitPlus := TO_Carriage.PositionLimits_SW.MaxPosition - Parameter.PosTolerance;
+
+   END_REGION
+
+   REGION "Target Position & Positioning condition"
+      // Target Position
+
+      IF AreaInterface.Cycle OR (CIn.Semiauto AND NOT CIn.Exe_Zero) THEN
+          Sts.Target_PosAx := CIn.PosAbs_TargetPosAx;
+          HMI.ManPosTarget := CIn.PosAbs_TargetPosAx;
+      ELSIF Ctrl.Man_Pos THEN
+          Sts.Target_PosAx := HMI.ManPosTarget;
+      ELSIF Ctrl.Man_JogPosBkw OR Ctrl.Man_Zero_Bkw THEN
+          Sts.Target_PosAx := Sts.ActualLimitMinus;
+      ELSIF Ctrl.Man_Zero_Home THEN
+          Sts.Target_PosAx := FsParameter.Positions.HomePosition;
+      ELSIF Ctrl.Man_JogPosFwd OR Ctrl.Man_Zero_Fwd THEN
+          Sts.Target_PosAx := Sts.ActualLimitPlus;
+      END_IF;
+
+      Ax.AxisCtrl.MoveAbsTarget := Sts.Target_PosAx;
+
+      // At Home Position
+      Sts.AtHomePosition := (FsParameter.Positions.HomePosition - TO_Carriage.ActualPosition) < Parameter.PosTolerance
+      AND NOT Warning.ZeroChkRequest;
+
+      // Positioning Condition
+
+      Sts.MissingToTarget := Sts.Target_PosAx - TO_Carriage.ActualPosition;
+
+      Sts.Positioning_Condition := FALSE;
+      Sts.InPosition := FALSE;
+
+
+      IF (Sts.MissingToTarget) < Parameter.PosTolerance THEN
+          
+          Sts.Positioning_Condition := TRUE;
+          Sts.InPosition := TRUE;
+          
+          IF Ctrl.Man_Zero_Bkw THEN
+              Alarm.ZeroChk_NotCatched := TRUE;
+          END_IF;
+          IF  Ctrl.Man_Zero_Fwd THEN
+              Alarm.ZeroChk_NotReleased := TRUE;
+          END_IF;
+          
+      ELSIF Sts.MissingToTarget > 0.0 AND Sts.Fwd_Condition AND Ax.AxisSts.MoveAbsPermitted THEN
+          
+          Sts.Positioning_Condition := TRUE;
+          
+      ELSIF Sts.MissingToTarget < 0.0 AND Sts.Bkw_Condition AND Ax.AxisSts.MoveAbsPermitted THEN
+          
+          Sts.Positioning_Condition := TRUE;
+      END_IF;
+
+      IF ((Sts.Target_PosAx > TO_Carriage.PositionLimits_SW.MaxPosition) OR
+          (Sts.Target_PosAx < TO_Carriage.PositionLimits_SW.MinPosition))
+          AND (Ctrl.Aut_PosAbs OR Ctrl.Man_Pos) THEN
+          Sts.Positioning_Condition := FALSE;
+          Alarm.TargetPosition_OutOfRange := TRUE;
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Target Velocity / Acceleration / Deceleration / Jerk"
+      // Jerk Multiplier 
+      Jerk_Multi := (G := TO_Carriage.Units.VelocityUnit = 1524, IN0 := 1000.0, IN1 := 1.0);
+
+      // Target Velocity
+      IF AreaInterface.Man OR CIn.Semiauto THEN
+          Ax.AxisCtrl.Velocity := Parameter.Man.Vel;
+
+
+      ELSIF Ctrl.Aut_PosAbs THEN
+
+           Ax.AxisCtrl.Velocity := CIn.PosAbs_Vel;
+      ELSE
+
+        Ax.AxisCtrl.Velocity := 0.0;
+
+
+      END_IF;
+
+
+      // Target Acc/Dec/Jerk
+      // IF   #Ctrl.Man_JogPosBkw OR #Ctrl.Man_JogPosFwd OR #Ctrl.Man_Pos THEN
+      IF AreaInterface.Man THEN
+
+          Ax.AxisCtrl.Acceleration := Parameter.Man.Acc;
+          Ax.AxisCtrl.Deceleration := Parameter.Man.Dec;
+          Ax.AxisCtrl.Jerk := Parameter.Man.Jerk * Jerk_Multi;
+
+      ELSIF   AreaInterface.Cycle THEN
+
+          Ax.AxisCtrl.Acceleration := CIn.PosAbs_Acc; 
+          Ax.AxisCtrl.Deceleration := CIn.PosAbs_Dec;
+          Ax.AxisCtrl.Jerk := CIn.PosAbs_Jerk * Jerk_Multi;
+
+      END_IF;
+
+      // Default dynamics values
+      IF      Ax.AxisCtrl.Acceleration <= 0 OR Ax.AxisCtrl.Deceleration <= 0 THEN
+
+          Ax.AxisCtrl.Acceleration := Parameter.Aut.Acc;
+          Ax.AxisCtrl.Deceleration := Parameter.Aut.Dec;
+          Ax.AxisCtrl.Jerk := Parameter.Aut.Jerk * Jerk_Multi;
+      END_IF; 
+
+
+      // Dynamics if Safe motion
+      IF Ctrl.SafeMotion OR Ctrl.StopSafe OR Warning.ZeroChkRequest THEN
+          Ax.AxisCtrl.Velocity := (IN1 := Ax.AxisCtrl.Velocity, IN2 := Config.SLS_VEL);
+          //
+          #Ax.AxisCtrl.Acceleration := #Config.SLS_ACC;
+          #Ax.AxisCtrl.Deceleration := #Config.SLS_DEC;
+          #Ax.AxisCtrl.Jerk := #Config.SLS_JERK * #Jerk_Multi; 
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Axis controls"
+      "FS_ABORT"(
+         en := ((Ctrl.StopSafe OR Ctrl.StopDueDoorOpeningRequest OR AreaInterface.ManOneShot) AND Ax.Sts.FsRunning),
+         Ax := Ax
+      );
+
+      Ax.AxisCtrl.SafeStop := DSI.SafeStop;
+      Ax.AxisCtrl.Rst := Ctrl.RstAlarms;
+      Ax.AxisCtrl.RstHW := false;
+      Ax.AxisCtrl.Power := ((AreaInterface.Cycle AND NOT (CIn.StopInactivity)) OR CIn.Semiauto OR (AreaInterface.Man AND CIn.TorqueRequest));
+      IF HMI.Pb_PresetPos THEN
+         HMI.Pb_PresetPos := FALSE;
+      END_IF;
+      IF (HMI.Pb_PresetPos OR Ctrl.Man_PresetPosition) THEN
+         Ax.AxisCtrl.HomeMode := 7;
+      END_IF;
+      Ax.AxisCtrl.Homing := (((((HMI.Pb_PresetPos OR Ctrl.Man_PresetPosition) AND AreaInterface.Man) AND Ax.Sts.AxisSts.Standstill) AND Sts.NoManCmd) AND Ax.AxisSts.HomingPermitted);
+      Ax.AxisCtrl.VelocityPositionControlled := true;
+      Ax.AxisCtrl.MoveMinus := ((((Ctrl.Man_JogPosBkw OR Ctrl.Man_Zero_Bkw) AND Sts.Bkw_Condition) AND Ax.AxisSts.MoveMinusPermitted) AND (TO_Carriage.ActualPosition >= TO_Carriage.PositionLimits_SW.MaxPosition));
+      Ax.AxisCtrl.MovePlus := ((((Ctrl.Man_JogPosFwd OR Ctrl.Man_Zero_Fwd) AND Sts.Fwd_Condition) AND Ax.AxisSts.MovePlusPermitted) AND (TO_Carriage.ActualPosition <= TO_Carriage.PositionLimits_SW.MinPosition));
+      Ax.AxisCtrl.MoveAbsolute := (((((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_JogPosBkw) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_JogPosFwd) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_Pos) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Man_Zero) OR ((NOT (Ax.AxisCtrl.MoveMinus) AND NOT (Ax.AxisCtrl.MovePlus)) AND Ctrl.Aut_PosAbs)) AND Sts.Positioning_Condition) AND Ax.AxisSts.MoveAbsPermitted);
+      IF ((Ctrl.StopSafe OR Ctrl.StopDueDoorOpeningRequest OR AreaInterface.ManOneShot) AND Ax.Sts.FsRunning) THEN
+         "FS_ABORT"(Ax := Ax);
+      END_IF;
+   END_REGION
+
+   REGION "Axis manager"
+      #Ax(
+         en := TRUE,
+         Drive := Drive,
+         PowerEnable := DSI.PowerEnable,
+         PowerOffDelay := t#5s,
+         Axis := TO_Carriage,
+         LeadAxis := TO_Master,
+         Alarm => Alarm.Axis,
+         Warning => Warning.Axis,
+         Diag => Diag.Ax
+      );
+
+      #Ax.Q;
+   END_REGION
+
+   REGION "Motion request in negative direction"
+      IF (Ctrl.Aut_PosAbs OR Ctrl.Man_Pos OR Ctrl.Man_JogPosBkw OR Ctrl.Man_Zero OR Ctrl.Aut_Zero)
+          AND
+          Sts.MissingToTarget < - Parameter.PosTolerance THEN
+          Sts.MotionRequestInNegativeDirection := TRUE;
+      ELSE
+          Sts.MotionRequestInNegativeDirection := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Motion request in poisitive direction"
+      IF Ctrl.Aut_GearPos THEN
+          Sts.MotionRequestInPositiveDirection := TRUE;
+          
+      ELSIF (Ctrl.Man_JogPosFwd OR Ctrl.Aut_PosAbs OR Ctrl.Man_Pos OR Ctrl.Zero_Fwd OR Ctrl.Man_Zero OR Ctrl.Aut_Zero)
+          AND
+          Sts.MissingToTarget > Parameter.PosTolerance  THEN
+          Sts.MotionRequestInPositiveDirection := TRUE;
+      ELSE
+          Sts.MotionRequestInPositiveDirection := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "<<<< MOTOR FAN >>>-"
+   END_REGION
+
+   REGION "Motor Fan - Run request"
+      #tonDelayFanOff(
+         IN := (NOT (Req) AND Ctrl.Fan),
+         PT := Config.Fan.DelayOff
+      );
+
+      Req := NOT ((((NOT (Ax.Infeed_REQ_ON) AND NOT (Sts.MotionRequestInNegativeDirection)) AND NOT (Sts.MotionRequestInPositiveDirection)) AND NOT (Ax.Sts.AxisEnabled)));
+      Ctrl.Fan := ((NOT ((((NOT (Ax.Infeed_REQ_ON) AND NOT (Sts.MotionRequestInNegativeDirection)) AND NOT (Sts.MotionRequestInPositiveDirection)) AND NOT (Ax.Sts.AxisEnabled))) OR Ctrl.Fan) AND M_MotorFan.MotorSts.RunPermitted);
+      #tonDelayFanOff.Q;
+      IF #tonDelayFanOff.Q THEN
+         Ctrl.Fan := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Motor Fan - Control"
+      M_MotorFan.MotorCtrl.Run := Ctrl.Fan;
+      M_MotorFan.MotorCtrl.SafeStop := AreaInterface.EStop;
+      M_MotorFan.MotorCtrl.Rst := Ctrl.RstAlarms;
+   END_REGION
+
+   REGION "Motor Fan - Manager"
+      #M_MotorFan(
+         en := TRUE,
+         FdbkRunning := DataIn.Fbk_Fan,
+         FeedbackTimeout := T#1s,
+         Simulation := Sys.SimulationDevice,
+         Alarm := Alarm.Fan,
+         Contactor => DataOut.Fan
+      );
+
+      #M_MotorFan.Q;
+   END_REGION
+
+   REGION "<<<< FINAL >>>>"
+      NOP := TRUE;
+   END_REGION
+
+   REGION "Machine is standstill"
+      Sts.IsStandstill := (Ax.Sts.AxisSts.Standstill OR DSI.DevicesInSafeState);
+   END_REGION
+
+   REGION "Delay no pending commands"
+      #tonDelayNoPendingCommands(
+         IN := ((((NOT (Ax.AxisCtrl.MovePlus) AND NOT (Ax.AxisCtrl.MoveMinus)) AND NOT (Ax.AxisCtrl.MoveAbsolute)) AND NOT (Ax.Ctrl.FsEnable)) OR Sts.IsStandstill),
+         PT := T#1s
+      );
+
+      #tonDelayNoPendingCommands.Q;
+   END_REGION
+
+   REGION "Warnings presence"
+      Sts.WarningsPresence := NOT ((NOT (Warning.NotAutReady) AND NOT (Warning.ZeroChkRequest)));
+   END_REGION
+
+   REGION "Alarm presence"
+      Sts.AlarmsPresence := (NOT (((NOT (Alarm.NotHomed) AND NOT (Alarm.ZeroChkFailed)) OR (((NOT (Alarm.NotHomed) AND Ctrl.Man_JogPosFwd) OR (NOT (Alarm.NotHomed) AND Ctrl.Man_JogPosBkw)) AND AreaInterface.Man))) OR NOT (((NOT (Ax.AxisSts.AlarmPresence) AND NOT (MeasInp_ZeroChk.MeasuringSts.AlarmPresence)) AND NOT (Alarm.TargetPosition_OutOfRange))) OR M_MotorFan.MotorSts.AlarmPresence);
+   END_REGION
+
+   REGION "Stop for aborting"
+      Ctrl.StopAborting := (((Sts.AlarmsPresence AND NOT (Ax.AxisSts.InSynch)) AND AreaInterface.Cycle) OR ((Sts.AlarmsPresence AND NOT (Ax.AxisSts.InSynch)) AND CIn.Semiauto));
+   END_REGION
+
+   REGION "Data OUT"
+      "Lamp"(
+         en := TRUE,
+         Signal := (((Warning.ZeroChkRequest AND Sys.Clock_500MS) OR NOT (Warning.ZeroChkRequest)) AND AreaInterface.Man),
+         Ret_Val => DataOut.LP_ZeroOK
+      );
+
+      DataOut.LP_ZeroOK := "Lamp"(Signal := (((Warning.ZeroChkRequest AND Sys.Clock_500MS) OR NOT (Warning.ZeroChkRequest)) AND AreaInterface.Man));
+   END_REGION
+
+   REGION "Collect machine to area interface"
+      // Status Motion standtill
+      MachineInterface.MotionsStandStill := Sts.IsStandstill AND tonDelayNoPendingCommands.Q;
+      // Status machine ready
+      MachineInterface.AutReady := AreaInterface.Aut
+      AND NOT Sts.AlarmsPresence
+      AND NOT Warning.ZeroChkRequest;
+
+      // Status machine aborting
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      // Status Ack Stop in phase
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      // Status Alarm presence
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+      // Warning machine not automatic ready
+      IF AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady THEN
+          Warning.NotAutReady := TRUE;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Coordination out (1)"
+      COut.Infeed_ReqON := Ax.Infeed_REQ_ON;
+      COut.Ax_InOperation := Sts.InOperatin;
+   END_REGION
+
+   REGION "Coordination out (2)"
+      COut.Standstill := Sts.IsStandstill;
+      COut.CheckNext_Minus := Sts.MotionRequestInNegativeDirection;
+      COut.CheckNext_Plus := Sts.MotionRequestInPositiveDirection;
+      COut.PositioningDone := ((Sts.InPosition AND NOT (Ax.AxisCtrl.MoveAbsolute)) OR (Sts.InPosition AND Ax.AxisSts.Positioned));
+      COut.InSynch := Ax.AxisSts.InSynch;
+      COut.CtrlSafe := (NOT ((((((((NOT (Sts.MotionRequestInNegativeDirection) AND NOT (Sts.MotionRequestInPositiveDirection)) AND Sts.IsStandstill) AND NOT (Ax.Ctrl.FsEnable)) AND NOT (AreaInterface.Cycle)) OR ((((NOT (Sts.MotionRequestInNegativeDirection) AND NOT (Sts.MotionRequestInPositiveDirection)) AND Sts.IsStandstill) AND NOT (Ax.Ctrl.FsEnable)) AND Ctrl.StopDueDoorOpeningRequest)) AND NOT (CIn.Semiauto)) AND NOT (CIn.TorqueRequest))) OR (COut.CtrlSafe AND Ax.AxisSts.Enabled));
+      COut.ActualTargetPosAx := Sts.Target_PosAx;
+   END_REGION
+
+   REGION "HMI"
+      HMI.PositionNorm   :=  ((TO_Carriage.ActualPosition - TO_Carriage.PositionLimits_SW.MinPosition)
+                             / (TO_Carriage.PositionLimits_SW.MaxPosition - TO_Carriage.PositionLimits_SW.MinPosition));
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

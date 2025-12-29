@@ -1,0 +1,91 @@
+﻿// Block: A0301_SelSensorON
+
+FUNCTION "A0301_SelSensorON" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      SensorsToUse : Array[1..3] of Bool;
+      S_Ing : Array[1..3] of Bool;
+   END_VAR
+
+   VAR_TEMP
+      "Case" : Int;
+      Sens_OK : Bool;
+      StsSensPinOK : Array[1..3] of Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      // == CONTROLLO I/O SENSORI INGRESSO FERMI IN BASE ALLA CONFIGURAZIONE ===
+      // 
+
+      IF SensorsToUse[1] AND S_Ing[1] THEN
+          StsSensPinOK[1] := 1;
+      ELSIF (NOT SensorsToUse[1] OR NOT S_Ing[1]) THEN
+          StsSensPinOK[1] := 0;
+      END_IF;
+
+
+      IF SensorsToUse[2] AND S_Ing[2] THEN
+          StsSensPinOK[2] := 1;
+      ELSIF (NOT SensorsToUse[2] OR NOT S_Ing[2]) THEN
+          StsSensPinOK[2] := 0;
+      END_IF;
+
+
+      IF SensorsToUse[3] AND S_Ing[3] THEN
+          StsSensPinOK[3] := 1;
+      ELSIF (NOT SensorsToUse[3] OR NOT S_Ing[3]) THEN
+          StsSensPinOK[3] := 0;
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 2"
+      // CONTROLLO ABILITAZIONE SENSORI E STATO SENSORI PER DETERMINARE SE IL CONTROLLO è ANDATO A BUON FINE
+
+
+       // Controllo con 0 sensori abilitati reset stato sensori
+              IF NOT SensorsToUse[1] AND NOT SensorsToUse[2] AND NOT SensorsToUse[3] THEN
+                  Sens_OK := 0;
+
+              END_IF;
+              
+              // Controllo con 1 sensore abilitato   
+
+              IF SensorsToUse[1] AND NOT SensorsToUse[2] AND NOT SensorsToUse[3]
+                  AND StsSensPinOK[1] THEN
+                  Sens_OK := 1;
+
+              END_IF;
+              
+      // Controllo con 2 sensori abilitati
+              IF SensorsToUse[1] AND SensorsToUse[2] AND NOT SensorsToUse[3]
+                  AND StsSensPinOK[1] AND StsSensPinOK[2] THEN
+                  Sens_OK := 1;
+
+              END_IF;
+              
+       // Controllo con 3 sensori abilitati
+              IF SensorsToUse[1] AND SensorsToUse[2] AND SensorsToUse[3]
+                  AND StsSensPinOK[1] AND StsSensPinOK[2] AND StsSensPinOK[3] THEN
+                  Sens_OK := 1;
+
+              END_IF;
+              
+       // Controllo con 2 sensori abilitati non in appoggio
+              IF NOT SensorsToUse[1] AND SensorsToUse[2] AND SensorsToUse[3]
+                  AND NOT StsSensPinOK[1] AND StsSensPinOK[2] AND StsSensPinOK[3] THEN
+                  Sens_OK := 1;
+
+              END_IF;
+
+   END_REGION
+
+   REGION "Network 3"
+      A0301_SelSensorON := Sens_OK;
+   END_REGION
+
+
+END_FUNCTION
