@@ -1,0 +1,154 @@
+﻿// Block: System_FB
+// Title: Info
+
+FUNCTION_BLOCK "System_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 1.2
+// Info
+   VAR_INPUT
+      PbLampTest : Bool;
+   END_VAR
+
+   VAR
+      Ton0 : IEC_TIMER;
+      wFrequencyGen : Word;
+      wFrequencyLampTest : Word;
+      PreviuosCycleTime : CpuPreviuosCycleTime;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: System management
+      //
+      // v1.0.0  28/12/2022 
+      //=============================================================================
+
+   END_REGION
+
+   REGION "Set/Rst bits always true / false"
+      IF (Sys.Bit1 OR NOT (Sys.Bit1)) THEN
+         Sys.Bit1 := TRUE;
+      END_IF;
+      IF (Sys.Bit1 OR NOT (Sys.Bit1)) THEN
+         Sys.Bit0 := FALSE;
+      END_IF;
+      IF (Sys.Bit1 OR NOT (Sys.Bit1)) THEN
+         Sys.ByPass := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "First CPU scan"
+      Sys.FirstPLCCycle := Sys.AuxFirstPLCCycle;
+      IF Sys.AuxFirstPLCCycle THEN
+         Sys.AuxFirstPLCCycle := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "CPU cycle clock"
+      Sys.ClockCyc := NOT (Sys.ClockCyc);
+   END_REGION
+
+   REGION "0.25 s pulse"
+      #Ton0(
+         IN := NOT (Sys.Clock_250MS),
+         PT := T#250MS
+      );
+
+      Sys.Clock_250MS := #Ton0.Q;
+   END_REGION
+
+   REGION "Frequency generator"
+      // DBX(n+1).00  T=0.5 s (secondi)
+// DBX(n+1).01  T=1
+// DBX(n+1).02  T=2
+// DBX(n+1).03  T=4
+// DBX(n+1).04  T=8
+// DBX(n+1).05  T=16
+// DBX(n+1).06  T=32
+// DBX(n+1).07  T=64     
+// DBX  (n).00  T=128    (2 M)
+// DBX  (n).01  T=256    (4.2 M)
+// DBX  (n).02  T=512    (8.5 M)
+// DBX  (n).03  T=1024   (17 M)
+// DBX  (n).04  T=2048   (34.1 M)
+// DBX  (n).05  T=4096   (68.2 M)
+// DBX  (n).06  T=8192   (2 H)
+// DBX  (n).07  T=16384  (4 H)
+
+      IF Sys.Clock_250MS THEN
+         wFrequencyGen := (wFrequencyGen + 1);
+      END_IF;
+   END_REGION
+
+   REGION "Reset frequency generator"
+      IF Sys.FirstPLCCycle THEN
+         wFrequencyGen := INT#0;
+      END_IF;
+   END_REGION
+
+   REGION "MB of clocks"
+      Sys.Clock_500MS := wFrequencyGen.%X0;
+      Sys.Clock_1S := wFrequencyGen.%X1;
+      Sys.Clock_2S := wFrequencyGen.%X2;
+      Sys.Clock_4S := wFrequencyGen.%X3;
+      Sys.Clock_8S := wFrequencyGen.%X4;
+      Sys.Clock_16S := wFrequencyGen.%X5;
+      Sys.Clock_32S := wFrequencyGen.%X6;
+      Sys.Clock_64S := wFrequencyGen.%X7;
+
+
+   END_REGION
+
+   REGION "Frequency generator"
+      // DBX(n+1).00  T=0.5 s (secondi)
+// DBX(n+1).01  T=1
+// DBX(n+1).02  T=2
+// DBX(n+1).03  T=4
+// DBX(n+1).04  T=8
+// DBX(n+1).05  T=16
+// DBX(n+1).06  T=32
+// DBX(n+1).07  T=64     
+// DBX  (n).00  T=128    (2 M)
+// DBX  (n).01  T=256    (4.2 M)
+// DBX  (n).02  T=512    (8.5 M)
+// DBX  (n).03  T=1024   (17 M)
+// DBX  (n).04  T=2048   (34.1 M)
+// DBX  (n).05  T=4096   (68.2 M)
+// DBX  (n).06  T=8192   (2 H)
+// DBX  (n).07  T=16384  (4 H)
+
+      IF (Sys.LampTestMem AND Sys.Clock_250MS) THEN
+         wFrequencyLampTest := (wFrequencyLampTest + 1);
+      END_IF;
+      IF NOT (Sys.LampTestMem) THEN
+         wFrequencyLampTest := 0;
+      END_IF;
+   END_REGION
+
+   REGION "Lamps Test"
+      Sys.LampTestMem := ((Sys.FirstPLCCycle OR PbLampTest OR Sys.LampTestMem) AND NOT (wFrequencyLampTest));
+   END_REGION
+
+   REGION "Lamps Test Commands"
+      Sys.LampTest := ((Sys.LampTestMem AND NOT (wFrequencyLampTest)) OR (Sys.LampTestMem AND NOT (wFrequencyLampTest)) OR (Sys.LampTestMem AND wFrequencyLampTest));
+   END_REGION
+
+   REGION "Previus Cycle Time"
+      #PreviuosCycleTime(
+         en := TRUE,
+         PrevCycleTime => Sys.PreviousCycleTime
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

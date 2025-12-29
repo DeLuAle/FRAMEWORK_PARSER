@@ -1,0 +1,17 @@
+﻿// Block: Lamp
+
+FUNCTION "Lamp" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Signal : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      Lamp := ((Signal AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+   END_REGION
+
+
+END_FUNCTION

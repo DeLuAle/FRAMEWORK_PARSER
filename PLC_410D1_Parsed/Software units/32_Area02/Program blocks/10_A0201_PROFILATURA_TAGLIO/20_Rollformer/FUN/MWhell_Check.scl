@@ -1,0 +1,93 @@
+﻿// Block: MWhell_Check
+
+FUNCTION_BLOCK "MWhell_Check"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      MWheel_Sensor : Int;
+      MaterialPresence : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      CheckOK : Bool;
+      ParameterError : Bool;
+      GearRatioError : Bool;
+      WheelMoving : Bool;
+      LeadScrewErr : LReal;
+      CalculatedLeadScrew : LReal;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+   END_VAR
+
+   VAR
+      tCheck : IEC_TIMER;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      ParameterError :=  (TO_Ax.LoadGear.Numerator = 0.0 )
+                      OR (TO_Ax.LoadGear.Denominator = 0.0)
+                      OR (TO_Ax.Mechanics.LeadScrew = 0.0);
+
+      IF ParameterError THEN
+          ENO := CheckOK := FALSE;
+          RETURN;
+      END_IF;
+                          
+
+   END_REGION
+
+   REGION "Velocity too low for calculation"
+      IF TO_Ax.Velocity < TO_Ax.StandstillSignal.VelocityThreshold THEN
+          WheelMoving    := FALSE;
+          ENO := CheckOK;
+          RETURN;
+      END_IF;
+
+   END_REGION
+
+   REGION "LeadScrew calculated and error"
+      CalculatedLeadScrew := (TO_Ax.StatusSensor[MWheel_Sensor].Velocity * (TO_Ax.LoadGear.Numerator))
+                            / (TO_Ax.ActualSpeed * (TO_Ax.LoadGear.Denominator));
+
+
+
+      CASE TO_Ax.Units.VelocityUnit OF
+          1061: // m/s      CalculatedLeadScrew := CalculatedLeadScrew * 60000.0;            
+          1524: // mm/min  ;     
+          1525: // m/min    CalculatedLeadScrew := CalculatedLeadScrew * 1000.0;
+      END_CASE;
+              
+      LeadScrewErr   := 100.0 * (TO_Ax.Mechanics.LeadScrew - CalculatedLeadScrew) / TO_Ax.Mechanics.LeadScrew;
+
+   END_REGION
+
+   REGION "Wheel moving / Gear ratio Error"
+      WheelMoving    := TO_Ax.StatusSensor[MWheel_Sensor].Velocity > TO_Ax.StandstillSignal.VelocityThreshold;
+      GearRatioError := (LeadScrewErr) > 10.0 AND WheelMoving;
+
+   END_REGION
+
+   REGION "Network 5"
+      #tCheck(
+         IN := (WheelMoving AND NOT (GearRatioError)),
+         PT := T#500MS
+      );
+
+      IF NOT (MaterialPresence) THEN
+         CheckOK := FALSE;
+      ELSIF #tCheck.Q THEN
+         CheckOK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "ENO"
+      ENO := CheckOK;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

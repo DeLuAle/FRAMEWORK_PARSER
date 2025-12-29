@@ -1,0 +1,137 @@
+﻿// Block: A0302_Spintore_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0302_Spintore_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+   VAR_TEMP
+      Missing_Input : Bool;
+      Missing_Output : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      REGION TRASFERIMENTO CIn MANAGER
+          A0302_Spintore.Cin.Manager := A0302_Manager.COut.SpintoreLong;
+          //
+          A0302_Spintore.Cin.SemiAut_Pb := A0302_Manager.DataIn.SemiAut_Pb;
+          
+      END_REGION ;
+
+      REGION TRASFERIMENTO BORDATRICE
+          A0302_Spintore.Cin.Bordatrice.Ax := A0302_Bordatrice.COut.Ax;
+          A0302_Spintore.Cin.Bordatrice.Sens.FTC_Uscita := A0302_Bordatrice.IEC_FTC_UscitaBordatrice.FTC_On;
+          A0302_Spintore.Cin.Bordatrice.Perc_Vel := 50.0;
+          A0302_Spintore.Cin.Bordatrice.TargetVel := A0302_Bordatrice.COut.Ax.ActualVelocity;
+          
+      END_REGION ;
+
+      REGION TRASFERIMENTO CIn FERMI P4
+          A0302_Spintore.Cin.P4.Fermi := A0301_Fermi_P4.COut.Fermi;
+      END_REGION ;
+
+      REGION TRASFERIMENTO SPINTORI LATERALI CIn P5
+          A0302_Spintore.Cin.P5.Spintore_Lat.Spin_Lat1 := A0301_Spintore_Lat.COut.Spin_Lat1;
+          A0302_Spintore.Cin.P5.Spintore_Lat.Spin_Lat2 := A0301_Spintore_Lat.COut.Spin_Lat2;
+          A0302_Spintore.Cin.P5.En/Dis_SpinLat_2 := A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2;
+          A0302_Spintore.Cin.P5.QuotaIngombro_SpinLat2 := PrjConfig_A03.A0301.SpintoreLaterale.QuotaIngombro_SpinLat2;
+          A0302_Spintore.Cin.P5.QuotaIngombro_SpinLat1 := PrjConfig_A03.A0301.SpintoreLaterale.QuotaIngombro_SpinLat1;
+        
+      END_REGION ;
+
+      REGION TRASFERIMENTO CIn TRASPORTO 
+          // Trasferimenti status lettura posizioni Trasporto al Cin delle stazioni
+          A0302_Spintore.Cin.Trasporto := A0301_Trasporto.COut.Ax;
+      END_REGION ;
+
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn  >>"
+      REGION TRASFERIMENTO #DataIn STATI OPERATION BUTTON STAZIONE SPINTORE LATERALE 
+          // PB FERMI VERTICALI
+          A0302_Spintore.DataIn.OP.Rest := A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Rest;
+          A0302_Spintore.DataIn.OP.Work := A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Work;
+      END_REGION ;
+
+      REGION TRASFERIMENTO STATO LETTURA SENSORI SPINTORE 
+           
+          A0302_Spintore.DataIn.P5.Orz_AnalSens := A0302_AI_Ammortizatore_Posizionamento;
+          A0302_Spintore.DataIn.P5.FTC_FuoriIngombro_A0301 := A0302_Bordatrice_Banco_4_Lato_1_Phc_AtEntry;
+          
+      END_REGION ;
+
+   END_REGION
+
+   REGION "<< DataIn Ax - Asse Spintore pezzo >>"
+      A0302_Spintore.Ax.DataIn.LS_Minus := NOT (A0302_SpintoreLongitudinale_Ls_Minimo);
+      A0302_Spintore.Ax.DataIn.LS_Plus := NOT (A0302_SpintoreLongitudinale_Ls_Massimo);
+   END_REGION
+
+   REGION "<< DataIn PB - Sollevatore spintore Verticale >>"
+      A0302_Spintore.Vrt.DataIn.Rest_Ls[1] := A0302_SpintoreLongitudinale_Verticale_Ls_Rest_1;
+      A0302_Spintore.Vrt.DataIn.Work_Ls[1] := A0302_SpintoreLongitudinale_Verticale_Ls_Work_1;
+   END_REGION
+
+   REGION "<< DataIn PB - Cilindro compensatore Orizzontale >>"
+      A0302_Spintore.Orz.DataIn.Rest_Ls[1] := A0302_SpintoreLongitudinale_Orizzontale_Ls_Rest_2;
+      A0302_Spintore.Orz.DataIn.Work_Ls[1] := A0302_SpintoreLongitudinale_Orizzontale_Ls_Work_2;
+   END_REGION
+
+   REGION "DSI"
+      //
+      A0302_Spintore.DSI_Feed := F_DB.DSI_Spintore;
+      A0302_Spintore.DSI_Valve := F_DB.DSI_V_Air_A0301_A0302;
+
+   END_REGION
+
+   REGION "HW"
+      A0302_Spintore.HWID_Ax_TEL111 := HW_Const_Values.CU5_PN_1560A1_2_Standard_telegram_1_2;
+
+   END_REGION
+
+   REGION "Drive"
+      //
+      A0302_Spintore.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0302_Spintore.Drive.AccessPoint :=  HW_Const_Values.CU5_PN_600A1_ModuleAccessPoint;
+      A0302_Spintore.Drive.AxisID := CU5_ID_6_1560A1_2_1600M1;
+      A0302_Spintore.Drive.TokenChain := TOKENCHAIN_CU5;
+
+   END_REGION
+
+   REGION "[Spintore Longitudinale] - Machine Call"
+      #A0302_Spintore(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone23,
+         DSI_Feed := F_DB.DSI_Spintore,
+         DSI_Valve := F_DB.DSI_V_Air_A0301_A0302,
+         Config := PrjConfig_A03.A0302.Spintore,
+         Par := A0302_Spintore_PERS.Par,
+         Data := A0302_Spintore_PERS.Data,
+         Par_Mach := A0302_Spintore_PERS.Par_Mach,
+         Par_Ax_Manu := A0302_Spintore_PERS.Par_Ax_Manu,
+         Pers_Data := A0302_Spintore_PERS.Pers_Data,
+         Par_Ax_Auto := A0302_Spintore_PERS.Par_Ax_Auto
+      );
+
+   END_REGION
+
+   REGION "<< DataOut - Sollevatore Verticale Spintore >>"
+      A0302_SpintoreLongitudinale_Orizzontale_V_Rest_1 := A0302_Spintore.Vrt.DataOut.RestSolenoid;
+      A0302_SpintoreLongitudinale_Orizzontale_V_Work_1 := A0302_Spintore.Vrt.DataOut.WorkSolenoid;
+   END_REGION
+
+   REGION "<< DataOut - Cilindro compensatore Orizzontale >>"
+      A0302_SpintoreLongitudinale_Orizzontale_V_Rest_2 := A0302_Spintore.Orz.DataOut.RestSolenoid;
+      A0302_SpintoreLongitudinale_Orizzontale_V_Work_2 := A0302_Spintore.Orz.DataOut.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

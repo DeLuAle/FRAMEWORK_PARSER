@@ -1,0 +1,170 @@
+﻿FUNCTION_BLOCK "Prod_O_Update_Stato_Pacchi_Mng"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_IN_OUT 
+      Err_Msg201 : "MES_Err_&_Msg";
+      Err_Msg211 : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR 
+      Pacco_Preparazione : Struct
+         Exe_Msg201 : Bool;
+         A0303_Preparation_Beam_Qty_Save : Int;
+         A303_Transfert_Beams_Qty_Save : Int;
+         A303_Stacker_Beams_Qty_Save : Int;
+      END_STRUCT;
+      Pacco_Uscita : Struct
+         Exe_Msg211 : Bool;
+         A304_Beams_Qty_Save : Int;
+         NavettaInReggiatura_Save : Bool;
+         ReggiaturaConclusa_Save : Bool;
+         PaccoRimosso_Save : Bool;
+      END_STRUCT;
+      Update_Stato_Pacco_Preparazione_Push_MSG201 : "Prod_O_Update_Stato_Pacco_Preparazione_Push_MSG201";
+      Update_Stato_Pacco_Preparazione_Push_MSG211 : "Prod_O_Update_Stato_Pacco_Uscita_Push_MSG211";
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      j : Int;
+   END_VAR
+
+
+BEGIN
+	
+	REGION Stati pacco su baia di preparazione
+	   
+	   
+	   
+	    "BTrk".A0303.Stacker.Beams_Qty := 0;
+	   
+	    IF "BTrk".A0303.Stacker.O_ID > 0 THEN
+	        
+	        FOR #j := 1 TO "BTRK_LAYER_ITEMS" DO
+	            FOR #i := 1 TO "BTRK_LAYER_ITEMS" DO
+	                IF "BTrk".A0303.Stacker.Layers[#j].Layer[#i].B_ID > 0
+	                THEN
+	                    "BTrk".A0303.Stacker.Beams_Qty += 1;
+	                END_IF;
+	            END_FOR;
+	            
+	        END_FOR;
+	        
+	        IF "BTrk".A0303.Stacker.Beams_Qty > 0 THEN
+	            
+	            IF "BTrk".A0303.Stacker.Beams_Qty <> #Pacco_Preparazione.A303_Stacker_Beams_Qty_Save THEN
+	                #Pacco_Preparazione.Exe_Msg201 := TRUE;
+	            END_IF;
+	        END_IF;
+	        
+	        #Pacco_Preparazione.A303_Stacker_Beams_Qty_Save := "BTrk".A0303.Stacker.Beams_Qty;
+	        
+	        #Pacco_Preparazione.A303_Transfert_Beams_Qty_Save := 0;
+	        #Pacco_Preparazione.A0303_Preparation_Beam_Qty_Save := 0;
+	        
+	        
+	    ELSIF "BTrk".A0303.Transfert.O_ID> 0 THEN
+	        
+	        IF "BTrk".A0303.Transfert.Beams_Qty > 0 THEN
+	            
+	            IF "BTrk".A0303.Transfert.Beams_Qty <> #Pacco_Preparazione.A303_Transfert_Beams_Qty_Save THEN
+	                #Pacco_Preparazione.Exe_Msg201 := TRUE;
+	            END_IF;
+	            
+	        END_IF;
+	        
+	        #Pacco_Preparazione.A303_Transfert_Beams_Qty_Save := "BTrk".A0303.Transfert.Beams_Qty;
+	        #Pacco_Preparazione.A303_Stacker_Beams_Qty_Save := 0;
+	        #Pacco_Preparazione.A0303_Preparation_Beam_Qty_Save := 0;
+	        
+	        
+	    ELSIF "BTrk".A0303.Preparation.O_ID > 0 THEN
+	        
+	        IF "BTrk".A0303.Preparation.Beam_Qty > 0 THEN
+	            
+	            IF "BTrk".A0303.Preparation.Beam_Qty <> #Pacco_Preparazione.A0303_Preparation_Beam_Qty_Save THEN
+	                #Pacco_Preparazione.Exe_Msg201 := TRUE;
+	            END_IF;
+	        END_IF;
+	        #Pacco_Preparazione.A0303_Preparation_Beam_Qty_Save := "BTrk".A0303.Preparation.Beam_Qty;
+	        #Pacco_Preparazione.A303_Stacker_Beams_Qty_Save := 0;
+	        #Pacco_Preparazione.A303_Transfert_Beams_Qty_Save := 0;
+	        
+	    END_IF;
+	    
+	    
+	    
+	    #Update_Stato_Pacco_Preparazione_Push_MSG201(Exe := #Pacco_Preparazione.Exe_Msg201, Msg201_Err := #Err_Msg201);
+	
+	END_REGION
+	
+	
+	REGION Stato pacco su baia di uscita
+	    
+	    
+	    "BTrk".A0304.Beams_Qty := 0;
+	    
+	    IF "BTrk".A0304.O_ID > 0 THEN
+	        
+	        FOR #j := 1 TO "BTRK_LAYER_ITEMS" DO
+	            FOR #i := 1 TO "BTRK_LAYER_ITEMS" DO
+	                IF "BTrk".A0304.Layers[#j].Layer[#i].B_ID > 0
+	                THEN
+	                    "BTrk".A0304.Beams_Qty += 1;
+	                END_IF;
+	            END_FOR;
+	                
+	        END_FOR;
+	        
+	        
+	        
+	        IF "BTrk".A0304.Beams_Qty > 0 THEN
+	            
+	            IF "BTrk".A0304.Beams_Qty <> #Pacco_Uscita.A304_Beams_Qty_Save THEN
+	                #Pacco_Uscita.Exe_Msg211 := TRUE;
+	            END_IF;
+	            
+	            IF "BTrk".A0304.NavettaInReggiatura AND NOT #Pacco_Uscita.NavettaInReggiatura_Save THEN
+	                #Pacco_Uscita.NavettaInReggiatura_Save := TRUE;
+	                #Pacco_Uscita.Exe_Msg211 := TRUE;
+	            END_IF;
+	            
+	            IF "BTrk".A0304.ReggiaturaConclusa AND NOT #Pacco_Uscita.ReggiaturaConclusa_Save THEN
+	                #Pacco_Uscita.ReggiaturaConclusa_Save := TRUE;
+	                #Pacco_Uscita.Exe_Msg211 := TRUE;
+	            END_IF;
+	            
+	            IF "BTrk".A0304.PaccoRimosso AND NOT #Pacco_Uscita.PaccoRimosso_Save THEN
+	                #Pacco_Uscita.PaccoRimosso_Save := TRUE;
+	                #Pacco_Uscita.Exe_Msg211 := TRUE;
+	            END_IF;
+	            
+	        ELSE
+	            #Pacco_Uscita.NavettaInReggiatura_Save := FALSE;
+	            #Pacco_Uscita.ReggiaturaConclusa_Save := FALSE;
+	            #Pacco_Uscita.PaccoRimosso_Save := FALSE;
+	        END_IF;
+	        
+	        #Pacco_Uscita.A304_Beams_Qty_Save := "BTrk".A0304.Beams_Qty;
+	        
+	        
+	        
+	    ELSE
+	        #Pacco_Uscita.NavettaInReggiatura_Save := FALSE;
+	        #Pacco_Uscita.ReggiaturaConclusa_Save := FALSE;
+	        #Pacco_Uscita.PaccoRimosso_Save := FALSE;
+	    END_IF;
+	    
+	    
+	    
+	    #Update_Stato_Pacco_Preparazione_Push_MSG211(Exe        := #Pacco_Uscita.Exe_Msg211,
+	                                                 Msg211_Err := #Err_Msg211);
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+END_FUNCTION_BLOCK
+

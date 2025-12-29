@@ -1,0 +1,101 @@
+﻿FUNCTION_BLOCK "Push_MSG431_Update_Scarto_Fine_Lamiera"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PTrk_FAKE : "PTrk_Item";
+      PT_RETRY : Time := T#5s;
+   END_VAR
+
+   VAR_IN_OUT 
+      Execute : Bool;
+      Msg431_Err : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR 
+      Msg431_Send : Struct
+         Status : Int;
+         Exe : Bool;
+         RETVAL : DInt;
+         TON_Retry {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT 
+      MSG_XXX_SEND_IDLE : Int := 0;
+      MSG_XXX_SEND_EXE : Int := 1;
+      MSG_XXX_SEND_PAUSE : Int := 2;
+   END_VAR
+
+
+BEGIN
+	
+	
+	REGION PUSH MSG411
+	    
+	(*
+	PLC → MES – Topic = 431: Invio dati materiale scartato
+	*)
+	    
+	    
+	    CASE #Msg431_Send.Status OF
+	            
+	        #MSG_XXX_SEND_IDLE:
+	            
+	            
+	            IF #Execute THEN
+	                #Msg431_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            RETURN;
+	            
+	            
+	        #MSG_XXX_SEND_EXE:
+	            
+	            
+	           #Msg431_Send.RETVAL := "MES_Msg431_Push"(PTrk := #PTrk_FAKE, BTrk := "BTrk".Empty, Err := #Msg431_Err);
+	            
+	            
+	            IF #Msg431_Send.RETVAL < "PROD_FUN_RESULT_OK" THEN
+	                
+	                #Msg431_Send.TON_Retry (IN := FALSE,
+	                                        PT := #PT_RETRY);
+	                
+	                #Msg431_Send.Status := #MSG_XXX_SEND_PAUSE;
+	                
+	                RETURN;
+	                
+	            END_IF;
+	            
+	            #Execute := FALSE;
+	            
+	            #Msg431_Send.Status := #MSG_XXX_SEND_IDLE;
+	            
+	            
+	            RETURN;
+	            
+	            
+	            
+	        #MSG_XXX_SEND_PAUSE:
+	            
+	            
+	            #Msg431_Send.TON_Retry (IN := TRUE,
+	            PT := #PT_RETRY);
+	            
+	            
+	            IF #Msg431_Send.TON_Retry.Q THEN
+	                #Msg431_Send.Status := #MSG_XXX_SEND_IDLE;
+	            END_IF;
+	            
+	            
+	        ELSE
+	            
+	            #Msg431_Send.Status := #MSG_XXX_SEND_IDLE;
+	            
+	    END_CASE;
+	END_REGION
+	
+	
+	
+END_FUNCTION_BLOCK
+

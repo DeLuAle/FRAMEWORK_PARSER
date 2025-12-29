@@ -1,0 +1,28 @@
+﻿TYPE "udt_FsParameter"
+VERSION : 0.1
+// Block: udt_FsParameter
+   STRUCT
+      WorkMode : UInt;
+      Positions : Struct
+         HomePosition : LReal;
+         WorkEnablePosition : LReal;
+         ReturnEnablePosition : LReal;
+         StillCutPosition : LReal;
+      END_STRUCT;
+      ToolCycleTime : LReal;
+      FollowingErrorWindow : LReal;
+      DwellTimeErrorWindow : Time;
+      ErrorTimeout : Time;
+      BladeDetachValue : LReal;
+      BladeDetachVelocity : LReal;
+      SyncDinamics : Struct
+         Acceleration : LReal;
+         Jerk : LReal;
+         ReturnVelocity : LReal;
+         StartAdvanceSpace : LReal;
+         SyncLag : LReal;
+         ExtraSpeed : Real;
+      END_STRUCT;
+   END_STRUCT;
+
+END_TYPE

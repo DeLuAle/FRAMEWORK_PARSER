@@ -1,0 +1,794 @@
+﻿// Block: MwFakCalc_FB
+// Title: Reset alarms command
+
+FUNCTION_BLOCK "MwFakCalc_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms command
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         PushAx : udt_DeviceSafetyInterface;
+         Gripper : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : Struct
+         PushAx : TAx_DriveInterface;
+      END_STRUCT;
+      HWID : Struct
+         PushAx_TEL1 : HW_SUBMODULE;
+      END_STRUCT;
+      DataIn : Struct
+         MaterialPresenceEntry : Bool;
+         MaterialPresenceExit : Bool;
+         MaterialJam : Bool;
+         PushAx_Ls_HomeFwd : Bool;
+         PushAx_Ls_RestBwd : Bool;
+         PushAx_Ls_LowSpeedHome : Bool;
+         PushAx_Ls_LowSpeedRest : Bool;
+         PushAx_Ls_Touch : Bool;
+         Gripper_Ls_ForceOpen : Bool;
+         PushAx : SpeedMachine_DataIn;
+         Gripper : ValveMachine_DataIn;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+         END_STRUCT;
+         Rollformer_Standstill : Bool;
+         Rollformer_CheckNextFwd : Bool;
+         Rollformer_CheckNextBwd : Bool;
+         MW_ActualFAK : LReal;
+         SemiAut_And_ButtonPressed : Bool;
+         PostServo_MeasuredValueG : LReal;
+         PostServo_MeasuredValueW : LReal;
+         PostServo_MeasuredID : UInt;
+      END_STRUCT;
+      Config : Struct
+         PushAx : SpeedMachine_Config;
+         Gripper : ValveMachine_Config;
+         MaterialPresenceDly : Time;
+         MaterialAbsenceDly : Time;
+         PushAx_FwdTimeout : Time;
+         PushAx_BwdTimeout : Time;
+         Default_FAK : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         PushAx : SpeedMachine_DataOut;
+         Gripper : ValveMachine_DataOut;
+         MeasInput_ExeReg : Bool;
+      END_STRUCT;
+      COut : Struct
+         PushAx : SpeedMachine_COut;
+         Gripper : ValveMachine_COut;
+         StopMaterialFeeding : Bool;
+         MW_FAK_ChangeIsRequest : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : udt_MwFacCalc_Pers;
+      TO_Gripper_Encoder : TO_ExternalEncoder;
+      TO_Gripper_MeasInput : TO_MeasuringInput;
+      TO_Wheel_MeasInput : TO_MeasuringInput;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         PushAx : Struct
+            LowSpeedRest : Bool;
+            LowSpeedHome : Bool;
+         END_STRUCT;
+         Gripper : Struct
+            OffsetPos : LReal;
+            PosRel : LReal;
+         END_STRUCT;
+         AlarmPresence : Bool;
+         Status : Int;
+         MW_FAK_ChangeIsRequest : Bool;
+         AverageFAKIsValid : Bool;
+         WheelMeasInp_SaveIdLastPosEdge : UInt;
+         GripperMeasInp_SaveIdLastPosEdge : UInt;
+         GripperMeasInp_LastID : UInt;
+         WheelMeasInp_LastID : UInt;
+         PostServo_LastID : UInt;
+      END_STRUCT;
+      Ctrl : Struct
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         MeasuringStart : Bool;
+         MeasInp_Enable : Bool;
+         Meas1_Exe : Bool;
+         Meas2_Exe : Bool;
+         Gripper_RollformerForceOpen : Bool;
+         Gripper_AutOpen : Bool;
+         Gripper_AutClose : Bool;
+         PushAx_AutFwd : Bool;
+         PushAx_AutBwd : Bool;
+         Rollformer_FwdEnable : Bool;
+         Rollformer_BkwWnable : Bool;
+         Rollformer_FastStop : Bool;
+      END_STRUCT;
+      Alarm : Struct
+         PushAx_UnvalidStateLsZeroRest : Bool;
+         PushAx_UnvalidStateLsLow : Bool;
+         PushAx_LowSpeedHome_NotEngaged : Bool;
+         PushAx_LowSpeedRest_NotEngaged : Bool;
+         PushAx_TimeoutFwd : Bool;
+         PushAx_TimeoutBwd : Bool;
+         MaterialNoPresence : Bool;
+         MaterialJamEntry : Bool;
+         Meas1RegNotGet : Bool;
+         Meas2RegNotGet : Bool;
+         Gripper_MaxPosExceed : Bool;
+         PushAx : SpeedMachine_Alr;
+         Gripper : ValveAlr;
+         Gripper_Encoder : TExtEncoder_Alarms;
+         Gripper_MeasInput : TMeasuring_Alarms;
+         Wheel_MeasInput : TMeasuring_Alarms;
+      END_STRUCT;
+      Warning : Struct
+         PushAx : SpeedMachine_Wng;
+         Gripper : ValveMachine_Wng;
+         MaterialNoPrresence : Bool;
+      END_STRUCT;
+      Diag : Struct
+         Gripper_Encoder : TO_Diagnostic;
+         Gripper_MeasInput : TO_Diagnostic;
+         Wheel_MeasInput : TO_Diagnostic;
+      END_STRUCT;
+      PushAx : SpeedMachine_FB;
+      Gripper : ValveMachine_FB;
+      Gripper_MeasInp : MeasuringInput;
+      Wheel_MeasInp : MeasuringInput;
+      MeasRegIEmpty : udt_MwFacCalc_RegItem;
+      tonMaterialPresence : TON_TIME;
+      tonMaterialAbsence : TON_TIME;
+      tonPushAxFwd : TON_TIME;
+      tonPushAxBwd : TON_TIME;
+      tonRollformer_BwdCheckNext : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+      Delta_W : LReal;
+      Delta_G : LReal;
+      FAK_Acc : LReal;
+      Tol : LReal;
+      LongerPartLength_ActualFAK : LReal;
+      LongerPartLength_NewFAK : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms command"
+
+      IF AreaInterface.RstAlarms THEN
+          // Alarms
+          Alarm.PushAx_UnvalidStateLsZeroRest := FALSE;
+          Alarm.PushAx_UnvalidStateLsLow := FALSE;
+          Alarm.PushAx_LowSpeedHome_NotEngaged := FALSE;
+          Alarm.PushAx_LowSpeedRest_NotEngaged := FALSE;
+          Alarm.PushAx_TimeoutFwd := FALSE;
+          Alarm.PushAx_TimeoutBwd := FALSE;
+          Alarm.MaterialNoPresence := FALSE;
+          Alarm.MaterialJamEntry := FALSE;
+          Alarm.Meas1RegNotGet := FALSE;
+          Alarm.Meas2RegNotGet := FALSE;
+          Alarm.Gripper_MaxPosExceed := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Material Presence"
+      #tonMaterialPresence(
+         IN := (DataIn.MaterialPresenceEntry AND DataIn.MaterialPresenceExit),
+         PT := Config.MaterialPresenceDly
+      );
+
+      #tonMaterialAbsence(
+         IN := NOT ((DataIn.MaterialPresenceEntry AND DataIn.MaterialPresenceExit)),
+         PT := Config.MaterialAbsenceDly
+      );
+
+      IF tonMaterialAbsence.Q THEN
+         PersistentValues.Data.MaterialPresence := FALSE;
+      ELSIF tonMaterialPresence.Q THEN
+         PersistentValues.Data.MaterialPresence := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm Material Presence"
+      Warning.MaterialNoPrresence := NOT (PersistentValues.Data.MaterialPresence);
+      IF (Ctrl.MeasuringStart AND NOT (PersistentValues.Data.MaterialPresence)) THEN
+         Alarm.MaterialNoPresence := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm Material Jam Entry"
+      IF DataIn.MaterialJam THEN
+         Alarm.MaterialJamEntry := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Start measure"
+
+      tonRollformer_BwdCheckNext(IN := CIn.Rollformer_CheckNextBwd,
+                                  PT := T#200ms);
+
+
+      IF (PersistentValues.Par.WorkMode = 0)
+          OR
+          Sts.AlarmPresence
+          OR
+          MachineInterface.AlarmsPresence
+          OR
+          tonRollformer_BwdCheckNext.Q
+          OR
+          NOT PersistentValues.Data.MaterialPresence
+      THEN
+          
+          Ctrl.MeasuringStart := FALSE;
+          
+          
+      ELSIF AreaInterface.Man AND CIn.Rollformer_Standstill AND
+          (DataIn.Gripper.PB.Rest OR DataIn.Gripper.PB.Work OR DataIn.PushAx.PB.Bwd_Minus OR DataIn.PushAx.PB.Fwd_Plus)
+      THEN
+          ;
+          Ctrl.MeasuringStart := FALSE;
+          
+      ELSIF AreaInterface.Man AND CIn.Rollformer_CheckNextFwd THEN
+          Ctrl.MeasuringStart := TRUE;
+          
+      ELSIF AreaInterface.Aut THEN
+          Ctrl.MeasuringStart := TRUE;
+      END_IF;
+
+
+      IF MachineInterface.AlarmsPresence OR (NOT Ctrl.MeasuringStart AND Sts.Status >= 30 AND Sts.Status <= 90) THEN
+          Sts.Status := 90;
+      END_IF;
+
+   END_REGION
+
+   REGION "Sequence"
+
+      CASE Sts.Status OF
+              
+              //INIT
+          0:
+              FOR i := 1 TO MWFAKCALC_REG_MAXITEM DO
+                  PersistentValues.Data.Reg[i] := MeasRegIEmpty;
+              END_FOR;
+              PersistentValues.Data.RegItemsValid := 0;
+              Sts.Status += 1;
+              
+          1 : //IDLE 
+              Ctrl.Gripper_AutOpen := FALSE;
+              Ctrl.Gripper_AutClose := FALSE;
+              Ctrl.PushAx_AutFwd := FALSE;
+              Ctrl.PushAx_AutBwd := FALSE;
+              Ctrl.MeasInp_Enable := FALSE;
+              Ctrl.Meas1_Exe := FALSE;
+              Ctrl.Meas2_Exe := FALSE;
+              
+              IF Ctrl.MeasuringStart THEN
+                  Sts.Status := 30;
+                 
+              ELSIF ((PersistentValues.Par.WorkMode = 0) OR NOT PersistentValues.Data.MaterialPresence) AND
+                  PersistentValues.Data.Reg[1].ID <> 0
+              THEN
+                  Sts.Status := 0;
+              END_IF;
+              
+          30: // Enable measuring input
+              Ctrl.MeasInp_Enable := TRUE;
+              
+              Ctrl.Gripper_AutOpen := TRUE;
+              Ctrl.Gripper_AutClose := FALSE;
+              
+              IF Gripper.COut.Rest AND
+                  Gripper_MeasInp.MeasuringSts.InOperation AND
+                  Wheel_MeasInp.MeasuringSts.InOperation
+              THEN
+                  Sts.Status += 1;
+              END_IF;
+              
+              
+          31://Pusher ax Fwd
+              
+              Ctrl.PushAx_AutBwd := FALSE;
+              
+              IF NOT DataIn.PushAx_Ls_HomeFwd THEN
+                  Ctrl.PushAx_AutFwd := TRUE;
+              ELSE
+                  Ctrl.PushAx_AutFwd := FALSE;
+                  Sts.Status := Sts.Status + 1;
+              END_IF;
+              
+          32: //Pusher ax Bwd
+              
+              Ctrl.PushAx_AutFwd := FALSE;
+              
+              IF NOT DataIn.PushAx_Ls_RestBwd THEN
+                  Ctrl.PushAx_AutBwd := TRUE;
+              ELSE
+                  Ctrl.PushAx_AutBwd := FALSE;
+                  Sts.Status += 1;
+              END_IF;
+              
+          33: // Start measring cycle
+              Ctrl.Meas1_Exe := FALSE;
+              Ctrl.Meas2_Exe := FALSE;
+              
+              Ctrl.Gripper_AutOpen := TRUE;
+              Ctrl.Gripper_AutClose := FALSE;
+              
+              IF Gripper.COut.Rest AND
+                  DataIn.PushAx_Ls_RestBwd
+              THEN
+                  // Fine ciclo con misuratore in "ordine"    
+                  IF NOT Ctrl.MeasuringStart THEN
+                      Sts.Status := 1;
+                      
+                      // Avvio ciclo di misurazione   
+                  ELSE
+                      Ctrl.Gripper_AutClose := TRUE;
+                      Ctrl.Gripper_AutOpen := FALSE;
+                      Sts.Status += 1;
+                  END_IF;
+              END_IF;
+              
+          34: // Command Meas 1
+              
+              IF Gripper.COut.Work AND Sts.Gripper.PosRel > PersistentValues.Par.Gripper_Meas1_PosStart THEN
+                  
+                  Sts.GripperMeasInp_LastID := PersistentValues.Data.GripperMeasID;
+                  Sts.WheelMeasInp_LastID := PersistentValues.Data.WheelMeasID;
+                  Sts.PostServo_LastID := CIn.PostServo_MeasuredID;
+                  
+                  Ctrl.Meas1_Exe := TRUE;
+                  Sts.Status += 1;
+              END_IF;
+              
+          35: // Detect Meas 1
+              
+              IF Sts.GripperMeasInp_LastID <> PersistentValues.Data.GripperMeasID AND
+                  Sts.WheelMeasInp_LastID <> PersistentValues.Data.WheelMeasID AND
+                  CIn.PostServo_MeasuredID <> Sts.PostServo_LastID
+              THEN
+                  Ctrl.Meas1_Exe := FALSE;
+                  
+                  IF PersistentValues.Data.RegID <= 0 THEN
+                      PersistentValues.Data.RegID := 1;
+                  END_IF;
+                  
+                  // Shift in basso per liberare prima posizione
+                  i := MWFAKCALC_REG_MAXITEM - 1;
+                  
+                  WHILE i >= 1 DO
+                      PersistentValues.Data.Reg[i + 1] := PersistentValues.Data.Reg[i];
+                      i -= 1;
+                  END_WHILE;
+                  
+                  // Cancellazione vecchi valori
+                  PersistentValues.Data.Reg[1] := MeasRegIEmpty;
+                  
+                  // Iserimento valori inizio misurazione
+                  PersistentValues.Data.Reg[1].ID := PersistentValues.Data.RegID;
+                  PersistentValues.Data.Reg[1].TP_W_Meas1Reg.ID := PersistentValues.Data.WheelMeasID;
+                  PersistentValues.Data.Reg[1].TP_W_Meas1Reg.Position := Wheel_MeasInp.MeasuringSts.MeasuringValue1;
+                  PersistentValues.Data.Reg[1].TP_G_Meas1Reg.ID := PersistentValues.Data.GripperMeasID;
+                  PersistentValues.Data.Reg[1].TP_G_Meas1Reg.Position := Gripper_MeasInp.MeasuringSts.MeasuringValue1;
+                  
+                  //Measured Post servo
+                  PersistentValues.Data.Reg[1].PS_W_Meas1Reg.ID := CIn.PostServo_MeasuredID;
+                  PersistentValues.Data.Reg[1].PS_W_Meas1Reg.Position := CIn.PostServo_MeasuredValueW;
+                  PersistentValues.Data.Reg[1].PS_G_Meas1Reg.ID := CIn.PostServo_MeasuredID;
+                  PersistentValues.Data.Reg[1].PS_G_Meas1Reg.Position := CIn.PostServo_MeasuredValueG;
+                  
+                  PersistentValues.Data.RegID += 1;
+                  
+                  Sts.WheelMeasInp_SaveIdLastPosEdge := PersistentValues.Data.Reg[1].TP_W_Meas1Reg.ID;
+                  Sts.GripperMeasInp_SaveIdLastPosEdge := PersistentValues.Data.Reg[1].TP_G_Meas1Reg.ID;
+                  Sts.Status += 1;
+                  
+              ELSIF Sts.Gripper.PosRel > PersistentValues.Par.Gripper_Meas1_DonePosLim THEN
+                  Alarm.Meas1RegNotGet := TRUE;
+                  A02_DEBUG.MwFakCalc.GripperPosRel := Sts.Gripper.PosRel;
+                  Sts.Status := 90;
+                  
+              END_IF;
+              
+          36: //Command Meas 2
+              IF Gripper.COut.Work AND Sts.Gripper.PosRel > PersistentValues.Par.Gripper_Meas2_PosStart THEN
+                  Sts.GripperMeasInp_LastID := PersistentValues.Data.GripperMeasID;
+                  Sts.WheelMeasInp_LastID := PersistentValues.Data.WheelMeasID;
+                  Sts.PostServo_LastID := CIn.PostServo_MeasuredID;
+                  
+                  Ctrl.Meas2_Exe := TRUE;
+                  Sts.Status += 1;
+              END_IF;
+              
+              
+          37: //Detect Meas 2
+              IF  Sts.GripperMeasInp_LastID <> PersistentValues.Data.GripperMeasID AND
+                  Sts.WheelMeasInp_LastID <> PersistentValues.Data.WheelMeasID AND
+                  CIn.PostServo_MeasuredID <> Sts.PostServo_LastID
+              THEN
+                  
+                  // Inserimento valori fine misurazione  
+                  PersistentValues.Data.Reg[1].TP_W_Meas2Reg.ID := PersistentValues.Data.WheelMeasID;
+                  PersistentValues.Data.Reg[1].TP_W_Meas2Reg.Position := Wheel_MeasInp.MeasuringSts.MeasuringValue1;
+                  PersistentValues.Data.Reg[1].TP_G_Meas2Reg.ID := PersistentValues.Data.GripperMeasID;
+                  PersistentValues.Data.Reg[1].TP_G_Meas2Reg.Position := Gripper_MeasInp.MeasuringSts.MeasuringValue1;
+                  
+                  //Measured Post servo
+                  PersistentValues.Data.Reg[1].PS_W_Meas2Reg.ID := CIn.PostServo_MeasuredID;
+                  PersistentValues.Data.Reg[1].PS_W_Meas2Reg.Position := CIn.PostServo_MeasuredValueW;
+                  PersistentValues.Data.Reg[1].PS_G_Meas2Reg.ID := CIn.PostServo_MeasuredID;
+                  PersistentValues.Data.Reg[1].PS_G_Meas2Reg.Position := CIn.PostServo_MeasuredValueG;
+                  
+                  Sts.Status += 1;
+                  
+              ELSIF Sts.Gripper.PosRel > PersistentValues.Par.Gripper_Meas2_DonePosLim THEN
+                  Alarm.Meas2RegNotGet := TRUE;
+                  Sts.Status := 90;
+                  
+              END_IF;
+              
+          38: //Caluclate Average FAK
+              
+              Delta_W := M_PosAMinusPosB(PosA := PersistentValues.Data.Reg[1].TP_W_Meas2Reg.Position, PosB := PersistentValues.Data.Reg[1].TP_W_Meas1Reg.Position, MODULE := MATERIAL_COUNTERS_MODULE);
+              Delta_G := PersistentValues.Data.Reg[1].TP_G_Meas2Reg.Position - PersistentValues.Data.Reg[1].TP_G_Meas1Reg.Position;
+              PersistentValues.Data.Reg[1].TP_DeltaW := Delta_W;
+              PersistentValues.Data.Reg[1].TP_DeltaG := Delta_G;
+              
+              IF Delta_W <> 0 AND Delta_G <> 0 THEN
+                  PersistentValues.Data.Reg[1].FAK := Delta_G / Delta_W;
+              ELSE
+                  PersistentValues.Data.Reg[1].FAK := 0.0;
+              END_IF;
+              
+              
+              //Post servo average FAK
+              Delta_W := M_PosAMinusPosB(PosA := PersistentValues.Data.Reg[1].PS_W_Meas2Reg.Position, PosB := PersistentValues.Data.Reg[1].PS_W_Meas1Reg.Position, MODULE := MATERIAL_COUNTERS_MODULE);
+              Delta_G := PersistentValues.Data.Reg[1].PS_G_Meas2Reg.Position - PersistentValues.Data.Reg[1].PS_G_Meas1Reg.Position;
+              PersistentValues.Data.Reg[1].PS_DeltaW := Delta_W;
+              PersistentValues.Data.Reg[1].PS_DeltaG := Delta_G;
+              
+              IF Delta_W <> 0 AND Delta_G <> 0 THEN
+                  PersistentValues.Data.Reg[1].FAK_PS := Delta_G / Delta_W;
+              ELSE
+                  PersistentValues.Data.Reg[1].FAK_PS := 0.0;
+              END_IF;
+              
+              
+              PersistentValues.Data.RegItemsValid := 0;
+              FAK_Acc := 0;
+              
+              
+              FOR i := 1 TO MWFAKCALC_REG_MAXITEM DO
+                  IF PersistentValues.Data.Reg[i].FAK > FAK_MIN_VALUE AND PersistentValues.Data.Reg[i].FAK < FAK_MAX_VALUE
+                  THEN
+                      PersistentValues.Data.RegItemsValid := PersistentValues.Data.RegItemsValid + 1;
+                      FAK_Acc := FAK_Acc + PersistentValues.Data.Reg[i].FAK;
+                  END_IF;
+                  
+                  IF PersistentValues.Data.RegItemsValid > 0
+                  THEN
+                      PersistentValues.Data.AverageFAK := FAK_Acc / PersistentValues.Data.RegItemsValid;
+                  ELSE
+                      PersistentValues.Data.AverageFAK := Config.Default_FAK;
+                  END_IF;
+              END_FOR;
+              
+              Ctrl.Gripper_AutOpen := TRUE;
+              Ctrl.Gripper_AutClose := FALSE;
+              Ctrl.Meas2_Exe := FALSE;
+              
+              Sts.Status := 30;
+              
+
+          90: // STOP
+              
+              Ctrl.Gripper_AutOpen := NOT Gripper.COut.Rest;
+              Ctrl.Gripper_AutClose := FALSE;
+              Ctrl.PushAx_AutBwd := FALSE;
+              Ctrl.PushAx_AutFwd := FALSE;
+              
+              IF NOT MachineInterface.AlarmsPresence AND Gripper.COut.Rest THEN
+                  Sts.Status := 1;
+              END_IF;
+      END_CASE;
+
+   END_REGION
+
+   REGION "Caluclate new FAK"
+
+      // Se il calcolo della media non è corretto è assegnato il valore di default !
+      IF PersistentValues.Data.RegItemsValid < 1 OR PersistentValues.Data.AverageFAK <= FAK_MIN_VALUE OR PersistentValues.Data.AverageFAK >= FAK_MAX_VALUE
+      THEN
+          PersistentValues.Data.AverageFAK := Config.Default_FAK;
+      END_IF;
+
+
+      Sts.AverageFAKIsValid := PersistentValues.Data.RegItemsValid >= 1 AND PersistentValues.Data.AverageFAK > FAK_MIN_VALUE AND PersistentValues.Data.AverageFAK < FAK_MAX_VALUE;
+
+      IF Sts.AverageFAKIsValid THEN
+          LongerPartLength_NewFAK := P_LEN_MAX * PersistentValues.Data.AverageFAK;
+          
+          IF CIn.Rollformer_Standstill AND NOT CIn.SemiAut_And_ButtonPressed
+          THEN
+              Tol := 0.01;
+          ELSE
+              Tol := 0.1;
+          END_IF;
+          
+          // Il FAK deve essere cambiato sulla ruota di misura MLC per mantenere l'errore di misura inferiore a 0.1 mm
+          LongerPartLength_ActualFAK := P_LEN_MAX * CIn.MW_ActualFAK;
+          
+          Sts.MW_FAK_ChangeIsRequest := (LongerPartLength_NewFAK - LongerPartLength_ActualFAK) > Tol;
+      ELSE
+          Sts.MW_FAK_ChangeIsRequest := FALSE;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Gripper relative position"
+      // Posizione pinza relativa..si azzera quando la pinza è sul fc di home
+      IF DataIn.PushAx_Ls_LowSpeedHome OR DataIn.PushAx_Ls_HomeFwd
+      THEN
+          Sts.Gripper.OffsetPos := TO_Gripper_Encoder.ActualPosition;
+      END_IF;
+
+      Sts.Gripper.PosRel := TO_Gripper_Encoder.ActualPosition - Sts.Gripper.OffsetPos;
+
+
+   END_REGION
+
+   REGION "Control"
+      MwFacCalc_GripperEnc.EncoderCtrl.Rst := AreaInterface.RstAlarms;
+
+   END_REGION
+
+   REGION "Manager"
+      #MwFacCalc_GripperEnc(
+         en := TRUE,
+         TO_Encoder := TO_Gripper_Encoder,
+         Alarm := Alarm.Gripper_Encoder,
+         Diag := Diag.Gripper_Encoder
+      );
+
+   END_REGION
+
+   REGION "Control"
+      Gripper_MeasInp.MeasuringCtrl.Rst := AreaInterface.RstAlarms;
+      Gripper_MeasInp.MeasuringCtrl.MeasureEnable := Ctrl.MeasInp_Enable;
+      Gripper_MeasInp.MeasuringCtrl.Mode := 0;
+
+   END_REGION
+
+   REGION "Manager"
+      #Gripper_MeasInp(
+         en := TRUE,
+         TO_Measuring := TO_Gripper_MeasInput,
+         Alarm := Alarm.Gripper_MeasInput,
+         Diag := Diag.Gripper_MeasInput,
+         Trigger_ID := PersistentValues.Data.GripperMeasID
+      );
+
+   END_REGION
+
+   REGION "Control"
+      Wheel_MeasInp.MeasuringCtrl.Rst := AreaInterface.RstAlarms;
+      Wheel_MeasInp.MeasuringCtrl.MeasureEnable := Ctrl.MeasInp_Enable;
+      Wheel_MeasInp.MeasuringCtrl.Mode := 0;
+
+   END_REGION
+
+   REGION "Manager"
+      #Wheel_MeasInp(
+         en := TRUE,
+         TO_Measuring := TO_Wheel_MeasInput,
+         Alarm := Alarm.Wheel_MeasInput,
+         Diag := Diag.Wheel_MeasInput,
+         Trigger_ID := PersistentValues.Data.WheelMeasID
+      );
+
+   END_REGION
+
+   REGION "Alarm: Invalid state of inline/outline limit switches"
+      IF (DataIn.PushAx_Ls_RestBwd AND DataIn.PushAx_Ls_HomeFwd) THEN
+         Alarm.PushAx_UnvalidStateLsZeroRest := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm: Invalid state of low speed limit switches"
+      IF ((DataIn.PushAx_Ls_LowSpeedRest AND DataIn.PushAx_Ls_LowSpeedHome) OR (DataIn.PushAx_Ls_LowSpeedRest AND DataIn.PushAx_Ls_HomeFwd) OR (DataIn.PushAx_Ls_LowSpeedHome AND DataIn.PushAx_Ls_RestBwd)) THEN
+         Alarm.PushAx_UnvalidStateLsLow := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm Slow speed not engaged"
+      IF (DataIn.PushAx_Ls_HomeFwd AND NOT (DataIn.PushAx_Ls_LowSpeedHome)) THEN
+         Alarm.PushAx_LowSpeedHome_NotEngaged := TRUE;
+      END_IF;
+      IF (DataIn.PushAx_Ls_RestBwd AND NOT (DataIn.PushAx_Ls_LowSpeedRest)) THEN
+         Alarm.PushAx_LowSpeedRest_NotEngaged := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm time out Fwd Bwd"
+      #tonPushAxFwd(
+         IN := PushAx.COut.Fwd_Running,
+         PT := Config.PushAx_FwdTimeout
+      );
+
+      #tonPushAxBwd(
+         IN := PushAx.COut.Bwd_Running,
+         PT := Config.PushAx_BwdTimeout
+      );
+
+      IF #tonPushAxFwd.Q THEN
+         Alarm.PushAx_TimeoutFwd := TRUE;
+      END_IF;
+      IF #tonPushAxBwd.Q THEN
+         Alarm.PushAx_TimeoutBwd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Move is in low speed"
+      Sts.PushAx.LowSpeedRest := (PushAx.S120.AxisCtrl.MoveMinus AND DataIn.PushAx_Ls_LowSpeedRest);
+      Sts.PushAx.LowSpeedHome := ((PushAx.S120.AxisCtrl.MovePlus AND DataIn.PushAx_Ls_LowSpeedHome) OR (PushAx.S120.AxisCtrl.MovePlus AND NOT (DataIn.PushAx_Ls_Touch)));
+   END_REGION
+
+   REGION "Cin (Manager stop)"
+      PushAx.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      PushAx.CIn.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+      PushAx.CIn.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "CIn (Manager)"
+      PushAx.CIn.Manager.Control_ON := Ctrl.MeasuringStart;
+      PushAx.CIn.Manager.Bwd := ((Ctrl.PushAx_AutBwd AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed));
+      PushAx.CIn.Manager.Fwd := ((Ctrl.PushAx_AutFwd AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed));
+   END_REGION
+
+   REGION "Cin Dynamic"
+
+      //Automatic 
+      IF Sts.PushAx.LowSpeedRest OR Sts.PushAx.LowSpeedHome THEN
+          PushAx.CIn.Manager.Vel := PersistentValues.Par.PushAx_Aut_VelLow;
+      ELSE
+          PushAx.CIn.Manager.Vel := PersistentValues.Par.PushAx_Aut_VelHigh;
+      END_IF;
+      PushAx.CIn.Manager.Acc := PersistentValues.Par.PushAx_Aut_Acc;
+      PushAx.CIn.Manager.Dec := PersistentValues.Par.PushAx_Aut_Dec;
+
+
+      //Manual
+      PushAx.CIn.EnableManChangeVel := NOT Sts.PushAx.LowSpeedRest AND NOT Sts.PushAx.LowSpeedHome;
+      PersistentValues.Par.PushAx.Man.DelayChangeVel := T#1mS;
+
+   END_REGION
+
+   REGION "CIn (External enables)"
+      PushAx.CIn.Fwd_ExtEnable := (Gripper.COut.Rest AND NOT (DataIn.PushAx_Ls_HomeFwd));
+      PushAx.CIn.Bwd_ExtEnable := (Gripper.COut.Rest AND NOT (DataIn.PushAx_Ls_RestBwd));
+   END_REGION
+
+   REGION "External alarm"
+      PushAx.CIn.ExternalAlarms := NOT ((((((NOT (Alarm.PushAx_UnvalidStateLsZeroRest) AND NOT (Alarm.PushAx_UnvalidStateLsLow)) AND NOT (Alarm.PushAx_LowSpeedHome_NotEngaged)) AND NOT (Alarm.PushAx_LowSpeedRest_NotEngaged)) AND NOT (Alarm.PushAx_TimeoutFwd)) AND NOT (Alarm.PushAx_TimeoutBwd)));
+   END_REGION
+
+   REGION "Machine Manager"
+      #PushAx(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.PushAx,
+         Drive := Drive.PushAx,
+         DataIn := DataIn.PushAx,
+         Config := Config.PushAx,
+         HW_ID_TEL1 := HWID.PushAx_TEL1,
+         Par := PersistentValues.Par.PushAx,
+         Warning := Warning.PushAx,
+         Alarm := Alarm.PushAx,
+         DataOut => DataOut.PushAx,
+         COut => COut.PushAx
+      );
+
+   END_REGION
+
+   REGION "Force Gripper Open"
+      Ctrl.Gripper_RollformerForceOpen := (((CIn.Rollformer_CheckNextFwd AND DataIn.MaterialPresenceEntry) AND NOT (DataIn.MaterialPresenceExit)) AND NOT (Gripper.COut.Rest));
+   END_REGION
+
+   REGION "Alarm Gripper not opened"
+      IF (DataIn.Gripper_Ls_ForceOpen AND Gripper.COut.Work) THEN
+         Alarm.Gripper_MaxPosExceed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cin (Manager stop)"
+      Gripper.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+      Gripper.Cin.Manager.EnableStopInPhase := Ctrl.StopInPhase;
+      Gripper.Cin.Manager.EnableStopProgrammed := Ctrl.StopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "CIn (external enables)"
+      Gripper.Cin.Rest_ExtEnable := TRUE;
+      Gripper.Cin.Work_ExtEnable := (((PushAx.COut.Standstill AND DataIn.PushAx_Ls_RestBwd) OR ((PushAx.COut.Standstill AND AreaInterface.Man) AND CIn.Rollformer_Standstill) OR (PushAx.COut.Standstill AND NOT (PersistentValues.Data.MaterialPresence))) AND NOT (DataIn.Gripper_Ls_ForceOpen));
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      Gripper.Cin.Manager.Control_ON := (Ctrl.MeasuringStart OR Ctrl.Gripper_RollformerForceOpen OR Ctrl.Gripper_AutOpen);
+      Gripper.Cin.Manager.Rest := (Ctrl.Gripper_AutOpen OR Ctrl.Gripper_RollformerForceOpen);
+      Gripper.Cin.Manager.Work := ((Ctrl.Gripper_AutClose AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed));
+   END_REGION
+
+   REGION "Valve machine manager"
+      #Gripper(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Gripper,
+         DataIn := DataIn.Gripper,
+         Config := Config.Gripper,
+         Alarm := Alarm.Gripper,
+         Warning := Warning.Gripper,
+         COut => COut.Gripper,
+         DataOut => DataOut.Gripper
+      );
+
+   END_REGION
+
+   REGION "Data Out"
+      DataOut.MeasInput_ExeReg := NOT ((NOT (Ctrl.Meas1_Exe) AND NOT (Ctrl.Meas2_Exe)));
+   END_REGION
+
+   REGION "Coordination Out"
+      COut.MW_FAK_ChangeIsRequest := Sts.MW_FAK_ChangeIsRequest;
+      COut.StopMaterialFeeding := (Sts.AlarmPresence OR MachineInterface.AlarmsPresence OR (tonRollformer_BwdCheckNext.Q AND NOT (Gripper.COut.Rest)) OR Ctrl.Gripper_RollformerForceOpen);
+   END_REGION
+
+   REGION "Alarm presence"
+      Sts.AlarmPresence := (NOT (((((NOT (Alarm.MaterialNoPresence) AND NOT (Alarm.MaterialJamEntry)) AND NOT (Alarm.Meas1RegNotGet)) AND NOT (Alarm.Meas2RegNotGet)) AND NOT (Alarm.Gripper_MaxPosExceed))) OR NOT ((((((NOT (Alarm.PushAx_UnvalidStateLsZeroRest) AND NOT (Alarm.PushAx_UnvalidStateLsLow)) AND NOT (Alarm.PushAx_LowSpeedHome_NotEngaged)) AND NOT (Alarm.PushAx_LowSpeedRest_NotEngaged)) AND NOT (Alarm.PushAx_TimeoutFwd)) AND NOT (Alarm.PushAx_TimeoutBwd))) OR NOT (((NOT (Gripper_MeasInp.MeasuringSts.AlarmPresence) AND NOT (Wheel_MeasInp.MeasuringSts.AlarmPresence)) AND NOT (MwFacCalc_GripperEnc.EncoderSts.AlarmPresence))));
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,117 @@
+﻿// Block: Production_HMI
+
+DATA_BLOCK Production_HMI
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      MAN_O : Struct
+         PPrf_No : DInt;
+         Req : DInt;
+         Len : Real;
+         Use_Ribbing_Roll : Bool;
+         Use_Trace_Mark_Tool : Bool;
+         Use_Thick_Mark_Tool : Bool;
+      END_STRUCT;
+      Sel_Index : Int;
+      Button_Pop_ACT_To_ENDING : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed : Bool;
+         Done : Bool;
+         Error : Bool;
+         Color : Int;
+      END_STRUCT;
+      Button_Pop_ACT_To_TODO : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed : Bool;
+         Done : Bool;
+         Error : Bool;
+         Color : Int;
+      END_STRUCT;
+      Button_Pop_TODO_To_ACT : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed : Bool;
+         Done : Bool;
+         Error : Bool;
+         Color : Int;
+      END_STRUCT;
+      Button_Push_ManualOrder_To_TODO : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed : Bool;
+         Done : Bool;
+         Error : Bool;
+         Color : Int;
+      END_STRUCT;
+      Buttons_ChangeOrder_TODO : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed_UP : Bool;
+         Pressed_DW : Bool;
+      END_STRUCT;
+      Button_Pop_TODO_To_ENDING : Struct
+         Show : Bool;
+         AllowControl : Bool;
+         Pressed : Bool;
+         Done : Bool;
+         Error : Bool;
+         Color : Int;
+      END_STRUCT;
+      Button_ShowDetatails : Struct
+         Show : Bool;
+         Pressed : Bool;
+         Data : Prod_Item;
+      END_STRUCT;
+      SETUP : Struct
+         Button_LinePreparation_Start : Struct
+            Show : Bool;
+            AllowControl : Bool;
+            Pressed : Bool;
+            Done : Bool;
+            Error : Bool;
+            Color : Int;
+         END_STRUCT;
+         Button_LinePreparation_Stop : Struct
+            Show : Bool;
+            AllowControl : Bool;
+            Pressed : Bool;
+            Done : Bool;
+            Error : Bool;
+            Color : Int;
+         END_STRUCT;
+         Button_OP_Man_X_Pressed : Array[1..SETUP_MAN_OPERATIONS_QTY] of Bool;
+         Button_OP_Man_Y_Pressed : Array[1..SETUP_MAN_OP_WITH_CODE_QTY] of Bool;
+         Button_OP_Man_Z_Pressed : Array[1..PROD_SETUP_WAIT_MAN_PREPARATION] of Bool;
+         Button_OP_Man_Set_All_OK : Struct
+            Show : Bool;
+            AllowControl : Bool;
+            Pressed : Bool;
+            Done : Bool;
+            Error : Bool;
+            Color : Int;
+         END_STRUCT;
+         "SetUp_OP-Man_OK_Cumultativo" : Bool;
+         SetUp_OP_Man_X_OK : Array[1..SETUP_MAN_OPERATIONS_QTY] of Bool;
+         SetUp_OP_Man_Y_OK : Array[1..SETUP_MAN_OP_WITH_CODE_QTY] of Bool;
+         SetUp_Aut_Profilatrice_OK_Cumultativo : Bool;
+         SetUp_Aut_Bordatrice_OK_Cumultativo : Bool;
+         SetUp_Aut_OK_Profilatrice : Array[1..14] of Bool;
+         SetUp_Aut_OK_Bordatrice : Array[1..9] of Bool;
+      END_STRUCT;
+      Material_To_GO_Cumulative : LReal;
+      OrdineKanban_Presence : Bool;
+      StampoTracciabilita_Attuale : Struct
+         IDRotolo : String;
+         NumeroColata : String;
+      END_STRUCT;
+      StampoTracciabilita_Prossimo : Struct
+         IDRotolo : String;
+         NumeroColata : String;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

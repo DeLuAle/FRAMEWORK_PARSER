@@ -1,0 +1,237 @@
+﻿// Block: MatLub_Count_FB
+// Title: Reset alarms command
+
+FUNCTION_BLOCK "MatLub_Count_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms command
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      DataIn : Struct
+         PbStop : Bool;
+         PbStart : Bool;
+         SensorLevel : Bool;
+         PumpFeedbackRunning : Bool;
+      END_STRUCT;
+      CIn : Struct
+         EnableStopInPhase : Bool;
+         EnableStopProgrammed : Bool;
+         MaterialCounter : LReal;
+      END_STRUCT;
+      Config : Struct
+         EnableWngSystemOff : Bool;
+         LowTankLevelDly : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         M_Pump_Contactor : Bool;
+         Lamp : Bool;
+      END_STRUCT;
+      COut : Struct
+         PumpIsRunning : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Struct
+         Par : Struct
+            Enable : Bool;
+            OnDuration : Time;
+            SpaceInterval : LReal;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         IsStandstill : Bool;
+         PumpRunReq : Bool;
+         LastFeed : LReal;
+         PrevMatcounter : LReal;
+         MaterialFed : LReal;
+         Pump_Cnd : Bool;
+         Blower_Cnd : Bool;
+         Cloth_Cnd : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         RstAlarms : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         Pump_ManStart : Bool;
+         Pump_AutStart : Bool;
+         Blower_ManStart : Bool;
+         Blower_AutStart : Bool;
+         Cloth_AutStart : Bool;
+      END_STRUCT;
+      Alr : Struct
+         LowTankLevel : Bool;
+         MPump : MotorAlr;
+      END_STRUCT;
+      Wng : Struct
+         NoAutReady : Bool;
+         PumpOff : Bool;
+      END_STRUCT;
+      M_Pump : Motor;
+      TON_DelayBlowerStop : IEC_TIMER;
+      TON_DelayPumpStop : IEC_TIMER;
+      TON_LowTankLevel : IEC_TIMER;
+      Pb_PumpStart_PEAux : Bool;
+      Pb_BlowerStart_PEAux : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms command"
+      Ctrl.RstAlarms := AreaInterface.RstAlarms;
+
+      IF Ctrl.RstAlarms THEN
+          Wng.NoAutReady := FALSE;
+          Alr.LowTankLevel := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Warning Pump / Blower off"
+      Wng.PumpOff := (Config.EnableWngSystemOff AND NOT (PersistentValues.Par.Enable));
+   END_REGION
+
+   REGION "Alarm low tank level"
+      #TON_LowTankLevel(
+         IN := NOT (DataIn.SensorLevel),
+         PT := Config.LowTankLevelDly
+      );
+
+      IF NOT (PersistentValues.Par.Enable) THEN
+         Alr.LowTankLevel := FALSE;
+      ELSIF (#TON_LowTankLevel.Q AND TON_LowTankLevel.Q) THEN
+         Alr.LowTankLevel := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Cycle stops"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Pump cycle stop"
+      #TON_DelayPumpStop(
+         IN := M_Pump.MotorSts.Running,
+         PT := PersistentValues.Par.OnDuration
+      );
+
+   END_REGION
+
+   REGION "Pump run request"
+      Sts.LastFeed := M_PosAMinusPosB(PosA:=CIn.MaterialCounter,PosB:=Sts.PrevMatcounter,MODULE := MATERIAL_COUNTERS_MODULE);
+      Sts.PrevMatcounter := CIn.MaterialCounter;
+
+      IF Sts.LastFeed > 1000.0 THEN
+          Sts.LastFeed := 0;
+      END_IF;
+
+      Sts.MaterialFed := Sts.MaterialFed + Sts.LastFeed;
+
+      IF  PersistentValues.Par.OnDuration = T#0s OR PersistentValues.Par.SpaceInterval <= 0.0 OR NOT PersistentValues.Par.Enable THEN
+          Sts.PumpRunReq := FALSE;       
+      ELSIF   TON_DelayPumpStop.Q THEN
+          Sts.PumpRunReq := FALSE;   
+          Sts.MaterialFed := 0.0;
+
+      ELSIF NOT Sts.PumpRunReq AND Sts.MaterialFed >= PersistentValues.Par.SpaceInterval THEN
+          Sts.PumpRunReq := true;
+      END_IF;
+
+   END_REGION
+
+   REGION "Pump condition"
+      Sts.Pump_Cnd := ((((PersistentValues.Par.Enable AND NOT (AreaInterface.EStop)) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) AND M_Pump.MotorSts.RunPermitted);
+   END_REGION
+
+   REGION "Pump automatic start"
+      Ctrl.Pump_AutStart := (((Sts.PumpRunReq AND Sts.Pump_Cnd) AND AreaInterface.Man) OR ((Sts.PumpRunReq AND Sts.Pump_Cnd) AND AreaInterface.Aut));
+   END_REGION
+
+   REGION "Pump manual start"
+      IF (DataIn.PbStop OR Ctrl.Pump_AutStart OR NOT (Sts.Pump_Cnd) OR NOT (AreaInterface.Man)) THEN
+         Ctrl.Pump_ManStart := FALSE;
+      ELSIF PosEdge(DataIn.PbStart) THEN
+         Ctrl.Pump_ManStart := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Pump motor interface"
+      M_Pump.MotorCtrl.SafeStop := AreaInterface.EStop;
+      M_Pump.MotorCtrl.Rst := Ctrl.RstAlarms;
+      M_Pump.MotorCtrl.Run := NOT ((NOT (Ctrl.Pump_ManStart) AND NOT (Ctrl.Pump_AutStart)));
+   END_REGION
+
+   REGION "Pump motor manager"
+      #M_Pump(
+         en := TRUE,
+         ThermalProtection := false,
+         FdbkRunning := DataIn.PumpFeedbackRunning,
+         FeedbackTimeout := t#1s,
+         Alarm := Alr.MPump,
+         Contactor => DataOut.M_Pump_Contactor
+      );
+
+   END_REGION
+
+   REGION "Machine is standtill"
+      Sts.IsStandstill := NOT (M_Pump.MotorSts.Running);
+   END_REGION
+
+   REGION "Alarm presence"
+      Sts.AlarmsPresence := NOT ((NOT (Alr.LowTankLevel) AND NOT (M_Pump.MotorSts.AlarmPresence)));
+   END_REGION
+
+   REGION "Warning presence"
+      Sts.WarningsPresence := NOT ((NOT (Wng.NoAutReady) AND NOT (Wng.PumpOff)));
+   END_REGION
+
+   REGION "Collect machine to area interface"
+      // Status machine ready
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      // Status machine aborting
+      MachineInterface.Aborting := Sts.AlarmsPresence;
+      // Status Ack Stop in phase
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      // Status Motion standtill
+      MachineInterface.MotionsStandStill := Sts.IsStandstill;
+      // Status Alarm presence
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+      // Warning machine not automatic ready
+      IF AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady THEN
+        Wng.NoAutReady := false;
+      END_IF;
+
+   END_REGION
+
+   REGION "Data Out - Lamps"
+      DataOut.Lamp := ((M_Pump.MotorSts.Running AND NOT (Sys.LampTestMem)) OR Sys.LampTest);
+   END_REGION
+
+   REGION "Coordination out"
+      COut.PumpIsRunning := M_Pump.MotorSts.Running;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,39 @@
+﻿FUNCTION "DecToHexNumber" : Word
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Value : Word;
+   END_VAR
+
+   VAR_TEMP 
+      wThousands : Word;
+      wHundreds : Word;
+      wTens : Word;
+      wOnes : Word;
+      wTemp : Word;
+   END_VAR
+
+   VAR CONSTANT 
+      wTen : Word := 10;
+      wHexThousand : Word := 16#1000;
+      wHexHundred : Word := 16#100;
+      wHexTen : Word := 16#10;
+   END_VAR
+
+
+BEGIN
+	#wTemp := #Value;
+	#wOnes := #wTemp MOD #wTen;
+	
+	#wTemp := #wTemp / #wTen;
+	#wTens := #wTemp MOD #wTen;
+	
+	#wTemp := #wTemp / #wTen;
+	#wHundreds := #wTemp MOD #wTen;
+	
+	#wTemp := #wTemp / #wTen;
+	#wThousands := #wTemp MOD #wTen;
+	
+	#DecToHexNumber := (#wThousands * #wHexThousand) + (#wHundreds * #wHexHundred) + (#wTens * #wHexTen) + #wOnes;
+END_FUNCTION
+

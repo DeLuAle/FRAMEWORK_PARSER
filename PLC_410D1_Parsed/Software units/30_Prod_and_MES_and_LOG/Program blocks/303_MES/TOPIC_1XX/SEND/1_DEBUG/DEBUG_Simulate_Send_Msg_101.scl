@@ -1,0 +1,15 @@
+﻿// Block: DEBUG_Simulate_Send_Msg_101
+
+FUNCTION "DEBUG_Simulate_Send_Msg_101" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      IF DEBUG_MES_Send_Msg_1XX.MSG101.EXE THEN
+         DEBUG_MES_Send_Msg_1XX.MSG101.EXE := FALSE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

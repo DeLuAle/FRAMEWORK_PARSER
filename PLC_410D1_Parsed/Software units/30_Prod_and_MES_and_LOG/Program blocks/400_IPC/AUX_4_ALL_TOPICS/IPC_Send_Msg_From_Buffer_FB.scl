@@ -1,0 +1,380 @@
+﻿FUNCTION_BLOCK "IPC_Send_Msg_From_Buffer_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PT_TIMEOUT { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time := T#2S;   // Delay tra tentativi di reinvio messaggio rifiutato - evita spam verso IPC in errore
+      PT_RETRY { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Time := T#10S;   // Contatore messaggi presenti nel buffer - mantenuto sincronizzato tramite ricalcolo ciclico
+   END_VAR
+
+   VAR_IN_OUT 
+      Buffer_msg : Array[*] of "IPC_Msg_Generico";   // Interfaccia comunicazione con IPC - gestita dal FB ma visibile esternamente per monitoring
+      SEND : Struct
+         ack : DInt;   // Risposta IPC: 0=nessuna risposta, >0=ID accettato, <0=errore specifico
+         msg : "IPC_Msg_Generico";   // Messaggio correntemente in invio verso IPC Struttura completa gestione errori con diagnostica dettagliata
+      END_STRUCT;
+      Err : "IPC_Msg_Send_Err";   // State machine: stato corrente dell'automazione (INIT/CHOOSE/SEND)
+   END_VAR
+
+   VAR 
+      Status : UInt;   // Contatore temporaneo per ricalcolo accurato messaggi nel buffer
+      myCounter : DInt;   // Bounds del buffer array - calcolati dinamicamente per flessibilità
+      index_MIN_Buffer : Int;   // Primo indice valido (dove inserire nuovi messaggi)
+      index_MAX_Buffer : Int;   // Ultimo indice valido (dove prelevare messaggi vecchi) Indici di lavoro per algoritmi di selezione messaggi
+      Index_Send : Int;   // Posizione messaggio selezionato per invio normale
+      index_Retry : Int;   // Posizione messaggio selezionato per retry dopo errore Variabili ciclo di ricerca e algoritmi buffer
+      i : Int;   // Indice loop generico Variabili per compattazione buffer con MOVE_BLK_VARIANT
+      NumToShift : Int;   // Numero elementi da spostare durante compattazione
+      ElemetsToMove : UDInt;   // Parametro COUNT per MOVE_BLK_VARIANT (deve essere UDINT)
+      RETVAL : Int;   // Valore ritorno MOVE_BLK_VARIANT (0=OK, <>0=errore) Timers per gestione temporizzazioni - configurabili tramite VAR_INPUT
+      TON_Timeout {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;   // Timeout risposta IPC
+      TON_Retry {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;   // Delay retry messaggio rifiutato Flag temporaneo: TRUE quando messaggio in invio è stato trovato nel buffer
+      CORREZIONE_INDICE_0 { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Int := -1;   // Indice base-0 per MOVE_BLK_VARIANT
+   END_VAR
+
+   VAR_TEMP 
+      Found : Bool;   // Stati della state machine - named constants per leggibilità
+   END_VAR
+
+   VAR CONSTANT 
+      S0_INIT : UInt := 0;   // Inizializzazione: reset send e attesa IPC ready (ack=0)
+      S1_CHOOSE : UInt := 1;   // Selezione: scelta prossimo messaggio da inviare (retry priority)
+      S2_SEND : UInt := 2;   // Invio: gestione risposta IPC e compattazione buffer
+   END_VAR
+
+
+BEGIN
+	REGION Documentazione Tecnica Completa
+	(*
+	# IPC_Send_Msg_From_Buffer_FB - Documentazione Tecnica Completa
+	
+	Il Function Block implementa un sistema robusto per l'invio sequenziale di messaggi di log
+	da un buffer circolare verso un sistema IPC con gestione automatica degli errori, 
+	meccanismi di retry e mantenimento dell'integrità del buffer in ogni condizione operativa.
+	
+	## Protocollo di Comunicazione IPC
+	- ACK = 0: Stato iniziale, nessuna risposta dall'IPC
+	- ACK = ID_messaggio: Messaggio ricevuto e accettato con successo
+	- ACK negativo: Messaggio ricevuto ma rifiutato (-1=malformato, altri=errori specifici)
+	
+	## Architettura FIFO
+	- Inserimento: Messaggi nuovi inseriti al MIN da altri FB
+	- Prelievo: Messaggi vecchi inviati dal MAX (logica FIFO)
+	- Compattazione: Automatica dopo ogni invio per eliminare "buchi"
+	
+	## Esecuzione Atomica
+	- Tutto funziona in singolo OB ciclico (no race conditions)
+	- Politica: "Meglio perdere log vecchi che bloccare il sistema"
+	
+	## Stati State Machine
+	- S0_INIT: Reset send, attesa IPC ready (ack=0)
+	- S1_CHOOSE: Selezione messaggio (priorità retry > nuovi)
+	- S2_SEND: Gestione risposta e compattazione buffer
+	
+	## Gestione Errori Avanzata
+	- Timeout IPC: Segnalazione ma retry automatico
+	- Messaggi rifiutati: Salvataggio e retry con delay
+	- Errori MOVE_BLK_VARIANT: Strategia conservativa (no perdita buffer)
+	*)
+	END_REGION
+	
+	
+	
+	
+	
+	// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+	// SEZIONE INIZIALIZZAZIONE: Calcolo bounds buffer e consistency check
+	// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+	
+	// Determinazione dinamica limiti array buffer per massima flessibilità
+	#index_MIN_Buffer := DINT_TO_INT(LOWER_BOUND(ARR := #Buffer_msg, DIM := 1));
+	#index_MAX_Buffer := DINT_TO_INT(UPPER_BOUND(ARR := #Buffer_msg, DIM := 1));
+	
+	// Correzione indice zero per funzione MOVE_BLK_VARIANT
+	// 
+	// Counting at the parameters SRC_INDEX AND DEST_INDEX always begins with the low limit "0", regardless OF the later declaration OF the ARRAY."
+	// 
+	IF #index_MIN_Buffer > 0 THEN
+	    #CORREZIONE_INDICE_0 := - #index_MIN_Buffer;
+	END_IF;
+	
+	
+	
+	
+	// Timer per meccanismo retry: attivato quando presenza messaggio rifiutato
+	// Input collegato al flag presenza per auto-reset quando errore viene risolto
+	#TON_Retry(IN := #Err.Msg_NotAccepted.Presence,
+	           PT := #PT_RETRY);
+	
+	// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+	// STATE MACHINE PRINCIPALE: Gestione invio messaggi con meccanismo FIFO e retry
+	// ═══════════════════════════════════════════════════════════════════════════════════════════════════════
+	
+	CASE #Status OF
+	        
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	        // STATO S0_INIT: Inizializzazione e preparazione nuovo ciclo invio
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	    #S0_INIT:
+	        
+	        // Reset messaggio in interfaccia SEND: segnala all'IPC "nessun messaggio in corso"
+	        #SEND.msg := "IPC_Msg_Delete"();
+	        
+	        // Attesa conferma IPC ready: ACK=0 indica che IPC ha processato ultimo messaggio
+	        // e is pronto per ricevere il prossimo. Questa sincronizzazione previene perdite.
+	        IF #SEND.ack = 0 THEN
+	            #Status := #"S1_CHOOSE";    // IPC ready → procedi con selezione messaggio
+	            RETURN;
+	        END_IF;
+	        
+	        // GESTIONE TIMEOUT: IPC non risponde (ACK persistente ≠ 0)
+	        // Possibili cause: IPC offline, busy, errore comunicazione, bug IPC
+	        #TON_Timeout(IN := TRUE,
+	                     PT := #PT_TIMEOUT);
+	        
+	        IF #TON_Timeout.Q THEN
+	            #Err.TimeOut_ACK := TRUE;    // Segnalazione errore per diagnostica
+	            // NOTA: Non si passa ad altro stato - rimane in INIT per retry infiniti
+	            // Filosofia: "aspetta sempre che IPC si riprenda"
+	        END_IF;
+	        
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	        // STATO S1_CHOOSE: Selezione intelligente del prossimo messaggio da inviare
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████    
+	    #S1_CHOOSE:
+	        
+	        // Reset timer timeout: nuovo ciclo iniziato
+	        #TON_Timeout(IN := FALSE,
+	                     PT := #PT_TIMEOUT);
+	        
+	        // Default: torna a INIT se non trova nulla da fare (buffer vuoto)
+	        #Status := #S0_INIT;
+	        
+	        // Inizializzazione indici di ricerca: -1 = "non trovato"
+	        #Index_Send := -1;      // Posizione messaggio nuovo selezionato
+	        #index_Retry := -1;     // Posizione messaggio retry selezionato
+	        
+	        // ALGORITMO SELEZIONE CON PRIORITA':
+	        // 1. PRIORITA' ALTA: Retry di messaggi precedentemente rifiutati
+	        // 2. PRIORITA' NORMALE: Messaggi nuovi (FIFO dal più vecchio)
+	        
+	        // Scansione buffer: MAX→MIN per logica FIFO (vecchi agli indici alti)
+	        FOR #i := #index_MAX_Buffer TO #index_MIN_Buffer BY -1 DO
+	            
+	            // SELEZIONE MESSAGGIO NUOVO: condizioni rigorose per evitare conflitti
+	            // - Messaggio valido (Id≠0)  
+	            // - NON in periodo retry (evita duplicazioni)
+	            // - Primo trovato (evita selezioni multiple)
+	            IF #Buffer_msg[#i].Id <> 0 AND NOT #TON_Retry.Q AND #Index_Send = -1 THEN
+	                
+	                #Index_Send := #i;                    // Memorizza posizione
+	                #SEND.msg := #Buffer_msg[#i];         // Copia messaggio nell'interfaccia
+	                #Status := #"S2_SEND";                // Procedi con invio
+	                EXIT;                                 // Esci immediatamente - messaggio selezionato
+	            END_IF;
+	            
+	            // SELEZIONE MESSAGGIO RETRY: solo se timer retry scaduto e messaggio trovato
+	            // Matching per ID specifico: solo il messaggio che aveva dato errore
+	            IF #Buffer_msg[#i].Id = #Err.Msg_NotAccepted.Msg.Id AND #TON_Retry.Q AND #index_Retry = -1 THEN
+	                
+	                #index_Retry := #i;                   // Memorizza posizione per diagnostica
+	                #SEND.msg := #Buffer_msg[#i];         // Copia messaggio nell'interfaccia  
+	                #Status := #"S2_SEND";                // Procedi con retry
+	                EXIT;                                 // Esci immediatamente - retry selezionato
+	            END_IF;
+	        END_FOR;
+	        
+	        // GESTIONE CASO EDGE: Messaggio retry scomparso dal buffer
+	        // Possibile se buffer è traboccato e ha sovrascritto il messaggio in errore
+	        // Situazione rara ma gestita per robustezza
+	        IF #TON_Retry.Q AND #index_Retry = -1 THEN
+	            
+	            // Reset completo stato errore: messaggio non più presente
+	            #Err.Msg_NotAccepted.Presence := FALSE;
+	            #Err.Msg_NotAccepted.Msg := "IPC_Msg_Delete"();
+	            #Err.TimeOut_ACK := FALSE;    // Reset anche eventuali timeout precedenti
+	            
+	            // Ricomincia selezione: ora può trovare altri messaggi
+	            #Status := #S1_CHOOSE;
+	            RETURN;
+	        END_IF;
+	        
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	        // STATO S2_SEND: Gestione invio messaggio e processamento risposta IPC
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	    #S2_SEND:
+	        
+	        // VALIDAZIONE STATO: Controllo coerenza - non dovrebbe mai accadere
+	        // Difesa contro corruzioni di stato o bug logici
+	        IF #SEND.msg.Id <= 0 THEN
+	            #Status := #S0_INIT;    // Recovery: torna a stato sicuro
+	            RETURN;
+	        END_IF;
+	        
+	        // BRANCH PRINCIPALE: IPC ha risposto (ACK ≠ 0)
+	        IF #SEND.ack <> 0 THEN
+	            
+	            #Found := FALSE;    // Flag: messaggio trovato nel buffer
+	            
+	            // RICERCA MESSAGGIO NEL BUFFER:
+	            // Il messaggio potrebbe essere stato spostato da inserimenti concorrenti
+	            // Ricerca MIN→MAX: ottimizzazione per buffer poco pieni (IPC performante)
+	            FOR #i := #index_MIN_Buffer TO #index_MAX_Buffer DO
+	                
+	                // MATCH PER ID: messaggio inviato ancora presente nel buffer
+	                IF #Buffer_msg[#i].Id = #SEND.msg.Id THEN
+	                    
+	                    #Found := TRUE;    // Messaggio localizzato nel buffer
+	                    
+	                    // ──────────────────────────────────────────────────────────────────────────
+	                    // CASO SUCCESS: ACK positivo = ID messaggio (protocollo IPC)
+	                    // ──────────────────────────────────────────────────────────────────────────
+	                    IF #SEND.ack = #SEND.msg.Id THEN
+	                        
+	                        // STEP 1: Cancellazione messaggio dal buffer
+	                        #Buffer_msg[#i] := "IPC_Msg_Delete"();
+	                       
+	                        
+	                        // STEP 2: Reset errore retry se questo messaggio era in ritrasmissione
+	                        IF #SEND.msg.Id = #Err.Msg_NotAccepted.Msg.Id THEN
+	                            #Err.Msg_NotAccepted.Presence := FALSE;
+	                            #Err.Msg_NotAccepted.Code_ACK := 0;
+	                            #Err.Msg_NotAccepted.Msg := "IPC_Msg_Delete"();
+	                        END_IF;
+	                        
+	                        // STEP 3: COMPATTAZIONE BUFFER per eliminare "buco" creato
+	                        // Calcolo numero elementi da spostare verso il basso
+	                        #NumToShift := #index_MAX_Buffer - #i;
+	                        
+	                        IF #NumToShift > 0 THEN
+	                            
+	                            // Preparazione parametri MOVE_BLK_VARIANT
+	                            #ElemetsToMove := INT_TO_UDINT(#NumToShift);
+	                            
+	                            // OPERAZIONE CRITICA: Spostamento blocco elementi
+	                            // SRC_INDEX = i+1: primo elemento da spostare
+	                            // DEST_INDEX = i: destinazione (posizione messaggio cancellato)
+	                            #RETVAL := MOVE_BLK_VARIANT(
+	                                                                SRC := #Buffer_msg,
+	                                                                COUNT := #ElemetsToMove,
+	                                                                SRC_INDEX := #i + 1 + #CORREZIONE_INDICE_0,
+	                                                                DEST_INDEX := #i + #CORREZIONE_INDICE_0,
+	                                                                DEST => #Buffer_msg
+	                            );
+	                            
+	                            // GESTIONE ROBUSTA ERRORE MOVE_BLK_VARIANT
+	                            // Strategia conservativa: preservare integrità buffer
+	                            IF #RETVAL <> 0 THEN
+	                                
+	                                // ERRORE: Segnalazione ma NON cancellazione ultima posizione
+	                                // Conseguenza: messaggio duplicato ma buffer integro
+	                                #Err.BufferShift.Error := TRUE;
+	                                #Err.BufferShift.ErrCode := #RETVAL;
+	                                
+	                                // IMPORTANTE: NON eseguire cancellazione ultima posizione
+	                                // Il ricalcolo automatico del contatore correggerà l'inconsistenza
+	                                
+	                            ELSE
+	                                // SUCCESSO: Compattazione riuscita - cancella ultima posizione
+	                                #Buffer_msg[#index_MAX_Buffer] := "IPC_Msg_Delete"();
+	                                #Err.BufferShift.Error := FALSE;    // Reset flag errore
+	                            END_IF;
+	                            
+	                        ELSE
+	                            // Messaggio era già all'ultima posizione - cancellazione diretta
+	                            // Non serve spostamento
+	                            #Buffer_msg[#index_MAX_Buffer] := "IPC_Msg_Delete"();
+	                            #Err.BufferShift.Error := FALSE;    // Reset flag errore 
+	                            
+	                        END_IF;
+	                        
+	                        // ──────────────────────────────────────────────────────────────────────────
+	                        // CASO ERROR: ACK negativo = messaggio rifiutato dall'IPC
+	                        // ──────────────────────────────────────────────────────────────────────────
+	                    ELSIF #SEND.ack < 0 THEN
+	                        
+	                        // Registrazione errore solo se non c'è già un altro messaggio in retry
+	                        // Policy: un solo messaggio in retry per volta per evitare complessità
+	                        IF NOT #Err.Msg_NotAccepted.Presence THEN
+	                            #Err.Msg_NotAccepted.Presence := TRUE;           // Attiva stato retry
+	                            #Err.Msg_NotAccepted.Code_ACK := #SEND.ack;      // Salva codice errore IPC
+	                            #Err.Msg_NotAccepted.Msg := #SEND.msg;           // Salva copia messaggio per analisi
+	                        END_IF;
+	                        
+	                        // Reset timer retry: riavvia conteggio delay
+	                        #TON_Retry(IN := FALSE,
+	                                   PT := #PT_RETRY);
+	                        
+	                        // ──────────────────────────────────────────────────────────────────────────
+	                        // CASO ANOMALO: ACK positivo ma diverso da ID
+	                        // ──────────────────────────────────────────────────────────────────────────
+	                        // Possibili cause: bug IPC, interferenze, timing issues
+	                        // Gestione: ignora e ritenta (potrebbe essere transitorio)
+	                    ELSE
+	                        // Log implicito tramite #SEND.ack visibile esternamente
+	                        // Nessuna azione specifica: sistema riproverà automaticamente
+	                        ;
+	                    END_IF;
+	                    
+	                    EXIT;    // Messaggio processato - esci dal loop di ricerca
+	                END_IF;
+	            END_FOR;
+	            
+	            // POST-PROCESSING: Cleanup e transizione stato
+	            IF #Found THEN
+	                
+	                // Reset errori timeout: comunicazione ripristinata
+	                #Err.TimeOut_ACK := FALSE;
+	                
+	                // Reset timer timeout: pronto per prossimo ciclo
+	                #TON_Timeout(IN := FALSE,
+	                             PT := #PT_TIMEOUT);
+	                
+	                #Status := #S0_INIT;    // Torna a inizializzazione per prossimo messaggio
+	                RETURN;
+	            END_IF;
+	            
+	            // CASO PATOLOGICO: Messaggio inviato non trovato nel buffer
+	            // Possibile in caso di corruzioni gravi - fallback automatico
+	            
+	        END_IF;
+	        
+	        // ──────────────────────────────────────────────────────────────────────────────────────────────
+	        // GESTIONE TIMEOUT: IPC non risponde (ACK persistente = 0)
+	        // ──────────────────────────────────────────────────────────────────────────────────────────────
+	        #TON_Timeout(IN := TRUE,
+	                     PT := #PT_TIMEOUT);
+	        
+	        IF #TON_Timeout.Q THEN
+	            
+	            #Err.TimeOut_ACK := TRUE;    // Segnalazione errore comunicazione
+	            
+	            // Reset timer per prossimo tentativo
+	            #TON_Timeout(IN := FALSE,
+	                         PT := #PT_TIMEOUT);
+	            
+	            #Status := #S0_INIT;    // Torna a INIT: messaggio rimane nel buffer per retry
+	            RETURN;
+	        END_IF;
+	        
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	        // STATO DEFAULT: Gestione stati non validi - Recovery automatico
+	        // ██████████████████████████████████████████████████████████████████████████████████████████████████
+	    ELSE
+	        // Stato non riconosciuto: possibile corruzione o bug
+	        // Recovery: torna sempre a stato sicuro e conosciuto
+	        #Status := #S0_INIT;
+	END_CASE;
+	
+	// ══════════════════════════════════════════════════════════════════════════════════════════════════
+	// FINE STATE MACHINE
+	// 
+	// NOTE IMPLEMENTATIVE:
+	// - Tutti i path garantiscono progressione: no deadlock possibili
+	// - Gestione errori conservativa: preserva integrità buffer
+	// - Recovery automatico: nessun intervento manuale richiesto
+	// - Performance ottimizzate: ricerche differenziate per scenario
+	// - Diagnostica completa: tutti gli errori tracciabili
+	// ══════════════════════════════════════════════════════════════════════════════════════════════════
+	
+END_FUNCTION_BLOCK
+

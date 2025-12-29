@@ -1,0 +1,80 @@
+﻿FUNCTION "Trk_ListToCheck_Push" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item : "BTrk_item";
+      Evaluate_FULL : Bool;   // 1 = Se buffer pieno non permettere il push per non perdere ultima posizone
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      RETVAL : Int;
+      NumToShift : UDInt;
+      Count : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      CORREZIONE_INDICE_0 : Int := -1;   // Indice base-0 per MOVE_BLK_VARIANT
+      BUFFER_ERR_o_END_SHIFT : Int := -502;
+      BUFFER_PUSH_RESULT_OK : Int := 0;
+      "BUFFER_FUN_CLEAR-GAP_DONE" : Int := 0;
+   END_VAR
+
+
+BEGIN
+	// Pulisci i gap
+	// 
+	
+	FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    #RETVAL := "Trk_ListToCheck_Clear_Gap"();
+	    IF #RETVAL <> #"BUFFER_FUN_CLEAR-GAP_DONE" THEN
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	
+	// Uscita per buffer pieno e non permettere di fare push su buffer pieno
+	// 
+	// 
+	IF #RETVAL < 0 AND #Evaluate_FULL THEN
+	    
+	    #Trk_ListToCheck_Push := #RETVAL;
+	    
+	    RETURN;
+	END_IF;
+	
+	
+	
+	// Shift in alto del buffer..Posizione più vecchia viene eliminato...Prima posizione è duplicata
+	// 
+	#NumToShift := INT_TO_UDINT("BTRK_A03_EXIT_TOCHECK_ITEMS" - 1);
+	
+	#RETVAL := MOVE_BLK_VARIANT(
+	                            SRC :=  "BTrk".A03_EXIT_TOCHECK.B,
+	                            COUNT := #NumToShift,
+	                            SRC_INDEX := 1 + #CORREZIONE_INDICE_0,
+	                            DEST_INDEX := 2 + #CORREZIONE_INDICE_0,
+	                            DEST => "BTrk".A03_EXIT_TOCHECK.B);
+	
+	// Uscita per errore shift
+	// 
+	IF #RETVAL <> 0 THEN
+	    #Trk_ListToCheck_Push := #BUFFER_ERR_o_END_SHIFT;
+	    RETURN;
+	END_IF;
+	
+	// Push su prima posizione
+	// 
+	"BTrk".A03_EXIT_TOCHECK.B[1] := "BTrk".Empty;
+	
+	
+	
+	// RETVAL OK 
+	//
+	#Trk_ListToCheck_Push := #BUFFER_PUSH_RESULT_OK;
+	
+	
+	
+END_FUNCTION
+

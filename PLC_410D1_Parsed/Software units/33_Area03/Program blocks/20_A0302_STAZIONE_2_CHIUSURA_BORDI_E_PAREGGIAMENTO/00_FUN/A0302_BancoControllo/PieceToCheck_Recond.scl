@@ -1,0 +1,39 @@
+﻿FUNCTION "PieceToCheck_Recond" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Trk_B : Array[1.."BTRK_A03_EXIT_TOCHECK_ITEMS"] of "BTrk_item";
+   END_VAR
+
+   VAR_OUTPUT 
+      Nr_B : Int;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      Found : Bool;
+   END_VAR
+
+
+BEGIN
+	// Funzione che controlla se nel banco di accumulo c'è almeno un pezzo dichiararo RICONDIZIONATO DA RIMETTERE IN LINEA
+	
+	FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    IF #Trk_B[#i].O_ID > 0 THEN
+	        IF  #Trk_B[#i].Quality = "RECOND_GOOD" OR #Trk_B[#i].Quality = "GOOD_R" THEN
+	            #Found := TRUE;
+	            #Nr_B := #i;
+	            EXIT;
+	        END_IF;
+	    END_IF;
+	END_FOR;
+	
+	IF #Found = TRUE THEN
+	    #PieceToCheck_Recond := TRUE;
+	ELSE
+	    #PieceToCheck_Recond := FALSE;
+	    #Nr_B := -1;
+	END_IF;
+END_FUNCTION
+

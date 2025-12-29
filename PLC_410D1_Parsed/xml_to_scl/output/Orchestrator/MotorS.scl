@@ -1,0 +1,113 @@
+﻿// Block: MotorS
+// Title: Alarm reset
+
+FUNCTION_BLOCK "MotorS"
+{ S7_Optimized_Access := 'TRUE'; Author : 'TVA'; Family : 'Devices' }
+VERSION : 4.2
+// Alarm reset
+   VAR_INPUT
+      MotorCtrl : Motor2Ctrl;
+      ThermalProtectionA : Bool;
+      ThermalProtectionB : Bool;
+      FdbkRunning : Bool;
+      FeedbackTimeout : Time;
+      ReversalTime : Time;
+   END_VAR
+
+   VAR_OUTPUT
+      MotorSts : MotorSts;
+      BkwContactor : Bool;
+      FwdContactor : Bool;
+      Alarm : MotorSAlr;
+   END_VAR
+
+   VAR
+      InitDone : Bool;
+      BkwDeny : Bool;
+      FwdDeny : Bool;
+      Ctrl_RunBkwContactor : Bool;
+      Ctrl_RunFwdContactor : Bool;
+      DelayContactorFeedbackON : IEC_TIMER;
+      DelayReversal : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP
+      AlarmPresence : Bool;
+      RunPermitted : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Alarm reset"
+      IF MotorCtrl.Rst THEN
+         Alarm.ThermalProtectionA := FALSE;
+      END_IF;
+      IF MotorCtrl.Rst THEN
+         Alarm.ThermalProtectionB := FALSE;
+      END_IF;
+      IF MotorCtrl.Rst THEN
+         Alarm.Feedback := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 2: Alarm Circuit Breaker"
+      IF (NOT Sys.SimulationDevice AND ThermalProtectionA) THEN
+         Alarm.ThermalProtectionA := TRUE;
+      END_IF;
+      IF (NOT Sys.SimulationDevice AND ThermalProtectionB) THEN
+         Alarm.ThermalProtectionB := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 3: time for check feedback timeout"
+      #DelayContactorFeedbackON(
+         IN := ((((BkwContactor OR FwdContactor) AND NOT FdbkRunning) OR ((NOT BkwContactor AND NOT FwdContactor) AND FdbkRunning)) AND NOT Sys.SimulationDevice),
+         PT := FeedbackTimeout
+      );
+
+      IF #DelayContactorFeedbackON.Q THEN
+         Alarm.Feedback := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4: Status alarm presence"
+      AlarmPresence := NOT (((NOT Alarm.ThermalProtectionA AND NOT Alarm.ThermalProtectionB) AND NOT Alarm.Feedback));
+   END_REGION
+
+   REGION "Network 5: Status run permitted"
+      RunPermitted := (NOT AlarmPresence AND NOT MotorCtrl.SafeStop);
+   END_REGION
+
+   REGION "Network 6: Reversal Time"
+      #DelayReversal(
+         IN := (NOT FwdContactor AND NOT BkwContactor),
+         PT := ReversalTime
+      );
+
+      IF FwdContactor THEN
+         BkwDeny := TRUE;
+      END_IF;
+      IF BkwContactor THEN
+         FwdDeny := TRUE;
+      END_IF;
+      IF #DelayReversal.Q THEN
+         BkwDeny := FALSE;
+      END_IF;
+      IF #DelayReversal.Q THEN
+         FwdDeny := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 7: Contactor Control"
+      BkwContactor := ((RunPermitted AND MotorCtrl.RunBkw) AND NOT BkwDeny);
+      FwdContactor := ((RunPermitted AND MotorCtrl.RunFwd) AND NOT FwdDeny);
+   END_REGION
+
+   REGION "Network 8: Coordination out"
+      MotorSts.AlarmPresence := AlarmPresence;
+      MotorSts.RunPermitted := RunPermitted;
+      MotorSts.Running := ((Ctrl_RunBkwContactor AND FdbkRunning) OR (Ctrl_RunBkwContactor AND Sys.SimulationDevice));
+   END_REGION
+
+
+END_FUNCTION_BLOCK

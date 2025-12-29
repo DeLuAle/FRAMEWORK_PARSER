@@ -1,0 +1,187 @@
+﻿// Block: Decoiler2_CALL
+// Title: Data In - PB Feed
+
+FUNCTION "Decoiler2_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Feed
+   VAR_TEMP
+      Feed_PB_InLine : Ax_PB;
+      Feed_PB_OutLine : Ax_PB;
+      Jaws_PB_InLine : ValveMachine_PB;
+      Jaws_PB_OutLine : ValveMachine_PB;
+      Coupling_PB_InLine : ValveMachine_PB;
+      Coupling_PB_OutLine : ValveMachine_PB;
+      SnubberLift_PB_InLine : ValveMachine_PB;
+      SnubberLift_PB_OutLine : ValveMachine_PB;
+      SnubberRoll_PB_InLine : ValveMachine_PB;
+      SnubberRoll_PB_OutLine : ValveMachine_PB;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - PB Feed"
+   END_REGION
+
+   REGION "Data In - PB Jaws"
+   END_REGION
+
+   REGION "Data In - PB Couplung"
+   END_REGION
+
+   REGION "Data In - PB Snubber Lift"
+   END_REGION
+
+   REGION "Data In - Snubber Roll"
+   END_REGION
+
+   REGION "Data In - Pneumatic Brake"
+      Decoiler2.DataIn.PneumaticBrake.PbOpenClose := ((A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.BrakeOpenClose AND DecoilersHRot.COut.Decoiler2_InLine) OR (A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.BrakeOpenClose AND DecoilersHRot.COut.Decoiler1_InLine));
+      Decoiler2.DataIn.PneumaticBrake.PbPartialOpenClose := ((A01_HMI.MB1.Button.CoilHandling.Decoiler_InLine.PneumaticBrake.PartialOpenClose AND DecoilersHRot.COut.Decoiler2_InLine) OR ((A01_HMI.MB1.Button.CoilHandling.Decoiler_OutLine.PneumaticBrake.PartialOpenClose AND NOT (LB101_PbPartialBracking)) AND DecoilersHRot.COut.Decoiler1_InLine));
+   END_REGION
+
+   REGION "Data In - Sensors"
+      //Loop
+      Decoiler2.DataIn.DiameterSensor := DecoilerX_AI_Coil_Diameter;
+      Decoiler2.DataIn.Loop.Connector := TRUE;
+
+      Decoiler2.DataIn.LsPosizioneRazza := Decoiler2_PosizioneRazza;
+
+      Decoiler2.DataIn.Loop.S_MinHigh := FALSE;
+      Decoiler2.DataIn.Loop.S_MaxLow := FALSE; 
+      Decoiler2.DataIn.Loop.S_SpeedAsjust := FALSE;
+
+
+      IF A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Enable
+      THEN
+          
+          Decoiler2.DataIn.Loop.S_MinHigh := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_Min;
+          Decoiler2.DataIn.Loop.S_MaxLow := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_Max;
+          Decoiler2.DataIn.Loop.S_SpeedAsjust := A01_DEBUG.CoilHandling_Simulation.DecoilerInLine_Sensors.Phc_SpeedAdjust;
+          
+          
+      END_IF;
+
+
+      //Feed
+      Decoiler2.DataIn.Feed.Fan_M_Feedback := Decoiler2_M_Fan_Fdbk;
+
+
+      //COupling
+      Decoiler2.DataIn.Coupling.Rest_Ls[1] := Decoiler2_Coupling_Ls_Rest;
+      Decoiler2.DataIn.Coupling.Work_Ls[1] := Decoiler2_Coupling_Ls_Work;
+
+      //Snubber Lift
+      Decoiler2.DataIn.SnubberLift.Rest_Ls[1] := Decoiler2_Snubber_Lift_Ls_UP;
+
+
+   END_REGION
+
+   REGION "Cin - Manager"
+      Decoiler2.CIn.Manager := CoilHandling.COut.Decoiler2;
+   END_REGION
+
+   REGION "Cin - Pressure running"
+      Decoiler2.CIn.PressureRunning := ((DecoilersHU.COut.PressureRunning AND FDo_V_Aspo_2) AND NOT (Fdbk_C_Aspo02));
+   END_REGION
+
+   REGION "Area interface"
+      Decoiler2.AreaInterface := Area01.AreaInterface;
+
+      // Case IN-LINE
+      IF DecoilersHRot.COut.Decoiler2_InLine THEN
+          
+          Decoiler2.AreaInterface := Area01.AreaInterface;
+
+      // Case OUT-LINE
+      // 
+      ELSIF DecoilersHRot.COut.Decoiler1_InLine THEN
+          
+          
+          Decoiler2.AreaInterface.Man := NOT Area01.AreaInterface.EStop;
+          Decoiler2.AreaInterface.Aut := FALSE;
+          Decoiler2.AreaInterface.Cycle := FALSE;
+          Decoiler2.AreaInterface.StopInPhase := FALSE;
+          Decoiler2.AreaInterface.StopProgrammed := FALSE;
+          Decoiler2.AreaInterface.CheckAutReady := FALSE;
+          
+      // Case UNKNOW
+      // 
+      ELSE
+          
+          Decoiler2.AreaInterface.EStop := TRUE;
+          Decoiler2.AreaInterface.Man := FALSE;
+          Decoiler2.AreaInterface.Aut := FALSE;
+          Decoiler2.AreaInterface.Cycle := FALSE;
+       
+      END_IF;
+
+   END_REGION
+
+   REGION "DSI"
+      Decoiler2.DSI.Feed := F_DB.DSI_S120_Decoiler2;
+
+      Decoiler2.DSI.Jaws :=
+      Decoiler2.DSI.Coupling :=
+      Decoiler2.DSI.SnubberLift :=
+      Decoiler2.DSI.SnubberRoll := F_DB.DSI_V_Decoiler2;
+
+   END_REGION
+
+   REGION "Drive"
+      Decoiler2.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      Decoiler2.Drive.AccessPoint := HW_Const_Values.CU1_PN_740A1_2_ModuleAccessPoint;
+      Decoiler2.Drive.AxisID := CU1_ID_4_740A1_2_750M1;
+      Decoiler2.Drive.TokenChain := TOKENCHAIN_CU1;
+
+   END_REGION
+
+   REGION "HW ID"
+      Decoiler2.HW_ID_TEL1 :=HW_Const_Values.CU1_PN_740A1_2_Standard_telegram_1;
+
+   END_REGION
+
+   REGION "Parameter from Decoiler 1"
+      Decoiler2_PERS.PersistentValues.Feed := Decoiler1_PERS.PersistentValues.Feed;
+   END_REGION
+
+   REGION "Machine Manager"
+      #Decoiler2(
+         en := TRUE,
+         ZSI := F_DB.ZSI_Zone03,
+         Config := A01_Config.Decoiler_1_2,
+         PersistentValues := Decoiler2_PERS.PersistentValues
+      );
+
+   END_REGION
+
+   REGION "Data out - Motor fan"
+      Decoiler2_M_Fan_C := Decoiler2.Feed.Fan_M.Ctrl_RunContactor;
+   END_REGION
+
+   REGION "Data out  - Jaws"
+      Decoiler2_Jaws_V_Close := Decoiler2.Jaws.V.RestSolenoid;
+      Decoiler2_Jaws_V_Open := Decoiler2.Jaws.V.WorkSolenoid;
+   END_REGION
+
+   REGION "Data out - Motor coupling"
+      Decoiler2_Coupling_V_Rest := Decoiler2.Coupling.V.RestSolenoid;
+      Decoiler2_Coupling_V_Work := Decoiler2.Coupling.V.WorkSolenoid;
+   END_REGION
+
+   REGION "Data out - Pneumatic brake"
+      Decoiler2_PneuBrake_1_V_Open := (Decoiler2.PneumaticBrake.V_Open OR Decoiler2.PneumaticBrake.V_PartialLow);
+      Decoiler2_PneuBrake_1_V_Partial := Decoiler2.PneumaticBrake.V_PartialHigh;
+      Decoiler2_PneuBrake_2_V_Close := FALSE;
+      Decoiler2_PneuBrake_2_V_Partial := Decoiler2.PneumaticBrake.V_PartialLow;
+   END_REGION
+
+   REGION "Data out - Snubber"
+      Decoiler2_Snubber_Lift_V_UP := Decoiler2.DataOut.SnubberLift.RestSolenoid;
+      Decoiler2_Snubber_Lift_V_DOWN := Decoiler2.DataOut.SnubberLift.WorkSolenoid;
+      Decoiler2_Snubber_Roll_V_BWD := Decoiler2.DataOut.SnubberRoll.RestSolenoid;
+      Decoiler2_Snubber_Roll_V_FWD := Decoiler2.DataOut.SnubberRoll.WorkSolenoid;
+   END_REGION
+
+
+END_FUNCTION

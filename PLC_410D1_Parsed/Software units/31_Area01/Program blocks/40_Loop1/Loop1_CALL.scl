@@ -1,0 +1,99 @@
+﻿// Block: Loop1_CALL
+// Title: Data In
+
+FUNCTION "Loop1_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In
+   VAR_TEMP
+      Dummy : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      Loop1.DataIn.Pb_StartStop := NOT ((NOT (MB1_Loop1_Pb) AND NOT (Areas_ITF.A02.PB.MB2_Loop1_PB)));
+      Loop1.DataIn.Pb_Start := A01_HMI.MB1.Button.CoilHandling.Loop1.Start;
+      Loop1.DataIn.Pb_Stop := (A01_HMI.MB1.Button.CoilHandling.Loop1.Stop OR CoilHandling.COut.Loop.Stop);
+      Loop1.DataIn.SensorEntryMaterialPresence := (CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit AND NOT (CoilHandling.COut.Gen.EmptyingConfirmed));
+      Loop1.DataIn.SensorExitEnableUseEncoder := Areas_ITF.A02.MaterialPresence_Exit;
+      Loop1.DataIn.SensorExitMaterialPresence := (Areas_ITF.A02.MaterialPresence_Entry OR A01_DEBUG.CoilHandling_Simulation.S_Downstream_Entry);
+      Loop1.DataIn.SensorLoopMaxLow_Or_TPEntry := Loop1_LsMaxLow;
+      Loop1.DataIn.SensorLoopMaxLow_Or_TPExit := Loop1_LsMaxLow;
+      Loop1.DataIn.PlugConnected := Loop1_LsConnectorPlugged;
+      Loop1.DataIn.SensorNotLoopMinHigh := Loop1_LsMinHigh;
+   END_REGION
+
+   REGION "Coordination In"
+      Loop1.CIn.EnableStopInPhase := ((((NOT ((NOT (Area01.AreaInterface.StopInPhase) AND NOT (Areas_ITF.A02.AreaInterface.StopInPhase))) AND CoilHandling.MachineInterface.AckStopInPhase) OR (NOT ((NOT (Area01.AreaInterface.StopInPhase) AND NOT (Areas_ITF.A02.AreaInterface.StopInPhase))) AND NOT (Area01.AreaInterface.StopInPhase))) AND Areas_ITF.A02.PostPunch_MachineInterface.AckStopInPhase) OR (((NOT ((NOT (Area01.AreaInterface.StopInPhase) AND NOT (Areas_ITF.A02.AreaInterface.StopInPhase))) AND CoilHandling.MachineInterface.AckStopInPhase) OR (NOT ((NOT (Area01.AreaInterface.StopInPhase) AND NOT (Areas_ITF.A02.AreaInterface.StopInPhase))) AND NOT (Area01.AreaInterface.StopInPhase))) AND NOT (Areas_ITF.A02.AreaInterface.StopInPhase)));
+      Loop1.CIn.EnableStopProgrammed := ((((NOT ((NOT (CoilHandling.MachineInterface.AckStopProgrammed) AND NOT (Areas_ITF.A02.AreaInterface.StopProgrammed))) AND CoilHandling.MachineInterface.AckStopProgrammed) OR (NOT ((NOT (CoilHandling.MachineInterface.AckStopProgrammed) AND NOT (Areas_ITF.A02.AreaInterface.StopProgrammed))) AND NOT (Area01.AreaInterface.StopProgrammed))) AND Areas_ITF.A02.PostPunch_MachineInterface.AckStopProgrammed) OR (((NOT ((NOT (CoilHandling.MachineInterface.AckStopProgrammed) AND NOT (Areas_ITF.A02.AreaInterface.StopProgrammed))) AND CoilHandling.MachineInterface.AckStopProgrammed) OR (NOT ((NOT (CoilHandling.MachineInterface.AckStopProgrammed) AND NOT (Areas_ITF.A02.AreaInterface.StopProgrammed))) AND NOT (Area01.AreaInterface.StopProgrammed))) AND NOT (Areas_ITF.A02.AreaInterface.StopProgrammed)));
+      Loop1.CIn.ON_Request := FALSE;
+      Loop1.CIn.Synchro_Request := NOT ((NOT (CoilHandling.COut.Loop.Synchro_Request) AND NOT (Areas_ITF.A02.PHC.Loop_Synchro_Request)));
+      Loop1.CIn.MaterialMiddlePos_Request := FALSE;
+   END_REGION
+
+   REGION "Coordination In - Entry"
+      Loop1.CIn.Entry_MaxLowOverride := ((((Loop1.COut.MaxLowReached OR Loop1.CIn.Entry_MaxLowOverride) AND CoilHandling_PERS.PersistentValues.Data.MaterialFullLoaded) AND Straightener.COut.Feed.Fwd_CheckNext) OR (((((Loop1.COut.MaxLowReached OR Loop1.CIn.Entry_MaxLowOverride) AND NOT (CoilHandling_PERS.PersistentValues.Data.MaterialFullLoaded)) AND CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit) AND JB.COut.Pinchroll_Lift.Work) AND JB.COut.Pinchroll_Feed.Fwd_CheckNext) OR ((Loop1.COut.MaxLowReached OR Loop1.CIn.Entry_MaxLowOverride) AND MB1_Sel_Material_FWD));
+      Loop1.CIn.Entry_NxtBkw := NOT ((NOT (Straightener.Feed.COut.Bwd_CheckNext) AND NOT (JB.COut.Pinchroll_Feed.Bwd_CheckNext)));
+      Loop1.CIn.Entry_NxtFwd := NOT ((NOT (Straightener.Feed.COut.Fwd_CheckNext) AND NOT (JB.COut.Pinchroll_Feed.Fwd_CheckNext)));
+      Loop1.CIn.Entry_MatCounterValid := CoilHandlingMatCounter_PERS.PersistentValues.Data.CounterValid;
+      Loop1.CIn.Entry_MaterialStandstill := (CoilHandlingMatCounter_PERS.PersistentValues.Data.Standstill AND (A01_Straightener_Ax.VelocitySetpoint = 0.0));
+      Loop1.CIn.Entry_NxtEndOfMaterial := NOT (CoilHandling_PERS.PersistentValues.Data.MaterialFullLoaded);
+      Loop1.CIn.Entry_EmptyingConfirmed := CoilHandling.COut.Gen.EmptyingConfirmed;
+      Loop1.CIn.Entry_ActualVelocity := 0.0;
+   END_REGION
+
+   REGION "Coordination In - Exit"
+      Loop1.CIn.Exit_NxtBkw := Areas_ITF.A02.Rollformer.BWD_CheckNext;
+      Loop1.CIn.Exit_NxtFwd := Areas_ITF.A02.Rollformer.FWD_CheckNext;
+      Loop1.CIn.Exit_MatCounterValid := Areas_ITF.A02.MaterialCounter.CounterValid;
+      Loop1.CIn.Exit_MaterialStandstill := (Areas_ITF.A02.MaterialCounter.Standstill AND (Areas_ITF.A02.Rollformer.VelocitySetpoint = 0.0));
+      Loop1.CIn.Exit_ActualVelocity := (Areas_ITF.A02.Rollformer.VelocitySetpoint * Areas_ITF.A02.MaterialCounter.FAK);
+      Loop1.CIn.Exit_MatCounter := Areas_ITF.A02.MaterialCounter.CounterValue;
+   END_REGION
+
+   REGION "Coordination In - Measuring Input entry"
+      Loop1.CIn.Entry_MeasInput_InOperation := TRUE;
+      Loop1.CIn.Entry_MeasInput_ErrorPresence := FALSE;
+      IF PosEdge(Loop1_LsMaxLow) THEN
+         Loop1.CIn.Entry_MeasInput_MeasuringDone_ID := (1 + Loop1.CIn.Entry_MeasInput_MeasuringDone_ID);
+      END_IF;
+      IF PosEdge(Loop1_LsMaxLow) THEN
+         Loop1.CIn.Entry_MeasInput_MeasuringValue := CoilHandlingMatCounter_PERS.PersistentValues.Data.CounterValue;
+      END_IF;
+   END_REGION
+
+   REGION "Coordination In - Measuring Input exit"
+      Loop1.CIn.Exit_MeasInput_InOperation := TRUE;
+      Loop1.CIn.Exit_MeasInput_ErrorPresence := FALSE;
+      IF PosEdge(Loop1_LsMaxLow) THEN
+         Loop1.CIn.Exit_MeasInput_MeasuringDone_ID := (1 + Loop1.CIn.Exit_MeasInput_MeasuringDone_ID);
+      END_IF;
+      IF PosEdge(Loop1_LsMaxLow) THEN
+         Loop1.CIn.Exit_MeasInput_MeasuringValue := Areas_ITF.A02.MaterialCounter.CounterValue;
+      END_IF;
+   END_REGION
+
+   REGION "Coordination in - Pit tables"
+      Loop1.CIn.PitTables.Sts_PosUp := Areas_ITF.A02.PitTable.IsUp;
+      Loop1.CIn.PitTables.Sts_PosMiddle := FALSE;
+      Loop1.CIn.PitTables.Sts_PosDown := Areas_ITF.A02.PitTable.IsDown;
+   END_REGION
+
+   REGION "Main"
+      #Loop1(
+         en := TRUE,
+         AreaInterfaceEntry := Area01.AreaInterface,
+         AreaInterfaceExit := Areas_ITF.A02.AreaInterface,
+         Config := A01_Config.Loop1,
+         PersistentValues := Loop1_PERS.PersistentValues
+      );
+
+   END_REGION
+
+   REGION "Data Out"
+      Areas_ITF.A01.Loop1_Lamp := MB1_Lp_Loop1;
+   END_REGION
+
+
+END_FUNCTION

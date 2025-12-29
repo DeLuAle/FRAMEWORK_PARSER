@@ -1,0 +1,105 @@
+﻿// Block: Conv_DT_to_STRING
+
+FUNCTION "Conv_DT_to_STRING" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Val : DTL;
+   END_VAR
+
+   VAR_TEMP
+      s_Y : String;
+      s_M : String;
+      s_D : String;
+      s_H : String;
+      s_Mi : String;
+      s_S : String;
+      s_N : String;
+      str : String;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      s_Y := (Val.YEAR);
+      // Elimina il + a inizio stringa
+      s_Y := (IN := s_Y, L := (s_Y) - 1, P := 2);
+                 
+                
+                 
+      s_M := (Val.MONTH);
+      // Elimina il + a inizio stringa
+      s_M := (IN := s_M, L := (s_M) - 1, P := 2);
+      // Aggiunge lo 0 davanti per i mesi da 1 a 9
+      IF (s_M) < 2 THEN
+          s_M := (IN1 := '0', IN2 := s_M);
+      END_IF;
+
+
+
+      s_D := (Val.DAY);
+      // Elimina il + a inizio stringa
+      s_D := (IN := s_D, L := (s_D) - 1, P := 2);
+      // Aggiunge lo 0 davanti per i giorni da 1 a 9
+      IF (s_D) < 2 THEN
+          s_D := (IN1 := '0', IN2 := s_D);
+      END_IF;
+
+
+      s_H := (Val.HOUR);
+      // Elimina il + a inizio stringa
+      s_H := (IN := s_H, L := (s_H) - 1, P := 2);
+      // Aggiunge lo 0 davanti per le ore da 0 a 9
+      IF (s_H) < 2 THEN
+          s_H := (IN1 := '0', IN2 := s_H);
+      END_IF;
+
+
+      s_Mi := (Val.MINUTE);
+      // Elimina il + a inizio stringa
+      s_Mi := (IN := s_Mi, L := (s_Mi) - 1, P := 2);
+      // Aggiunge lo 0 davanti per i minuti da 0 a 9
+      IF (s_Mi) < 2 THEN
+          s_Mi := (IN1 := '0', IN2 := s_Mi);
+      END_IF;
+
+
+
+      s_S := (Val.SECOND);
+      // Elimina il + a inizio stringa
+      s_S := (IN := s_S, L := (s_S) - 1, P := 2);
+      // Aggiunge lo 0 davanti per i secondi da 0 a 9
+      IF (s_S) < 2 THEN
+          s_S := (IN1 := '0', IN2 := s_S);
+      END_IF;
+
+
+      s_N := (Val.NANOSECOND);
+      // Elimina il + a inizio stringa
+      s_N := (IN := s_N, L := (s_N) - 1, P := 2);
+      // Riduci la string a solo 3 caratteri
+      s_N := (IN := s_N, L := 3);
+
+
+
+
+
+      str := (IN1 := s_Y, IN2 := '-');
+      str := (IN1 := str,IN2:=s_M);
+      str := (IN1 := str, IN2 := '-');
+      str := (IN1 := str, IN2 := s_D);
+      str := (IN1 := str, IN2 := ' ');
+      str := (IN1 := str, IN2 := s_H);
+      str := (IN1 := str, IN2 := ':');
+      str := (IN1 := str, IN2 := s_Mi);
+      str := (IN1 := str, IN2 := ':');
+      str := (IN1 := str, IN2 := s_S);
+      str := (IN1 := str, IN2 := '.');
+      str := (IN1 := str, IN2 := s_N);
+
+      Conv_DT_to_STRING := str;
+
+   END_REGION
+
+
+END_FUNCTION

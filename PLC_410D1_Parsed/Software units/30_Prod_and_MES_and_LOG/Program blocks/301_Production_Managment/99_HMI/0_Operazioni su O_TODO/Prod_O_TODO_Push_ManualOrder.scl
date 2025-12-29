@@ -1,0 +1,321 @@
+﻿// Block: Prod_O_TODO_Push_ManualOrder
+// Title: Reset stati precenti
+
+FUNCTION_BLOCK "Prod_O_TODO_Push_ManualOrder"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset stati precenti
+   VAR_INPUT
+      Execute : Bool;
+      Enable : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Ready : Bool;
+      Busy : Bool;
+      Done : Bool;
+      Error : Bool;
+   END_VAR
+
+   VAR
+      PPrf_Data_Presence : Bool;
+      WriteOrder : Bool;
+      Prg : PPrf_Data;
+      PPrf_Get : GetPrg;
+      TON_Timeout : TON_TIME;
+      TON_Result : TON_TIME;
+      Order : Prod_Item;
+      Counter_Space : Int;
+      RETVAL : DInt;
+      TYP : String;
+      H_num : Real;
+      H : String;
+      W_num : Real;
+      W : String;
+      TK_num : Real;
+      TK : String;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+      Tol_Min : Real;
+      Tol_Max : Real;
+      Tol_Avg : Real;
+      adj : Real;
+   END_VAR
+
+   VAR CONSTANT
+      ERR_BEAMS_LEN : Int;
+      ERR_BEAM_REQ : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset stati precenti"
+      #TON_Result(
+         IN := (NOT ((NOT (Done) AND NOT (Error))) AND NOT (Execute)),
+         PT := t#3s
+      );
+
+      IF #TON_Result.Q THEN
+         PPrf_Data_Presence := FALSE;
+      END_IF;
+      IF #TON_Result.Q THEN
+         WriteOrder := FALSE;
+      END_IF;
+      IF #TON_Result.Q THEN
+         Done := FALSE;
+      END_IF;
+      IF #TON_Result.Q THEN
+         Error := FALSE;
+      END_IF;
+      IF #TON_Result.Q THEN
+         Busy := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Controlli preliminari sull'avvio eseguit se cìè abilitazione esterna e Profilo valorizzato"
+      IF Production_HMI.MAN_O.PPrf_No > 0 AND Enable THEN
+          
+          Production_HMI.MAN_O.Req := (IN1 := 1, IN2 := Production_HMI.MAN_O.Req);
+          
+          
+          Production_HMI.MAN_O.Len := (IN := Production_HMI.MAN_O.Len, MN := BEAM_LEN_MIN, MX := BEAM_LEN_MAX);
+          
+          
+          
+          // Ricerca prima posizione libera
+          // 
+          
+          Counter_Space := 0;
+          
+          FOR i := 1 TO PROD_TODO_ITEMS DO
+              
+              IF Production.O_TODO[i].O_ID <= 0 THEN
+                  Counter_Space += 1;
+              END_IF;
+              
+          END_FOR;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "READY = condizioni per avvio presenti"
+      Ready := (((((((((((Production_HMI.MAN_O.PPrf_No > 0) AND Enable) AND (Counter_Space > 1)) AND NOT (Done)) AND NOT (Error)) AND NOT (Busy)) AND NOT (PPrf_Data_Presence)) AND NOT (PPrf_Get.Execute)) AND NOT (PPrf_Get.Busy)) AND NOT (PPrf_Get.Done)) AND NOT (PPrf_Get.Error));
+   END_REGION
+
+   REGION "Prima operazione = Caricamento profilo rchiesto"
+      #PPrf_Get(
+         en := TRUE,
+         Execute := ((Execute AND Ready) OR PPrf_Get.Execute),
+         PrgNo := Production_HMI.MAN_O.PPrf_No,
+         GET_ITF := PPrf_MAIN.GET_ITF,
+         GET_Data := PPrf_MAIN.RWD.GET,
+         PRG_Data := Prg
+      );
+
+      #TON_Timeout(
+         IN := PPrf_Get.Execute,
+         PT := t#2s
+      );
+
+      IF PPrf_Get.Execute THEN
+         Busy := TRUE;
+      END_IF;
+      IF (PPrf_Get.Execute AND PPrf_Get.Done) THEN
+         PPrf_Get.Execute := FALSE;
+      END_IF;
+      IF (PPrf_Get.Execute AND PPrf_Get.Done) THEN
+         PPrf_Data_Presence := TRUE;
+      END_IF;
+      IF (#TON_Timeout.Q OR (PPrf_Get.Execute AND PPrf_Get.Error)) THEN
+         PPrf_Get.Execute := FALSE;
+      END_IF;
+      IF (#TON_Timeout.Q OR (PPrf_Get.Execute AND PPrf_Get.Error)) THEN
+         Error := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Seconda operazione = Popolare dati dell'ordine"
+      IF PPrf_Data_Presence AND NOT WriteOrder THEN
+          
+          WriteOrder := TRUE;
+          
+          Order := Production.O_Empty;
+          
+          
+          Order.O_ID := Production.Last_O_ID + 1;
+          
+          
+          Order.Type := PROD_ITEM_TYPE_HMI;
+          
+          Order.MES_IDP := 'HMI';
+          
+          
+          CASE Prg.GeneralData.Beam_Code OF
+                  
+              0:
+                  Order.MES_Profile_Code := PROFILE_TYPE_SEMIGUSCIO;
+                  
+                  
+              1:
+                  Order.MES_Profile_Code := PROFILE_TYPE_ACCOPPIATO;
+          END_CASE;
+          
+          Order.MES_PPrf_Name := Prg.Header.PrgName;
+          
+          
+          TYP := Order.MES_Profile_Code;
+          
+          H_num := (Prg.GeneralData.Beam_H_B_Code);
+          
+          H := Conv_NUM_to_STRING(NumericValue := H_num, NDec := 0);
+          
+          W_num := (Prg.GeneralData.Beam_W_A_Code);
+          
+          W := Conv_NUM_to_STRING(NumericValue := W_num, NDec := 0);
+          
+          TK_num := (Prg.GeneralData.Beam_TK_Code) / 100;
+          
+          TK := Conv_NUM_to_STRING(NumericValue := TK_num, NDec := 2);
+          
+          
+          REGION FAKE PROFILE PROGRAM NAME BUILDING
+              
+              
+              
+              //--------------------------------------
+              
+              Order.MES_PPrf_Name := '';
+              
+              
+              Order.MES_PPrf_Name := (IN1 := Order.MES_PPrf_Name, IN2 := TYP);
+              
+              IF H_num < 100 THEN
+                  
+                  Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := '0');
+              END_IF;
+              
+              Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := H);
+              
+                     
+              Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := 'x');
+              Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := W);
+              
+             
+              Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := 'x');
+              Order.MES_PPrf_Name := (IN1 :=  Order.MES_PPrf_Name, IN2 := TK);
+              
+          END_REGION
+          
+          
+          
+          
+          Order.PPrf_No := Production_HMI.MAN_O.PPrf_No;
+          
+          Order.Beam_Code := Prg.GeneralData.Beam_Code;
+          Order.Beams_W_A := W_num;
+          Order.Beams_H_B := H_num;
+          Order.Beams_Thickness :=TK_num;
+          
+          Order.Kanban_Style := FALSE;
+          
+          Order.Use_Ribbing_Roll := Production_HMI.MAN_O.Use_Ribbing_Roll;
+          Order.Use_Trace_Mark_Tool := Production_HMI.MAN_O.Use_Trace_Mark_Tool;
+          Order.Use_Thick_Mark_Tool := Production_HMI.MAN_O.Use_Thick_Mark_Tool;
+          
+          Order.PackLayout_BeamsPerLayer := Prg.GeneralData.PackLayout_BeamsPerLayer;
+          Order.PackLayout_Layers_Qty := Prg.GeneralData.PackLayout_Layers_Qty;
+          
+          
+          
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          // CALCOLO LUNGHEZZE MIN / MAX
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 
+          
+          Order.Beams_Len := Production_HMI.MAN_O.Len;
+          
+          
+          
+          Tol_Min := PLEN_TOL_MIN_DEFAULT;
+          Tol_Max := PLEN_TOL_MAX_DEFAULT;
+          
+          IF (Prg.GeneralData.Beam_Len_Tol_Max > Prg.GeneralData.Beam_Len_Tol_Min)
+              AND
+              (Prg.GeneralData.Beam_Len_Tol_Min <> 0.0 OR Prg.GeneralData.Beam_Len_Tol_Max <> 0.0)
+          THEN
+              Tol_Min := Prg.GeneralData.Beam_Len_Tol_Min;
+              Tol_Max := Prg.GeneralData.Beam_Len_Tol_Max;
+          END_IF;
+          
+          Order.Beams_Len_Min := Order.Beams_Len + Tol_Min;
+          Order.Beams_Len_Max := Order.Beams_Len + Tol_Max;
+          
+          Tol_Avg := (Tol_Max + Tol_Min) / 2.0;
+          
+          Order.Parts_Len := Order.Beams_Len + Tol_Avg;
+          
+          Order.Parts_Tol := (Tol_Max - Tol_Min) / 2.0;
+          
+          
+          
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          // CONTATTORI PARTI / PEZZI
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          
+          // Uscita con errore per quantità pezzi richiesta non valida
+          // 
+          
+          Order.Beams_REQ := Production_HMI.MAN_O.Req;
+          
+          Order.Beams_ToGo := Order.Beams_REQ;
+          
+          
+          Order.Parts_REQ := Order.Beams_REQ;
+          
+          IF Order.Beam_Code = 1 THEN
+              Order.Parts_REQ := Order.Parts_REQ * 2;
+          END_IF;
+          
+          Order.Parts_ToGo := Order.Parts_REQ;
+         
+         
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+          // QUANTITA' MATERIALE RICHIESTO
+          //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+         
+          Order.Material_Len_REQ := (Order.Parts_REQ) * Order.Parts_Len;
+          Order.Material_Len_ToGo := Order.Material_Len_REQ;
+          
+          
+          
+      END_IF;
+          
+          
+
+   END_REGION
+
+   REGION "Terza operazione = Inserimento ordine su lista ordini da fare (TODO)"
+      IF (PPrf_Data_Presence AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         PPrf_Data_Presence := FALSE;
+      END_IF;
+      IF (PPrf_Data_Presence AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         Error := TRUE;
+      END_IF;
+      IF (PPrf_Data_Presence AND NOT (Error)) THEN
+         PPrf_Data_Presence := FALSE;
+      END_IF;
+      IF (PPrf_Data_Presence AND NOT (Error)) THEN
+         Done := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Quarta operazione = In caso di successo inizializza valori su HMI per prossimo inserimento"
+      IF Done THEN
+         Order := Production.O_Empty;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,20 @@
+﻿// Block: TolWin_REAL
+
+FUNCTION "TolWin_REAL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      ActPos : Real;
+      Target : Real;
+      PosWin : Real;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 2"
+      TolWin_REAL := (ActPos - Target) <= PosWin;
+
+   END_REGION
+
+
+END_FUNCTION

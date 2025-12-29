@@ -1,0 +1,17 @@
+﻿FUNCTION "FS_INSPOS_T" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Position : LReal;
+   END_VAR
+
+   VAR_IN_OUT 
+      Ax : "FlyingShearAxis";
+   END_VAR
+
+
+BEGIN
+	#Ax.FSCore.WorkPosition:=#Position;
+	#Ax.FSCore.iStartTrigger:=TRUE;
+END_FUNCTION
+

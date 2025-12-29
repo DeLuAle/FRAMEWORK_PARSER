@@ -1,0 +1,96 @@
+﻿FUNCTION_BLOCK "Check_Part_Movement"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Init : Bool;   // Rising edge to initialize checking logic
+      TriggerNegPos : Bool;   // FALSE = Start on falling edge of S1, TRUE = Rising edge
+      S1 : Bool;   // Sensor triggering the start of the check
+      S2 : Bool;   // Target sensor to be reached
+      V_Counter : LReal;   // Virtual counter [0...MATERIAL_COUNTERS_MODULE]
+      DistanceToTravel : LReal;   // Expected distance before reaching S2 [mm]
+      Tolerance_Reached : LReal;   // Allowed tolerance to consider S2 as correctly reached [mm]
+      Delta_TooEarly : LReal;   // Minimum distance before which S2 must NOT be ON [mm]
+      Delta_NotReached : LReal;   // Maximum distance after which S2 MUST be ON [mm]
+   END_VAR
+
+   VAR_OUTPUT 
+      S2_Reached : Bool;   // TRUE if S2 activated within valid range
+      Err_S2_ON : Bool;   // TRUE if S2 went ON too early
+      Err_S2_OFF : Bool;   // TRUE if S2 not ON within allowed range
+   END_VAR
+
+   VAR_IN_OUT 
+      V_Counter_Save : LReal;   // Saved position at triggering edge of S1
+   END_VAR
+
+   VAR 
+      S1_Old : Bool;
+      MonitoringActive : Bool;
+      Delta : LReal;
+   END_VAR
+
+
+BEGIN
+	
+	IF #Init THEN
+	    #MonitoringActive := FALSE;
+	    #S2_Reached := FALSE;
+	    #Err_S2_ON := FALSE;
+	    #Err_S2_OFF := FALSE;
+	    #V_Counter_Save := #V_Counter;
+	ELSE
+	    
+	    // Edge detection on S1 (rising or falling)
+	    IF NOT #MonitoringActive THEN
+	        
+	        #S2_Reached := FALSE;
+	        #Err_S2_ON := FALSE;
+	        #Err_S2_OFF := FALSE;
+	        
+	        IF #TriggerNegPos THEN
+	            IF (#S1 AND NOT #S1_Old) THEN // Rising edge
+	                #V_Counter_Save := #V_Counter;
+	                #MonitoringActive := TRUE;
+	               
+	            END_IF;
+	        ELSE
+	            IF (NOT #S1 AND #S1_Old) THEN // Falling edge
+	                #V_Counter_Save := #V_Counter;
+	                #MonitoringActive := TRUE;
+	                
+	            END_IF;
+	        END_IF;
+	    ELSE
+	        // Compute modular delta
+	        #Delta := #V_Counter - #V_Counter_Save;
+	        IF #Delta < 0.0 THEN
+	            #Delta := #Delta + "MATERIAL_COUNTERS_MODULE";
+	        END_IF;
+	        
+	        // Check if S2 went ON too early
+	        IF #MonitoringActive AND #S2 AND (#Delta < #Delta_TooEarly) THEN
+	            #Err_S2_ON := TRUE;
+	            #MonitoringActive := FALSE;
+	        END_IF;
+	        
+	        // Check if S2 is reached correctly within range
+	        IF #MonitoringActive AND #S2 AND (#Delta >= #DistanceToTravel - #Tolerance_Reached) OR (#Delta <= #DistanceToTravel + #Tolerance_Reached) THEN
+	            #S2_Reached := TRUE;
+	            #MonitoringActive := FALSE;
+	        END_IF;
+	        
+	        // Check if S2 not reached in time
+	        IF #MonitoringActive AND (#Delta > #Delta_NotReached) THEN
+	            #Err_S2_OFF := TRUE;
+	            #MonitoringActive := FALSE;
+	        END_IF;
+	    
+	    END_IF;
+	    
+	END_IF;
+	
+	// Save previous S1 state
+	#S1_Old := #S1;
+	
+END_FUNCTION_BLOCK
+

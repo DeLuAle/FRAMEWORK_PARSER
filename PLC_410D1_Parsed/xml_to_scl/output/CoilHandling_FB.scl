@@ -1,0 +1,1725 @@
+﻿// Block: CoilHandling_FB
+// Title: Reset alarms
+
+FUNCTION_BLOCK "CoilHandling_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset alarms
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DataIn : Struct
+         PbMaterialBkw : Bool;
+         PbMaterialFwd : Bool;
+         PbExtraLowSpeed : Bool;
+         SensorMatPresence_Decoiler : Bool;
+         SensorMatPresence_StraightEntry : Bool;
+         SensorMatPresence_StraightExit : Bool;
+         SensorMatPresence_JBPinchExit : Bool;
+         PbCoilReady : Bool;
+         PbProvino : Bool;
+         Decoiler2_PosizioneRazza : Bool;
+      END_STRUCT;
+      CIn : Struct
+         DecoilersHRot : DecoilersHRot_Status;
+         Decoiler1 : Decoiler_Status;
+         Decoiler2 : Decoiler_Status;
+         Peeler : Peeler_Status;
+         Straigtener : Straightener_Status;
+         JB : JB_Status;
+         MaterialCounter : Struct
+            AlrPresence : Bool;
+            WngPresence : Bool;
+            Data : MatCountData;
+         END_STRUCT;
+         Loop : Struct
+            SystemOn : Bool;
+            Enable_FWD : Bool;
+            Enable_BWD : Bool;
+            SynchroRunning : Bool;
+            MaxLength_Reeached : Bool;
+            VelocityOverride : Real;
+         END_STRUCT;
+         Downstream : Struct
+            Aut : Bool;
+            MaterialPresence_Entry : Bool;
+            MaterialPresence : Bool;
+            LineVelocity : LReal;
+         END_STRUCT;
+         MES : Prod_Coil_Ctrl;
+      END_STRUCT;
+      Config : CoilHandling_Config;
+      "ThicknessCheck_HW_ID_DL-PN" : HW_SUBMODULE;
+      ThicknessCheck_HW_ID_IL1000 : HW_SUBMODULE;
+      ThicknessCheck_HW_ID_IL1050 : HW_SUBMODULE;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Gen : Struct
+            Material_STS : Int;
+            MaterialPresence : Bool;
+            MaterialMissing : Bool;
+            NextEndOfMaterial : Bool;
+            EmptyingConfirmed : Bool;
+            ExtraLowSpeedSelection : Bool;
+            SemiAutomatic : Bool;
+            Production_Running : Bool;
+            DecoilerInLineNumber : Int;
+            CoilDiameter : Real;
+         END_STRUCT;
+         DecoilersHRot : DecoilersHRot_Manager;
+         DecoilerInLine : Decoiler_Manager;
+         DecoilerOutLine : Decoiler_Manager;
+         Decoiler1 : Decoiler_Manager;
+         Decoiler2 : Decoiler_Manager;
+         Peeler : Peeler_Manager;
+         Straightener : Straightener_Manager;
+         JB : JB_Manager;
+         Loop : Struct
+            Stop : Bool;
+            Synchro_Request : Bool;
+            MaterialMiddlePos_Request : Bool;
+         END_STRUCT;
+         MES : Struct
+            Deroga_Spessore_Errato : Bool;
+            Spessore_Lamiera_Errato : Bool;
+            Spessore_Lamiera_Sensore_Valore : Real;
+            Spessore_Lamiera_Errore_Valore : Real;
+            Provino_Eseguito : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      DataOut : Struct
+         Lamp_CoilReady : Bool;
+         Lamp_ExtraLowSpeed : Bool;
+         Lamp_Provino : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Pers : CoilHandling_Persistent;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         MaterialMissing : Bool;
+         S_MatPresence_StraightExit_NotOFF : Bool;
+         MatCounterAlrPresence : Bool;
+         EndOfMaterial : Bool;
+         TichnessCheck : Struct
+            Err_Sensor_Get_PN_IO : Bool;
+            Err_Sensor_Rack : Bool;
+            Err_Sensor_Value : Bool;
+            ThicknessOutOfRange : Bool;
+         END_STRUCT;
+         MES : Struct
+            STOP_Provino : Bool;
+            STOP_Taglio_Fine_Ordini : Bool;
+            STOP_Manca_Dati_AspoInLinea : Bool;
+            STOP_FineTurno : Bool;
+            STOP_ControlloQualita : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Warning : Struct
+         NotAutReady : Bool;
+         MatCounterWngPresence : Bool;
+         EmptyingIsON : Bool;
+         EndOfMaterial_StraightenetEntry : Bool;
+         EndOfMaterial_StraightenetExit : Bool;
+         EndOfCoilSequenceRunning : Bool;
+         ExtraLowSpeedIsON : Bool;
+         Decoiler2_RazzaNonInPosizione : Bool;
+         StopInactivity : Bool;
+         ThicnessCheck : Struct
+            SensorDisable : Bool;
+            ThicknessOutOfRange : Bool;
+            Err_Bypass : Bool;
+         END_STRUCT;
+         MES : Struct
+            STOP_Manca_Dati_AspoInCarico : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      HMI : Struct
+         B_ConfirmEmptying : Bool;
+         B_ConfirmEmptyingShow : Bool;
+         B_ConfirmEmptyingStatus : Bool;
+         ThicknessControl : Struct
+            Button_Exception : Bool;
+            Button_Init : Bool;
+            STATUS : Int;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         Pause : Bool;
+         Stop : Bool;
+         Semiautomatic_MaterialFwd : Bool;
+         Semiautomatic_MaterialBkw : Bool;
+         EndOfCoil : Struct
+            StraightRollEntry_Open : Bool;
+            StraightRollExit_Open : Bool;
+            StraightRollEntry_Close : Bool;
+            StraightRollExit_Close : Bool;
+            Straightener_Bwd : Bool;
+            Straightener_Fwd : Bool;
+            JB_Pinch_Open : Bool;
+            JB_Pinch_Close : Bool;
+            JB_Pinch_Fwd : Bool;
+            JB_Cut_Rest : Bool;
+            JB_Cut_Work : Bool;
+            JB_Welder_Open : Bool;
+            TargetPosMat_StraightEmpty : LReal;
+            TargetPosMat_TailCutExe : LReal;
+            TargetPosMat_JunctionExe : LReal;
+            ChangeCoilExe : Bool;
+            Decoiler_Fwd : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Sts : Struct
+         FeedStandstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         EnableCycleStopProgrammed : Bool;
+         MaterialFwdEnable : Bool;
+         MaterialBkwEnable : Bool;
+         CumulativeMaterialFwdRequest : Bool;
+         Semiautomatic : Bool;
+         ExtraLowSpeedSelectionPB : Bool;
+         ExtraLowSpeedSelection : Bool;
+         STOP_Feed_by_MES : Bool;
+         STOP_CoilChange_By_MES : Bool;
+         STOP_Inactivity : Bool;
+         DecoilerInLine : Decoiler_Status;
+         DecoilerOutOfLine : Decoiler_Status;
+         EndOfCoil : Struct
+            Status : Int;
+            Cnd : Bool;
+            Idle : Bool;
+            EndOfSequence : Bool;
+            PinchRoll_SpaceToStop : LReal;
+            PosMat_AtEndMatPresence_StraightEnty : LReal;
+            PosMat_AtEndMatPresence_StraightExit : LReal;
+            MissingTargetPosMat_StraightEmpty : LReal;
+            MissingToTargetPosMat_TailCutExe : LReal;
+            StopPinchRoll_TargetPosMat_TailCutExe : Bool;
+            Reached_TargetPosMat_TailCutExe : Bool;
+            MissingToTargetPosMat_JunctionExe : LReal;
+            StopPinchRoll_TargetPosMat_JunctionExe : Bool;
+            Reached_TargetPosMat_JunctionExe : Bool;
+         END_STRUCT;
+         LoopSynchro : Struct
+            Phase1_A : Bool;
+            Phase2_A : Bool;
+            Phase1_B : Bool;
+            Phase2_B : Bool;
+         END_STRUCT;
+         MaterialMoveSemiAut : Struct
+            Bwd_Phase1 : Bool;
+            Bwd_Phase1Cnd : Bool;
+            Bwd_Phase2 : Bool;
+            Bwd_Phase2Cnd : Bool;
+            Bwd_Phase3 : Bool;
+            Fwd_Phase1 : Bool;
+            Fwd_Phase1Cnd : Bool;
+            Fwd_Phase2 : Bool;
+            Fwd_Phase2Cnd : Bool;
+            Fwd_Phase3 : Bool;
+         END_STRUCT;
+         MaterialMoveAut : Struct
+            Fwd_Phase1 : Bool;
+            Fwd_Phase1Cnd : Bool;
+            Fwd_Phase2 : Bool;
+            Fwd_Phase2Cnd : Bool;
+            Fwd_Phase3 : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      MatPresence_Decoiler : DelayOnOff_R;
+      MatPresence_StraightEntry : DelayOnOff_R;
+      MatPresence_StraightExit : DelayOnOff_R;
+      MatPresence_JBPinchExit : DelayOnOff_R;
+      Coil_LooseWrap : CoilCheckLooseWrap;
+      ThicknessCheck : ThicknessCheck_FB;
+      CoilHandling_MES : CoilHandling_MES_FB;
+      TON_Emptying : TON_TIME;
+      TON_DecoilerNotMovingBkw : TON_TIME;
+      TON_PinchrollFwd : TON_TIME;
+      TON_StraightnerBwd : TON_TIME;
+      TON_StraightnerFwd : TON_TIME;
+      TON_SemiautoOFF : TON_TIME;
+      TON_AutDisableAxes : TON_TIME;
+      TON_StopInactivity : TON_TIME;
+      AUX : Struct
+         S_MatPresence_StraightEntry : Bool;
+         S_MatPresence_StraightExit : Bool;
+         PbMaterialFwd : Bool;
+         PbMaterialBkw : Bool;
+         PbExtraLowSpeed : Bool;
+         ButtonForceLoopMiddle : Bool;
+         PbCoilLoaded : Bool;
+         StopLoop : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Not_S_MatPresence_StraightEntry : Bool;
+         Not_S_MatPresence_StraightExit : Bool;
+         PbMaterialBkw : Bool;
+         PbMaterialFwd : Bool;
+         PbExtraLowSpeed : Bool;
+      END_STRUCT;
+      Req : Bool;
+      Set : Bool;
+      Rst : Bool;
+      Cnd : Bool;
+      Min : Bool;
+      Max : Bool;
+      OK : Bool;
+      StraightRollEntry_Used : Bool;
+      StraightRollExit_Used : Bool;
+      DistanceSensorEntryExitStraight : LReal;
+      DistanceLimit : LReal;
+      LineVel : LReal;
+      Decoiler_VelFactor : LReal;
+      Straightener_VelFactor : LReal;
+      OverRide_VelFactor : LReal;
+      OverRide_VelFactor_Candidate : LReal;
+      Delta : LReal;
+      Vel : LReal;
+      EnableStopInPhase : Bool;
+      EnableStopProgrammed : Bool;
+      EnableStopDoorOpeningReq : Bool;
+      Set_1 : Bool;
+      Rst_1 : Bool;
+      Set_2 : Bool;
+      Rst_2 : Bool;
+      CaseA : Bool;
+      CaseB : Bool;
+      Empty : Bool;
+      JunctionDone : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Reset alarms"
+      IF AreaInterface.RstAlarms THEN
+          
+          Alarm.MaterialMissing := FALSE;
+          Alarm.S_MatPresence_StraightExit_NotOFF := FALSE;
+          Alarm.EndOfMaterial := FALSE;
+          
+          
+          Warning.Decoiler2_RazzaNonInPosizione := FALSE;
+          Warning.NotAutReady := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 4: Straightenetr rolls entry / exit to use"
+      StraightRollEntry_Used := ((PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.StraightenerRollsUse = 1) OR (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.StraightenerRollsUse > 2));
+      StraightRollExit_Used := ((PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.StraightenerRollsUse = 2) OR (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.StraightenerRollsUse > 2));
+   END_REGION
+
+   REGION "Network 5: Material presence Decoiler"
+      #MatPresence_Decoiler(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_Decoiler,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_Decoiler
+      );
+
+   END_REGION
+
+   REGION "Network 6: Material presence straightener entry"
+      #MatPresence_StraightEntry(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_StraightEntry,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_StraightenerEntry
+      );
+
+   END_REGION
+
+   REGION "Network 7: Material presence straightener exit"
+      #MatPresence_StraightExit(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_StraightExit,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_StraightenerExit
+      );
+
+   END_REGION
+
+   REGION "Network 8: Material presence JB pinch roll exit"
+      #MatPresence_JBPinchExit(
+         en := TRUE,
+         IN := DataIn.SensorMatPresence_JBPinchExit,
+         DelayON := Config.SensorsDelayOn,
+         DelayOFF := Config.SensorsDelayOff,
+         OUT => Pers.Data.MaterialPresence_JBPinchExit
+      );
+
+   END_REGION
+
+   REGION "Network 11: Material junction done"
+      JunctionDone := (((CIn.JB.JunctionDone AND Pers.Data.MaterialPresence_StraightenerEntry) AND Pers.Data.MaterialPresence_StraightenerEntry) AND Pers.Data.MaterialPresence_StraightenerExit);
+   END_REGION
+
+   REGION "Network 12: Material END @ STRAIGHT ENTRY / EXIT (END OF COIL + STRAIGHTENER ENGAGED / FREE)"
+      IF (((Pers.Data.MaterialFullLoaded AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR (Pers.Data.MaterialFullLoaded AND NOT Pers.Data.MaterialPresence_Decoiler)) AND NOT Pers.Data.MaterialPresence_StraightenerExit) THEN
+         Pers.Data.END_OF_COIL.Mem := TRUE;
+      END_IF;
+      IF (NOT Pers.Data.MaterialPresence_JBPinchExit OR JunctionDone) THEN
+         Pers.Data.END_OF_COIL.Mem := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 13: Material CUTED & CONFIRMED (PRODUCTION ABORTING)"
+      IF ((((Pers.Data.MaterialFullLoaded AND CIn.JB.CutHead.Work) AND AreaInterface.Man) AND Sts.EndOfCoil.Idle) AND NOT Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed) THEN
+         Pers.Data.MATERIAL_SEPARATION.Mem := TRUE;
+      END_IF;
+      Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed := (Pers.Data.MATERIAL_SEPARATION.Mem AND NOT Pers.Data.MaterialPresence_StraightenerExit);
+      IF (NOT Pers.Data.MaterialPresence_JBPinchExit OR JunctionDone OR Pers.Data.END_OF_COIL.Mem) THEN
+         Pers.Data.MATERIAL_SEPARATION.Mem := FALSE;
+      END_IF;
+      IF (NOT Pers.Data.MaterialPresence_JBPinchExit OR JunctionDone OR Pers.Data.END_OF_COIL.Mem) THEN
+         Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 14: Material FULL INSERT"
+      IF (((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit) AND Pers.Data.MaterialPresence_JBPinchExit) AND CIn.Downstream.MaterialPresence_Entry) THEN
+         Pers.Data.MaterialFullLoaded := TRUE;
+      END_IF;
+      IF (Pers.Data.MATERIAL_SEPARATION.Mem OR Pers.Data.END_OF_COIL.Mem) THEN
+         Pers.Data.MaterialFullLoaded := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 15: Material presence for keep running the material even thoug is not full insterted"
+      Pers.Data.MaterialPresence := (((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit) OR Pers.Data.MaterialPresence) AND Pers.Data.MaterialPresence_JBPinchExit);
+      IF ((Pers.Data.END_OF_COIL.Mem AND Sts.EndOfCoil.EndOfSequence) OR (Pers.Data.MATERIAL_SEPARATION.Mem AND Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed)) THEN
+         Pers.Data.MaterialPresence := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 16: Material EMPTY -> Reset all latched memory"
+      Empty := ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit);
+      IF ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit) THEN
+         Pers.Data.MATERIAL_SEPARATION.Mem := FALSE;
+      END_IF;
+      IF ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit) THEN
+         Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed := FALSE;
+      END_IF;
+      IF ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit) THEN
+         Pers.Data.END_OF_COIL.Mem := FALSE;
+      END_IF;
+      IF ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit) THEN
+         Pers.Data.MaterialFullLoaded := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 17: Alarm material missing"
+      IF (((AreaInterface.Aut AND NOT Pers.Data.MaterialPresence) AND NOT Pers.Data.CoilLoadedInDecoiler1) AND NOT Pers.Data.CoilLoadedInDecoiler2) THEN
+         Alarm.MaterialMissing := TRUE;
+      END_IF;
+      IF COut.Gen.EmptyingConfirmed THEN
+         Alarm.MaterialMissing := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 19: Material status"
+      IF Empty
+      THEN
+          COut.Gen.Material_STS := MAT_EMPTY;
+      ELSIF Pers.Data.END_OF_COIL.Mem
+      THEN
+          COut.Gen.Material_STS := MAT_EOF_COIL;
+      ELSIF Pers.Data.MATERIAL_SEPARATION.Mem
+      THEN
+          COut.Gen.Material_STS := MAT_SPERATION;
+          
+      ELSIF Pers.Data.MaterialFullLoaded
+      THEN
+          COut.Gen.Material_STS := MAT_FULL;
+      ELSE
+          COut.Gen.Material_STS := MAT_INTRODUCTION;
+      END_IF;
+          
+          
+
+   END_REGION
+
+   REGION "Network 21: Decoiler in line Status"
+      IF (CIn.DecoilersHRot.Decoiler1_InLine AND NOT CIn.DecoilersHRot.Decoiler2_InLine) THEN
+         Sts.DecoilerInLine := CIn.Decoiler1;
+      END_IF;
+      IF CIn.Decoiler1 THEN
+         Sts.DecoilerOutOfLine := CIn.Decoiler2;
+      END_IF;
+      IF (NOT CIn.DecoilersHRot.Decoiler1_InLine AND CIn.DecoilersHRot.Decoiler2_InLine) THEN
+         Sts.DecoilerInLine := CIn.Decoiler2;
+      END_IF;
+      IF CIn.Decoiler2 THEN
+         Sts.DecoilerOutOfLine := CIn.Decoiler1;
+      END_IF;
+   END_REGION
+
+   REGION "Network 23: Alarm presence @ material counter"
+      Alarm.MatCounterAlrPresence := CIn.MaterialCounter.AlrPresence;
+      Warning.MatCounterWngPresence := CIn.MaterialCounter.WngPresence;
+   END_REGION
+
+   REGION "Network 26: Area Emptying"
+      #TON_Emptying(
+         IN := ((HMI.B_ConfirmEmptying OR (MB1_Area01_SelMan AND Area01.DataIn.PbStop)) AND HMI.B_ConfirmEmptyingShow),
+         PT := T#3s
+      );
+
+      HMI.B_ConfirmEmptyingShow := ((((((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR ((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed)) AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND Sts.EndOfCoil.Idle) OR (((((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR ((AreaInterface.Man OR COut.Gen.EmptyingConfirmed) AND Pers.Data.MATERIAL_SEPARATION.CutDoneAndConfirmed)) AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND Sts.EndOfCoil.EndOfSequence));
+      Cnd := ((((((((((HMI.B_ConfirmEmptyingShow AND NOT ZSI.Door_NormalStop) AND NOT ZSI.Door_SafeStop) AND NOT ZSI.Door_Opened) AND CIn.Straigtener.Lift_Entry.Rest) AND CIn.Straigtener.Lift_Exit.Rest) OR (((((HMI.B_ConfirmEmptyingShow AND NOT ZSI.Door_NormalStop) AND NOT ZSI.Door_SafeStop) AND NOT ZSI.Door_Opened) AND CIn.Straigtener.Lift_Entry.Rest) AND TRUE)) AND CIn.JB.CutHead.Rest) AND CIn.JB.ClampEntry.Rest) AND CIn.JB.ClampExit.Rest) AND CIn.JB.Pinchroll_Lift.Rest);
+      IF NOT Cnd THEN
+         COut.Gen.EmptyingConfirmed := FALSE;
+      ELSIF TON_Emptying.Q THEN
+         COut.Gen.EmptyingConfirmed := TRUE;
+      END_IF;
+      Warning.EmptyingIsON := COut.Gen.EmptyingConfirmed;
+      HMI.B_ConfirmEmptyingStatus := COut.Gen.EmptyingConfirmed;
+   END_REGION
+
+   REGION "Network 28: Material feeding Stop"
+      Sts.EnableCycleStopProgrammed := TRUE;
+      IF (NOT AreaInterface.Cycle AND Sts.FeedStandstill) THEN
+         Ctrl.Stop := FALSE;
+      ELSIF ((NOT ((NOT AreaInterface.StopInPhase AND NOT Sts.AlarmsPresence)) OR (AreaInterface.StopProgrammed AND Sts.EnableCycleStopProgrammed) OR (AreaInterface.StopProgrammed AND Ctrl.Stop)) AND AreaInterface.Cycle) THEN
+         Ctrl.Stop := TRUE;
+      END_IF;
+      IF Ctrl.Stop THEN
+         Sts.EnableCycleStopProgrammed := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 29: Material feeding  Pause"
+      Req := (NOT ((NOT ZSI.Door_NormalStop AND NOT ZSI.Door_SafeStop)) OR NOT CIn.Loop.Enable_FWD);
+      IF ((NOT Req AND Sts.FeedStandstill) OR NOT AreaInterface.Cycle) THEN
+         Ctrl.Pause := FALSE;
+      ELSIF (NOT ((NOT ZSI.Door_NormalStop AND NOT ZSI.Door_SafeStop)) OR NOT CIn.Loop.Enable_FWD) THEN
+         Ctrl.Pause := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 30: Material Bkw / Fwd enable"
+      Sts.MaterialBkwEnable := ((NOT Ctrl.Stop AND NOT Ctrl.Pause) AND CIn.Loop.Enable_BWD);
+      Sts.MaterialFwdEnable := ((NOT Ctrl.Stop AND NOT Ctrl.Pause) AND CIn.Loop.Enable_FWD);
+   END_REGION
+
+   REGION "Network 31: Material Forward Request"
+      Sts.CumulativeMaterialFwdRequest := (CIn.Loop.SystemOn AND Sts.MaterialFwdEnable);
+   END_REGION
+
+   REGION "Network 33: Extra low speed selection"
+      PE.PbExtraLowSpeed := PosEdge(DataIn.PbExtraLowSpeed);
+      Set := (PE.PbExtraLowSpeed AND NOT Sts.ExtraLowSpeedSelection);
+      Rst := (PE.PbExtraLowSpeed AND Sts.ExtraLowSpeedSelection);
+      IF (Rst OR NOT AreaInterface.Man) THEN
+         Sts.ExtraLowSpeedSelectionPB := FALSE;
+      ELSIF Set THEN
+         Sts.ExtraLowSpeedSelectionPB := TRUE;
+      END_IF;
+      Sts.ExtraLowSpeedSelection := (Sts.ExtraLowSpeedSelectionPB OR NOT CIn.JB.ClampEntry.Rest OR NOT CIn.JB.ClampEntry.Rest);
+      Warning.ExtraLowSpeedIsON := Sts.ExtraLowSpeedSelection;
+   END_REGION
+
+   REGION "Network 35: Loop synchro before coil end (using coil diameter)"
+      IF ((Sts.DecoilerInLine.CoilDiameter > Config.CoilDiameterRstLoopSynchro) OR NOT Pers.Data.MaterialPresence_StraightenerEntry) THEN
+         Sts.LoopSynchro.Phase1_A := FALSE;
+      ELSIF (Sts.DecoilerInLine.CoilDiameter < Config.CoilDiameterSetLoopSynchro) THEN
+         Sts.LoopSynchro.Phase1_A := TRUE;
+      END_IF;
+      IF NOT Sts.LoopSynchro.Phase1_A THEN
+         Sts.LoopSynchro.Phase2_A := FALSE;
+      ELSIF (Sts.LoopSynchro.Phase1_A AND CIn.Loop.SynchroRunning) THEN
+         Sts.LoopSynchro.Phase2_A := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 36: Loop synchro before coil end (when coil loose the wrapping)"
+      #Coil_LooseWrap(
+         en := TRUE,
+         Execute := (Pers.Data.MaterialFullLoaded AND AreaInterface.Cycle),
+         D_Act := Sts.DecoilerInLine.CoilDiameter,
+         LooseWrap_Delta := 50.0,
+         LooseWrap_Time := T#10s
+      );
+
+      IF NOT Pers.Data.MaterialFullLoaded THEN
+         Sts.LoopSynchro.Phase1_B := FALSE;
+      ELSIF Coil_LooseWrap.LooseWrap THEN
+         Sts.LoopSynchro.Phase1_B := TRUE;
+      END_IF;
+      IF NOT Sts.LoopSynchro.Phase1_B THEN
+         Sts.LoopSynchro.Phase2_B := FALSE;
+      ELSIF (Sts.LoopSynchro.Phase1_B AND CIn.Loop.SynchroRunning) THEN
+         Sts.LoopSynchro.Phase2_B := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 39: Coil loaded mem"
+      Set_1 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler2_InLine) AND NOT Pers.Data.CoilLoadedInDecoiler1);
+      Rst_1 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler2_InLine) AND Pers.Data.CoilLoadedInDecoiler1);
+      Set_2 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler1_InLine) AND NOT Pers.Data.CoilLoadedInDecoiler2);
+      IF (((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler1_InLine) AND NOT Pers.Data.CoilLoadedInDecoiler2) AND NOT DataIn.Decoiler2_PosizioneRazza) THEN
+         Warning.Decoiler2_RazzaNonInPosizione := TRUE;
+      END_IF;
+      Rst_2 := ((PosEdge(DataIn.PbCoilReady) AND CIn.DecoilersHRot.Decoiler1_InLine) AND Pers.Data.CoilLoadedInDecoiler2);
+      IF NOT ((NOT Rst_1 AND NOT CIn.DecoilersHRot.Decoiler1_InLine)) THEN
+         Pers.Data.CoilLoadedInDecoiler1 := FALSE;
+      ELSIF (Set_1 AND NOT Warning.MES.STOP_Manca_Dati_AspoInCarico) THEN
+         Pers.Data.CoilLoadedInDecoiler1 := TRUE;
+      END_IF;
+      IF NOT ((NOT Rst_2 AND NOT CIn.DecoilersHRot.Decoiler2_InLine)) THEN
+         Pers.Data.CoilLoadedInDecoiler2 := FALSE;
+      ELSIF ((Set_2 AND NOT Warning.MES.STOP_Manca_Dati_AspoInCarico) AND DataIn.Decoiler2_PosizioneRazza) THEN
+         Pers.Data.CoilLoadedInDecoiler2 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 42: End of coil -  Pinch roll space required for stopping at actual velocity"
+   END_REGION
+
+   REGION "Network 43: End of coil -  Save positon"
+      PE.Not_S_MatPresence_StraightEntry := NegEdge(DataIn.SensorMatPresence_StraightEntry);
+      IF NegEdge(DataIn.SensorMatPresence_StraightEntry) THEN
+         Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightEntry := CIn.MaterialCounter.Data.AxPosition;
+      END_IF;
+      PE.Not_S_MatPresence_StraightExit := NegEdge(DataIn.SensorMatPresence_StraightExit);
+      IF NegEdge(DataIn.SensorMatPresence_StraightExit) THEN
+         Pers.Data.END_OF_COIL.SaveEncPosAx_EndOfMaterialStraightExit := CIn.MaterialCounter.Data.AxPosition;
+      END_IF;
+   END_REGION
+
+   REGION "Network 44: End of coil -  Distance between sensor at entry & exit of straightenete (USE THIS FOR SETUP PARAMETERS)"
+      DistanceSensorEntryExitStraight := (Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightExit - Sts.EndOfCoil.PosMat_AtEndMatPresence_StraightEnty);
+   END_REGION
+
+   REGION "Network 45: End of coil - Check straightener full empty"
+      Pers.Par.CoilEnd.Tol_CheckSensorStraightExit := ABS(IN:=Pers.Par.CoilEnd.Tol_CheckSensorStraightExit);
+      IF ABS(IN:=Pers.Par.CoilEnd.Tol_CheckSensorStraightExit) THEN
+         DistanceLimit := (Pers.Par.CoilEnd.Tol_CheckSensorStraightExit * -1.0);
+      END_IF;
+      IF FALSE THEN
+         Alarm.S_MatPresence_StraightExit_NotOFF := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 46: End of coil -  Positioning to cut-off execution target"
+      IF CIn.JB.Pinchroll_Feed.Standstill THEN
+         Sts.EndOfCoil.StopPinchRoll_TargetPosMat_TailCutExe := FALSE;
+      ELSIF (Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe < Sts.EndOfCoil.PinchRoll_SpaceToStop) THEN
+         Sts.EndOfCoil.StopPinchRoll_TargetPosMat_TailCutExe := TRUE;
+      END_IF;
+      Sts.EndOfCoil.Reached_TargetPosMat_TailCutExe := ((Sts.EndOfCoil.MissingToTargetPosMat_TailCutExe < -1.0) OR OK);
+   END_REGION
+
+   REGION "Network 47: End of coil -  Positioning to cut-off execution target"
+      #TON_PinchrollFwd(
+         IN := ((((Sts.EndOfCoil.Status = 4) AND Ctrl.EndOfCoil.JB_Pinch_Fwd) AND CIn.JB.Pinchroll_Lift.Work) AND NOT CIn.JB.Pinchroll_Feed.Standstill),
+         PT := Pers.Par.CoilEnd.Delay_PinchrollFwd
+      );
+
+   END_REGION
+
+   REGION "Network 48: End of coil -  Straightner Bwd"
+      #TON_StraightnerBwd(
+         IN := ((Sts.EndOfCoil.Status = 14) AND Ctrl.EndOfCoil.Straightener_Bwd),
+         PT := Pers.Par.CoilEnd.Delay_StraightnerBwd
+      );
+
+   END_REGION
+
+   REGION "Network 49: End of coil -  Straightner Fwd"
+      #TON_StraightnerFwd(
+         IN := ((Sts.EndOfCoil.Status = 21) AND Ctrl.EndOfCoil.Straightener_Fwd),
+         PT := Pers.Par.CoilEnd.Delay_StraightnerBwd
+      );
+
+   END_REGION
+
+   REGION "Network 50: End of coil -  Positioning to junction execution target"
+      IF CIn.JB.Pinchroll_Feed.Standstill THEN
+         Sts.EndOfCoil.StopPinchRoll_TargetPosMat_JunctionExe := FALSE;
+      ELSIF (Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe < Sts.EndOfCoil.PinchRoll_SpaceToStop) THEN
+         Sts.EndOfCoil.StopPinchRoll_TargetPosMat_JunctionExe := TRUE;
+      END_IF;
+      Sts.EndOfCoil.Reached_TargetPosMat_JunctionExe := ((Sts.EndOfCoil.MissingToTargetPosMat_JunctionExe < 0.0) OR OK);
+   END_REGION
+
+   REGION "Network 51: End of coil - Sequence status"
+      Sts.EndOfCoil.Idle := (Sts.EndOfCoil.Status = 0);
+      Sts.EndOfCoil.EndOfSequence := (Sts.EndOfCoil.Status = 11);
+      Warning.EndOfCoilSequenceRunning := NOT Sts.EndOfCoil.Idle;
+      Sts.EndOfCoil.Cnd := ((((((AreaInterface.Cycle AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR (AreaInterface.Cycle AND NOT Pers.Data.MaterialPresence_Decoiler)) AND Pers.Data.MaterialPresence_JBPinchExit) AND NOT Ctrl.Stop) AND NOT COut.Gen.EmptyingConfirmed) AND Sts.CumulativeMaterialFwdRequest);
+      IF NOT ((((((AreaInterface.Cycle AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR (AreaInterface.Cycle AND NOT Pers.Data.MaterialPresence_Decoiler)) AND Pers.Data.MaterialPresence_JBPinchExit) AND NOT Ctrl.Stop) AND NOT COut.Gen.EmptyingConfirmed)) THEN
+         Sts.EndOfCoil.Status := 0;
+      END_IF;
+   END_REGION
+
+   REGION "Network 52: End of coil - Target"
+   END_REGION
+
+   REGION "Network 53: End of coil - Sequence"
+
+
+      CASE Sts.EndOfCoil.Status OF
+              
+              
+              //#######################################################################################################
+              // Status = 0 - Wait end of coil for starting sequence
+              //#######################################################################################################
+              //
+          0:
+              // Reset controls
+              Ctrl.EndOfCoil.StraightRollEntry_Open := FALSE;
+              Ctrl.EndOfCoil.StraightRollEntry_Close := FALSE;
+              Ctrl.EndOfCoil.Straightener_Bwd := FALSE;
+              Ctrl.EndOfCoil.Straightener_Fwd := FALSE;
+              Ctrl.EndOfCoil.JB_Pinch_Close := FALSE;
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              Ctrl.EndOfCoil.JB_Cut_Rest := FALSE;
+              Ctrl.EndOfCoil.JB_Cut_Work := FALSE;
+              Ctrl.EndOfCoil.JB_Welder_Open := FALSE;
+              Ctrl.EndOfCoil.TargetPosMat_StraightEmpty := -1.0;
+              Ctrl.EndOfCoil.TargetPosMat_TailCutExe := -1.0;
+              Ctrl.EndOfCoil.TargetPosMat_JunctionExe := -1.0;
+              Ctrl.EndOfCoil.ChangeCoilExe := FALSE;
+              Ctrl.EndOfCoil.Decoiler_Fwd := FALSE;
+              
+              // Start when conditons met
+              IF Sts.EndOfCoil.Cnd THEN
+                  Sts.EndOfCoil.Status += 1;
+                  
+              ELSIF NOT Pers.Data.MaterialPresence_StraightenerEntry THEN
+                  // Reset memories
+                  Pers.Data.END_OF_COIL.Tail_ReachCutPosition := FALSE;
+                  Pers.Data.END_OF_COIL.Tail_CutDone := FALSE;
+                  Pers.Data.END_OF_COIL.Tail_ReachJunctionPos := FALSE;
+                  
+              END_IF;
+              
+              
+              
+              //#######################################################################################################
+              // Status = 1 - Close roll of pinch roll + Close rolls of straightener + Open JB clamps
+              //#######################################################################################################
+              //
+          1:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Close := NOT CIn.JB.Pinchroll_Lift.Work;
+              
+              Ctrl.EndOfCoil.StraightRollEntry_Close := NOT CIn.Straigtener.Lift_Entry.Work AND StraightRollEntry_Used;
+              Ctrl.EndOfCoil.StraightRollExit_Close := NOT CIn.Straigtener.Lift_Exit.Work AND StraightRollExit_Used;
+              
+              Ctrl.EndOfCoil.JB_Welder_Open := NOT CIn.JB.ClampEntry.Rest OR NOT CIn.JB.ClampExit.Rest ;
+              Ctrl.EndOfCoil.JB_Cut_Rest := NOT CIn.JB.CutHead.Rest;
+              
+              
+              IF NOT Ctrl.EndOfCoil.JB_Pinch_Close
+                  AND
+                  NOT Ctrl.EndOfCoil.StraightRollEntry_Close
+                  AND
+                  NOT Ctrl.EndOfCoil.StraightRollExit_Close
+                  AND
+                  NOT Ctrl.EndOfCoil.JB_Welder_Open
+                  AND
+                  NOT Ctrl.EndOfCoil.JB_Cut_Rest
+              THEN
+                  
+                  IF Pers.Par.CoilEnd.EnableCoilTailSequence THEN
+                      // #Sts.EndOfCoil.Status += 1;
+                      Sts.EndOfCoil.Status := 20;
+                  ELSE
+                      Sts.EndOfCoil.Status := 10; // jump to end of sequence 
+                  END_IF;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 2 - Fwd Pinchroll + Straightener for material extraction from straightener
+              //#######################################################################################################    
+              
+          2:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := Pers.Data.MaterialPresence_StraightenerExit;
+              Ctrl.EndOfCoil.Straightener_Fwd := Ctrl.EndOfCoil.JB_Pinch_Fwd;
+              
+              IF Alarm.S_MatPresence_StraightExit_NotOFF
+              THEN
+                  Sts.EndOfCoil.Status := 99;
+                  
+              ELSIF NOT Ctrl.EndOfCoil.JB_Pinch_Fwd
+              THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 3 - Open rolls of straightener
+              //#######################################################################################################    
+          3:
+              
+              Ctrl.EndOfCoil.StraightRollEntry_Open := NOT CIn.Straigtener.Lift_Entry.Rest;
+              Ctrl.EndOfCoil.StraightRollExit_Open := NOT CIn.Straigtener.Lift_Exit.Rest;
+              
+              IF NOT Ctrl.EndOfCoil.StraightRollEntry_Open
+                  AND
+                  NOT Ctrl.EndOfCoil.StraightRollExit_Open 
+              THEN
+                  IF Config.MatCounter_Exist THEN
+                      Sts.EndOfCoil.Status += 1;
+                  ELSE
+                      Sts.EndOfCoil.Status := 10;
+                  END_IF;
+              END_IF;
+              
+              //#######################################################################################################
+              // Status = 4 - Pinch roll positioning to cut execution 
+              //#######################################################################################################    
+          4:
+              
+              
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd :=
+              (
+              NOT Sts.EndOfCoil.Reached_TargetPosMat_TailCutExe
+              AND
+              NOT Pers.Data.END_OF_COIL.Tail_ReachCutPosition
+              AND
+              NOT Sts.EndOfCoil.StopPinchRoll_TargetPosMat_TailCutExe
+              AND
+              Config.MatCounter_Exist
+              )
+              OR
+              (
+              NOT Config.MatCounter_Exist
+              AND
+              NOT TON_PinchrollFwd.Q
+              );
+              
+              
+              Ctrl.EndOfCoil.Straightener_Fwd := Ctrl.EndOfCoil.JB_Pinch_Fwd;
+              
+              IF NOT Ctrl.EndOfCoil.JB_Pinch_Fwd THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              //#######################################################################################################
+              // Status = 5 - Pinch roll wait standstill
+              //#######################################################################################################    
+          5:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              Ctrl.EndOfCoil.Straightener_Fwd := false;
+              
+              
+              IF CIn.JB.Pinchroll_Feed.Standstill
+              THEN
+                  
+                  Pers.Data.END_OF_COIL.Tail_ReachCutPosition := TRUE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 6 - JB Cut work
+              //#######################################################################################################    
+          6:
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              Ctrl.EndOfCoil.Straightener_Fwd := false;
+              
+              
+              Ctrl.EndOfCoil.JB_Cut_Work := NOT Pers.Data.END_OF_COIL.Tail_CutDone;
+              Ctrl.EndOfCoil.JB_Cut_Rest := FALSE;
+              
+              IF CIn.JB.CutHead.Work
+              THEN
+                  Pers.Data.END_OF_COIL.Tail_CutDone := TRUE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 7 - JB Cut rest
+              //#######################################################################################################    
+          7:
+              Ctrl.EndOfCoil.JB_Cut_Rest := NOT CIn.JB.CutHead.Rest;
+              Ctrl.EndOfCoil.JB_Cut_Work := FALSE;
+              
+              IF CIn.JB.CutHead.Rest
+              THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              
+              //#######################################################################################################
+              // Status = 8 -  Pinch roll positioning to junction position
+              //#######################################################################################################    
+          8:
+              Ctrl.EndOfCoil.JB_Pinch_Fwd :=
+              NOT Pers.Data.END_OF_COIL.Tail_ReachJunctionPos
+              AND
+              NOT Sts.EndOfCoil.StopPinchRoll_TargetPosMat_JunctionExe
+              AND
+              NOT Sts.EndOfCoil.Reached_TargetPosMat_JunctionExe
+              ;
+              
+              
+              IF NOT Ctrl.EndOfCoil.JB_Pinch_Fwd THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 9 - Pinch roll wait standstill
+              //#######################################################################################################    
+          9:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              
+              IF CIn.JB.Pinchroll_Feed.Standstill
+              THEN
+                  Pers.Data.END_OF_COIL.Tail_ReachJunctionPos := TRUE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 10 - Decoiler 2 in position
+              //#######################################################################################################
+              //
+          10:
+              IF CIn.DecoilersHRot.Decoiler2_InLine THEN
+                  
+                  Ctrl.EndOfCoil.Decoiler_Fwd := TRUE;
+                  IF DataIn.Decoiler2_PosizioneRazza THEN
+                      Ctrl.EndOfCoil.Decoiler_Fwd := FALSE;
+                      Sts.EndOfCoil.Status += 1;
+                  END_IF;
+              ELSE
+                  Ctrl.EndOfCoil.Decoiler_Fwd := FALSE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              //#######################################################################################################
+              // Status = 11 - End of sequence
+              //#######################################################################################################
+              //
+          11:
+              Ctrl.EndOfCoil.ChangeCoilExe :=
+              Pers.Data.CoilLoadedInDecoiler1 OR
+              Pers.Data.CoilLoadedInDecoiler2;
+              
+              
+              
+              IF NOT Ctrl.EndOfCoil.ChangeCoilExe
+              THEN
+                  Alarm.EndOfMaterial := TRUE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              //#######################################################################################################
+              // Status = 12 - End of sequence
+              //#######################################################################################################
+              //
+          12:
+              ;
+              //#######################################################################################################
+              // Status = 99 - Abort
+              //#######################################################################################################       
+          99:
+              
+              IF NOT Alarm.S_MatPresence_StraightExit_NotOFF
+              THEN
+                  Sts.EndOfCoil.Status := 0;
+              END_IF;
+              
+              
+      END_CASE;
+
+
+
+
+              
+              
+
+   END_REGION
+
+   REGION "Network 54: End of coil - Sequence 2 Cut Tail"
+
+
+
+      CASE Sts.EndOfCoil.Status OF
+              
+              //#######################################################################################################
+              // Status = 20 - Fwd Pinchroll + Straightener 
+              //#######################################################################################################    
+              
+          20:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := Pers.Data.MaterialPresence_StraightenerExit;
+              Ctrl.EndOfCoil.Straightener_Fwd := Ctrl.EndOfCoil.JB_Pinch_Fwd;
+              
+              IF TON_StraightnerFwd.Q OR
+                  NOT Pers.Data.MaterialPresence_StraightenerEntry
+              THEN
+                  Ctrl.EndOfCoil.Straightener_Fwd := FALSE;
+                  Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              //#######################################################################################################
+              // Status = 21 - Wait standstill
+              //#######################################################################################################    
+              
+          21:
+              
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              Ctrl.EndOfCoil.Straightener_Fwd := FALSE;
+              
+              IF CIn.JB.Pinchroll_Feed.Standstill AND
+                  CIn.Straigtener.Feed.Standstill
+              THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 22 - JB Cut work
+              //#######################################################################################################    
+          22:
+              Ctrl.EndOfCoil.JB_Pinch_Fwd := FALSE;
+              Ctrl.EndOfCoil.Straightener_Fwd := FALSE;
+              
+              
+              Ctrl.EndOfCoil.JB_Cut_Work := NOT Pers.Data.END_OF_COIL.Tail_CutDone;
+              Ctrl.EndOfCoil.JB_Cut_Rest := FALSE;
+              
+              IF CIn.JB.CutHead.Work
+              THEN
+                  Pers.Data.END_OF_COIL.SaveEncPosMat_CutDone := CIn.MaterialCounter.Data.CounterValue;
+                  Pers.Data.END_OF_COIL.Tail_CutDone := TRUE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              //#######################################################################################################
+              // Status = 23 - JB Cut rest
+              //#######################################################################################################    
+          23:
+              Ctrl.EndOfCoil.JB_Cut_Rest := NOT CIn.JB.CutHead.Rest;
+              Ctrl.EndOfCoil.JB_Cut_Work := FALSE;
+              
+              IF CIn.JB.CutHead.Rest
+              THEN
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 24 - Straightner Bwd
+              //#######################################################################################################    
+              
+          24:
+              
+              Ctrl.EndOfCoil.Straightener_Bwd := TRUE;
+              
+              IF TON_StraightnerBwd.Q THEN
+                  Ctrl.EndOfCoil.Straightener_Bwd := FALSE;
+                  Sts.EndOfCoil.Status += 1;
+              END_IF;
+              
+              
+              //#######################################################################################################
+              // Status = 25 - Open rolls of straightener
+              //#######################################################################################################    
+          25:
+              
+              Ctrl.EndOfCoil.StraightRollEntry_Open := NOT CIn.Straigtener.Lift_Entry.Rest;
+              Ctrl.EndOfCoil.StraightRollExit_Open := NOT CIn.Straigtener.Lift_Exit.Rest;
+              
+              IF NOT Ctrl.EndOfCoil.StraightRollEntry_Open
+                  AND
+                  NOT Ctrl.EndOfCoil.StraightRollExit_Open
+              THEN
+                  IF Config.MatCounter_Exist THEN
+                      Sts.EndOfCoil.Status := 8;
+                  ELSE
+                      Sts.EndOfCoil.Status := 10;
+                  END_IF;
+              END_IF;
+              
+           
+              
+      END_CASE;
+
+
+
+
+              
+              
+
+   END_REGION
+
+   REGION "Network 57: Thickness control function - Coordination in"
+      //
+      ThicknessCheck.CIn.Rst := AreaInterface.RstAlarms;
+      //
+      ThicknessCheck.CIn.Init :=
+      NOT (
+      Pers.Data.MaterialPresence_StraightenerEntry
+      AND
+      Pers.Data.MaterialPresence_StraightenerExit
+      AND
+      Pers.Data.MaterialPresence_JBPinchExit
+      AND
+      NOT Pers.Data.MATERIAL_SEPARATION.Mem
+      AND
+      NOT
+      Pers.Data.END_OF_COIL.Mem
+      );
+
+      //
+      ThicknessCheck.CIn.Enable := 
+      NOT ThicknessCheck.CIn.Init
+      AND
+      CIn.MaterialCounter.Data.CounterValid
+      AND
+      PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness > 0.0;
+      //
+      ThicknessCheck.CIn.MaterialCounter := CIn.MaterialCounter.Data.CounterValue;
+      //
+      ThicknessCheck.CIn.Setpoint := PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness;
+
+
+      ThicknessCheck.CIn.Init := HMI.ThicknessControl.Button_Init;
+
+   END_REGION
+
+   REGION "Network 58: Thickness control function"
+      #ThicknessCheck(
+         en := TRUE,
+         HW_ID_DL-PN := ThicknessCheck_HW_ID_DL-PN,
+         HW_ID_IL1000 := ThicknessCheck_HW_ID_IL1000,
+         HW_ID_IL1050 := ThicknessCheck_HW_ID_IL1050,
+         CIn := ???,
+         HMI := HMI.ThicknessControl,
+         Par := Pers.Par.Thickness,
+         Pers_Data := Pers.Data.Thickness,
+         Alarm := Alarm.TichnessCheck,
+         Warning := Warning.ThicnessCheck
+      );
+
+   END_REGION
+
+   REGION "Network 61: MES"
+      #CoilHandling_MES(
+         en := TRUE,
+         MES := CIn.MES,
+         Man := AreaInterface.Man,
+         Pb_Provino := DataIn.PbProvino,
+         Alarm := Alarm.MES,
+         Warning := Warning.MES,
+         ProvinoEseguito => COut.MES.Provino_Eseguito,
+         LampProvino => DataOut.Lamp_Provino
+      );
+
+      Sts.STOP_Feed_by_MES := (NOT (((((NOT Alarm.MES.STOP_Provino AND NOT Alarm.MES.STOP_Taglio_Fine_Ordini) AND NOT Alarm.MES.STOP_FineTurno) AND NOT Alarm.MES.STOP_ControlloQualita) AND NOT Alarm.MES.STOP_Manca_Dati_AspoInLinea)) AND NOT AreaInterface.Man);
+      Sts.STOP_CoilChange_By_MES := NOT ((NOT Alarm.MES.STOP_Manca_Dati_AspoInLinea AND NOT Warning.MES.STOP_Manca_Dati_AspoInCarico));
+   END_REGION
+
+   REGION "Network 64: Semiautomatic"
+      #TON_SemiautoOFF(
+         IN := ((NOT AUX.PbMaterialBkw AND NOT AUX.PbMaterialFwd) AND CIn.Straigtener.Feed.Standstill),
+         PT := t#1s
+      );
+
+      PE.PbMaterialBkw := PosEdge(DataIn.PbMaterialBkw);
+      PE.PbMaterialFwd := PosEdge(DataIn.PbMaterialFwd);
+      IF (NOT AreaInterface.Man OR NOT ((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit)) OR UnknownLogic_TON_60) THEN
+         Sts.Semiautomatic := FALSE;
+      ELSIF (PE.PbMaterialFwd OR PE.PbMaterialBkw) THEN
+         Sts.Semiautomatic := TRUE;
+      END_IF;
+      Ctrl.Semiautomatic_MaterialFwd := (((Sts.Semiautomatic AND AUX.PbMaterialFwd) AND NOT AUX.PbMaterialBkw) AND Sts.MaterialFwdEnable);
+      Ctrl.Semiautomatic_MaterialBkw := (((Sts.Semiautomatic AND AUX.PbMaterialBkw) AND NOT AUX.PbMaterialFwd) AND Sts.MaterialBkwEnable);
+   END_REGION
+
+   REGION "Network 65: Semiautomatic material BWD"
+      #TON_DecoilerNotMovingBkw(
+         IN := ((Sts.MaterialMoveSemiAut.Bwd_Phase3 AND Sts.DecoilerInLine.Feed.Standstill) AND NOT CIn.Straigtener.Feed.Standstill),
+         PT := T#1s
+      );
+
+      IF (NOT Ctrl.Semiautomatic_MaterialBkw OR (Sts.MaterialMoveSemiAut.Bwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Bwd_Phase1Cnd)) THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase1 := FALSE;
+      ELSIF Ctrl.Semiautomatic_MaterialBkw THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase1 := TRUE;
+      END_IF;
+      Sts.MaterialMoveSemiAut.Bwd_Phase1Cnd := ((Sts.MaterialMoveSemiAut.Bwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest);
+      IF (NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 OR (Sts.MaterialMoveSemiAut.Bwd_Phase3 AND NOT Sts.MaterialMoveSemiAut.Bwd_Phase2Cnd)) THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase2 := FALSE;
+      ELSIF ((Sts.MaterialMoveSemiAut.Bwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest) THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase2 := TRUE;
+      END_IF;
+      Sts.MaterialMoveSemiAut.Bwd_Phase2Cnd := (((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND Sts.DecoilerInLine.Feed.Bwd_Running) OR ((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND COut.DecoilerInLine.ModePneumaticBraking));
+      IF NOT Sts.MaterialMoveSemiAut.Bwd_Phase2 THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase3 := FALSE;
+      ELSIF ((((((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND Sts.DecoilerInLine.Feed.Bwd_Running) OR ((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND COut.DecoilerInLine.ModePneumaticBraking)) AND CIn.Straigtener.Feed.Standstill) AND Sts.DecoilerInLine.Feed.Standstill) OR (((((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND Sts.DecoilerInLine.Feed.Bwd_Running) OR ((Sts.MaterialMoveSemiAut.Bwd_Phase2 AND CIn.Straigtener.Feed.VelBwd_Running) AND COut.DecoilerInLine.ModePneumaticBraking)) AND CIn.Straigtener.Feed.Standstill) AND COut.DecoilerInLine.ModePneumaticBraking)) THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase3 := TRUE;
+      END_IF;
+      IF UnknownLogic_TON_73 THEN
+         Sts.MaterialMoveSemiAut.Bwd_Phase3 := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 66: Semiautomatic material FWD"
+      IF (NOT Ctrl.Semiautomatic_MaterialFwd OR (Sts.MaterialMoveSemiAut.Fwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1Cnd)) THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase1 := FALSE;
+      ELSIF Ctrl.Semiautomatic_MaterialFwd THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase1 := TRUE;
+      END_IF;
+      Sts.MaterialMoveSemiAut.Fwd_Phase1Cnd := ((Sts.MaterialMoveSemiAut.Fwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest);
+      IF (NOT Sts.MaterialMoveSemiAut.Fwd_Phase1 OR (Sts.MaterialMoveSemiAut.Fwd_Phase3 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase2Cnd)) THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase2 := FALSE;
+      ELSIF ((Sts.MaterialMoveSemiAut.Fwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest) THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase2 := TRUE;
+      END_IF;
+      Sts.MaterialMoveSemiAut.Fwd_Phase2Cnd := Sts.MaterialMoveSemiAut.Fwd_Phase2;
+      IF NOT Sts.MaterialMoveSemiAut.Fwd_Phase2 THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase3 := FALSE;
+      ELSIF (((Sts.MaterialMoveSemiAut.Fwd_Phase2 AND CIn.Straigtener.Feed.Standstill) AND Sts.DecoilerInLine.Feed.Standstill) OR ((Sts.MaterialMoveSemiAut.Fwd_Phase2 AND CIn.Straigtener.Feed.Standstill) AND COut.DecoilerInLine.ModePneumaticBraking)) THEN
+         Sts.MaterialMoveSemiAut.Fwd_Phase3 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 68: Automatic material FWD"
+      IF (NOT (((Pers.Data.MaterialFullLoaded AND Sts.CumulativeMaterialFwdRequest) AND Sts.EndOfCoil.Idle)) OR (Sts.MaterialMoveAut.Fwd_Phase2 AND NOT Sts.MaterialMoveAut.Fwd_Phase1Cnd) OR COut.Gen.EmptyingConfirmed OR Sts.STOP_Feed_by_MES) THEN
+         Sts.MaterialMoveAut.Fwd_Phase1 := FALSE;
+      ELSIF AreaInterface.Cycle THEN
+         Sts.MaterialMoveAut.Fwd_Phase1 := TRUE;
+      END_IF;
+      Sts.MaterialMoveAut.Fwd_Phase1Cnd := (((((Sts.MaterialMoveAut.Fwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest) AND CIn.JB.ClampEntry.Rest) AND CIn.JB.ClampExit.Rest) AND CIn.JB.Pinchroll_Lift.Rest);
+      IF (NOT Sts.MaterialMoveAut.Fwd_Phase1 OR (Sts.MaterialMoveAut.Fwd_Phase3 AND NOT Sts.MaterialMoveAut.Fwd_Phase2Cnd)) THEN
+         Sts.MaterialMoveAut.Fwd_Phase2 := FALSE;
+      ELSIF (((((Sts.MaterialMoveAut.Fwd_Phase1 AND CIn.Peeler.Is_Dwn) AND CIn.JB.CutHead.Rest) AND CIn.JB.ClampEntry.Rest) AND CIn.JB.ClampExit.Rest) AND CIn.JB.Pinchroll_Lift.Rest) THEN
+         Sts.MaterialMoveAut.Fwd_Phase2 := TRUE;
+      END_IF;
+      Sts.MaterialMoveAut.Fwd_Phase2Cnd := Sts.MaterialMoveAut.Fwd_Phase2;
+      IF NOT Sts.MaterialMoveAut.Fwd_Phase2 THEN
+         Sts.MaterialMoveAut.Fwd_Phase3 := FALSE;
+      ELSIF (((Sts.MaterialMoveAut.Fwd_Phase2 AND CIn.Straigtener.Feed.Standstill) AND Sts.DecoilerInLine.Feed.Standstill) OR ((Sts.MaterialMoveAut.Fwd_Phase2 AND CIn.Straigtener.Feed.Standstill) AND COut.DecoilerInLine.ModePneumaticBraking)) THEN
+         Sts.MaterialMoveAut.Fwd_Phase3 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 69: Automatic velocity override (30..150%)"
+   END_REGION
+
+   REGION "Network 71: Stop Inactivity"
+      #TON_StopInactivity(
+         IN := ((((AreaInterface.Cycle AND Sts.EndOfCoil.Idle) AND CIn.Straigtener.Feed.Standstill) AND NOT Areas_ITF.A02.AreaInterface.Cycle) OR (((AreaInterface.Cycle AND Sts.EndOfCoil.Idle) AND CIn.Straigtener.Feed.Standstill) AND NOT Areas_ITF.A02.Rollformer.FWD_CheckNext)),
+         PT := Pers.Par.TimeStopInactivity
+      );
+
+      Req := UnknownLogic_TON_43;
+      IF (Areas_ITF.A02.Rollformer.FWD_CheckNext OR NOT AreaInterface.Cycle OR (Areas_ITF.A02.AreaInterface.Cycle AND NOT Areas_ITF.A02.StopInactivity)) THEN
+         Sts.STOP_Inactivity := FALSE;
+      ELSIF (Req OR Areas_ITF.A02.StopInactivity) THEN
+         Sts.STOP_Inactivity := TRUE;
+      END_IF;
+      Warning.StopInactivity := Sts.STOP_Inactivity;
+   END_REGION
+
+   REGION "Network 74: Coordination Out - Gen"
+      COut.Gen.MaterialPresence := (((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit) OR COut.Gen.MaterialPresence) AND Pers.Data.MaterialPresence_JBPinchExit);
+      COut.Gen.MaterialMissing := ((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND NOT Pers.Data.MaterialPresence_JBPinchExit);
+      COut.Gen.NextEndOfMaterial := ((COut.Gen.MaterialPresence AND NOT Pers.Data.MaterialPresence_StraightenerEntry) OR (COut.Gen.MaterialPresence AND NOT Pers.Data.MaterialPresence_StraightenerExit));
+      COut.Gen.EmptyingConfirmed := COut.Gen.EmptyingConfirmed;
+      COut.Gen.ExtraLowSpeedSelection := Sts.ExtraLowSpeedSelection;
+      COut.Gen.SemiAutomatic := NOT ((NOT Sts.Semiautomatic AND NOT TON_Emptying.Q));
+      COut.Gen.Production_Running := NOT (NOT AreaInterface.Cycle);
+      COut.Gen.DecoilerInLineNumber := 0;
+      IF 0 THEN
+         COut.Gen.CoilDiameter := 0.0;
+      END_IF;
+      IF (0.0 AND CIn.DecoilersHRot.Decoiler1_InLine) THEN
+         COut.Gen.DecoilerInLineNumber := 1;
+      END_IF;
+      IF 1 THEN
+         COut.Gen.CoilDiameter := CIn.Decoiler1.CoilDiameter;
+      END_IF;
+      IF (0.0 AND CIn.DecoilersHRot.Decoiler2_InLine) THEN
+         COut.Gen.DecoilerInLineNumber := 2;
+      END_IF;
+      IF 2 THEN
+         COut.Gen.CoilDiameter := CIn.Decoiler2.CoilDiameter;
+      END_IF;
+   END_REGION
+
+   REGION "Network 76: Coordination Out - Decoiler / Straightener / JB Pinch Roll - Target Velocity"
+      COut.Straightener.Feed.Vel := 0.0;
+
+      IF COut.DecoilerInLine.ModePneumaticBraking THEN
+          COut.DecoilerInLine.Feed.Vel := 0.0;
+      END_IF;
+      COut.JB.PinchRoll_Feed.Vel := 0.0;
+
+
+      IF Sts.MaterialMoveSemiAut.Bwd_Phase3 THEN
+          
+          Decoiler_VelFactor := 1.0;
+          
+          
+          // velocity factor for extralow speed selection
+          // 
+          IF Sts.ExtraLowSpeedSelection THEN
+              Decoiler_VelFactor := Pers.Par.ExtraLowSpeed_Percentage / 100.0;
+          END_IF;
+          
+          COut.DecoilerInLine.Feed.Vel := Pers.Par.SemiAut.Vel_Bkw * Decoiler_VelFactor;
+          
+          COut.Straightener.Feed.Vel := Straightener_PERS.PersistentValues.Feed.Man.VelFwdLow;
+          
+          
+          
+          
+          
+          
+          
+      ELSIF Sts.MaterialMoveSemiAut.Bwd_Phase1 OR Sts.MaterialMoveSemiAut.Bwd_Phase2 THEN
+          
+          COut.Straightener.Feed.Vel := Straightener_PERS.PersistentValues.Feed.Man.VelFwdLow;
+          COut.DecoilerInLine.Feed.Vel := 0.0;
+          
+          
+      ELSIF Sts.MaterialMoveSemiAut.Fwd_Phase3 THEN
+          
+          Straightener_VelFactor := 1.0;
+          
+          // velocity factor for extralow speed selection
+          // 
+          IF Sts.ExtraLowSpeedSelection THEN
+              Straightener_VelFactor := Pers.Par.ExtraLowSpeed_Percentage / 100.0;
+          END_IF;
+          COut.Straightener.Feed.Vel := Pers.Par.SemiAut.Vel_Fwd * Straightener_VelFactor;
+          
+          
+          Decoiler_VelFactor := 1.0;
+          COut.DecoilerInLine.Feed.Vel := (COut.Straightener.Feed.Vel) * Decoiler_VelFactor;
+          
+          
+      ELSIF Sts.MaterialMoveSemiAut.Fwd_Phase1 OR Sts.MaterialMoveSemiAut.Fwd_Phase2 THEN
+          
+          COut.Straightener.Feed.Vel := 0.0;
+          COut.DecoilerInLine.Feed.Vel := 0.0;
+          
+          
+          
+      ELSIF Sts.MaterialMoveAut.Fwd_Phase3 THEN
+          
+          //#######################################################
+          // VELOCITY OVERRIDE
+          //#######################################################
+          
+          // Default Override (1..150%) from HMI status page
+          // 
+          // #OverRide_VelFactor := #Pers.Data.VelocityOverride / 100.0;
+          
+          OverRide_VelFactor := CIn.Loop.VelocityOverride / 100.0;
+          
+          
+          //#######################################################
+          // VELOCITY 
+          //#######################################################
+          
+          LineVel := CIn.Downstream.LineVelocity;
+          
+          IF LineVel <= 0.0 THEN
+              LineVel := PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.Vel;
+          END_IF;
+          
+          Straightener_VelFactor := 1.0;
+          COut.Straightener.Feed.Vel := LineVel * Straightener_VelFactor * OverRide_VelFactor;
+          
+          Decoiler_VelFactor := 1.0;
+          COut.DecoilerInLine.Feed.Vel :=  (COut.Straightener.Feed.Vel) * Decoiler_VelFactor * OverRide_VelFactor;
+          
+          
+      ELSIF Sts.MaterialMoveAut.Fwd_Phase1 OR Sts.MaterialMoveAut.Fwd_Phase2 THEN
+          COut.Straightener.Feed.Vel := 0.0;
+          
+          IF COut.DecoilerInLine.ModePneumaticBraking THEN
+              COut.DecoilerInLine.Feed.Vel := 0.0;
+          END_IF;
+          
+          
+      ELSIF NOT Sts.EndOfCoil.Idle THEN
+          COut.JB.PinchRoll_Feed.Vel := (IN1 := Pers.Par.CoilEnd.Vel, IN2 := CIn.JB.Pinchroll_Feed.MaxVelocity);
+          
+          Straightener_VelFactor := 1.0 - ((Pers.Par.CoilEnd.PercentageStraightener / 100.0));
+          COut.Straightener.Feed.Vel :=COut.JB.PinchRoll_Feed.Vel * Straightener_VelFactor;
+          
+          COut.DecoilerInLine.Feed.Vel := Pers.Par.CoilEnd.Vel;
+          
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "Network 77: Coordination Out - Decoiler / Straightener / JB Pinch Roll - Target  Acc / Dec / jerk"
+      IF Ctrl.Semiautomatic_MaterialFwd OR Ctrl.Semiautomatic_MaterialBkw THEN
+          
+          COut.Straightener.Feed.Acc := Pers.Par.SemiAut.Acc;
+          COut.Straightener.Feed.Dec := Pers.Par.SemiAut.Dec;
+          COut.Straightener.Feed.Jerk := Pers.Par.SemiAut.Jerk;
+          
+          
+      ELSIF  NOT Sts.EndOfCoil.Idle THEN
+          COut.Straightener.Feed.Acc := Pers.Par.CoilEnd.Acc;
+          COut.Straightener.Feed.Dec := Pers.Par.CoilEnd.Dec;
+          COut.Straightener.Feed.Jerk := Pers.Par.CoilEnd.Jerk;
+
+          
+      ELSIF AreaInterface.Aut THEN
+          COut.Straightener.Feed.Acc := PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.Acc;
+          COut.Straightener.Feed.Dec := PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.Dec;
+          COut.Straightener.Feed.Jerk := PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.Jerk;
+          
+          
+          IF NOT CIn.Downstream.Aut OR COut.Straightener.Feed.Acc <= 0 OR COut.Straightener.Feed.Dec <= 0
+          THEN
+              COut.Straightener.Feed.Acc := Pers.Par.SemiAut.Acc;
+              COut.Straightener.Feed.Dec := Pers.Par.SemiAut.Dec;
+              COut.Straightener.Feed.Jerk := Pers.Par.SemiAut.Jerk;
+          END_IF;
+              
+              
+      END_IF;
+
+
+
+      COut.DecoilerInLine.Feed.Acc := COut.Straightener.Feed.Acc;
+      COut.DecoilerInLine.Feed.Dec := COut.Straightener.Feed.Dec;
+
+      COut.JB.PinchRoll_Feed.Acc := COut.Straightener.Feed.Acc;
+      COut.JB.PinchRoll_Feed.Dec := COut.Straightener.Feed.Acc;
+
+
+   END_REGION
+
+   REGION "Network 79: Coordination Out - Decoilers Horizontal Rotation"
+      COut.DecoilersHRot.EnableStopDoorOpeningReq := TRUE;
+      COut.DecoilersHRot.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilersHRot.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilersHRot.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+      COut.DecoilersHRot.Decoiler1_MoveInLine := ((Ctrl.EndOfCoil.ChangeCoilExe AND Pers.Data.CoilLoadedInDecoiler1) OR ((NOT Ctrl.EndOfCoil.ChangeCoilExe AND CIn.DecoilersHRot.Decoiler1_InLine) AND NOT CIn.DecoilersHRot.Translation_InPosition));
+      COut.DecoilersHRot.Decoiler2_MoveInLine := ((Ctrl.EndOfCoil.ChangeCoilExe AND Pers.Data.CoilLoadedInDecoiler2) OR ((NOT Ctrl.EndOfCoil.ChangeCoilExe AND CIn.DecoilersHRot.Decoiler2_InLine) AND NOT CIn.DecoilersHRot.Translation_InPosition));
+      IF NOT (NOT Sts.STOP_CoilChange_By_MES) THEN
+         COut.DecoilersHRot.Decoiler1_MoveInLine := FALSE;
+      END_IF;
+      IF NOT (NOT Sts.STOP_CoilChange_By_MES) THEN
+         COut.DecoilersHRot.Decoiler2_MoveInLine := FALSE;
+      END_IF;
+      COut.DecoilersHRot.ChangeDecoilerEnable := (((((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND CIn.Peeler.Is_Up) AND DataIn.Decoiler2_PosizioneRazza) AND NOT Sts.STOP_CoilChange_By_MES) OR ((((NOT Pers.Data.MaterialPresence_StraightenerEntry AND NOT Pers.Data.MaterialPresence_StraightenerExit) AND CIn.Peeler.Is_Up) AND DataIn.Decoiler2_PosizioneRazza) AND AreaInterface.Man));
+      IF (CIn.DecoilersHRot.DecoilerX_InLine_CheckNext AND NOT DataIn.Decoiler2_PosizioneRazza) THEN
+         Warning.Decoiler2_RazzaNonInPosizione := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 81: Coordination Out - Decoiler In Line GEN"
+      COut.DecoilerInLine.IsInLine := TRUE;
+      COut.DecoilerInLine.IsOutLine := FALSE;
+      COut.DecoilerInLine.EmptiyngConfirmed := COut.Gen.EmptyingConfirmed;
+   END_REGION
+
+   REGION "Network 82: Coordination Out - Decoiler in Line BRAKE"
+      COut.DecoilerInLine.TotalBrakeOpeningAttempt := FALSE;
+      COut.DecoilerInLine.ModePneumaticBraking := ((((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit) AND (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.DecoilerFeedMode = #DECOILER_MODE_PNEUMATIC_BRAKING_MOTOR_UNCOUPED)) OR ((Pers.Data.MaterialPresence_StraightenerEntry AND Pers.Data.MaterialPresence_StraightenerExit) AND (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.DecoilerFeedMode = #DECOILER_MODE_PNEUMATIC_BRAKING_MOTOR_COUPLED))) AND COut.DecoilerInLine.Feed.Control_ON);
+   END_REGION
+
+   REGION "Network 83: Coordination Out - Decoiler In Line FEED"
+      COut.DecoilerInLine.Feed.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.DecoilerInLine.Feed.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilerInLine.Feed.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilerInLine.Feed.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+      COut.DecoilerInLine.Feed.Bwd := NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Bwd_Phase3));
+      COut.DecoilerInLine.Feed.Fwd := (NOT ((NOT Sts.MaterialMoveSemiAut.Fwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase3)) OR NOT ((NOT Sts.MaterialMoveAut.Fwd_Phase2 AND NOT Sts.MaterialMoveAut.Fwd_Phase3)) OR (Ctrl.EndOfCoil.Decoiler_Fwd AND CIn.DecoilersHRot.Decoiler2_InLine));
+      IF NOT ((NOT COut.DecoilerInLine.ModePneumaticBraking AND NOT Sts.STOP_Feed_by_MES)) THEN
+         COut.DecoilerInLine.Feed.Bwd := FALSE;
+      END_IF;
+      IF NOT ((NOT COut.DecoilerInLine.ModePneumaticBraking AND NOT Sts.STOP_Feed_by_MES)) THEN
+         COut.DecoilerInLine.Feed.Fwd := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 84: Coordination Out - Decoiler in Line COUPLING"
+      COut.DecoilerInLine.Coupling.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.DecoilerInLine.Coupling.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilerInLine.Coupling.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilerInLine.Coupling.Work := ((NOT COut.DecoilerInLine.ModePneumaticBraking OR (COut.DecoilerInLine.ModePneumaticBraking AND (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.DecoilerFeedMode = #DECOILER_MODE_PNEUMATIC_BRAKING_MOTOR_COUPLED)) OR (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.DecoilerFeedMode = #DECOILER_MODE_MOTOR)) AND NOT Sts.DecoilerInLine.CouplingEngaged);
+      COut.DecoilerInLine.Coupling.Rest := ((COut.DecoilerInLine.ModePneumaticBraking AND (PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.DecoilerFeedMode = #DECOILER_MODE_PNEUMATIC_BRAKING_MOTOR_UNCOUPED)) AND NOT Sts.DecoilerInLine.Coupling.Rest);
+      COut.DecoilerInLine.Coupling.Control_ON := (NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle)) OR NOT ((NOT Sts.DecoilerInLine.Feed.Bwd_CheckNext AND NOT Sts.DecoilerInLine.Feed.Fwd_CheckNext)));
+   END_REGION
+
+   REGION "Network 85: Coordination Out - Decoiler in Line JAWS"
+      COut.DecoilerInLine.Jaws.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.DecoilerInLine.Jaws.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilerInLine.Jaws.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilerInLine.Jaws.Rest := FALSE;
+      COut.DecoilerInLine.Jaws.Work := FALSE;
+      COut.DecoilerInLine.Jaws.Control_ON := FALSE;
+   END_REGION
+
+   REGION "Network 86: Coordination Out - Decoiler in Line SNUBBER"
+      COut.DecoilerInLine.SnubberRoll.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.DecoilerInLine.SnubberLift.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.DecoilerInLine.SnubberRoll.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilerInLine.SnubberLift.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.DecoilerInLine.SnubberRoll.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilerInLine.SnubberLift.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.DecoilerInLine.SnubberLift.Rest := (NOT ((NOT Sts.MaterialMoveSemiAut.Fwd_Phase1 AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) AND NOT Sts.DecoilerInLine.SnubberLift.Rest);
+      COut.DecoilerInLine.SnubberLift.Work := (Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT DataIn.SensorMatPresence_StraightExit);
+      COut.DecoilerInLine.SnubberLift.Control_ON := NOT ((NOT COut.DecoilerInLine.SnubberLift.Rest AND NOT COut.DecoilerInLine.SnubberLift.Work));
+      COut.DecoilerInLine.SnubberRoll.Rest := false;
+      COut.DecoilerInLine.SnubberRoll.Work := false;
+      COut.DecoilerInLine.SnubberRoll.Control_ON := false;
+   END_REGION
+
+   REGION "Network 88: Coordination Out - Decoiler Out ofLine"
+      COut.DecoilerOutLine.IsOutLine := TRUE;
+      COut.DecoilerOutLine.IsInLine := FALSE;
+
+      COut.DecoilerOutLine.ModePneumaticBraking := FALSE;
+      COut.DecoilerOutLine.TotalBrakeOpeningAttempt := FALSE;
+      COut.DecoilerOutLine.EmptiyngConfirmed := FALSE;
+
+      COut.DecoilerOutLine.Feed.Control_ON := FALSE;
+      COut.DecoilerOutLine.Feed.Bwd := FALSE;
+      COut.DecoilerOutLine.Feed.Fwd := FALSE;
+
+      COut.DecoilerOutLine.Jaws.Control_ON := FALSE;
+      COut.DecoilerOutLine.Jaws.Rest := FALSE;
+      COut.DecoilerOutLine.Jaws.Work := FALSE;
+
+      COut.DecoilerOutLine.Coupling.Control_ON := FALSE;
+      COut.DecoilerOutLine.Coupling.Rest := FALSE;
+      COut.DecoilerOutLine.Coupling.Work := FALSE;
+
+      COut.DecoilerOutLine.SnubberLift.Control_ON := FALSE;
+      COut.DecoilerOutLine.SnubberLift.Rest := FALSE;
+      COut.DecoilerOutLine.SnubberLift.Work := FALSE;
+
+      COut.DecoilerOutLine.SnubberRoll.Control_ON := FALSE;
+      COut.DecoilerOutLine.SnubberRoll.Rest := FALSE;
+      COut.DecoilerOutLine.SnubberRoll.Work := FALSE;
+
+   END_REGION
+
+   REGION "Network 90: Coordination Out - Decoiler 1"
+      IF CIn.DecoilersHRot.Decoiler1_InLine THEN
+         COut.Decoiler1 := COut.DecoilerInLine;
+      END_IF;
+      IF NOT CIn.DecoilersHRot.Decoiler1_InLine THEN
+         COut.Decoiler1 := COut.DecoilerOutLine;
+      END_IF;
+   END_REGION
+
+   REGION "Network 92: Coordination Out - Decoiler 2"
+      IF CIn.DecoilersHRot.Decoiler2_InLine THEN
+         COut.Decoiler2 := COut.DecoilerInLine;
+      END_IF;
+      IF NOT CIn.DecoilersHRot.Decoiler2_InLine THEN
+         COut.Decoiler2 := COut.DecoilerOutLine;
+      END_IF;
+   END_REGION
+
+   REGION "Network 94: Coordination Out - Peelers"
+      COut.Peeler.Lift.EnableStopDoorOpeningReq := TRUE;
+      COut.Peeler.Extension.EnableStopDoorOpeningReq := TRUE;
+      COut.Peeler.Lift.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.Peeler.Extension.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.Peeler.Lift.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.Peeler.Extension.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.Peeler.Move_Dwn_MaterialFeed := ((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR TON_Emptying.Q) AND NOT CIn.Peeler.Is_Dwn);
+      COut.Peeler.Move_Up_DecoilerChange := (((CIn.DecoilersHRot.DecoilerX_InLine_CheckNext OR Ctrl.EndOfCoil.ChangeCoilExe) AND NOT Pers.Data.MaterialPresence_StraightenerEntry) AND NOT Pers.Data.MaterialPresence_StraightenerExit);
+      COut.Peeler.Lift.Control_ON := (NOT ((NOT Sts.Semiautomatic AND NOT COut.Peeler.Move_Up_DecoilerChange)) OR (COut.Peeler.Move_Up_DecoilerChange AND AreaInterface.Cycle));
+      COut.Peeler.Extension.Control_ON := (NOT ((NOT Sts.Semiautomatic AND NOT COut.Peeler.Move_Up_DecoilerChange)) OR (COut.Peeler.Move_Up_DecoilerChange AND AreaInterface.Cycle));
+      COut.Peeler.Lift.Rest := FALSE;
+      COut.Peeler.Lift.Work := FALSE;
+      COut.Peeler.Extension.Rest := FALSE;
+      COut.Peeler.Extension.Work := FALSE;
+      COut.Peeler.FreeMovementAllowed := (((NOT ((NOT CIn.DecoilersHRot.Decoiler1_InLine AND NOT CIn.DecoilersHRot.Decoiler2_InLine)) AND NOT COut.DecoilersHRot.Control_ON) AND NOT COut.Peeler.Lift.Control_ON) AND NOT COut.Peeler.Extension.Control_ON);
+   END_REGION
+
+   REGION "Network 96: Coordination Out - Straightener FEED"
+      COut.Straightener.Feed.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.Straightener.Feed.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.Straightener.Feed.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.Straightener.Feed.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+      COut.Straightener.Feed.Bwd := (NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Bwd_Phase3)) OR (Ctrl.EndOfCoil.Straightener_Bwd AND Sts.EndOfCoil.Cnd));
+      COut.Straightener.Feed.Fwd := (NOT ((NOT Sts.MaterialMoveSemiAut.Fwd_Phase2 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase3)) OR NOT ((NOT Sts.MaterialMoveAut.Fwd_Phase2 AND NOT Sts.MaterialMoveAut.Fwd_Phase3)) OR (Ctrl.EndOfCoil.Straightener_Fwd AND Sts.EndOfCoil.Cnd));
+      IF NOT (NOT Sts.STOP_Feed_by_MES) THEN
+         COut.Straightener.Feed.Fwd := FALSE;
+      END_IF;
+      IF NOT (NOT Sts.STOP_Feed_by_MES) THEN
+         COut.Straightener.Feed.Bwd := FALSE;
+      END_IF;
+      COut.Straightener.Feed.MoveToPos := FALSE;
+   END_REGION
+
+   REGION "Network 97: Coordination Out - Straightener ENTRY ROLL"
+      COut.Straightener.Lift_Entry.EnableStopDoorOpeningReq := TRUE;
+      COut.Straightener.Lift_Entry.EnableStopInPhase := TRUE;
+      COut.Straightener.Lift_Entry.EnableStopProgrammed := TRUE;
+      COut.Straightener.Lift_Entry.Work := (((((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR Ctrl.EndOfCoil.StraightRollEntry_Close) AND NOT COut.Gen.EmptyingConfirmed) AND NOT TON_Emptying.Q) AND StraightRollEntry_Used) AND NOT CIn.Straigtener.Lift_Entry.Work);
+      Req := ((((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR Ctrl.EndOfCoil.StraightRollEntry_Close) AND NOT COut.Gen.EmptyingConfirmed) AND NOT TON_Emptying.Q) AND NOT StraightRollEntry_Used);
+      COut.Straightener.Lift_Entry.Rest := ((Ctrl.EndOfCoil.StraightRollEntry_Open OR Req OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.Straigtener.Lift_Entry.Rest);
+      COut.Straightener.Lift_Entry.Control_ON := NOT (((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle) AND NOT TON_Emptying.Q));
+   END_REGION
+
+   REGION "Network 98: Coordination Out - Straightener EXIT ROLL"
+      COut.Straightener.Lift_Exit.EnableStopDoorOpeningReq := TRUE;
+      COut.Straightener.Lift_Exit.EnableStopInPhase := TRUE;
+      COut.Straightener.Lift_Exit.EnableStopProgrammed := TRUE;
+      COut.Straightener.Lift_Exit.Work := (((((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR Ctrl.EndOfCoil.StraightRollExit_Close) AND NOT COut.Gen.EmptyingConfirmed) AND NOT TON_Emptying.Q) AND StraightRollExit_Used) AND NOT CIn.Straigtener.Lift_Exit.Work);
+      Req := ((((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR Ctrl.EndOfCoil.StraightRollExit_Close) AND NOT COut.Gen.EmptyingConfirmed) AND NOT TON_Emptying.Q) AND NOT StraightRollExit_Used);
+      COut.Straightener.Lift_Exit.Rest := ((Ctrl.EndOfCoil.StraightRollExit_Open OR Req OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.Straigtener.Lift_Exit.Rest);
+      COut.Straightener.Lift_Exit.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+   END_REGION
+
+   REGION "Network 100: Coordination Out - JB WELDING SET-UP"
+      COut.JB.WeldingSetUp.MaterialWidth := PPrf_MAIN.ON_WORK.GeneralData.Material_Width;
+      COut.JB.WeldingSetUp.MeasureSheetEdgeReference := PPrf_MAIN.ON_WORK.A01_CoilHandling.WeldingCycle.MeasureSheetEdgeReference;
+      COut.JB.WeldingSetUp.WeldingDirection := TRUE;
+      COut.JB.WeldingSetUp.CorrStartWelding := PPrf_MAIN.ON_WORK.A01_CoilHandling.WeldingCycle.CorrStartWelding;
+      COut.JB.WeldingSetUp.CorrStopWelding := PPrf_MAIN.ON_WORK.A01_CoilHandling.WeldingCycle.CorrStopWelding;
+
+   END_REGION
+
+   REGION "Network 101: Coordination Out - JB TORCH"
+      COut.JB.Torch.EnableStopDoorOpeningReq := TRUE;
+      COut.JB.Torch.EnableStopInPhase := TRUE;
+      COut.JB.Torch.EnableStopProgrammed := TRUE;
+      COut.JB.Torch.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+      COut.JB.Torch.Minus := FALSE;
+      COut.JB.Torch.Plus := FALSE;
+      COut.JB.Torch.MoveToPos := FALSE;
+   END_REGION
+
+   REGION "Network 102: Coordination Out - JB CLAMPS"
+      COut.JB.ClampEntry.EnableStopDoorOpeningReq := TRUE;
+      COut.JB.ClampExit.EnableStopDoorOpeningReq := TRUE;
+      COut.JB.ClampEntry.EnableStopInPhase := TRUE;
+      COut.JB.ClampExit.EnableStopInPhase := TRUE;
+      COut.JB.ClampEntry.EnableStopProgrammed := TRUE;
+      COut.JB.ClampExit.EnableStopProgrammed := TRUE;
+      COut.JB.ClampEntry.Rest := ((((NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1)) AND FALSE) OR Sts.MaterialMoveAut.Fwd_Phase1 OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.JB.ClampEntry.Rest) OR (((NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1)) AND FALSE) OR Sts.MaterialMoveAut.Fwd_Phase1 OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.JB.ClampExit.Rest));
+      COut.JB.ClampExit.Rest := ((((NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1)) AND FALSE) OR Sts.MaterialMoveAut.Fwd_Phase1 OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.JB.ClampEntry.Rest) OR (((NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1)) AND FALSE) OR Sts.MaterialMoveAut.Fwd_Phase1 OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.JB.ClampExit.Rest));
+      COut.JB.ClampEntry.Work := FALSE;
+      COut.JB.ClampExit.Work := FALSE;
+      COut.JB.ClampEntry.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+      COut.JB.ClampExit.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+   END_REGION
+
+   REGION "Network 103: Coordination Out - JB CUT"
+      COut.JB.CutHead.EnableStopDoorOpeningReq := TRUE;
+      COut.JB.CutHead.EnableStopInPhase := TRUE;
+      COut.JB.CutHead.EnableStopProgrammed := TRUE;
+      COut.JB.CutHead.Rest := ((NOT (((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1) AND NOT Sts.MaterialMoveAut.Fwd_Phase1)) OR Ctrl.EndOfCoil.JB_Cut_Rest OR TON_Emptying.Q) AND NOT CIn.JB.CutHead.Rest);
+      COut.JB.CutHead.Work := (Ctrl.EndOfCoil.JB_Cut_Work AND NOT CIn.JB.CutHead.Work);
+      COut.JB.CutHead.Control_ON := ((NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle)) AND COut.JB.CutHead.Rest) OR (NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle)) AND COut.JB.CutHead.Work));
+   END_REGION
+
+   REGION "Network 104: Coordination Out - JB Pinch roll FEED"
+      COut.JB.PinchRoll_Feed.EnableStopDoorOpeningReq := Sts.FeedStandstill;
+      COut.JB.PinchRoll_Feed.EnableStopInPhase := MachineInterface.AckStopInPhase;
+      COut.JB.PinchRoll_Feed.EnableStopProgrammed := MachineInterface.AckStopProgrammed;
+      COut.JB.PinchRoll_Feed.Bwd := FALSE;
+      COut.JB.PinchRoll_Feed.Fwd := (Ctrl.EndOfCoil.JB_Pinch_Fwd AND Sts.CumulativeMaterialFwdRequest);
+      COut.JB.PinchRoll_Feed.Control_ON := NOT ((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle));
+   END_REGION
+
+   REGION "Network 105: Coordination Out - JB Pinch Roll LIFT"
+      COut.JB.Pinchroll_Lift.EnableStopDoorOpeningReq := TRUE;
+      COut.JB.Pinchroll_Lift.EnableStopInPhase := TRUE;
+      COut.JB.Pinchroll_Lift.EnableStopProgrammed := TRUE;
+      COut.JB.Pinchroll_Lift.Rest := ((Ctrl.EndOfCoil.JB_Pinch_Open OR (NOT ((NOT Sts.MaterialMoveSemiAut.Bwd_Phase1 AND NOT Sts.MaterialMoveSemiAut.Fwd_Phase1)) AND FALSE) OR Sts.MaterialMoveAut.Fwd_Phase1 OR TON_Emptying.Q OR COut.Gen.EmptyingConfirmed) AND NOT CIn.JB.Pinchroll_Lift.Rest);
+      COut.JB.Pinchroll_Lift.Work := (Ctrl.EndOfCoil.JB_Pinch_Close AND NOT CIn.JB.Pinchroll_Lift.Work);
+      COut.JB.Pinchroll_Lift.Control_ON := NOT (((NOT Sts.Semiautomatic AND NOT AreaInterface.Cycle) AND NOT TON_Emptying.Q));
+   END_REGION
+
+   REGION "Network 108: Coordination Out - Loop 1"
+      COut.Loop.Synchro_Request := ((Sts.LoopSynchro.Phase1_A AND NOT Sts.LoopSynchro.Phase2_A) OR (Sts.LoopSynchro.Phase1_B AND NOT Sts.LoopSynchro.Phase2_B));
+      COut.Loop.MaterialMiddlePos_Request := FALSE;
+      COut.Loop.Stop := (PosEdge(Alarm.MaterialMissing) OR (COut.Loop.Stop AND CIn.Loop.SystemOn));
+   END_REGION
+
+   REGION "Network 109: Coordination Out - MES"
+      COut.MES.Deroga_Spessore_Errato := Pers.Data.Thickness.Measure.BypassON;
+      COut.MES.Spessore_Lamiera_Errato := NOT ((NOT Alarm.TichnessCheck.ThicknessOutOfRange AND NOT Warning.ThicnessCheck.ThicknessOutOfRange));
+      COut.MES.Spessore_Lamiera_Errore_Valore := Pers.Data.Thickness.MES_Record.AvgErr;
+      COut.MES.Spessore_Lamiera_Sensore_Valore := Pers.Data.Thickness.MES_Record.Value;
+      COut.MES.Provino_Eseguito := CoilHandling_MES.ProvinoEseguito;
+   END_REGION
+
+   REGION "Network 114: All motions standstill"
+      Sts.FeedStandstill := ((Sts.DecoilerInLine.Feed.Standstill AND CIn.Straigtener.Feed.Standstill) AND CIn.JB.Pinchroll_Feed.Standstill);
+   END_REGION
+
+   REGION "Network 115: Alarm presence"
+      Sts.AlarmsPresence := (NOT (((((((((NOT Alarm.MaterialMissing AND NOT Alarm.S_MatPresence_StraightExit_NotOFF) AND NOT Alarm.MatCounterAlrPresence) AND NOT Alarm.EndOfMaterial) AND NOT Alarm.MES.STOP_Provino) AND NOT Alarm.MES.STOP_Taglio_Fine_Ordini) AND NOT Alarm.MES.STOP_Manca_Dati_AspoInLinea) AND NOT Alarm.MES.STOP_FineTurno) AND NOT Alarm.MES.STOP_ControlloQualita)) OR NOT ((((NOT Alarm.TichnessCheck.Err_Sensor_Get_PN_IO AND NOT Alarm.TichnessCheck.Err_Sensor_Rack) AND NOT Alarm.TichnessCheck.Err_Sensor_Value) AND NOT Alarm.TichnessCheck.ThicknessOutOfRange)));
+   END_REGION
+
+   REGION "Network 116: Warning presence"
+      Sts.WarningsPresence := NOT (((((((((NOT Warning.NotAutReady AND NOT Warning.MatCounterWngPresence) AND NOT Warning.ExtraLowSpeedIsON) AND NOT Warning.EndOfMaterial_StraightenetEntry) AND NOT Warning.EndOfMaterial_StraightenetExit) AND NOT Warning.EndOfCoilSequenceRunning) AND NOT Warning.EmptyingIsON) AND NOT Warning.Decoiler2_RazzaNonInPosizione) AND NOT Warning.StopInactivity));
+   END_REGION
+
+   REGION "Network 117: Collect machine to area interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+
+      MachineInterface.MotionsStandStill := Sts.FeedStandstill ;
+
+      // Status machine aborting
+      MachineInterface.Aborting := Ctrl.Stop AND MachineInterface.MotionsStandStill;
+
+      // Status Ack Stop in phase
+      MachineInterface.AckStopInPhase := AreaInterface.StopInPhase AND MachineInterface.MotionsStandStill;
+      // Status Ack Stop programmed
+      MachineInterface.AckStopProgrammed := AreaInterface.StopProgrammed AND MachineInterface.MotionsStandStill;
+
+      // Status Alarm presence
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      // Status Warning presence
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+
+   END_REGION
+
+   REGION "Network 118: Warning Machine not ready for automatic"
+      IF AreaInterface.Cycle THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 119: ENO"
+      ENO := NOT Sts.AlarmsPresence;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

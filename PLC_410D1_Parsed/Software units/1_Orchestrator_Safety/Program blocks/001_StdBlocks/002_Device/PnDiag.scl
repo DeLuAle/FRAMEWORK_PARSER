@@ -1,0 +1,63 @@
+﻿// Block: PnDiag
+// Title: Info
+
+FUNCTION_BLOCK "PnDiag"
+{ S7_Optimized_Access := 'TRUE'; Author : 'PM' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      HW_IODevice : HW_DEVICE;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : PnDiag_Alr;
+   END_VAR
+
+   VAR
+      IM : Struct
+         Diagnostic : DIS;
+         "Return" : Int;
+         Details : UInt;
+      END_STRUCT;
+      MODULES : Struct
+         Diagnostic : DNN;
+         "Return" : Int;
+         Details : UInt;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Profinet IO device diagnostic
+      //
+      // v1.0.0  28/12/2022 
+      //=============================================================================
+
+
+   END_REGION
+
+   REGION "IM State"
+   END_REGION
+
+   REGION "Error State"
+      Alarm.Error := (IM.Diagnostic.OwnState >= 4);
+   END_REGION
+
+   REGION "Sub module state"
+   END_REGION
+
+   REGION "Error State"
+      Alarm.Module_Error := (MODULES.Diagnostic.SubordinateState >= 4);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

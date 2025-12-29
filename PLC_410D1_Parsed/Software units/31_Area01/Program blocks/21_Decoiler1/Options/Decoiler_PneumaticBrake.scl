@@ -1,0 +1,113 @@
+﻿// Block: Decoiler_PneumaticBrake
+// Title: Total open
+
+FUNCTION_BLOCK "Decoiler_PneumaticBrake"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Total open
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      PbOpenClose : Bool;
+      PbPartilaOpenClose : Bool;
+      Open_Req_FeedMotor : Bool;
+      Open_Req_Snubber : Bool;
+      Partial_Req : Bool;
+      InLine : Bool;
+      DiameterValue : Real;
+   END_VAR
+
+   VAR_OUTPUT
+      Open : Bool;
+      Lamp_Open_Forced : Bool;
+      Lamp_Partial_Forced : Bool;
+      V_Open : Bool;
+      V_PartialHigh : Bool;
+      V_PartialLow : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Decoiler_Pers;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         IsOpen : Bool;
+         Open_Req_Pb : Bool;
+         Partial_Req_Pb : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Open : Bool;
+         Partial : Bool;
+      END_STRUCT;
+      Aux_PbOpenClose : Bool;
+      TON_BrakeisOpen : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP
+      Set : Bool;
+      Rst : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Total open"
+      Set := (PosEdge(PbOpenClose) AND NOT (Sts.Open_Req_Pb));
+      Rst := (PosEdge(PbOpenClose) AND Sts.Open_Req_Pb);
+      IF (NOT (((NOT (Rst) AND NOT (Open_Req_FeedMotor)) AND NOT (Open_Req_Snubber))) OR NOT (AreaInterface.Man)) THEN
+         Sts.Open_Req_Pb := FALSE;
+      ELSIF Set THEN
+         Sts.Open_Req_Pb := TRUE;
+      END_IF;
+      Lamp_Open_Forced := Sts.Open_Req_Pb;
+      Ctrl.Open := NOT (((NOT (Open_Req_FeedMotor) AND NOT (Open_Req_Snubber)) AND NOT (Sts.Open_Req_Pb)));
+   END_REGION
+
+   REGION "Partial open"
+      Set := (PosEdge(PbOpenClose) AND NOT (Sts.Partial_Req_Pb));
+      Rst := (PosEdge(PbOpenClose) AND Sts.Partial_Req_Pb);
+      IF (NOT ((NOT (Rst) AND NOT (Partial_Req))) OR NOT (AreaInterface.Man)) THEN
+         Sts.Partial_Req_Pb := FALSE;
+      ELSIF Set THEN
+         Sts.Partial_Req_Pb := TRUE;
+      END_IF;
+      Lamp_Partial_Forced := Sts.Partial_Req_Pb;
+      Ctrl.Partial := (NOT ((NOT (Partial_Req) AND NOT (Sts.Partial_Req_Pb))) AND NOT (Ctrl.Open));
+   END_REGION
+
+   REGION "Partial brake with diameter"
+
+      IF InLine AND PersistentValues.CoilDiamSensor.Par.AnalogicSensor_Enable THEN
+          
+          IF Ctrl.Partial AND
+              DiameterValue < PersistentValues.PneumaticBracking.DiameterChangeBrake
+          THEN
+              
+              PersistentValues.PneumaticBracking.BrakeLowSelected := TRUE;
+          END_IF;
+          
+      ELSE
+          
+          PersistentValues.PneumaticBracking.BrakeLowSelected := FALSE;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Valve manager"
+      V_Open := (NOT (AreaInterface.EStop) AND Ctrl.Open);
+      V_PartialHigh := (((NOT (AreaInterface.EStop) AND Ctrl.Partial) AND NOT (PersistentValues.PneumaticBracking.BrakeLowSelected)) OR ((NOT (AreaInterface.EStop) AND Ctrl.Partial) AND Sts.Partial_Req_Pb));
+      V_PartialLow := (((NOT (AreaInterface.EStop) AND Ctrl.Partial) AND PersistentValues.PneumaticBracking.BrakeLowSelected) OR ((NOT (AreaInterface.EStop) AND Ctrl.Partial) AND Sts.Partial_Req_Pb));
+   END_REGION
+
+   REGION "Is Open"
+      #TON_BrakeisOpen(
+         IN := V_Open,
+         PT := t#500ms
+      );
+
+      Open := #TON_BrakeisOpen.Q;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

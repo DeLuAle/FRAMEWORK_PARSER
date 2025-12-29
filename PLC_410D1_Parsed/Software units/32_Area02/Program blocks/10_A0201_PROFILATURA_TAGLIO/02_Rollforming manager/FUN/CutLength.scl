@@ -1,0 +1,177 @@
+﻿// Block: CutLength
+
+FUNCTION_BLOCK "CutLength"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      CutDone : Bool;
+      CutAtRest : Bool;
+      MaterialCounter : Struct
+         AlrPresence : Bool;
+         WngPresence : Bool;
+         Data : MatCountData;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      CutData : Struct
+         Gap : LReal;
+         MaterialPosition : LReal;
+         MaterialTargetPosition : LReal;
+         DeltaTarget : LReal;
+         MaterialMissingToTarget : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Carriage_MeasInput : TO_MeasuringInput;
+      TO_Wheel_MeasInput : TO_MeasuringInput;
+      Pers : Struct
+         CarriageMeasID : UInt;
+         WheelMeasID : UInt;
+         CarriageEncoder : LReal;
+         WheelEncoder : LReal;
+         LastCut_Material_Position : LReal;
+         PrevCut_Material_Position : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Status : Int;
+         CarriageMeasInp_LastID : UInt;
+         WheelMeasInp_LastID : UInt;
+         AtCut : Struct
+            Lead_Position : LReal;
+            Carriage_Position : LReal;
+         END_STRUCT;
+      END_STRUCT;
+      Alarm : Struct
+         Carriage_MeasInput : TMeasuring_Alarms;
+         Wheel_MeasInput : TMeasuring_Alarms;
+         MeasInpNotEngaged : Bool;
+      END_STRUCT;
+      Diag : Struct
+         Carriage_MeasInput : TO_Diagnostic;
+         Wheel_MeasInput : TO_Diagnostic;
+      END_STRUCT;
+      Carriage_MeasInp : MeasuringInput;
+      Wheel_MeasInp : MeasuringInput;
+      AuxPE : Struct
+         CutDone : Bool;
+      END_STRUCT;
+      PE : Struct
+         CutDone : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset alarms"
+
+      IF AreaInterface.RstAlarms THEN
+          
+          Alarm.MeasInpNotEngaged := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "PE Cut Done"
+      PE.CutDone := PosEdge(CutDone);
+   END_REGION
+
+   REGION "Network 4"
+
+
+      CASE Sts.Status OF
+              
+          0:
+              IF CutAtRest THEN
+                  Sts.CarriageMeasInp_LastID := Pers.CarriageMeasID;
+                  Sts.WheelMeasInp_LastID := Pers.WheelMeasID;
+              END_IF;
+              
+              IF PE.CutDone THEN
+
+                  Sts.Status += 1;
+              END_IF;
+              
+          1:
+              
+              IF Sts.CarriageMeasInp_LastID <> Pers.CarriageMeasID AND
+                  Sts.WheelMeasInp_LastID <> Pers.WheelMeasID
+              THEN
+                  
+                  Pers.CarriageEncoder := Carriage_MeasInp.MeasuringSts.MeasuringValue1;
+                  Pers.WheelEncoder := Wheel_MeasInp.MeasuringSts.MeasuringValue1;
+                  
+                  Pers.PrevCut_Material_Position := Pers.LastCut_Material_Position;
+       
+                  Sts.AtCut.Lead_Position := PosAxisToPosMat_Wheel(PosAxis := Pers.WheelEncoder , Data := MaterialCounter.Data);
+                  Sts.AtCut.Carriage_Position := Pers.CarriageEncoder;
+                  Pers.LastCut_Material_Position := M_PosAMinusCostB(PosA := Sts.AtCut.Lead_Position, CostB := Sts.AtCut.Carriage_Position, MODULE := MaterialCounter.Data.COUNTER_MODULE);
+                  
+                  CutData.MaterialTargetPosition := RollformingMng.FlyingCutoff.CIn.Target.MaterialPosition;
+                  CutData.DeltaTarget := CutData.MaterialTargetPosition - Pers.LastCut_Material_Position;
+                  
+                  CutData.MaterialMissingToTarget := RollformingMng.FlyingCutoff.Sts.MaterialMissingToTarget;
+                  
+                  Sts.Status := 0;
+                  
+              ELSIF CutAtRest THEN
+                  
+                  Alarm.MeasInpNotEngaged := TRUE;
+                  Sts.Status := 0;
+                  
+              END_IF;
+              
+      END_CASE;
+
+
+      CutData.MaterialPosition := Pers.LastCut_Material_Position;
+      CutData.Gap := M_PosAMinusPosB(PosA := Pers.LastCut_Material_Position, PosB :=  Pers.PrevCut_Material_Position, MODULE := MaterialCounter.Data.COUNTER_MODULE);
+
+
+
+   END_REGION
+
+   REGION "Control"
+      Carriage_MeasInp.MeasuringCtrl.Rst := AreaInterface.RstAlarms;
+      Carriage_MeasInp.MeasuringCtrl.MeasureEnable := NOT AreaInterface.EStop;
+      Carriage_MeasInp.MeasuringCtrl.Mode := 0;
+
+   END_REGION
+
+   REGION "Manager"
+      #Carriage_MeasInp(
+         en := TRUE,
+         TO_Measuring := TO_Carriage_MeasInput,
+         Alarm := Alarm.Carriage_MeasInput,
+         Diag := Diag.Carriage_MeasInput,
+         Trigger_ID := Pers.CarriageMeasID
+      );
+
+   END_REGION
+
+   REGION "Control"
+      Wheel_MeasInp.MeasuringCtrl.Rst := AreaInterface.RstAlarms;
+      Wheel_MeasInp.MeasuringCtrl.MeasureEnable := NOT AreaInterface.EStop;
+      Wheel_MeasInp.MeasuringCtrl.Mode := 0;
+
+   END_REGION
+
+   REGION "Manager"
+      #Wheel_MeasInp(
+         en := TRUE,
+         TO_Measuring := TO_Wheel_MeasInput,
+         Alarm := Alarm.Wheel_MeasInput,
+         Diag := Diag.Wheel_MeasInput,
+         Trigger_ID := Pers.WheelMeasID
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

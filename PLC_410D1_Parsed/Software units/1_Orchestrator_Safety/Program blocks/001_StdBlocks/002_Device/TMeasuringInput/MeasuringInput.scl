@@ -1,0 +1,294 @@
+﻿// Block: MeasuringInput
+// Title: Info
+
+FUNCTION_BLOCK "MeasuringInput"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      MeasuringCtrl : TMeasuringCtrl;
+   END_VAR
+
+   VAR_OUTPUT
+      MeasuringSts : TMeasuringSts;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Measuring : TO_MeasuringInput;
+      Alarm : TMeasuring_Alarms;
+      Diag : TO_Diagnostic;
+      Trigger_ID : UInt;
+   END_VAR
+
+   VAR
+      Status : UInt;
+      MC_Reset : MC_RESET;
+      MC_AbortMeas : MC_ABORTMEASURINGINPUT;
+      MC_MeasInp : MC_MEASURINGINPUT;
+      TO_Status : TMeasuring_STATUSWORD;
+      TO_Errors : TMeasuring_ERRORWORD;
+      tonTimeOut : IEC_TIMER;
+      Local : Struct
+         RestartConditions : Bool;
+         ErrorMC_Reset : Bool;
+         ErrorMC_MeasInp : Bool;
+         ErrorMC_AbortMeas : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      "00_INIT" : UInt;
+      "01_ACTIVE" : UInt;
+      "10_OPERATION" : UInt;
+      "20_ABORT" : UInt;
+      TIMEOUT_PT : Time;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Measuring Input device
+      //
+      // v1.0.0  28/12/2022 
+      //=============================================================================
+
+
+   END_REGION
+
+   REGION "Get TO Status"
+      TO_Status.Control := TO_Measuring.StatusWord.%X0;
+      TO_Status.Error := TO_Measuring.StatusWord.%X1;
+      TO_Status.RestartActive := TO_Measuring.StatusWord.%X2;
+      TO_Status.OnlineStartValuesChanged := TO_Measuring.StatusWord.%X3;
+      TO_Status.CommunicationOK := TO_Measuring.StatusWord.%X5;
+
+   END_REGION
+
+   REGION "Get TO Error"
+      TO_Errors.SystemFault := TO_Measuring.ErrorWord.%X0;
+      TO_Errors.ConfigFault := TO_Measuring.ErrorWord.%X1;
+      TO_Errors.UserFault := TO_Measuring.ErrorWord.%X2;
+      TO_Errors.CommandNotAccepted := TO_Measuring.ErrorWord.%X3;
+      TO_Errors.PeripheralError := TO_Measuring.ErrorWord.%X13;
+
+   END_REGION
+
+   REGION "Get TO Input State"
+      MeasuringSts.InputState := TO_Measuring.InputState;
+   END_REGION
+
+   REGION "Reset Alarms"
+      IF MeasuringCtrl.Rst THEN
+          Local.ErrorMC_Reset := FALSE;
+          Local.ErrorMC_MeasInp := FALSE;
+          Local.ErrorMC_AbortMeas := FALSE;
+          
+          Alarm.TimeOutActivation := FALSE;
+      END_IF;
+          
+
+   END_REGION
+
+   REGION "Alarms & Diagnostic"
+      // TO Error
+      IF TO_Measuring.ErrorDetail.Reaction > 0 THEN
+          Alarm.TOMeasuring := TRUE;
+          Diag.TO_Message := TO_Measuring.ErrorDetail.Number;
+      ELSE
+          Alarm.TOMeasuring := FALSE;
+          Diag.TO_Message := 0;
+      END_IF;
+
+
+      //MC Error
+      IF MC_MeasInp.Error THEN
+          Local.ErrorMC_MeasInp := true;
+          Diag.MC_Message := MC_MeasInp.ErrorId;
+      ELSIF MC_AbortMeas.Error THEN
+          Local.ErrorMC_AbortMeas := true;
+          Diag.MC_Message := MC_AbortMeas.ErrorId;
+      ELSIF MC_Reset.Error THEN
+          Local.ErrorMC_Reset := TRUE;
+          Diag.MC_Message := MC_Reset.ErrorId;
+      END_IF;
+
+      Alarm.MCFunction := Local.ErrorMC_Reset
+                          OR Local.ErrorMC_MeasInp
+                          OR Local.ErrorMC_AbortMeas;
+                          
+      IF NOT Alarm.MCFunction THEN
+          Diag.MC_Message := 0;
+      END_IF;
+
+      Diag.ErrorMC_Reset := Local.ErrorMC_Reset;
+      Diag.ErrorMC_MeasInp := Local.ErrorMC_MeasInp;
+      Diag.ErrorMC_AbortMeas := Local.ErrorMC_AbortMeas;
+
+      Diag.MC_ErrorPresence := Alarm.MCFunction;
+      Diag.TO_ErrorPresence := Alarm.TOMeasuring;
+
+      Diag.DeviceType := 3;
+
+      IF MeasuringSts.AlarmPresence THEN
+          Diag.MessageType := 2;
+      ELSIF TO_Status.OnlineStartValuesChanged 
+          OR TO_Status.RestartActive THEN
+          Diag.MessageType := 1;
+      ELSE
+          Diag.MessageType := 0;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Go to Init"
+      MeasuringSts.AlarmPresence := NOT (((NOT (Alarm.TOMeasuring) AND NOT (Alarm.MCFunction)) AND NOT (Alarm.TimeOutActivation)));
+      IF (NOT (((NOT (Alarm.TOMeasuring) AND NOT (Alarm.MCFunction)) AND NOT (Alarm.TimeOutActivation))) AND (Status > #00_INIT)) THEN
+         Status := #00_INIT;
+      END_IF;
+   END_REGION
+
+   REGION "Main"
+      IF Status = 00_INIT THEN
+          
+          tonTimeOut.(IN := FALSE,
+                          PT := TIMEOUT_PT);
+          
+          MC_MeasInp.Execute := FALSE;
+          MC_AbortMeas.Execute := FALSE;
+          
+          IF NOT MC_MeasInp.Busy
+              AND NOT MC_MeasInp.Done
+              AND NOT MC_AbortMeas.Busy
+              AND NOT MC_AbortMeas.Done
+              AND NOT MC_MeasInp.Error
+              AND NOT MC_AbortMeas.Error
+              AND NOT MC_Reset.Error
+              AND MeasuringCtrl.MeasureEnable
+          THEN
+              Status := 01_ACTIVE;
+          ELSIF (MC_MeasInp.Busy OR
+              MC_AbortMeas.Busy)
+              AND NOT MC_MeasInp.Done
+              AND NOT MC_AbortMeas.Done
+              AND NOT MC_MeasInp.Error
+              AND NOT MC_AbortMeas.Error
+              AND NOT MC_Reset.Error
+          THEN
+              Status := 20_ABORT;
+          END_IF;
+      END_IF;
+
+      IF Status = 01_ACTIVE THEN
+                  
+          tonTimeOut.(IN := TRUE,
+                          PT := TIMEOUT_PT);
+          
+          MC_MeasInp.Execute := TRUE;
+          IF MeasuringCtrl.Mode = 10 THEN
+              MC_MeasInp.Mode := (G := TO_Measuring.InputState, IN0 := 0, IN1 := 1);
+          ELSE
+              MC_MeasInp.Mode := MeasuringCtrl.Mode;
+          END_IF;
+          
+          IF MC_MeasInp.Busy AND TO_Status.Control THEN
+              Status := 10_OPERATION;
+              tonTimeOut.(IN := FALSE,
+                              PT := TIMEOUT_PT);
+          ELSIF tonTimeOut.Q THEN
+              Alarm.TimeOutActivation := TRUE;
+              Status := 20_ABORT;
+              tonTimeOut.(IN := FALSE,
+                              PT := TIMEOUT_PT);
+          END_IF;
+      END_IF;
+
+      IF Status = 10_OPERATION THEN
+          MC_MeasInp.Execute := FALSE;
+          
+          IF MC_MeasInp.Done THEN
+              Trigger_ID := Trigger_ID + 1;
+              MeasuringSts.MeasuringDone_ID := Trigger_ID;
+              MeasuringSts.MeasuringValue1 := MC_MeasInp.MeasuredValue1;
+              MeasuringSts.MeasuringValue2 := MC_MeasInp.MeasuredValue2;
+              Status := 00_INIT;
+          ELSIF NOT MeasuringCtrl.MeasureEnable OR NOT MC_MeasInp.Busy THEN
+              Status := 20_ABORT;
+          END_IF;
+      END_IF;
+
+      IF Status = 20_ABORT THEN
+          
+          tonTimeOut.(IN := TRUE,
+                          PT := TIMEOUT_PT);
+          
+          MC_MeasInp.Execute := FALSE;
+          MC_AbortMeas.Execute := TRUE;
+         
+          
+          IF MC_AbortMeas.Done OR MC_AbortMeas.Error OR tonTimeOut.Q THEN
+              MC_AbortMeas.Execute := FALSE;
+              Status := 00_INIT;
+          END_IF;
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "In Operation"
+      MeasuringSts.InOperation := (Status = #10_OPERATION);
+   END_REGION
+
+   REGION "Restart TO"
+      Local.RestartConditions := NOT (MeasuringCtrl.MeasureEnable
+                                  OR MC_AbortMeas.Busy
+                                  OR MC_MeasInp.Busy)
+                                  AND Status = 00_INIT
+                                  AND NOT NOT MeasuringCtrl.Rst;
+
+      Diag.TO_RestartNeeded := TO_Status.OnlineStartValuesChanged;
+      Diag.TO_RestartActive := TO_Status.RestartActive;
+      Diag.TO_RestartEnable := Local.RestartConditions;
+
+   END_REGION
+
+   REGION "Mc Reset"
+      #MC_Reset(
+         en := TRUE,
+         Execute := (MeasuringCtrl.Rst OR (Diag.TO_RestartCmd AND Local.RestartConditions)),
+         Restart := (Diag.TO_RestartCmd AND Local.RestartConditions),
+         Axis := TO_Measuring
+      );
+
+      IF TRUE THEN
+         Diag.TO_RestartCmd := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Mc Abort"
+      #MC_AbortMeas(
+         en := TRUE,
+         MeasuringInput := TO_Measuring
+      );
+
+   END_REGION
+
+   REGION "Mc MeasIn"
+      #MC_MeasInp(
+         en := TRUE,
+         MeasuringInput := TO_Measuring
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

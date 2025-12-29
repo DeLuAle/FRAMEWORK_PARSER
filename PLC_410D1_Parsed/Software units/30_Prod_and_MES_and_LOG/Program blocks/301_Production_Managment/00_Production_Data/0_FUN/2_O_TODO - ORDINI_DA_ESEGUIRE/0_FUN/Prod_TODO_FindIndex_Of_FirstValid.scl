@@ -1,0 +1,57 @@
+﻿// Block: Prod_TODO_FindIndex_Of_FirstValid
+// Title: Ricerca ordine valido = Con dati corretti senza controllare che usi lo stesso profilo
+
+FUNCTION "Prod_TODO_FindIndex_Of_FirstValid" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Ricerca ordine valido = Con dati corretti senza controllare che usi lo stesso profilo
+   VAR_TEMP
+      i : Int;
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+   REGION "Ricerca ordine valido = Con dati corretti senza controllare che usi lo stesso profilo"
+      Prod_TODO_FindIndex_Of_FirstValid := 0;
+
+
+      // Pulisci i gap
+      // 
+
+      FOR i := 1 TO PROD_TODO_ITEMS DO
+          
+          RETVAL := PROD_item_Clear_GAP(Production.O_TODO);
+          
+          IF RETVAL <> PROD_FUN_RESULT_CLEAR_GAP_DONE THEN
+              EXIT;
+          END_IF;
+          
+          
+      END_FOR;
+
+
+
+      // Al primo ordine valido il ciclo esce
+      // 
+      FOR i := 1 TO PROD_TODO_ITEMS DO
+          
+          
+          RETVAL := Prod_item_Check_DataValid(Production.O_TODO[i]);
+          
+          IF RETVAL >= 0 THEN
+              Prod_TODO_FindIndex_Of_FirstValid := i;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

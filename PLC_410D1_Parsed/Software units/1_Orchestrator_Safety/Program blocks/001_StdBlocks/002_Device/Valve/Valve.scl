@@ -1,0 +1,202 @@
+﻿// Block: Valve
+// Title: Info
+
+FUNCTION_BLOCK "Valve"
+{ S7_Optimized_Access := 'TRUE'; Author : 'PIH'; Family : 'Devices' }
+VERSION : 1.94
+// Info
+   VAR_INPUT
+      ValveCtrl : ValveCtrl;
+      RestLimitSwitch : Bool;
+      WorkLimitSwitch : Bool;
+      OilInPressure : Bool;
+      Simulation : Bool;
+      Config : ValveConfig;
+   END_VAR
+
+   VAR_OUTPUT
+      ValveSts : ValveSts;
+      RestSolenoid : Bool;
+      WorkSolenoid : Bool;
+      ReqOilPressure : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : ValveAlr;
+   END_VAR
+
+   VAR
+      IsAtRest : Bool;
+      IsAtWork : Bool;
+      Ctrl : Struct
+         RestReq : Bool;
+         WorkReq : Bool;
+         RestSolenoid : Bool;
+         WorkSolenoid : Bool;
+      END_STRUCT;
+      tonRest : IEC_TIMER;
+      tonWork : IEC_TIMER;
+      tonTimeOutRest : IEC_TIMER;
+      tonTimeOutWork : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP
+      RestAlarmsPresence : Bool;
+      RestPermitted : Bool;
+      WorkAlarmsPresence : Bool;
+      WorkPermitted : Bool;
+      CheckTOutRest : Bool;
+      CheckTOutWork : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Valve device manager
+      //
+      // v1.0.0  28/12/2022 
+      // v1.1.0  23/01/2023 Simulation added
+      // v1.1.1  14/02/2022 Config udt added
+      //=============================================================================
+
+   END_REGION
+
+   REGION "Time for valve at rest status"
+      #tonRest(
+         IN := ((((((Ctrl.RestSolenoid AND NOT (Ctrl.WorkSolenoid)) AND NOT (Config.RestLimSwitchExist)) AND NOT (WorkLimitSwitch)) OR (((Ctrl.RestSolenoid AND NOT (Ctrl.WorkSolenoid)) AND NOT (Config.RestLimSwitchExist)) AND NOT (Config.WorkLimSwitchExist)) OR (RestLimitSwitch AND Config.RestLimSwitchExist)) AND NOT (Simulation)) OR ((Ctrl.RestSolenoid AND NOT (Ctrl.WorkSolenoid)) AND Simulation)),
+         PT := Config.RestTime
+      );
+
+   END_REGION
+
+   REGION "Time for valve at work status"
+      #tonWork(
+         IN := ((((((Ctrl.WorkSolenoid AND NOT (Ctrl.RestSolenoid)) AND NOT (Config.WorkLimSwitchExist)) AND NOT (RestLimitSwitch)) OR (((Ctrl.WorkSolenoid AND NOT (Ctrl.RestSolenoid)) AND NOT (Config.WorkLimSwitchExist)) AND NOT (Config.RestLimSwitchExist)) OR (WorkLimitSwitch AND Config.WorkLimSwitchExist)) AND NOT (Simulation)) OR ((Ctrl.WorkSolenoid AND NOT (Ctrl.RestSolenoid)) AND Simulation)),
+         PT := Config.WorkTime
+      );
+
+   END_REGION
+
+   REGION "Status valve is at rest"
+      IF (((NOT (tonRest.Q) AND Config.RestLimSwitchExist) AND NOT (Simulation)) OR Ctrl.WorkSolenoid OR tonWork.Q OR IsAtWork) THEN
+         IsAtRest := FALSE;
+      ELSIF tonRest.Q THEN
+         IsAtRest := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Status valve is at work"
+      IF (((NOT (tonWork.Q) AND Config.WorkLimSwitchExist) AND NOT (Simulation)) OR Ctrl.RestSolenoid OR tonRest.Q OR IsAtRest) THEN
+         IsAtWork := FALSE;
+      ELSIF tonWork.Q THEN
+         IsAtWork := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Time for check timeout rest"
+      #tonTimeOutRest(
+         IN := (Ctrl.RestSolenoid AND NOT (IsAtRest)),
+         PT := Config.RestTimeOut
+      );
+
+      CheckTOutRest := (Ctrl.RestSolenoid AND NOT (IsAtRest));
+   END_REGION
+
+   REGION "Time for check timeout work"
+      #tonTimeOutWork(
+         IN := (Ctrl.WorkSolenoid AND NOT (IsAtWork)),
+         PT := Config.WorkTimeOut
+      );
+
+      CheckTOutWork := (Ctrl.WorkSolenoid AND NOT (IsAtWork));
+   END_REGION
+
+   REGION "Set alarm time out at rest"
+      IF ((CheckTOutRest AND tonTimeOutRest.Q) AND NOT (Simulation)) THEN
+         Alarm.TimeOutRest := TRUE;
+      ELSIF ValveCtrl.Rst THEN
+         Alarm.TimeOutRest := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Set alarm time out at work"
+      IF ((CheckTOutWork AND tonTimeOutWork.Q) AND NOT (Simulation)) THEN
+         Alarm.TimeOutWork := TRUE;
+      ELSIF ValveCtrl.Rst THEN
+         Alarm.TimeOutWork := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Set alarm limit switches togheter ON"
+      IF ((((RestLimitSwitch AND Config.RestLimSwitchExist) AND WorkLimitSwitch) AND Config.WorkLimSwitchExist) AND NOT (Simulation)) THEN
+         Alarm.LimitSwitches := TRUE;
+      ELSIF ValveCtrl.Rst THEN
+         Alarm.LimitSwitches := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Presence of alarms that cut rest command"
+      RestAlarmsPresence := NOT ((NOT (Alarm.LimitSwitches) AND NOT (Alarm.TimeOutRest)));
+   END_REGION
+
+   REGION "Rest command is permitted"
+      RestPermitted := ((NOT (Alarm.TimeOutRest) AND NOT (ValveCtrl.SafeStop)) AND NOT (ValveCtrl.MoveWork));
+   END_REGION
+
+   REGION "Request command rest / out comamnd rest"
+      Ctrl.RestReq := (((ValveCtrl.MoveRest AND RestPermitted) AND NOT (IsAtRest)) OR ((ValveCtrl.MoveRest AND RestPermitted) AND NOT (Config.CutRestWhenIsAtRest)));
+      Ctrl.RestSolenoid := ((((((ValveCtrl.MoveRest AND RestPermitted) AND NOT (IsAtRest)) OR ((ValveCtrl.MoveRest AND RestPermitted) AND NOT (Config.CutRestWhenIsAtRest))) AND OilInPressure) OR ((((ValveCtrl.MoveRest AND RestPermitted) AND NOT (IsAtRest)) OR ((ValveCtrl.MoveRest AND RestPermitted) AND NOT (Config.CutRestWhenIsAtRest))) AND NOT (Config.CheckOilInPressure))) AND NOT (Ctrl.WorkSolenoid));
+   END_REGION
+
+   REGION "Presence of alarms that cut work command"
+      WorkAlarmsPresence := NOT ((NOT (Alarm.LimitSwitches) AND NOT (Alarm.TimeOutWork)));
+   END_REGION
+
+   REGION "Work command is permitted"
+      WorkPermitted := ((NOT (Alarm.TimeOutWork) AND NOT (ValveCtrl.SafeStop)) AND NOT (ValveCtrl.MoveRest));
+   END_REGION
+
+   REGION "Request command work / out comamnd work"
+      Ctrl.WorkReq := (((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (IsAtWork)) OR ((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (Config.CutWorkWhenIsAtWork)));
+      Ctrl.WorkSolenoid := ((((((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (IsAtWork)) OR ((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (Config.CutWorkWhenIsAtWork))) AND OilInPressure) OR ((((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (IsAtWork)) OR ((ValveCtrl.MoveWork AND WorkPermitted) AND NOT (Config.CutWorkWhenIsAtWork))) AND NOT (Config.CheckOilInPressure))) AND NOT (Ctrl.RestSolenoid));
+   END_REGION
+
+   REGION "Req oil pressure"
+      ReqOilPressure := ((Ctrl.RestReq OR Ctrl.WorkReq) AND Config.CheckOilInPressure);
+   END_REGION
+
+   REGION "Alarm Presence"
+      ValveSts.AlarmPresence := NOT ((NOT (RestAlarmsPresence) AND NOT (WorkAlarmsPresence)));
+   END_REGION
+
+   REGION "Rest"
+      ValveSts.RestPermit := RestPermitted;
+      ValveSts.RestInProgress := ((Ctrl.RestSolenoid AND NOT (IsAtRest)) OR (Ctrl.RestSolenoid AND NOT (Config.CutRestWhenIsAtRest)));
+      ValveSts.IsAtRest := IsAtRest;
+   END_REGION
+
+   REGION "Work"
+      ValveSts.WorkPermit := WorkPermitted;
+      ValveSts.WorkInProgress := ((Ctrl.WorkSolenoid AND NOT (IsAtWork)) OR (Ctrl.WorkSolenoid AND NOT (Config.CutWorkWhenIsAtWork)));
+      ValveSts.IsAtWork := IsAtWork;
+   END_REGION
+
+   REGION "Is Standstill"
+      ValveSts.StandStill := (((NOT (Ctrl.RestSolenoid) OR (IsAtRest AND Config.RestLimSwitchExist)) AND NOT (Ctrl.WorkSolenoid)) OR (((NOT (Ctrl.RestSolenoid) OR (IsAtRest AND Config.RestLimSwitchExist)) AND IsAtWork) AND Config.WorkLimSwitchExist));
+   END_REGION
+
+   REGION "Out"
+      RestSolenoid := (Ctrl.RestSolenoid AND NOT (Simulation));
+      WorkSolenoid := (Ctrl.WorkSolenoid AND NOT (Simulation));
+   END_REGION
+
+
+END_FUNCTION_BLOCK

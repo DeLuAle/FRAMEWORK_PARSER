@@ -1,0 +1,36 @@
+﻿// Block: Lubr_Bordat
+
+FUNCTION_BLOCK "Lubr_Bordat"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR
+      Ton_Stop : TON_TIME;
+      Ton_Start : TON_TIME;
+      Ctrl : Bool;
+      Abilita : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      #Ton_Stop(
+         IN := Ctrl,
+         PT := T#20s
+      );
+
+      #Ton_Start(
+         IN := NOT (Ctrl),
+         PT := T#10s
+      );
+
+      IF #Ton_Stop.Q THEN
+         Ctrl := FALSE;
+      END_IF;
+      IF (#Ton_Start.Q AND NOT (A0302_Bordatrice.COut.Ax.Standstill)) THEN
+         Ctrl := TRUE;
+      END_IF;
+      A0302_Bordatrice_V_Lubrificazione := Ctrl;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

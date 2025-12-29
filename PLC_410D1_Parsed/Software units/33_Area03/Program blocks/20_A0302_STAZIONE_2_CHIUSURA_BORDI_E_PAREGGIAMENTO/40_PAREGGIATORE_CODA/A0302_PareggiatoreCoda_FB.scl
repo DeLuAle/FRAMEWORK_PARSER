@@ -1,0 +1,921 @@
+﻿// Block: A0302_PareggiatoreCoda_FB
+// Title: Reset allarmi 
+
+FUNCTION_BLOCK "A0302_PareggiatoreCoda_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset allarmi 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI_Feed : udt_DeviceSafetyInterface;
+      DSI_Valve : udt_DeviceSafetyInterface;
+      DSI_OilValve : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : Struct
+         OP_MoveToPos : Bool;
+         BattutaVrt : Struct
+            OP : OP_PB;
+         END_STRUCT;
+         PareggLong : Struct
+            OP : OP_PB;
+            AnalSens : Int;
+         END_STRUCT;
+         Sens : Struct
+            FTC_Ingombro_In : Bool;
+            FTC_Ingombro_Out : Bool;
+            PresenzaMat : Bool;
+            FC_Aticoll_Spalla : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+            Control_ON : Bool;
+            MoveToPos : Bool;
+            Pos : LReal;
+            Speed : LReal;
+            Bloccaggio : Struct
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+            BattutaVrt : Struct
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+            PareggLong : Struct
+               Rest : Bool;
+               Work : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         SemiAut_Pb : Bool;
+         Bordatrice : Struct
+            Ax : Positioning_EPOS_Machine_COut;
+            Sts : Struct
+               PosTargetEnable : Bool;
+               PosTarget_Reached : Bool;
+               In_W_Pos : Bool;
+               AtRest : Bool;
+            END_STRUCT;
+            RegSpalla : Struct
+               Infeed_ReqON : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         Rulliera : Struct
+            Ax_1 : SpeedMachine_COut;
+            Ax_2 : SpeedMachine_COut;
+            Centratori : ValveMachine_COut;
+            Coda : Struct
+               Sens : Struct
+                  FTC_Rall : Bool;
+                  FTC_Prox_Ing : Bool;
+               END_STRUCT;
+            END_STRUCT;
+            Centro : Struct
+               Sens : Struct
+                  FTC_Centrale : Bool;
+               END_STRUCT;
+            END_STRUCT;
+         END_STRUCT;
+         CarroPareggCoda : Struct
+            Pareggia : Bool;
+            OilInTargetPressure : Bool;
+         END_STRUCT;
+         CarroPareggTesta : Struct
+            Sens : Struct
+               FTC1_Rall : Bool;
+               FTC2_Prox_Ls : Bool;
+               PresenzaMat : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         CarriPareggiatori : Struct
+            ZoneA0302Entry_Empty : Bool;
+            ZoneA0302Exit_Empty : Bool;
+            RequestNewPosition : Bool;
+         END_STRUCT;
+         Spalle : Struct
+            Coda : Struct
+               ActualPos : LReal;
+            END_STRUCT;
+            Testa : Struct
+               ActualPos : LReal;
+            END_STRUCT;
+         END_STRUCT;
+         Manipolatore : Struct
+            Sollevatore : ValveMachine_COut;
+         END_STRUCT;
+         Centratori : Struct
+            Sollevamento : ValveMachine_COut;
+         END_STRUCT;
+      END_STRUCT;
+      Config : Struct
+         Ax : Positioning_DOL_Machine_Config;
+         Bloccaggio : ValveMachine_Config;
+         BattutaVerticale : ValveMachine_Config;
+         PareggiatoreLong : ValveMachine_Config;
+         PosPareggiatore : Struct
+            QuotaMin_Work : LReal;
+            QuotaMax_Work : LReal;
+         END_STRUCT;
+         MinDistanzaConSpalla : LReal;
+         DelayMissingCondition : Time;
+      END_STRUCT;
+      HWID : Struct
+         Ax_TEL1 : HW_SUBMODULE;
+         Enc_IO : HW_SUBMODULE;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Ax : Positioning_DOL_Machine_COut;
+         Bloccaggio : ValveMachine_COut;
+         BattutaVerticale : ValveMachine_COut;
+         PareggiatoreLong : ValveMachine_COut;
+         Ax_InWPos : Bool;
+         Anticipi : Struct
+            Work : Struct
+               BattutaVrt : Bool;
+               PareggLong : Bool;
+            END_STRUCT;
+            Rest : Struct
+               BattutaVrt : Bool;
+               PareggLong : Bool;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : Struct
+         Ax : Positioning_DOL_Machine_Par;
+         Ax_Pers : Positioning_DOL_Machine_Pers_Data;
+         Enc : PosFbk_RTN;
+         Ax_Aut : A0301_Mach_Speed_Par;
+         Bloccaggio_Sens : Struct
+            "2191B1" : Analogic_SensorManagement_Par;
+            SogliaWork : Real;
+         END_STRUCT;
+         CarroPareggCoda : Struct
+            Delay_StartMove : Time;
+            Preset : LReal;
+         END_STRUCT;
+         Cremaliera : Struct
+            Modulo : LReal;
+            Passo : LReal;
+         END_STRUCT;
+      END_STRUCT;
+      Par_Sens : Struct
+         AI : Analogic_SensorManagement_Par;
+      END_STRUCT;
+      Data_Sens : Analogic_SensorManagement_Data;
+      Par_MachSens : A0301_Mach_Sens_Par;
+      IEC_SP : Struct
+         FTC_Input : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_Output : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_PresentMat : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         Check_2119B1 : Struct
+            TON_PT : Time;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Ax : Positioning_DOL_Machine_Alr;
+         Enc : PosFbk_Encoder_Alr;
+         Bloccaggio : ValveAlr;
+         BattutaVerticale : ValveAlr;
+         PareggiatoreLong : ValveAlr;
+         PareggLong_AnalSens_Issue : Bool;
+         SensFC_Aticoll_Spalla : Bool;
+         Bloccaggio_AnalSens_Issue : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Ax : Positioning_DOL_Machine_Wng;
+         Bloccaggio : ValveMachine_Wng;
+         BattutaVerticale : ValveMachine_Wng;
+         PareggiatoreLongitudinale : ValveMachine_Wng;
+         PosPareggiatoreLong : Analogic_SensorManagement_Warning;
+         MissingCnd : Struct
+            OP_REST_BattutaVrt : Bool;
+            OP_WORK_BattutaVrt : Bool;
+            OP_REST_PareggLong : Bool;
+            OP_WORK_PareggLong : Bool;
+            OP_REST_Bloccaggio : Bool;
+            OP_WORK_Bloccaggio : Bool;
+         END_STRUCT;
+         SW_Limit_AntiCollision : Bool;
+      END_STRUCT;
+      HMI : Struct
+         AnalogSensor : AnalogSens_HmiData;
+         Ax : Struct
+            PbPreset : Bool;
+            B_Preset_UM2 : Bool;
+            PresetValue : LReal;
+         END_STRUCT;
+      END_STRUCT;
+      Sts : Struct
+         ReadyForMove : Bool;
+         OP_PCoda_CanMoveFreely : Bool;
+         OP_Ax_CanMoveFreely : Bool;
+         Op_MoveToPos_Cnd : Bool;
+         BattutaVrt : Struct
+            OP_Rest_Cnd : Bool;
+            Op_Work_Cnd : Bool;
+         END_STRUCT;
+         PareggLong : Struct
+            OP_Rest_Cnd : Bool;
+            Op_Work_Cnd : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         BattutaVrt : Struct
+            OP_Rest_Man : Bool;
+            OP_Work_Man : Bool;
+            OP_Rest_Aut : Bool;
+            OP_Work_Aut : Bool;
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+         PareggLong : Struct
+            CheckMesure : Bool;
+            OP_Rest_Aut : Bool;
+            OP_Work_Aut : Bool;
+            OP_Rest_Man : Bool;
+            OP_Work_Man : Bool;
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+         Ax : Struct
+            OP_MoveToPos_Man : Bool;
+            OP_MoveToPos_Aut : Bool;
+            OP_MoveToPos : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      AUX : Struct
+         OP_MoveToPos : Bool;
+         BattutaVrt : Struct
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+         PareggLong : Struct
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Ax : Positioning_DOL_Machine_FB;
+      Enc : PosFbk_SickAFM60;
+      Enc_ITF : PosFbk_ITF;
+      Bloccaggio : ValveMachine_FB;
+      BattutaVerticale : ValveMachine_FB;
+      PareggiatoreLong : ValveMachine_FB;
+      PosPareggLong : Analogic_SensorManagement;
+      TON_PareggLong : Struct
+         OP_REST_MissingCnd : TON_TIME;
+         OP_WORK_MissingCnd : TON_TIME;
+      END_STRUCT;
+      TON_BattutaVrt : Struct
+         OP_REST_MissingCnd : TON_TIME;
+         OP_WORK_MissingCnd : TON_TIME;
+      END_STRUCT;
+      TON_Bloccaggio : Struct
+         OP_REST_MissingCnd : TON_TIME;
+         OP_WORK_MissingCnd : TON_TIME;
+      END_STRUCT;
+      IEC_FTC_Input : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+      IEC_FTC_Output : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+      IEC_FTC_PresentMat : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+      IEC_DelayCheck_2119B1 : IEC_TIMER;
+      Bloccaggio_AnalSens : AnalogThreshold;
+      CarroCoda : Struct
+         RimanenzaPos : LReal;
+         PassoReq : LReal;
+         PosBattutePz : LReal;
+         SemiBeamLen : LReal;
+         NrPassiReq : LReal;
+         Pos : LReal;
+      END_STRUCT;
+      TON_DistanzaOK : IEC_TIMER;
+      TON_Anticipi : Struct
+         Rest : Struct
+            BattutaVrt : IEC_TIMER;
+            PareggLong : IEC_TIMER;
+         END_STRUCT;
+         Work : Struct
+            PareggLong : IEC_TIMER;
+            BattutaVrt : IEC_TIMER;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_MoveToPos : Bool;
+         BattutaVrt : Struct
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+         PareggLong : Struct
+            OP_Rest : Bool;
+            OP_Work : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      ActualDifference : LReal;
+   END_VAR
+
+   VAR CONSTANT
+      RACK_STEP : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset allarmi"
+      IF AreaInterface.RstAlarms THEN
+          Alarm.PareggLong_AnalSens_Issue := FALSE;
+          Alarm.SensFC_Aticoll_Spalla := FALSE;
+          Alarm.Bloccaggio_AnalSens_Issue := FALSE;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Anticipi Movimento LAVORO"
+      #TON_Anticipi.Work.BattutaVrt(
+         IN := (BattutaVerticale.DataOut.WorkSolenoid AND NOT (BattutaVerticale.DataIn.Work_Ls[1])),
+         PT := T#200MS
+      );
+
+      #TON_Anticipi.Work.PareggLong(
+         IN := (PareggiatoreLong.DataOut.RestSolenoid AND NOT (PareggiatoreLong.DataIn.Work_Ls[1])),
+         PT := T#200MS
+      );
+
+   END_REGION
+
+   REGION "Anticipi Movimento RIPOSO"
+      #TON_Anticipi.Rest.BattutaVrt(
+         IN := (BattutaVerticale.DataOut.RestSolenoid AND NOT (BattutaVerticale.DataIn.Rest_Ls[1])),
+         PT := T#200MS
+      );
+
+      #TON_Anticipi.Rest.PareggLong(
+         IN := (PareggiatoreLong.DataOut.RestSolenoid AND NOT (PareggiatoreLong.DataIn.Rest_Ls[1])),
+         PT := T#200MS
+      );
+
+   END_REGION
+
+   REGION "DataIn - FTC Input"
+      #IEC_FTC_Input.TON_Delay(
+         IN := DataIn.Sens.FTC_Ingombro_In,
+         PT := IEC_SP.FTC_Input.TON_PT
+      );
+
+      #IEC_FTC_Input.TOF_Delay(
+         IN := IEC_FTC_Input.TON_Delay.Q,
+         PT := IEC_SP.FTC_Input.TOF_PT
+      );
+
+      IEC_FTC_Input.FTC_On := #IEC_FTC_Input.TOF_Delay.Q;
+   END_REGION
+
+   REGION "DataIn - FTC Output"
+      #IEC_FTC_Output.TON_Delay(
+         IN := DataIn.Sens.FTC_Ingombro_Out,
+         PT := IEC_SP.FTC_Output.TON_PT
+      );
+
+      #IEC_FTC_Output.TOF_Delay(
+         IN := IEC_FTC_Output.TON_Delay.Q,
+         PT := IEC_SP.FTC_Output.TOF_PT
+      );
+
+      IEC_FTC_Output.FTC_On := #IEC_FTC_Output.TOF_Delay.Q;
+   END_REGION
+
+   REGION "DataIn - FTC Presenza materiale"
+      #IEC_FTC_PresentMat.TON_Delay(
+         IN := DataIn.Sens.PresenzaMat,
+         PT := IEC_SP.FTC_PresentMat.TON_PT
+      );
+
+      #IEC_FTC_PresentMat.TOF_Delay(
+         IN := IEC_FTC_PresentMat.TON_Delay.Q,
+         PT := IEC_SP.FTC_PresentMat.TOF_PT
+      );
+
+      IEC_FTC_PresentMat.FTC_On := #IEC_FTC_PresentMat.TOF_Delay.Q;
+   END_REGION
+
+   REGION "[Ax] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_Ax_CanMoveFreely := (CIn.CarriPareggiatori.ZoneA0302Exit_Empty OR NOT (Sys.ByPass));
+   END_REGION
+
+   REGION "[Ax] - Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.Ax.OP_MoveToPos_Aut := (CIn.Manager.Control_ON AND CIn.Manager.MoveToPos);
+   END_REGION
+
+   REGION "[Ax] - RIFERIMENTI CIn Manager (AUT)"
+      IF NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) THEN
+         Ax.CIn.Manager.Pos := CIn.Manager.Pos;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax] - Comando Operazione Lavoro / Riposo (MAN)"
+      PE.OP_MoveToPos := PosEdge(DataIn.OP_MoveToPos);
+      Ctrl.Ax.OP_MoveToPos_Man := ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_MoveToPos) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Ax.OP_MoveToPos_Man)) AND DataIn.OP_MoveToPos);
+   END_REGION
+
+   REGION "[Battuta Vrt + Paregg. Long] - Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_PCoda_CanMoveFreely := ???;
+      Sts.OP_PCoda_CanMoveFreely := (((((Sts.OP_PCoda_CanMoveFreely AND NOT (CIn.Rulliera.Coda.Sens.FTC_Prox_Ing)) AND NOT (CIn.Rulliera.Centro.Sens.FTC_Centrale)) AND NOT (IEC_FTC_Input.FTC_On)) AND NOT (IEC_FTC_Output.FTC_On)) AND NOT (IEC_FTC_PresentMat.FTC_On));
+   END_REGION
+
+   REGION "[Battuta Vrt] - Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.BattutaVrt.OP_Rest_Aut := (CIn.Manager.Control_ON AND CIn.Manager.BattutaVrt.Rest);
+      Ctrl.BattutaVrt.OP_Work_Aut := (CIn.Manager.Control_ON AND CIn.Manager.BattutaVrt.Work);
+   END_REGION
+
+   REGION "[Paregg. Long] - Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.PareggLong.OP_Rest_Aut := (CIn.Manager.Control_ON AND CIn.Manager.PareggLong.Rest);
+      Ctrl.PareggLong.OP_Work_Aut := (CIn.Manager.Control_ON AND CIn.Manager.PareggLong.Work);
+   END_REGION
+
+   REGION "[Battuta Vrt] - Comando Operazione Lavoro / Riposo (MAN)"
+      PE.BattutaVrt.OP_Rest := PosEdge(DataIn.BattutaVrt.OP.Rest);
+      PE.BattutaVrt.OP_Work := PosEdge(DataIn.BattutaVrt.OP.Work);
+      Ctrl.BattutaVrt.OP_Rest_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.BattutaVrt.OP_Rest) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.BattutaVrt.OP_Rest_Man)) AND DataIn.BattutaVrt.OP.Rest) AND NOT (DataIn.BattutaVrt.OP.Work));
+      Ctrl.BattutaVrt.OP_Work_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.BattutaVrt.OP_Work) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.BattutaVrt.OP_Work_Man)) AND DataIn.BattutaVrt.OP.Work) AND NOT (DataIn.BattutaVrt.OP.Rest));
+   END_REGION
+
+   REGION "[Paregg. Long] - Comando Operazione Lavoro / Riposo (MAN)"
+      PE.PareggLong.OP_Rest := PosEdge(DataIn.PareggLong.OP.Rest);
+      PE.PareggLong.OP_Work := PosEdge(DataIn.PareggLong.OP.Work);
+      Ctrl.PareggLong.OP_Rest_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.PareggLong.OP_Rest) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.PareggLong.OP_Rest_Man)) AND DataIn.PareggLong.OP.Rest) AND NOT (DataIn.PareggLong.OP.Work));
+      Ctrl.PareggLong.OP_Work_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.PareggLong.OP_Work) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.PareggLong.OP_Work_Man)) AND DataIn.PareggLong.OP.Work) AND NOT (DataIn.PareggLong.OP.Rest));
+   END_REGION
+
+   REGION "Carro Pareggiatore di Coda - Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.BattutaVrt.OP_Rest := NOT ((NOT (Ctrl.BattutaVrt.OP_Rest_Man) AND NOT (Ctrl.BattutaVrt.OP_Rest_Aut)));
+      Ctrl.BattutaVrt.OP_Work := NOT ((NOT (Ctrl.BattutaVrt.OP_Work_Man) AND NOT (Ctrl.BattutaVrt.OP_Work_Aut)));
+      Ctrl.PareggLong.OP_Rest := NOT ((NOT (Ctrl.PareggLong.OP_Rest_Man) AND NOT (Ctrl.PareggLong.OP_Rest_Aut)));
+      Ctrl.PareggLong.OP_Work := NOT ((NOT (Ctrl.PareggLong.OP_Work_Man) AND NOT (Ctrl.PareggLong.OP_Work_Aut)));
+      Ctrl.Ax.OP_MoveToPos := NOT ((NOT (Ctrl.Ax.OP_MoveToPos_Man) AND NOT (Ctrl.Ax.OP_MoveToPos_Aut)));
+   END_REGION
+
+   REGION "[Ax] - Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.Op_MoveToPos_Cnd := (CIn.Manager.MoveToPos OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+   END_REGION
+
+   REGION "[Battura Vrt] - Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.BattutaVrt.OP_Rest_Cnd := (CIn.Manager.BattutaVrt.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_PCoda_CanMoveFreely));
+      Sts.BattutaVrt.Op_Work_Cnd := (CIn.Manager.BattutaVrt.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_PCoda_CanMoveFreely));
+   END_REGION
+
+   REGION "[Paregg Long] - Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.PareggLong.OP_Rest_Cnd := (CIn.Manager.PareggLong.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_PCoda_CanMoveFreely));
+      Sts.PareggLong.Op_Work_Cnd := (CIn.Manager.PareggLong.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_PCoda_CanMoveFreely));
+   END_REGION
+
+   REGION "Carro Pareggiatore di Coda - CIn Abilitazioni Stop Manager"
+      PareggiatoreLong.Cin.Manager.EnableStopDoorOpeningReq := BattutaVerticale.Cin.Manager.EnableStopDoorOpeningReq
+      := Bloccaggio.Cin.Manager.EnableStopDoorOpeningReq := Ax.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+
+      PareggiatoreLong.Cin.Manager.EnableStopInPhase := BattutaVerticale.Cin.Manager.EnableStopInPhase
+      := Bloccaggio.Cin.Manager.EnableStopInPhase := Ax.CIn.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+
+      PareggiatoreLong.Cin.Manager.EnableStopProgrammed := BattutaVerticale.Cin.Manager.EnableStopProgrammed
+      := Bloccaggio.Cin.Manager.EnableStopProgrammed := Ax.CIn.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+   END_REGION
+
+   REGION "[Bloccaggio] -  Cin Manager (Esecuzione sequenza comandi)"
+      Bloccaggio.Cin.Manager.Rest := (((NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) AND Ctrl.Ax.OP_MoveToPos) AND NOT (COut.Ax_InWPos)) OR (NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) AND CIn.Manager.Bloccaggio.Rest));
+      Bloccaggio.Cin.Manager.Work := ((((((NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) AND Par.Bloccaggio_Sens.2191B1.Enable) AND NOT (Alarm.Bloccaggio_AnalSens_Issue)) AND Bloccaggio_AnalSens.Q) OR (NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) AND CIn.Manager.Bloccaggio.Work) OR (NOT ((NOT (CIn.SemiAut_Pb) AND NOT (AreaInterface.Cycle))) AND NOT (Par.Bloccaggio_Sens.2191B1.Enable))) AND COut.Ax_InWPos) AND Ax.COut.Standstill);
+   END_REGION
+
+   REGION "[Bloccaggio] - CIn External Alarm"
+      Bloccaggio.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Bloccaggio] - CIn External Enable"
+      Bloccaggio.Cin.Rest_ExtEnable := (Ctrl.Ax.OP_MoveToPos OR CIn.Manager.Bloccaggio.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Bloccaggio.Cin.Work_ExtEnable := ((((NOT (Ctrl.Ax.OP_MoveToPos) OR CIn.Manager.Bloccaggio.Work) AND COut.Ax_InWPos) AND Ax.COut.Standstill) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+   END_REGION
+
+   REGION "[Bloccaggio] - Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_Bloccaggio.OP_REST_MissingCnd(
+         IN := Ctrl.Ax.OP_MoveToPos,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_Bloccaggio.OP_WORK_MissingCnd(
+         IN := ((NOT (Ctrl.Ax.OP_MoveToPos) AND Ax.COut.InPosition) AND NOT (Bloccaggio.COut.Work)),
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Sts.Op_MoveToPos_Cnd OR Bloccaggio.COut.Rest OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_REST_Bloccaggio := FALSE;
+      ELSIF #TON_Bloccaggio.OP_REST_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_REST_Bloccaggio := TRUE;
+      END_IF;
+      IF ((NOT (Sts.Op_MoveToPos_Cnd) AND Bloccaggio.COut.Work) OR Bloccaggio.COut.Work OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_WORK_Bloccaggio := FALSE;
+      ELSIF #TON_Bloccaggio.OP_WORK_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_WORK_Bloccaggio := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Bloccaggio] - Sensore controllo pressione a lavoro su cremaliera"
+      #Bloccaggio_AnalSens(
+         en := Par.Bloccaggio_Sens.2191B1.Enable,
+         Signal := A0302_AI_Pareggiatore_Coda_Bloccaggio_Pressostato,
+         Hi_Limit := Par.Bloccaggio_Sens.2191B1.RangeHigh,
+         Low_Limit := Par.Bloccaggio_Sens.2191B1.RangeLow,
+         Bipolar := TRUE,
+         Threshold := Par.Bloccaggio_Sens.SogliaWork,
+         Hysteresis := 5.0,
+         FilterTau := T#2S
+      );
+
+      #IEC_DelayCheck_2119B1(
+         IN := (Par.Bloccaggio_Sens.2191B1.Enable AND COut.Bloccaggio.Work),
+         PT := IEC_SP.Check_2119B1.TON_PT
+      );
+
+      IF ((((Par.Bloccaggio_Sens.2191B1.Enable AND COut.Bloccaggio.Work) AND IEC_DelayCheck_2119B1.Q) AND NOT (Bloccaggio_AnalSens.Q)) AND (Bloccaggio_AnalSens.Value < Par.Bloccaggio_Sens.SogliaWork)) THEN
+         Alarm.Bloccaggio_AnalSens_Issue := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "== Calcolo setpoint posizione carri in funzione della cremaliera in Manuale =="
+      // Foglio di calcolo posizione Cremaliera fornito
+      // 
+      IF AreaInterface.Man AND Ctrl.Ax.OP_MoveToPos THEN
+          
+          CarroCoda.PosBattutePz := (Par.CarroPareggCoda.Preset - A0302_PareggiatoreCoda_PERS.Par_Sens.AI.RangeLow);
+          CarroCoda.RimanenzaPos := (Ax.HMI.TargetPosition - Ax.Ctrl.Pos - CarroCoda.PosBattutePz) + (A0302_PareggiatoreCoda_PERS.Par_Sens.AI.RangeLow + 2.0);
+          CarroCoda.NrPassiReq := (CarroCoda.RimanenzaPos / Par.Cremaliera.Passo);
+          
+          // Calcolo i numeri di passi cremaliera richiesti per spostarmi della rimanenza
+          CarroCoda.PassoReq := (CarroCoda.NrPassiReq);
+          
+          Ax.Ctrl.Pos := (CarroCoda.PassoReq * Par.Cremaliera.Passo) + CarroCoda.PosBattutePz + A0302_PareggiatoreCoda_PERS.Par_Sens.AI.RangeLow;
+          
+      END_IF;
+
+
+          //
+          // Calcolo la rimanenza dello spazio tra lo 0 e il preset dei carri
+          #CarroCoda.RimanenzaPos := #Ax.HMI.TargetPosition - #Par.CarroPareggCoda.Preset;
+          
+          // Calcolo i numeri di passi cremaliera richiesti per spostarmi della rimanenza
+          #CarroCoda.PassoReq := ROUND(#CarroCoda.RimanenzaPos / #Par.Cremaliera.Passo);
+          
+          // Calcolo del setpoint di posizione dei 2 carri in funzione della misura calcolata - Se cambia il Beam Len viene richiesto il nuovo riposizionamento
+          #Ax.Ctrl.Pos := (#CarroCoda.PassoReq * #Par.Cremaliera.Passo) + #Par.CarroPareggCoda.Preset;
+      END_IF;
+
+   END_REGION
+
+   REGION "[Ax] - CIn Dynamic Limits"
+      #TON_DistanzaOK(
+         IN := ((CIn.Spalle.Coda.ActualPos - Ax.COut.ActualPosition) AND (ActualDifference < Config.MinDistanzaConSpalla)),
+         PT := T#3S
+      );
+
+      Ax.CIn.PositionLimits.EnableMin := Sys.ByPass;
+      Ax.CIn.PositionLimits.EnableMax := Sys.ByPass;
+      IF Ax.COut.Homed THEN
+         ActualDifference := (CIn.Spalle.Coda.ActualPos - Ax.COut.ActualPosition);
+      END_IF;
+      IF ((CIn.Spalle.Coda.ActualPos - Ax.COut.ActualPosition) AND (ActualDifference >= Config.MinDistanzaConSpalla)) THEN
+         Ax.CIn.PositionLimits.PosMax := Ax.COut.ActualPosition;
+      END_IF;
+      IF ((CIn.Spalle.Coda.ActualPos - Ax.COut.ActualPosition) AND (ActualDifference >= Config.MinDistanzaConSpalla)) THEN
+         Warning.SW_Limit_AntiCollision := TRUE;
+      END_IF;
+      IF Config.Ax.Ax.limitPlus THEN
+         Warning.SW_Limit_AntiCollision := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax] Encoder - Main"
+      #Enc(
+         en := TRUE,
+         HW_IO := HWID.Enc_IO,
+         Interface := Enc_ITF,
+         Retain := Par.Enc,
+         Alarm := Alarm.Enc
+      );
+
+   END_REGION
+
+   REGION "[Ax] HMI preset position"
+      Ax.HMI.B_Preset := (HMI.Ax.B_Preset_UM2 AND Ax.Ax.AxisSts.HomingPermitted);
+      Ax.HMI.PresetPosition := HMI.Ax.PresetValue;
+   END_REGION
+
+   REGION "[Ax] -  CIn External Enable"
+      Ax.CIn.PlusExtEnable := ((((((((CIn.Manager.Control_ON AND BattutaVerticale.COut.Rest) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND NOT (DataIn.Sens.FC_Aticoll_Spalla)) AND Bloccaggio.COut.Rest) AND CIn.Manipolatore.Sollevatore.Rest) AND CIn.Centratori.Sollevamento.Rest) OR NOT (Sys.ByPass));
+      Ax.CIn.MinusExtEnable := (((((((CIn.Manager.Control_ON AND BattutaVerticale.COut.Rest) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND A0302_Manager.Sts.BTrk.ZoneA0302Exit_Empty) AND Bloccaggio.COut.Rest) AND CIn.Manipolatore.Sollevatore.Rest) AND CIn.Centratori.Sollevamento.Rest) OR NOT (Sys.ByPass));
+   END_REGION
+
+   REGION "[Ax] Axis Manager"
+      #Ax(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed,
+         Drive := Drive,
+         Config := Config.Ax,
+         HW_ID_TEL1 := HWID.Ax_TEL1,
+         PosFeedback := Enc_ITF,
+         Par := Par.Ax,
+         Pers_Data := Par.Ax_Pers,
+         Warning := Warning.Ax,
+         Alarm := Alarm.Ax,
+         COut => COut.Ax
+      );
+
+   END_REGION
+
+   REGION "[Ax] Controllo finestra di posizione - In POSITION"
+      IF ((NOT (AreaInterface.Aut) AND NOT (CIn.SemiAut_Pb)) AND AreaInterface.Man) THEN
+         CarroCoda.Pos := Ax.Ctrl.Pos;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax] -  Cin Manager (Esecuzione sequenza comandi)"
+      // Operazione LAVORO dell' asse spintore quando i 2 ciclindri sono in riposo e il bloccaggio è a riposo
+      Ax.CIn.Manager.Control_ON := Ax.DSI.PowerEnable := Bloccaggio.Cin.Manager.Control_ON  := Ctrl.Ax.OP_MoveToPos AND NOT DataIn.Sens.FC_Aticoll_Spalla;
+
+
+
+      IF Ctrl.Ax.OP_MoveToPos AND Sts.Op_MoveToPos_Cnd AND NOT COut.Ax_InWPos AND Bloccaggio.COut.Rest
+              AND BattutaVerticale.Cin.Manager.Rest AND PareggiatoreLong.Cin.Manager.Rest THEN
+              Ax.CIn.Manager.MoveToPos := TRUE;
+              
+              // Se raggiungo la posizione di setpoint spengo il comando
+          ELSIF COut.Ax_InWPos AND Ax.COut.Standstill THEN
+              Ax.CIn.Manager.MoveToPos := FALSE;
+              Ax.DSI.PowerEnable := FALSE;
+          END_IF;
+          
+      // Attivazione ALLARME collisione con spalla
+      // 
+          IF Ax.CIn.Manager.Control_ON AND Ax.CIn.Manager.MoveToPos AND DataIn.Sens.FC_Aticoll_Spalla THEN
+              
+              Alarm.SensFC_Aticoll_Spalla := TRUE;
+              Ax.CIn.Manager.MoveToPos := FALSE;
+              Ax.DSI.PowerEnable := FALSE;
+          END_IF;
+              
+
+   END_REGION
+
+   REGION "[Battuta Vrt ] -  Cin Manager (Esecuzione sequenza comandi)"
+      // Comando CIn Manager ControlON di tutte le utenze
+      BattutaVerticale.Cin.Manager.Control_ON := CIn.Manager.Control_ON;
+
+      BattutaVerticale.Cin.Manager.Rest := FALSE;
+      BattutaVerticale.Cin.Manager.Work := FALSE;
+
+      // Gestione dei comandi relativi a Battuta VRT in sequenza quando ho un OP cnd
+          
+      IF (Ctrl.BattutaVrt.OP_Rest AND Sts.BattutaVrt.OP_Rest_Cnd) OR (Ctrl.Ax.OP_MoveToPos AND Sts.Op_MoveToPos_Cnd) THEN
+              
+              PareggiatoreLong.Cin.Manager.Rest := TRUE;
+              BattutaVerticale.Cin.Manager.Rest := PareggiatoreLong.COut.Rest;
+              
+              // Vado a lavoro solo se sono in posizione e il carro è bloccato sulla cremaliera e i pezzi sono centrati sulla rulliera     
+          ELSIF  (Ctrl.BattutaVrt.OP_Work AND Sts.BattutaVrt.Op_Work_Cnd) AND Bloccaggio.COut.Work THEN
+              
+              BattutaVerticale.Cin.Manager.Work := TRUE;
+              PareggiatoreLong.Cin.Manager.Rest := NOT BattutaVerticale.Cin.Manager.Work;
+              
+      END_IF;
+
+   END_REGION
+
+   REGION "[Paregg Long ] -  Cin Manager (Esecuzione sequenza comandi)"
+      // Comando CIn Manager ControlON di tutte le utenze
+      PareggiatoreLong.Cin.Manager.Control_ON := CIn.Manager.Control_ON;
+
+      PareggiatoreLong.Cin.Manager.Rest := FALSE;
+      PareggiatoreLong.Cin.Manager.Work := FALSE;
+
+      // Gestione dei comandi relativi a Pareggiatore Longitudinale in sequenza quando ho un OP cnd
+      IF (Ctrl.PareggLong.OP_Rest AND Sts.PareggLong.OP_Rest_Cnd) OR (Ctrl.Ax.OP_MoveToPos AND Sts.Op_MoveToPos_Cnd) THEN
+              
+          PareggiatoreLong.Cin.Manager.Rest := TRUE;
+          PareggiatoreLong.Cin.Manager.Work := FALSE;
+              
+              // Vado a lavoro solo se sono in posizione e il carro è bloccato sulla cremaliera e i pezzi sono centrati sulla rulliera     
+      ELSIF  (Ctrl.PareggLong.OP_Work AND Sts.PareggLong.Op_Work_Cnd) AND Bloccaggio.COut.Work THEN
+              
+              BattutaVerticale.Cin.Manager.Work := TRUE;
+              PareggiatoreLong.Cin.Manager.Work := BattutaVerticale.COut.Work;
+           
+      END_IF;
+
+   END_REGION
+
+   REGION "[Battuta Vrt] - CIn External Alarm"
+      BattutaVerticale.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Battuta Vrt] - CIn External Enable"
+      BattutaVerticale.Cin.Rest_ExtEnable := ((Bloccaggio.COut.Work AND CIn.Manager.BattutaVrt.Rest) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      BattutaVerticale.Cin.Work_ExtEnable := (Bloccaggio.COut.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+   END_REGION
+
+   REGION "[Battuta Vrt] - Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_BattutaVrt.OP_REST_MissingCnd(
+         IN := Ctrl.BattutaVrt.OP_Rest,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_BattutaVrt.OP_WORK_MissingCnd(
+         IN := Ctrl.BattutaVrt.OP_Work,
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Sts.BattutaVrt.OP_Rest_Cnd OR Ctrl.BattutaVrt.OP_Work OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_REST_BattutaVrt := FALSE;
+      ELSIF #TON_BattutaVrt.OP_REST_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_REST_BattutaVrt := TRUE;
+      END_IF;
+      IF (Sts.BattutaVrt.Op_Work_Cnd OR Ctrl.BattutaVrt.OP_Rest OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_WORK_BattutaVrt := FALSE;
+      ELSIF #TON_BattutaVrt.OP_WORK_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_WORK_BattutaVrt := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Paregg. Long] - CIn External Alarm"
+      PareggiatoreLong.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Paregg. Long] - CIn External Enable"
+      PareggiatoreLong.Cin.Rest_ExtEnable := ((Bloccaggio.COut.Work OR (BattutaVerticale.COut.Work AND PareggiatoreLong.COut.Work) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND PareggiatoreLong.V.OilInPressure);
+      PareggiatoreLong.Cin.Work_ExtEnable := ((((Bloccaggio.COut.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND BattutaVerticale.COut.Work) AND CIn.CarroPareggCoda.OilInTargetPressure) OR (((Bloccaggio.COut.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND BattutaVerticale.COut.Work) AND PareggiatoreLong.V.OilInPressure));
+   END_REGION
+
+   REGION "[Paregg. Long] - Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_PareggLong.OP_REST_MissingCnd(
+         IN := (Ctrl.PareggLong.OP_Rest AND NOT (COut.PareggiatoreLong.Rest)),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_PareggLong.OP_WORK_MissingCnd(
+         IN := (Ctrl.PareggLong.OP_Work AND NOT (COut.PareggiatoreLong.Work)),
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Sts.PareggLong.OP_Rest_Cnd OR Ctrl.PareggLong.OP_Work OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_REST_PareggLong := FALSE;
+      ELSIF #TON_PareggLong.OP_REST_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_REST_PareggLong := TRUE;
+      END_IF;
+      IF (Sts.PareggLong.Op_Work_Cnd OR Ctrl.PareggLong.OP_Rest OR AreaInterface.RstAlarms) THEN
+         Warning.MissingCnd.OP_WORK_PareggLong := FALSE;
+      ELSIF #TON_PareggLong.OP_WORK_MissingCnd.Q THEN
+         Warning.MissingCnd.OP_WORK_PareggLong := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Bloccaggio] - Valve Manager"
+      #Bloccaggio(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_OilValve,
+         Config := Config.Bloccaggio,
+         Alarm := Alarm.Bloccaggio,
+         Warning := Warning.Bloccaggio,
+         COut => COut.Bloccaggio
+      );
+
+   END_REGION
+
+   REGION "[Battuta Vrt ] - Valve Manager"
+      #BattutaVerticale(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.BattutaVerticale,
+         Alarm := Alarm.BattutaVerticale,
+         Warning := Warning.BattutaVerticale,
+         COut => COut.BattutaVerticale
+      );
+
+   END_REGION
+
+   REGION "[Battuta Vrt ] - Anticipo COut"
+      COut.BattutaVerticale := BattutaVerticale.COut;
+
+      COut.BattutaVerticale.Rest := BattutaVerticale.COut.Rest OR TON_Anticipi.Rest.BattutaVrt.Q;
+      COut.BattutaVerticale.Work := BattutaVerticale.COut.Work OR TON_Anticipi.Work.BattutaVrt.Q;
+
+   END_REGION
+
+   REGION "[Paregg. Coda] - Valve Manager"
+      #PareggiatoreLong(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Valve,
+         Config := Config.PareggiatoreLong,
+         Alarm := Alarm.PareggiatoreLong,
+         Warning := Warning.PareggiatoreLongitudinale,
+         COut => COut.PareggiatoreLong
+      );
+
+   END_REGION
+
+   REGION "[Paregg. Coda] - Anticipo COut"
+      COut.PareggiatoreLong := PareggiatoreLong.COut;
+
+      COut.PareggiatoreLong.Rest := PareggiatoreLong.COut.Rest OR TON_Anticipi.Rest.PareggLong.Q;
+      COut.PareggiatoreLong.Work := PareggiatoreLong.COut.Work OR TON_Anticipi.Work.PareggLong.Q;
+
+   END_REGION
+
+   REGION "Analogic Position"
+      #PosPareggLong(
+         en := TRUE,
+         Preset_Conditions := AreaInterface.Man,
+         AnalogSensor := DataIn.PareggLong.AnalSens,
+         Standstill_Delay := T#300MS,
+         Filter_Tau := T#10MS,
+         Par := Par_Sens.AI,
+         Data := Data_Sens,
+         HMI := HMI.AnalogSensor,
+         Warning := Warning.PosPareggiatoreLong
+      );
+
+   END_REGION
+
+   REGION "Allarme problemi sul sensore analogico"
+      IF ((NOT ((NOT (Warning.PosPareggiatoreLong.PresetNeed) AND NOT (Warning.PosPareggiatoreLong.SignalError))) AND CIn.Manager.Control_ON) OR (NOT ((NOT (Warning.PosPareggiatoreLong.PresetNeed) AND NOT (Warning.PosPareggiatoreLong.SignalError))) AND AreaInterface.Aut) OR ((NOT ((NOT (Warning.PosPareggiatoreLong.PresetNeed) AND NOT (Warning.PosPareggiatoreLong.SignalError))) AND NOT (Sts.OP_PCoda_CanMoveFreely)) AND COut.PareggiatoreLong.Rest_CheckNext) OR ((NOT ((NOT (Warning.PosPareggiatoreLong.PresetNeed) AND NOT (Warning.PosPareggiatoreLong.SignalError))) AND NOT (Sts.OP_PCoda_CanMoveFreely)) AND COut.PareggiatoreLong.Work_CheckNext)) THEN
+         Alarm.PareggLong_AnalSens_Issue := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "PAREGGIAMENTO - Controllo che il Pareggiatore è a lavoro"
+          // *****************************************************************************************************************************
+          // Calcolo lo spazio di sicurezza se ho eseguito il preset del sensore
+          // Spazio di frenata da raggiungere
+          
+          Par_Sens.AI.Enable := TRUE;
+          
+          IF Par_Sens.AI.Enable AND Data_Sens.OffsetValid THEN
+              IF CIn.CarroPareggCoda.Pareggia AND
+                  PareggiatoreLong.Cin.Manager.Work AND
+                  NOT PareggiatoreLong.DataIn.Rest_Ls[1] AND PosPareggLong.Standstill
+                  AND (PosPareggLong.ScaleValue > Config.PosPareggiatore.QuotaMin_Work) AND (PosPareggLong.ScaleValue < Config.PosPareggiatore.QuotaMax_Work) THEN
+                  Ctrl.PareggLong.CheckMesure := TRUE;
+              END_IF;
+              
+              IF (PareggiatoreLong.Cin.Manager.Rest OR PareggiatoreLong.DataIn.Rest_Ls[1])THEN
+                  Ctrl.PareggLong.CheckMesure := FALSE;
+              END_IF;
+          ELSE
+              Ctrl.PareggLong.CheckMesure := FALSE;
+          END_IF;
+          
+
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,64 @@
+﻿// Block: Peeler_CALL
+// Title: Data In - PB 
+
+FUNCTION "Peeler_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB 
+
+BEGIN
+   REGION "Data In - PB"
+   END_REGION
+
+   REGION "DataIn - Sensors"
+      //Lift
+      //
+      Peeler.DataIn.Lift.Rest_Ls[1] := Peeler_Ls_Down;
+      Peeler.DataIn.Lift.Work_Ls[1] := Peeler_Ls_Up;
+
+      // Extension
+      // 
+      Peeler.DataIn.Extension.Rest_Ls[1] := Peeler_Ls_Bwd;
+      Peeler.DataIn.Extension.Work_Ls[1] := FALSE; //"Peeler_Ls_Fwd"; NON ESISTE
+
+   END_REGION
+
+   REGION "CIn - Manager"
+      Peeler.CIn.Manager := CoilHandling.COut.Peeler;
+   END_REGION
+
+   REGION "CIn - Pressure running"
+      Peeler.CIn.PressureRunning := ((Area01_HU.Pump.COut.PressureRunning AND FDo_V_Peeler) AND NOT (Fdbk_C_Peeler));
+   END_REGION
+
+   REGION "DSI"
+      Peeler.DSI.Extension :=
+      Peeler.DSI.LIft := F_DB.DSI_V_Peeler;
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #Peeler(
+         en := TRUE,
+         AreaInterface := Area01.AreaInterface,
+         ZSI := F_DB.ZSI_Zone05,
+         Config := A01_Config.Peeler
+      );
+
+   END_REGION
+
+   REGION "Data Out"
+      // Lift
+      // 
+      Peeler_V_Down := Peeler.DataOut.Lift.RestSolenoid;
+      Peeler_V_Up := Peeler.DataOut.Lift.WorkSolenoid;
+
+      // Extension
+      // 
+      Peeler_V_Bwd := Peeler.DataOut.Extension.RestSolenoid;
+      Peeler_V_Fwd := Peeler.DataOut.Extension.WorkSolenoid;
+
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,60 @@
+﻿// Block: DEBUG_MES
+
+DATA_BLOCK DEBUG_MES
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      ENABLE : Bool;
+      Materiale_Area01 : Struct
+         PB_CambioAspo : Bool;
+         PB_TaglioLamieraAspo : Bool;
+         PB_Giunzione : Bool;
+         PB_Giunzione_Dopo_Taglio_Finale : Bool;
+         PB_Introduzione_Next_Step : Bool;
+         PB_Svuotamento_Next_Step : Bool;
+         DiametroCoil : Real;
+         Sensore_Errore : Real;
+         Sensore_Misura : Real;
+         PB_Deroga : Bool;
+         PB_Provino : Bool;
+      END_STRUCT;
+      SetUp : Struct
+         Stato : Int;
+         Richiesto : Bool;
+         PB_PROD_RDY : Bool;
+         PB_PART_DONE : Bool;
+         PB_BEAM_DONE : Bool;
+      END_STRUCT;
+      Produzione_Parti : Struct
+         SimulaAllarme : Bool;
+         MemAllarme : Bool;
+         Start : Bool;
+         Pausa : Bool;
+         New_Part_TYPE : Int;
+         New_Part : Bool;
+         New_Part_Allow : Bool;
+         PB_Reset_STOP : Bool;
+      END_STRUCT;
+      Porduzione_Pezzi : Struct
+         SimulaAllarme : Bool;
+         MemAllarme : Bool;
+         Start : Bool;
+         Pausa : Bool;
+         New_Beam_TYPE : Int;
+         Enable_Beam_Prod : Bool;
+         New_Beam : Bool;
+         New_Beam_Allow : Bool;
+         Sel_Order : Prod_Item;
+         PB_Exit_Pack_Next_Step : Bool;
+         Exit_Pack_Step : Int;
+         Force_Beam_Area_Empty : Bool;
+      END_STRUCT;
+      Process_Data : Struct
+         Cin : Prod_CIn;
+         Cout : Prod_COut;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

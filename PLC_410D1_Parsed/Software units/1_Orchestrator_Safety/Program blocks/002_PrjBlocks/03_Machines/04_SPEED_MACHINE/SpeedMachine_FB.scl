@@ -1,0 +1,473 @@
+﻿// Block: SpeedMachine_FB
+// Title: Reset
+
+FUNCTION_BLOCK "SpeedMachine_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      Drive : TAx_DriveInterface;
+      DataIn : SpeedMachine_DataIn;
+      CIn : SpeedMachine_CIn;
+      Config : SpeedMachine_Config;
+      HW_ID_TEL1 : HW_SUBMODULE;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : SpeedMachine_DataOut;
+      COut : SpeedMachine_COut;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : SpeedMachine_Par;
+      Warning : SpeedMachine_Wng;
+      Alarm : SpeedMachine_Alr;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         Standstill : Bool;
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         Gen_Cnd : Bool;
+         Bwd_Cnd : Bool;
+         Fwd_Cnd : Bool;
+         ReductionRatio : LReal;
+      END_STRUCT;
+      Ctrl : Struct
+         StopDueDoorOpeningRequest : Bool;
+         StopInPhase : Bool;
+         StopProgrammed : Bool;
+         StopAborting : Bool;
+         Man_HighSpeed : Bool;
+         Bwd_Man : Bool;
+         Fwd_Man : Bool;
+         Bwd_Aut : Bool;
+         Fwd_Aut : Bool;
+         Fan : Bool;
+         Vel : LReal;
+         Acc : LReal;
+         Dec : LReal;
+      END_STRUCT;
+      Diag : Struct
+         Drive : TO_Diagnostic;
+      END_STRUCT;
+      S120 : SpeedMotor;
+      Fan_M : Motor;
+      TON_NoPendingCmd : IEC_TIMER;
+      TON_Feed_DelayManChangeSpeed : IEC_TIMER;
+      TON_MissingCndBwd : IEC_TIMER;
+      TON_MissingCndFwd : IEC_TIMER;
+      TON_Fan_DelayOff : IEC_TIMER;
+      TON_Brake_TimeOut : IEC_TIMER;
+      S120_STW_TEL1 : PD_TEL1_IN;
+      S120_ZSW_TEL1 : PD_TEL1_OUT;
+      GETIO_STW_TEL1 : GETIO;
+      SETIO_ZSW_TEL1 : SETIO;
+      AUX : Struct
+         Bwd_Pb : Bool;
+         Fwd_Pb : Bool;
+      END_STRUCT;
+      HMI : Struct
+         Sts : "UDT_HMI-Sts_SpeedMachineFB";
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Bwd_Pb : Bool;
+         Fwd_Pb : Bool;
+      END_STRUCT;
+      Req : Bool;
+      VelMax_EngUnit : LReal;
+      AccMax_EngUnit : LReal;
+      DecMax_EngUnit : LReal;
+      StandstillVelocity_RPM : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset"
+      IF AreaInterface.RstAlarms THEN
+          
+          Alarm.BrakeTimeOut :=
+          Alarm.S120_ComErr :=
+          
+          Warning.NotAutReady :=
+          Warning.MissingCnd_Bkw :=
+          Warning.MissingCnd_Fwd := FALSE;
+      END_IF;
+
+   END_REGION
+
+   REGION "Alarm motor brake timeout"
+      #TON_Brake_TimeOut(
+         IN := (((Config.Brake_Presence AND DataIn.Brake_M_Q) AND NOT (DataIn.Brake_M_Feedback)) OR ((Config.Brake_Presence AND NOT (DataIn.Brake_M_Q)) AND DataIn.Brake_M_Feedback)),
+         PT := t#1s
+      );
+
+      IF #TON_Brake_TimeOut.Q THEN
+         Alarm.BrakeTimeOut := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarm comunication (s120 IN)"
+      #GETIO_STW_TEL1(
+         en := TRUE,
+         ID := HW_ID_TEL1,
+         INPUTS := S120_STW_TEL1
+      );
+
+      IF (GETIO_STW_TEL1.STATUS <> 0) THEN
+         Alarm.S120_ComErr := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop due next door opening"
+      Ctrl.StopDueDoorOpeningRequest := (((((TON_NoPendingCmd.Q AND Sts.Standstill) OR Ctrl.StopDueDoorOpeningRequest) AND CIn.Manager.EnableStopDoorOpeningReq) AND ZSI.Door_NormalStop) AND NOT (ZSI.Door_Opened));
+   END_REGION
+
+   REGION "Stop in phase"
+      IF NOT (AreaInterface.StopInPhase) THEN
+         Ctrl.StopInPhase := FALSE;
+      ELSIF CIn.Manager.EnableStopInPhase THEN
+         Ctrl.StopInPhase := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop programmed"
+      IF NOT (AreaInterface.StopProgrammed) THEN
+         Ctrl.StopProgrammed := FALSE;
+      ELSIF CIn.Manager.EnableStopProgrammed THEN
+         Ctrl.StopProgrammed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "PB"
+      PE.Bwd_Pb := PosEdge(DataIn.PB.Bwd_Minus);
+      PE.Fwd_Pb := PosEdge(DataIn.PB.Fwd_Plus);
+   END_REGION
+
+   REGION "Man"
+      #TON_Feed_DelayManChangeSpeed(
+         IN := ((((Ctrl.Fwd_Man OR Ctrl.Bwd_Man) AND NOT (S120.AxisSts.Standstill)) AND NOT (CIn.VelocityOverride.Enable)) AND CIn.EnableManChangeVel),
+         PT := Par.Man.DelayChangeVel
+      );
+
+      Ctrl.Bwd_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.Bwd_Pb) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Bwd_Man)) AND DataIn.PB.Bwd_Minus) AND NOT (DataIn.PB.Fwd_Plus));
+      Ctrl.Fwd_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.Fwd_Pb) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.Fwd_Man)) AND DataIn.PB.Fwd_Plus) AND NOT (DataIn.PB.Bwd_Minus));
+      Ctrl.Man_HighSpeed := (#TON_Feed_DelayManChangeSpeed.Q AND (Par.Man.DelayChangeVel > T#0s));
+   END_REGION
+
+   REGION "Aut"
+      Ctrl.Bwd_Aut := ((CIn.Manager.Control_ON AND CIn.Manager.Bwd) AND NOT (CIn.Manager.Fwd));
+      Ctrl.Fwd_Aut := ((CIn.Manager.Control_ON AND NOT (CIn.Manager.Bwd)) AND CIn.Manager.Fwd);
+   END_REGION
+
+   REGION "Reduction ratio calculation (mm/giro)"
+   END_REGION
+
+   REGION "Axis max velocity"
+      COut.MaxVelocity := (Config.Ax.SINA_Drive.ReferenceVelocity * Sts.ReductionRatio);
+   END_REGION
+
+   REGION "Velocity & Dynamics"
+      VelMax_EngUnit := Config.Ax.SINA_Drive.ReferenceVelocity *  Sts.ReductionRatio;
+      AccMax_EngUnit := (Config.Ax.SINA_Drive.ReferenceVelocity / 60.0 / Config.Ax.MinAccTime) * Sts.ReductionRatio; // Giri/s² * mm/Giro = mm/s²
+      DecMax_EngUnit := (Config.Ax.SINA_Drive.ReferenceVelocity / 60.0 / Config.Ax.MinDecTime) * Sts.ReductionRatio; // Giri/s² * mm/Giro = mm/s²
+
+
+      Ctrl.Vel := 0.0;
+
+      IF Ctrl.Bwd_Man AND S120.AxisCtrl.MoveMinus THEN
+          
+          
+          Ctrl.Acc := Par.Man.Acc;
+          Ctrl.Dec := Par.Man.Dec;
+          
+          IF Ctrl.Man_HighSpeed THEN
+              Ctrl.Vel := Par.Man.VelBwd;
+          ELSE
+              Ctrl.Vel := Par.Man.VelFwdLow;
+          END_IF;
+          
+      ELSIF Ctrl.Fwd_Man AND S120.AxisCtrl.MovePlus THEN
+
+          
+          Ctrl.Acc := Par.Man.Acc;
+          Ctrl.Dec := Par.Man.Dec;
+          
+          IF Ctrl.Man_HighSpeed THEN
+              Ctrl.Vel := Par.Man.VelFwdHigh;
+          ELSE
+              Ctrl.Vel := Par.Man.VelFwdLow;
+          END_IF;
+          
+          
+      ELSIF (Ctrl.Bwd_Aut AND S120.AxisCtrl.MoveMinus) OR (Ctrl.Fwd_Aut AND S120.AxisCtrl.MovePlus)  THEN
+          
+          Ctrl.Vel := CIn.Manager.Vel;
+          Ctrl.Acc := CIn.Manager.Acc;
+          Ctrl.Dec := CIn.Manager.Dec;
+          
+      END_IF;
+
+
+
+      // Dynamics limit
+      Ctrl.Vel := (IN1:= Ctrl.Vel,IN2:= VelMax_EngUnit);
+
+
+      Ctrl.Acc := (IN1:= Ctrl.Acc,IN2:= AccMax_EngUnit);
+
+      IF Ctrl.Acc <= 0.0 THEN
+          Ctrl.Acc := Par.Man.Acc;
+      END_IF;
+
+      Ctrl.Dec := (IN1:= Ctrl.Dec,IN2:= DecMax_EngUnit);
+      IF Ctrl.Dec <= 0.0 THEN
+          Ctrl.Dec := Par.Man.Dec;
+      END_IF;
+
+
+
+
+
+      // SLS velocity limit
+      //
+      IF ZSI.Door_Opened AND Ctrl.Vel > Config.SLS_VEL THEN
+          Ctrl.Vel := Config.SLS_VEL;
+      END_IF;
+
+
+      // Brake not open... Velocity  = 0.0
+      // 
+      IF Config.Brake_Presence AND NOT DataIn.Brake_M_Feedback THEN
+          S120.AxisCtrl.Velocity := 0.0;
+      END_IF;
+
+
+
+      // Conversion and write dynamics value
+      // 
+      S120.AxisCtrl.Velocity := Ctrl.Vel / Sts.ReductionRatio; // mm/minuto -> giri/minuto
+
+      // Velocity override
+      // 
+      IF CIn.VelocityOverride.Enable THEN
+          
+          S120.AxisCtrl.Velocity := S120.AxisCtrl.Velocity  * ((MN := 1.0, IN := CIn.VelocityOverride.Value, MX := 200.0)/100);
+      END_IF;
+
+
+
+      S120.AxisCtrl.Acceleration := Ctrl.Acc / Sts.ReductionRatio; // mm/s2 -> giri/s²
+      S120.AxisCtrl.Deceleration := Ctrl.Dec / Sts.ReductionRatio; // mm/s2 -> giri/s²
+
+
+      //#StandstillVelocity_RPM := #Config.Ax.StandstillVelocity / #Sts.ReductionRatio;
+
+   END_REGION
+
+   REGION "Move request in bkw / fwd direction"
+      COut.Bwd_CheckNext := NOT ((NOT (Ctrl.Bwd_Man) AND NOT (Ctrl.Bwd_Aut)));
+      COut.Fwd_CheckNext := NOT ((NOT (Ctrl.Fwd_Man) AND NOT (Ctrl.Fwd_Aut)));
+   END_REGION
+
+   REGION "Conditions"
+      Sts.Gen_Cnd := (((((NOT (Ctrl.StopDueDoorOpeningRequest) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed)) AND NOT (Ctrl.StopAborting)) AND NOT (DSI.SafeStop)) AND NOT (DSI.DevicesInSafeState));
+      Sts.Gen_Cnd := ((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Fan_M.MotorSts.Running) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND NOT (Config.Fan.Presence)) OR (((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Bwd_Cnd) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Fwd_Cnd)) AND NOT (TON_NoPendingCmd.Q)));
+      Sts.Bwd_Cnd := ((((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Fan_M.MotorSts.Running) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND NOT (Config.Fan.Presence)) OR (((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Bwd_Cnd) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Fwd_Cnd)) AND NOT (TON_NoPendingCmd.Q))) AND S120.AxisSts.MoveMinusPermitted) AND CIn.Bwd_ExtEnable);
+      Sts.Fwd_Cnd := ((((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Fan_M.MotorSts.Running) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND NOT (Config.Fan.Presence)) OR (((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Bwd_Cnd) OR (((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND NOT (Alarm.S120_ComErr)) AND Sts.Fwd_Cnd)) AND NOT (TON_NoPendingCmd.Q))) AND S120.AxisSts.MovePlusPermitted) AND CIn.Fwd_ExtEnable);
+   END_REGION
+
+   REGION "Missing conditions"
+      #TON_MissingCndBwd(
+         IN := ((S120.AxisSts.Standstill AND COut.Bwd_CheckNext) AND NOT (Sts.Bwd_Cnd)),
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_MissingCndFwd(
+         IN := ((S120.AxisSts.Standstill AND COut.Fwd_CheckNext) AND NOT (Sts.Fwd_Cnd)),
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Warning.MissingCnd_Bkw AND Sts.Bwd_Cnd) THEN
+         Warning.MissingCnd_Bkw := FALSE;
+      END_IF;
+      IF (Warning.MissingCnd_Fwd AND Sts.Fwd_Cnd) THEN
+         Warning.MissingCnd_Fwd := FALSE;
+      END_IF;
+      IF #TON_MissingCndBwd.Q THEN
+         Warning.MissingCnd_Bkw := TRUE;
+      END_IF;
+      IF #TON_MissingCndFwd.Q THEN
+         Warning.MissingCnd_Fwd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "S120 Control"
+      S120.AxisCtrl.SafeStop := DSI.SafeStop;
+      S120.AxisCtrl.Rst := AreaInterface.RstAlarms;
+      S120.AxisCtrl.Power := (((CIn.Manager.Control_ON AND Config.Fan.Presence) OR CIn.ExternalPowerOn) AND NOT (Ctrl.StopDueDoorOpeningRequest));
+      S120.AxisCtrl.MoveMinus := (COut.Bwd_CheckNext AND Sts.Bwd_Cnd);
+      S120.AxisCtrl.MovePlus := (COut.Fwd_CheckNext AND Sts.Fwd_Cnd);
+   END_REGION
+
+   REGION "S120 manager"
+      #S120(
+         en := TRUE,
+         AxisConfig := Config.Ax.SINA_Drive,
+         Drive := Drive,
+         PowerOffDelay := Config.Ax.PowerOffDelay,
+         StandtillVelocity := Config.Ax.StandstillVelocity,
+         StandstillDelay := Config.Ax.StandstillDelay,
+         TEL1_IN := S120_STW_TEL1,
+         TEL1_OUT := S120_ZSW_TEL1,
+         Alarm := Alarm.Ax,
+         Warning := Warning.Ax,
+         Diag := Diag.Drive
+      );
+
+   END_REGION
+
+   REGION "Mask warning 1699 = Test stop STO required"
+      IF (Warning.Ax.Drive AND (Diag.Drive.Drive_Message = 1699)) THEN
+         Warning.Ax.Drive := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "S120 - Alarm comunication (OUT)"
+      #SETIO_ZSW_TEL1(
+         en := TRUE,
+         ID := HW_ID_TEL1,
+         OUTPUTS := S120_ZSW_TEL1
+      );
+
+      IF (GETIO_STW_TEL1.STATUS <> 0) THEN
+         Alarm.S120_ComErr := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Coordination Out"
+      COut.CtrlSafe := (NOT (TON_NoPendingCmd.IN) OR (COut.CtrlSafe AND S120.AxisSts.Enabled) OR (CIn.Manager.Control_ON AND NOT (Ctrl.StopDueDoorOpeningRequest)));
+      COut.Infeed_ReqON := S120.Infeed_REQ_ON;
+      COut.Standstill := S120.AxisSts.Standstill;
+      COut.Fwd_VelZero := (((S120.AxisSts.Enabled AND S120.Ctrl.MovePlus) AND (S120.AxisSts.ActualVelocity = 0.0)) AND S120.AxisSts.AtProgrammedSpeed);
+      COut.Fwd_Running := ((S120.AxisSts.Enabled AND S120.Ctrl.MovePlus) AND (S120.AxisSts.ActualVelocity > 0.0));
+      COut.Bwd_VelZero := (((S120.AxisSts.Enabled AND S120.Ctrl.MoveMinus) AND (S120.AxisSts.ActualVelocity = 0.0)) AND S120.AxisSts.AtProgrammedSpeed);
+      COut.Bwd_Running := ((S120.AxisSts.Enabled AND S120.Ctrl.MoveMinus) AND (S120.AxisSts.ActualVelocity < 0.0));
+      COut.TargetVelocity := (S120.AxisCtrl.Velocity * Sts.ReductionRatio);
+      COut.ActualVelocity := (S120.AxisSts.ActualVelocity * Sts.ReductionRatio);
+   END_REGION
+
+   REGION "Run"
+      #TON_Fan_DelayOff(
+         IN := (NOT (Req) AND Ctrl.Fan),
+         PT := Config.Fan.DelayOff
+      );
+
+      Req := NOT (((NOT (S120.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext)));
+      Ctrl.Fan := ((NOT (((NOT (S120.AxisSts.Enabled) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext))) OR Ctrl.Fan) AND Fan_M.MotorSts.RunPermitted);
+      IF #TON_Fan_DelayOff.Q THEN
+         Ctrl.Fan := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Device"
+      #Fan_M(
+         en := Config.Fan.Presence,
+         ThermalProtection := DataIn.Fan_M_ThermalProtection,
+         FdbkRunning := DataIn.Fan_M_Feedback,
+         FeedbackTimeout := T#1S,
+         Alarm := Alarm.Fan_M,
+         Contactor => DataOut.Fan_M_Contactor
+      );
+
+      Fan_M.MotorCtrl.SafeStop := AreaInterface.EStop;
+      Fan_M.MotorCtrl.Rst := AreaInterface.RstAlarms;
+      Fan_M.MotorCtrl.Run := Ctrl.Fan;
+      IF NOT (Config.Fan.Presence) THEN
+         DataOut.Fan_M_Contactor := FALSE;
+      END_IF;
+      IF NOT (Config.Fan.Presence) THEN
+         Fan_M.MotorSts.RunPermitted := FALSE;
+      END_IF;
+      IF NOT (Config.Fan.Presence) THEN
+         Fan_M.MotorSts.Running := TRUE;
+      END_IF;
+      IF NOT (Config.Fan.Presence) THEN
+         Alarm.Fan_M.ThermalProtection := FALSE;
+      END_IF;
+      IF NOT (Config.Fan.Presence) THEN
+         Alarm.Fan_M.Feedback := FALSE;
+      END_IF;
+      IF NOT (Config.Fan.Presence) THEN
+         Fan_M.MotorSts.AlarmPresence := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Standstill"
+      Sts.Standstill := (COut.Standstill OR DSI.DevicesInSafeState);
+   END_REGION
+
+   REGION "No pending commands"
+      #TON_NoPendingCmd(
+         IN := ((((NOT (Sys.FirstPLCCycle) AND NOT (COut.Bwd_CheckNext)) AND NOT (COut.Fwd_CheckNext)) AND NOT (S120.AxisCtrl.MovePlus)) AND NOT (S120.AxisCtrl.MoveMinus)),
+         PT := T#500MS
+      );
+
+   END_REGION
+
+   REGION "Warnings presence"
+      Sts.WarningsPresence := NOT ((((NOT (Warning.NotAutReady) AND NOT (Warning.MissingCnd_Bkw)) AND NOT (Warning.MissingCnd_Fwd)) AND NOT (S120.AxisSts.WarningPresence)));
+   END_REGION
+
+   REGION "Alarms presence"
+      Sts.AlarmsPresence := NOT (((((NOT (Alarm.BrakeTimeOut) AND NOT (Alarm.S120_ComErr)) AND NOT (S120.AxisSts.AlarmPresence)) AND NOT (Fan_M.MotorSts.AlarmPresence)) AND NOT (CIn.ExternalAlarms)));
+   END_REGION
+
+   REGION "Stop aborting"
+      Ctrl.StopAborting := (((AreaInterface.Cycle AND Sts.Standstill) OR (AreaInterface.Cycle AND Ctrl.StopAborting) OR AreaInterface.Aut OR CIn.Manager.Control_ON) AND Sts.AlarmsPresence);
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT Sts.AlarmsPresence;
+      MachineInterface.Aborting := Ctrl.StopAborting;
+      MachineInterface.MotionsStandStill := TON_NoPendingCmd.Q AND Sts.Standstill;
+      MachineInterface.AckStopInPhase := Ctrl.StopInPhase AND MachineInterface.MotionsStandStill;
+      MachineInterface.AckStopProgrammed := Ctrl.StopProgrammed AND MachineInterface.MotionsStandStill;
+      MachineInterface.AlarmsPresence := Sts.AlarmsPresence;
+      MachineInterface.WarningPresence := Sts.WarningsPresence;
+
+   END_REGION
+
+   REGION "Warning Machine not ready for automatic"
+      IF AreaInterface.Cycle THEN
+         Warning.NotAutReady := FALSE;
+      ELSIF (AreaInterface.CheckAutReady AND NOT (MachineInterface.AutReady)) THEN
+         Warning.NotAutReady := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI Status SpeedMachine"
+      // Area dati Status per HMI sull'azionamento
+
+      HMI.Sts.Enabled := S120.AxisSts.Enabled;
+      HMI.Sts.Standstill := Sts.Standstill;
+      HMI.Sts.Frw_Run := COut.Fwd_Running;
+      HMI.Sts.Bwd_Run := COut.Bwd_Running;
+      HMI.Sts.Alarm := Sts.AlarmsPresence;
+      HMI.Sts.Warning := Sts.WarningsPresence;
+      HMI.Sts.Target_Vel := Ctrl.Vel;
+      HMI.Sts.Actual_Vel := COut.ActualVelocity;
+
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

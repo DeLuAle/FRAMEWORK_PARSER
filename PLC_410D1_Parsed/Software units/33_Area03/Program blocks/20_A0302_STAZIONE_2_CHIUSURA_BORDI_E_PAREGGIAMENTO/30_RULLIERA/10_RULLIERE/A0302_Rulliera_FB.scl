@@ -1,0 +1,472 @@
+﻿// Block: A0302_Rulliera_FB
+// Title:  == Riferimenti [Ax] - Speed Machine ==
+
+FUNCTION_BLOCK "A0302_Rulliera_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+//  == Riferimenti [Ax] - Speed Machine ==
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI_Feed1 : udt_DeviceSafetyInterface;
+      DSI_Feed2 : udt_DeviceSafetyInterface;
+      Drive_Ax1 : TAx_DriveInterface;
+      Drive_Ax2 : TAx_DriveInterface;
+      DataIn : Struct
+         Ax : SpeedMachine_DataIn;
+         Sens : Struct
+            Coda : Struct
+               FTC_Rall : Bool;
+               FTC_Prox_Ing : Bool;
+            END_STRUCT;
+            Centro : Struct
+               FTC_Centrale : Bool;
+            END_STRUCT;
+         END_STRUCT;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            Ax_1 : SpeedMachine_CIn_Manager;
+            Ax_2 : SpeedMachine_CIn_Manager;
+         END_STRUCT;
+         SemiAut_Pb : Bool;
+         P5 : Struct
+            Sollevatori : ValveMachine_COut;
+            SpintoreLong : ValveMachine_COut;
+            Sens : Struct
+               FTC_Ingombro_A0301 : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         Bordatrice : Struct
+            StopBordatrice : Bool;
+            ReadyForMove : Bool;
+            StandbyBordatrice : Bool;
+         END_STRUCT;
+         Rulliera : Struct
+            Centratori : ValveMachine_COut;
+            Sollevamento : ValveMachine_COut;
+            Coda : Struct
+               Sens : Struct
+                  FTC_Rall : Bool;
+                  FTC_Prox_Ing : Bool;
+               END_STRUCT;
+            END_STRUCT;
+            Centro : Struct
+               Sens : Struct
+                  FTC_Centrale : Bool;
+               END_STRUCT;
+            END_STRUCT;
+         END_STRUCT;
+         CarroPareggCoda : Struct
+            Ax : Positioning_DOL_Machine_COut;
+            Bloccaggio : ValveMachine_COut;
+            BattutaVerticale : ValveMachine_COut;
+            PareggiatoreLong : ValveMachine_COut;
+            Sens : Struct
+               FTC_Ingombro_In : Bool;
+               FTC_Ingombro_Out : Bool;
+               PresenzaMat : Bool;
+               PosPareggLong : Struct
+                  Value : LReal;
+                  CheckMeasure : Bool;
+                  Standstill : Bool;
+               END_STRUCT;
+            END_STRUCT;
+         END_STRUCT;
+         CarroPareggTesta : Struct
+            Ax : Positioning_DOL_Machine_COut;
+            Bloccaggio : ValveMachine_COut;
+            Centraggio : ValveMachine_COut;
+            Sollevatore : ValveMachine_COut;
+            Sens : Struct
+               FTC1_Rall : Bool;
+               FTC2_Prox_Ls : Bool;
+               PresenzaMat : Bool;
+            END_STRUCT;
+         END_STRUCT;
+         BTrk : Struct
+            ZoneA0302Entry_Empty : Bool;
+            ZoneA0302Exit_Empty : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Config : Struct
+         Ax : SpeedMachine_Config;
+      END_STRUCT;
+      HWID_Ax_TEL1 : Array[1..2] of HW_SUBMODULE;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Ax_1 : SpeedMachine_COut;
+         Ax_2 : SpeedMachine_COut;
+         Ax_VelOveride : Struct
+            Enable : Bool;
+            Value : Real;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Par : Struct
+         Ax : SpeedMachine_Par;
+         Ax_Aut : A0301_Mach_Speed_Par;
+      END_STRUCT;
+      IEC_SP : Struct
+         FTC_CodaRall : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_CodaProx_Ing : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+         FTC_Centro : Struct
+            TON_PT : Time;
+            TOF_PT : Time;
+         END_STRUCT;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Rulliera : Array[1..2] of SpeedMachine_Alr;
+      END_STRUCT;
+      Warning : Struct
+         Rulliera : Array[1..2] of SpeedMachine_Wng;
+         OP_REST_MissingCnd : Bool;
+         OP_WORK_MissingCnd : Bool;
+      END_STRUCT;
+      HMI : Struct
+         Selection : Struct
+            Ax : Int;
+         END_STRUCT;
+      END_STRUCT;
+      Ax_1 : SpeedMachine_FB;
+      Ax_2 : SpeedMachine_FB;
+      ValueVelOvr : Array[1..10] of Real;
+      Sts : Struct
+         OP_CanMoveFreely : Bool;
+         OP_Bwd_Cnd : Bool;
+         OP_Fwd_Cnd : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         OP_Bwd_Man : Bool;
+         OP_Fwd_Man : Bool;
+         OP_Bwd_Aut : Bool;
+         OP_Fwd_Aut : Bool;
+         OP_Bwd_Run : Bool;
+         OP_Fwd_Run : Bool;
+      END_STRUCT;
+      AUX : Struct
+         OP_Bwd_PB : Bool;
+         OP_Fwd_PB : Bool;
+      END_STRUCT;
+      TON_OP_REST_MissingCnd : TON_TIME;
+      TON_OP_WORK_MissingCnd : TON_TIME;
+      IEC_FTC_CodaRall : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+      IEC_FTC_CodaProxIng : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+      IEC_FTC_Centro : Struct
+         TON_Delay : IEC_TIMER;
+         TOF_Delay : IEC_TIMER;
+         FTC_On : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Bwd_PB : Bool;
+         OP_Fwd_PB : Bool;
+      END_STRUCT;
+      VelOvr_Max : Real;
+      i : Int;
+      Check : Struct
+         Cndz1_StartFwd : Bool;
+         Cndz2_StartFwd : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "== Riferimenti [Ax] - Speed Machine =="
+      // ******************************************************************************************
+      REGION // TRASFERIMENTO DELLE RAMPE
+          
+          // Rampe in Manuale
+          IF AreaInterface.Man AND NOT CIn.SemiAut_Pb THEN
+              Ax_1.CIn.Manager.Vel := Ax_2.CIn.Manager.Vel := Par.Ax.Man.VelFwdHigh;
+              Ax_1.CIn.Manager.Acc :=  Ax_2.CIn.Manager.Acc := Par.Ax.Man.Acc;
+              Ax_1.CIn.Manager.Dec := Ax_2.CIn.Manager.Dec := Par.Ax.Man.Dec;
+          END_IF;
+      END_REGION
+
+      // ******************************************************************************************
+      REGION // CALCOLO DELLA VELOCITA' TRASFERITA DALL'IMPIANTO IN BASE ALLA LUNGHEZZA DEL PEZZO 
+          
+          // Inizializzo variabile di appoggio controllo overide massimo a un valore basso rispetto setpoint
+          IF Sys.AuxFirstPLCCycle THEN
+              VelOvr_Max := 100.0;
+          END_IF;
+          
+          // Trasferisco le varibili su un array
+          ValueVelOvr[1] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_1000;
+          ValueVelOvr[2] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_1500;
+          ValueVelOvr[3] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_2000;
+          ValueVelOvr[4] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_2500;
+          ValueVelOvr[5] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_3000;
+          ValueVelOvr[6] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_3500;
+          ValueVelOvr[7] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_4000;
+          ValueVelOvr[8] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_4500;
+          ValueVelOvr[9] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_5000;
+          ValueVelOvr[10] := PPrf_MAIN.ON_WORK.A0301_A0302.Trasporto.VelOvr_PLen_UpTo_5500;
+          
+          
+          // Ciclo per verificare la variabile maggiore per prenderla in lavoro
+          FOR i := 1 TO 10 DO
+              IF ValueVelOvr[i] >= VelOvr_Max THEN
+                  VelOvr_Max := ValueVelOvr[i];
+              END_IF;
+          END_FOR;
+      END_REGION ;
+
+      IF VelOvr_Max = 0.0 THEN
+          VelOvr_Max := 100.0;
+      END_IF;
+
+      // ******************************************************************************************
+      REGION // CALCOLO DELLA VELOCITA' E TRASFERIMENTO IN BASE ALLO STATO IMPIANTO
+          
+          Ax_1.CIn.VelocityOverride.Enable := TRUE;
+          Ax_2.CIn.VelocityOverride.Enable := TRUE;
+          
+          IF Ax_1.CIn.Manager.Control_ON THEN
+              // CALCOLO VELOCITA' IN BASE ALL'OVERIDE
+              Ax_1.CIn.VelocityOverride.Value :=  VelOvr_Max;
+          ELSE
+              Ax_1.CIn.VelocityOverride.Value := 100.0;
+              END_IF;
+              
+              IF Ax_2.CIn.Manager.Control_ON THEN
+                  Ax_2.CIn.VelocityOverride.Value := VelOvr_Max;
+              ELSE
+                  Ax_2.CIn.VelocityOverride.Value := 100.0;
+              END_IF;
+          END_REGION ;
+
+   END_REGION
+
+   REGION "DataIn - FTC CodaRall"
+      #IEC_FTC_CodaRall.TON_Delay(
+         IN := DataIn.Sens.Coda.FTC_Rall,
+         PT := IEC_SP.FTC_CodaRall.TON_PT
+      );
+
+      #IEC_FTC_CodaRall.TOF_Delay(
+         IN := IEC_FTC_CodaRall.TON_Delay.Q,
+         PT := IEC_SP.FTC_CodaRall.TOF_PT
+      );
+
+      IEC_FTC_CodaRall.FTC_On := #IEC_FTC_CodaRall.TOF_Delay.Q;
+   END_REGION
+
+   REGION "DataIn - FTC CodaProx_Ing"
+      #IEC_FTC_CodaProxIng.TON_Delay(
+         IN := DataIn.Sens.Coda.FTC_Prox_Ing,
+         PT := IEC_SP.FTC_CodaProx_Ing.TON_PT
+      );
+
+      #IEC_FTC_CodaProxIng.TOF_Delay(
+         IN := IEC_FTC_CodaProxIng.TON_Delay.Q,
+         PT := IEC_SP.FTC_CodaProx_Ing.TOF_PT
+      );
+
+      IEC_FTC_CodaProxIng.FTC_On := #IEC_FTC_CodaProxIng.TOF_Delay.Q;
+   END_REGION
+
+   REGION "DataIn - FTC Centro"
+      #IEC_FTC_Centro.TON_Delay(
+         IN := DataIn.Sens.Centro.FTC_Centrale,
+         PT := IEC_SP.FTC_Centro.TON_PT
+      );
+
+      #IEC_FTC_Centro.TOF_Delay(
+         IN := IEC_FTC_Centro.TON_Delay.Q,
+         PT := IEC_SP.FTC_Centro.TOF_PT
+      );
+
+      IEC_FTC_Centro.FTC_On := #IEC_FTC_Centro.TOF_Delay.Q;
+   END_REGION
+
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM    ###################"
+      Sts.OP_CanMoveFreely := (((((CIn.BTrk.ZoneA0302Exit_Empty AND CIn.BTrk.ZoneA0302Entry_Empty) AND CIn.CarroPareggCoda.BattutaVerticale.Rest) AND CIn.Rulliera.Centratori.Rest) AND CIn.Rulliera.Sollevamento.Rest) OR AreaInterface.Man);
+   END_REGION
+
+   REGION "Comando Operazione Avanti / Indietro (AUT)"
+      Ctrl.OP_Bwd_Aut := ((CIn.Manager.Ax_1.Control_ON AND CIn.Manager.Ax_1.Bwd) OR (CIn.Manager.Ax_2.Control_ON AND CIn.Manager.Ax_2.Bwd));
+      Ctrl.OP_Fwd_Aut := ((CIn.Manager.Ax_1.Control_ON AND CIn.Manager.Ax_1.Fwd) OR (CIn.Manager.Ax_2.Control_ON AND CIn.Manager.Ax_2.Fwd));
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (MAN)"
+      PE.OP_Bwd_PB := PosEdge(DataIn.Ax.PB.Bwd_Minus);
+      PE.OP_Fwd_PB := PosEdge(DataIn.Ax.PB.Fwd_Plus);
+      Ctrl.OP_Bwd_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND PE.OP_Bwd_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND Ctrl.OP_Bwd_Man)) AND DataIn.Ax.PB.Bwd_Minus) AND NOT (DataIn.Ax.PB.Fwd_Plus));
+      Ctrl.OP_Fwd_Man := ((((((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND PE.OP_Fwd_PB) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND Ctrl.OP_Fwd_Man)) AND DataIn.Ax.PB.Fwd_Plus) AND NOT (DataIn.Ax.PB.Bwd_Minus));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Fwd_Run := NOT ((NOT (Ctrl.OP_Fwd_Man) AND NOT (Ctrl.OP_Fwd_Aut)));
+      Ctrl.OP_Bwd_Run := NOT ((NOT (Ctrl.OP_Bwd_Man) AND NOT (Ctrl.OP_Bwd_Aut)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Bwd_Cnd := ((CIn.Manager.Ax_1.Control_ON AND CIn.Manager.Ax_1.Bwd) OR (CIn.Manager.Ax_2.Control_ON AND CIn.Manager.Ax_2.Bwd) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.OP_Fwd_Cnd := ((CIn.Manager.Ax_1.Control_ON AND CIn.Manager.Ax_1.Fwd) OR (CIn.Manager.Ax_2.Control_ON AND CIn.Manager.Ax_2.Fwd) OR (((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND NOT (CIn.Manager.Ax_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "[Ax_1 + Ax_2] -  CIn Manger"
+      // TRASFERIMENTO CIn MANAGER ALLA MACCHINA
+      Ax_1.CIn.Manager := CIn.Manager.Ax_1;
+      Ax_2.CIn.Manager := CIn.Manager.Ax_2;
+
+   END_REGION
+
+   REGION "[Ax_1 + Ax_2] - Cin Manager Comando arresto / lavoro"
+      //
+      Ax_1.CIn.Manager.Bwd := Ax_2.CIn.Manager.Bwd := FALSE;
+      //************************************
+      Ax_1.CIn.Manager.Fwd := Ax_2.CIn.Manager.Fwd := FALSE;
+      //
+      // CIn Manager  Control ON se ho un richiesta di comando attiva
+      Ax_1.CIn.Manager.Control_ON := Ax_2.CIn.Manager.Control_ON := Ctrl.OP_Fwd_Run OR Ctrl.OP_Bwd_Run;
+
+      // CIn Manager Brw se ho un richiesta di comando indietro attiva
+      Ax_1.CIn.Manager.Bwd := Ax_2.CIn.Manager.Bwd := Ctrl.OP_Bwd_Run AND Sts.OP_Bwd_Cnd;
+
+      // CIn Manager Frw se ho un richiesta di comando avanti attiva
+      // Se la battuta di coda è alta attivo tutte e 2 le rulliere
+      IF Ctrl.OP_Fwd_Run AND Sts.OP_Fwd_Cnd AND CIn.CarroPareggCoda.BattutaVerticale.Rest THEN
+          Ax_1.CIn.Manager.Fwd := Ax_2.CIn.Manager.Fwd := TRUE;
+          
+          
+          // Se la battuta di coda è bassa attivo la rulliera 1 e la 2 rimane ferma
+      ELSIF (Ctrl.OP_Fwd_Run AND Sts.OP_Fwd_Cnd) AND CIn.CarroPareggCoda.BattutaVerticale.Work THEN
+          Ax_1.CIn.Manager.Fwd := TRUE;
+          Ax_2.CIn.Manager.Fwd := FALSE;
+      END_IF;
+          
+
+
+
+   END_REGION
+
+   REGION "[Ax_1 + 2] - CIn Abilitazioni Stop Manager"
+      // CIn Manager Stop per richiesta apertura safety
+      // 
+      Ax_1.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.Ax_1.EnableStopDoorOpeningReq;
+      Ax_2.CIn.Manager.EnableStopDoorOpeningReq := CIn.Manager.Ax_2.EnableStopDoorOpeningReq;
+
+      // CIn Manager Stop in fase delle macchine precedenti
+      // 
+      Ax_1.CIn.Manager.EnableStopInPhase := CIn.Manager.Ax_1.EnableStopInPhase;
+      Ax_2.CIn.Manager.EnableStopInPhase := CIn.Manager.Ax_2.EnableStopInPhase;
+       
+      // CIn Manager Stop programmato configurabile a piacere
+      // 
+      Ax_1.CIn.Manager.EnableStopProgrammed := CIn.Manager.Ax_1.EnableStopProgrammed;
+      Ax_2.CIn.Manager.EnableStopProgrammed := CIn.Manager.Ax_2.EnableStopProgrammed;
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_OP_REST_MissingCnd(
+         IN := Ctrl.OP_Bwd_Run,
+         PT := Config.Ax.DelayMissingCondition
+      );
+
+      #TON_OP_WORK_MissingCnd(
+         IN := Ctrl.OP_Fwd_Run,
+         PT := Config.Ax.DelayMissingCondition
+      );
+
+      IF (Sts.OP_Bwd_Cnd OR Ctrl.OP_Fwd_Run OR AreaInterface.RstAlarms) THEN
+         Warning.OP_REST_MissingCnd := FALSE;
+      ELSIF #TON_OP_REST_MissingCnd.Q THEN
+         Warning.OP_REST_MissingCnd := TRUE;
+      END_IF;
+      IF (Sts.OP_Fwd_Cnd OR Ctrl.OP_Bwd_Run OR AreaInterface.RstAlarms) THEN
+         Warning.OP_WORK_MissingCnd := FALSE;
+      ELSIF #TON_OP_WORK_MissingCnd.Q THEN
+         Warning.OP_WORK_MissingCnd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "[Ax_1 + 2] -  Cin External Enable"
+      Ax_1.CIn.Fwd_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Ax_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Ax_2.CIn.Fwd_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager.Ax_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "[Ax_1 + 2] - CIn External alarm"
+      Ax_1.CIn.ExternalAlarms := FALSE;
+      Ax_2.CIn.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "[Ax_1] - Axis Manager"
+      #Ax_1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed1,
+         Drive := Drive_Ax1,
+         Config := Config.Ax,
+         HW_ID_TEL1 := HWID_Ax_TEL1[1],
+         Par := Par.Ax,
+         Warning := Warning.Rulliera[1],
+         Alarm := Alarm.Rulliera[1],
+         COut => COut.Ax_1
+      );
+
+   END_REGION
+
+   REGION "[Ax_2] - Axis Manager"
+      #Ax_2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI_Feed2,
+         Drive := Drive_Ax2,
+         Config := Config.Ax,
+         HW_ID_TEL1 := HWID_Ax_TEL1[2],
+         Par := Par.Ax,
+         Warning := Warning.Rulliera[2],
+         Alarm := Alarm.Rulliera[2],
+         COut => COut.Ax_2
+      );
+
+   END_REGION
+
+   REGION "[Ax_1 + 2] -  COut"
+      COut.Ax_1.Standstill := NOT (NOT (Ax_1.Sts.Standstill));
+      COut.Ax_2.Standstill := NOT (NOT (Ax_2.Sts.Standstill));
+      COut.Ax_1.Bwd_CheckNext := Ctrl.OP_Bwd_Run;
+      COut.Ax_2.Bwd_CheckNext := Ctrl.OP_Bwd_Run;
+      COut.Ax_1.Fwd_CheckNext := Ctrl.OP_Fwd_Run;
+      COut.Ax_2.Fwd_CheckNext := Ctrl.OP_Fwd_Run;
+      COut.Ax_1.Bwd_Running := (Ctrl.OP_Bwd_Run AND Ax_1.COut.Bwd_Running);
+      COut.Ax_2.Bwd_Running := (Ctrl.OP_Bwd_Run AND Ax_2.COut.Bwd_Running);
+      COut.Ax_1.Fwd_Running := (Ctrl.OP_Fwd_Run AND Ax_1.COut.Fwd_Running);
+      COut.Ax_2.Fwd_Running := (Ctrl.OP_Fwd_Run AND Ax_2.COut.Fwd_Running);
+   END_REGION
+
+   REGION "Machine interface"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

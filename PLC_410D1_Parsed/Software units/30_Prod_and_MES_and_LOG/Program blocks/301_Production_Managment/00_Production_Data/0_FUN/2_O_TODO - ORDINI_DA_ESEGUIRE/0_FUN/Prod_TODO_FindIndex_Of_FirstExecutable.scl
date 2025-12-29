@@ -1,0 +1,60 @@
+﻿// Block: Prod_TODO_FindIndex_Of_FirstExecutable
+// Title: Ricerca ordine eseguibile = Con dati corretti e che usa lo stesso profilo del SETUP o del Profilo in lavoro
+
+FUNCTION "Prod_TODO_FindIndex_Of_FirstExecutable" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Ricerca ordine eseguibile = Con dati corretti e che usa lo stesso profilo del SETUP o del Profilo in lavoro
+   VAR_TEMP
+      i : Int;
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+   REGION "Ricerca ordine eseguibile = Con dati corretti e che usa lo stesso profilo del SETUP o del Profilo in lavoro"
+      Prod_TODO_FindIndex_Of_FirstExecutable := 0;
+
+
+      // Pulisci i gap
+      // 
+
+      FOR i := 1 TO PROD_TODO_ITEMS DO
+          
+          RETVAL := PROD_item_Clear_GAP(Production.O_TODO);
+          
+          IF RETVAL <> PROD_FUN_RESULT_CLEAR_GAP_DONE THEN
+              EXIT;
+          END_IF;
+          
+          
+      END_FOR;
+
+
+
+
+
+
+
+
+      // Ricerca su O_TODO la prima posizione con ordine eseguibile
+      // 
+      FOR i := 1 TO PROD_TODO_ITEMS DO
+          
+          RETVAL := Prod_Item_Check_CanGoinProduction(Production.O_TODO[i]);
+          
+          IF RETVAL >= 0 THEN
+              Prod_TODO_FindIndex_Of_FirstExecutable := i;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

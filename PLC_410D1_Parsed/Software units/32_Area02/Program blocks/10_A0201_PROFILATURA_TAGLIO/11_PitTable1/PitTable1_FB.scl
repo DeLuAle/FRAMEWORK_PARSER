@@ -1,0 +1,99 @@
+﻿// Block: PitTable1_FB
+// Title: DataIn
+
+FUNCTION_BLOCK "PitTable1_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// DataIn
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         Pb_Up : Bool;
+         Pb_Dwn : Bool;
+         Ls_Up : Bool;
+         Ls_Down : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : ValveMachine_Manager;
+         ExtEnable_Up : Bool;
+         ExtEnable_Down : Bool;
+      END_STRUCT;
+      Config : Struct
+         LIFT : ValveMachine_Config;
+         Exist : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         V_Up : Bool;
+         V_Down : Bool;
+         Lamp : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Warning : ValveMachine_Wng;
+      Alarm : ValveAlr;
+      Lift : ValveMachine_FB;
+      TimerRestManualReq : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      Dummy : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "DataIn"
+      Lift.DataIn.PB.Rest := DataIn.Pb_Up;
+      Lift.DataIn.PB.Work := DataIn.Pb_Dwn;
+      Lift.DataIn.Rest_Ls[1] := DataIn.Ls_Up;
+      Lift.DataIn.Work_Ls[1] := DataIn.Ls_Down;
+   END_REGION
+
+   REGION "Delay override sensor conditions"
+      #TimerRestManualReq(
+         IN := (AreaInterface.Man AND Lift.DataIn.PB.Rest),
+         PT := T#10s
+      );
+
+   END_REGION
+
+   REGION "CIn - All"
+      Lift.Cin.Manager := CIn.Manager;
+      Lift.Cin.Rest_ExtEnable := (CIn.ExtEnable_Up OR TimerRestManualReq.Q);
+      Lift.Cin.Work_ExtEnable := CIn.ExtEnable_Down;
+      Lift.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Valve machine"
+      #Lift(
+         en := Config.Exist,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.LIFT,
+         Alarm := Alarm,
+         Warning := Warning
+      );
+
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+      MachineInterface := Lift.MachineInterface;
+   END_REGION
+
+   REGION "Data out (Valve solenoid)"
+      DataOut.V_Up := Lift.V.RestSolenoid;
+      DataOut.V_Down := Lift.V.WorkSolenoid;
+   END_REGION
+
+   REGION "Lamp on manual selector"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,675 @@
+﻿// Block: HMI_A04_FB
+
+FUNCTION_BLOCK "HMI_A04_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
+   VAR_OUTPUT
+      MB4_LpJog : Bool;
+   END_VAR
+
+   VAR
+      MB4_Decoder : ButtonsHMIDecoder;
+   END_VAR
+
+   VAR CONSTANT
+      "3002_TRASPORTO" : Int;
+      "3011_FERMI_P1" : Int;
+      "3012_FERMI_P1_SFALSATORE" : Int;
+      "3021_FERMI_P2" : Int;
+      "3022_FERMI_P2_SOLLEVATORE" : Int;
+      "3031_FERMI_P3" : Int;
+      "3032_SOLLEVA_RIBALTA" : Int;
+      "3033_ROT_RIBALTA" : Int;
+      "3041_FERMI_P4" : Int;
+      "3042_SPINTORE_LAT_VRT_P5" : Int;
+      "3043_SPINTORE_LAT_ORZ_P5" : Int;
+      "3044_SOLLEVATORI_P5" : Int;
+      "3045_SPINTORE_LAT_OP" : Int;
+      "3051_RIBALTATORE_OP-POS0" : Int;
+      "3052_RIBALTATORE_OP-POS1" : Int;
+      "3053_RIBALTATORE_OP-POS2" : Int;
+      "3054_RIBALTATORE_OP-POS3" : Int;
+      "4001_HU_CYTROPACK" : Int;
+      "4011_SPINTORE_OP" : Int;
+      "4012_SPINTORE_AX" : Int;
+      "4013_SPINTORE_VRT" : Int;
+      "4014_SPINTORE_ORZ" : Int;
+      "4021_BORDATRICE_AX" : Int;
+      "4031_RULLIERA_OP" : Int;
+      "4032_RULLIERA_AX" : Int;
+      "4033_BORDATRICE_REG-CASSETTA" : Int;
+      "4034_BORDATRICE_PASS01" : Int;
+      "4035_BORDATRICE_PASS02" : Int;
+      "4036_BORDATRICE_PASS03" : Int;
+      "4037_BORDATRICE_PASS04" : Int;
+      "4038_BORDATRICE_REG-CASSETTA_AX-POS" : Int;
+      "4041_CENTRATORI_OP" : Int;
+      "4042_CENTRATORI_CENTRAGGIO" : Int;
+      "4043_CENTRATORI_SOLLEVAMENTO" : Int;
+      "4051_PAREGGIATORE_CODA_OP" : Int;
+      "4052_PAREGGIATORE_CODA_AX" : Int;
+      "4053_PAREGGIATORE_CODA_BLOCCAGGIO" : Int;
+      "4054_PAREGGIATORE_CODA_BATTUTAVERTICALE" : Int;
+      "4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT" : Int;
+      "4061_PAREGGIATORE_TESTA_OP" : Int;
+      "4062_PAREGGIATORE_TESTA_AX" : Int;
+      "4063_PAREGGIATORE_TESTA_BLOCCAGGIO" : Int;
+      "4064_PAREGGIATORE_TESTA_SOLLEVAMENTO" : Int;
+      "4065_PAREGGIATORE_TESTA_CENTRAGGIO" : Int;
+      "4066_PAREGG_TESTA_AX_POS" : Int;
+      "4067_PAREGG_TESTA_AX_POS" : Int;
+      "4071_MANIPOLATORE_AX" : Int;
+      "4072_MANIPOLATORE_AX-POS" : Int;
+      "4073_MANIPOLATORE_MAGNETE" : Int;
+      "4074_MANIPOLATORE_SOLLEVATORE" : Int;
+      "4080_BORDATRICE_PASS01_LATO-OP" : Int;
+      "4081_BORDATRICE_PASS01_LATO-MOT" : Int;
+      "4082_BORDATRICE_PASS02_LATO-OP" : Int;
+      "4083_BORDATRICE_PASS02_LATO-MOT" : Int;
+      "4084_BORDATRICE_PASS03_LATO-OP" : Int;
+      "4085_BORDATRICE_PASS03_LATO-MOT" : Int;
+      "4086_BORDATRICE_PASS04_LATO-OP" : Int;
+      "4087_BORDATRICE_PASS04_LATO-MOT" : Int;
+      "4088_BORDATRICE_PASS01-COMBO_AX-POS" : Int;
+      "4089_BORDATRICE_PASS02-COMBO_AX-POS" : Int;
+      "4090_BORDATRICE_PASS03-COMBO_AX-POS" : Int;
+      "4091_BORDATRICE_PASS04-COMBO_AX-POS" : Int;
+      "4092_BORDATRICE_PASS01-LATO-OP_AX-POS" : Int;
+      "4093_BORDATRICE_PASS01-LATO-MOT_AX-POS" : Int;
+      "4094_BORDATRICE_PASS02-LATO-OP_AX-POS" : Int;
+      "4095_BORDATRICE_PASS02-LATO-MOT_AX-POS" : Int;
+      "4096_BORDATRICE_PASS03-LATO-OP_AX-POS" : Int;
+      "4097_BORDATRICE_PASS03-LATO-MOT_AX-POS" : Int;
+      "4098_BORDATRICE_PASS04-LATO-OP_AX-POS" : Int;
+      "4099_BORDATRICE_PASS04-LATO-MOT_AX-POS" : Int;
+      "5001_SPALLA_OP_POS" : Int;
+      "5002_SPALLA_TESTA_AX_JOG" : Int;
+      "5003_SPALLA_TESTA_AX_POS" : Int;
+      "5005_SPALLA_CODA_AX" : Int;
+      "5006_SPALLA_CODA_AX_POS" : Int;
+      "5011_SPINTORE_OP" : Int;
+      "5012_SPINTORE_VRT" : Int;
+      "5013_SPINTORE_ORZ" : Int;
+      "5021_TRASLAZIONE_OP_VAI_A_PRELIEVO" : Int;
+      "5022_TRASLAZIONE_OP_PRELIEVO" : Int;
+      "5023_TRASLAZIONE_OP_VAI_A_DEPOSITO" : Int;
+      "5024_TRASLAZIONE_OP_DEPOSITO" : Int;
+      "5025_TRASLAZIONE_AX_JOG" : Int;
+      "5026_TRASLAZIONE_AX_POS" : Int;
+      "5027_TRASLAZIONE_MANIP_SOSTEGNO" : Int;
+      "5028_TRASLAZIONE_MANIP_PAREGGIATORE" : Int;
+      "5029_TRASLAZIONE_SOSTEGNO_VERTICALE" : Int;
+      "5031_SOLLEVAMENTO_OP" : Int;
+      "5032_SOLLEVAMENTO_AX_JOG" : Int;
+      "5033_SOLLEVAMENTO_AX_POS" : Int;
+      "5041_PALETTIANTIRIBALTAMENTO_OP" : Int;
+      "5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0" : Int;
+      "5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1" : Int;
+      "5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2" : Int;
+      "5046_PALETTIANTIRIBALTAMENTO_CODA_POS0" : Int;
+      "5047_PALETTIANTIRIBALTAMENTO_CODA_POS1" : Int;
+      "5048_PALETTIANTIRIBALTAMENTO_CODA_POS2" : Int;
+      "5051_SOSTEGNO_TESTA_AX_JOG" : Int;
+      "5052_SOSTEGNO_TESTA_AX_POS" : Int;
+      "5053_SOSTEGNO_CODA_AX_JOG" : Int;
+      "5054_SOSTEGNO_CODA_AX_POS" : Int;
+      "6001_NAVETTA_OP_VAI_A_PRELIEVO" : Int;
+      "6002_NAVETTA_OP_PRELIEVO" : Int;
+      "6003_NAVETTA_OP_VAI_A_DEPOSITO" : Int;
+      "6004_NAVETTA_OP_DEPOSITO" : Int;
+      "6005_NAVETTA_AX" : Int;
+      "6006_NAVETTA_PALETTI_INTERNI" : Int;
+      "6007_NAVETTA_PALETTI_ESTERNI" : Int;
+      "6008_NAVETTA_AX_POS" : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset Op"
+      MB4_Decoder.OpEnabled := FALSE;
+      MB4_Decoder.OpRunning := FALSE;
+      MB4_Decoder.OpDone := FALSE;
+
+   END_REGION
+
+   REGION "MB3 Code 5001- SPALLE - OP"
+      A04_HMI.MB3.Button.A0303.Spalla.Testa.OP_Pos := ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND MB4_Decoder.OperationPlus);
+      A04_HMI.MB3.Button.A0303.Spalla.Coda.OP_Pos := ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND A0303_Spalla_Testa.COut.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND A0303_Spalla_Testa.COut.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND A0303_Spalla_Coda.COut.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND A0303_Spalla_Coda.COut.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND NOT (A0303_Spalla_Testa.COut.Ax.Standstill)) OR ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND NOT (A0303_Spalla_Coda.COut.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5001_SPALLA_OP_POS) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5002-  SPALLA TESTA -AX- JOG"
+      A04_HMI.MB3.Button.A0303.Spalla.Testa.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.Spalla.Testa.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND A0303_Spalla_Testa.COut.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND A0303_Spalla_Testa.COut.Ax.MinusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND NOT (A0303_Spalla_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5002_SPALLA_TESTA_AX_JOG) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5003-  SPALLA TESTA -AX - POS"
+      A04_HMI.MB3.Button.A0303.Spalla.Testa.Ax.MoveToPos := ((MB4_Decoder.Code = #5003_SPALLA_TESTA_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5003_SPALLA_TESTA_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5003_SPALLA_TESTA_AX_POS) AND NOT (A0303_Sostegno_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5003_SPALLA_TESTA_AX_POS) AND A0303_Spalla_Testa.COut.Ax.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5005-  SPALLA CODA -AX JOG"
+      A04_HMI.MB3.Button.A0303.Spalla.Coda.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.Spalla.Coda.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND A0303_Spalla_Coda.COut.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND A0303_Spalla_Coda.COut.Ax.MinusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND NOT (A0303_Spalla_Coda.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5005_SPALLA_CODA_AX) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5006-  SPALLA CODA -AX - POS"
+      A04_HMI.MB3.Button.A0303.Spalla.Coda.Ax.MoveToPos := ((MB4_Decoder.Code = #5006_SPALLA_CODA_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5006_SPALLA_CODA_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5006_SPALLA_CODA_AX_POS) AND NOT (A0303_Sostegno_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5006_SPALLA_CODA_AX_POS) AND A0303_Spalla_Coda.COut.Ax.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5011- SPINTORE- OP"
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.OP_Rest := ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.OP_Work := ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5011_SPINTORE_OP) AND A0303_Spintore.COut.Vrt.Rest_CheckNext) OR ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND A0303_Spintore.COut.Vrt.Work_CheckNext) OR ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND A0303_Spintore.COut.Orz.Rest_CheckNext) OR ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND A0303_Spintore.COut.Orz.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5011_SPINTORE_OP) AND NOT (A0303_Spintore.COut.Vrt.Standstill)) OR ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND NOT (A0303_Spintore.COut.Orz.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5011_SPINTORE_OP) AND false) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5012 - SPINTORE- VERTICALE"
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Rest := ((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Work := ((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A0303_Spintore.COut.Vrt.Rest_CheckNext) OR ((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A0303_Spintore.COut.Vrt.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND NOT (A0303_Spintore.COut.Vrt.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Rest) AND A0303_Spintore.Vrt_Testa.COut.Rest) AND (A0303_Spintore.HMI.Selection.Vrt = 0)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Rest) AND A0303_Spintore.Vrt_Testa.COut.Rest) AND (A0303_Spintore.HMI.Selection.Vrt = 1)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Rest) AND A0303_Spintore.Vrt_Coda.COut.Rest) AND (A0303_Spintore.HMI.Selection.Vrt = 0)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Rest) AND A0303_Spintore.Vrt_Coda.COut.Rest) AND (A0303_Spintore.HMI.Selection.Vrt = 2)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Work) AND A0303_Spintore.Vrt_Testa.COut.Work) AND (A0303_Spintore.HMI.Selection.Vrt = 0)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Work) AND A0303_Spintore.Vrt_Testa.COut.Work) AND (A0303_Spintore.HMI.Selection.Vrt = 1)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Work) AND A0303_Spintore.Vrt_Coda.COut.Work) AND (A0303_Spintore.HMI.Selection.Vrt = 0)) OR ((((MB4_Decoder.Code = #5012_SPINTORE_VRT) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Vrt.Work) AND A0303_Spintore.Vrt_Coda.COut.Work) AND (A0303_Spintore.HMI.Selection.Vrt = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5013 - SPINTORE- ORIZZONTALE"
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Rest := ((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Work := ((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A0303_Spintore.COut.Orz.Rest_CheckNext) OR ((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A0303_Spintore.COut.Orz.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND NOT (A0303_Spintore.COut.Orz.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Rest) AND A0303_Spintore.Orz_Testa.COut.Rest) AND (A0303_Spintore.HMI.Selection.Orz = 0)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Rest) AND A0303_Spintore.Orz_Testa.COut.Rest) AND (A0303_Spintore.HMI.Selection.Orz = 1)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Rest) AND A0303_Spintore.Orz_Coda.COut.Rest) AND (A0303_Spintore.HMI.Selection.Orz = 0)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Rest) AND A0303_Spintore.Orz_Coda.COut.Rest) AND (A0303_Spintore.HMI.Selection.Orz = 2)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Work) AND A0303_Spintore.Orz_Testa.COut.Work) AND (A0303_Spintore.HMI.Selection.Orz = 0)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Work) AND A0303_Spintore.Orz_Testa.COut.Work) AND (A0303_Spintore.HMI.Selection.Orz = 1)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Work) AND A0303_Spintore.Orz_Coda.COut.Work) AND (A0303_Spintore.HMI.Selection.Orz = 0)) OR ((((MB4_Decoder.Code = #5013_SPINTORE_ORZ) AND A04_HMI.MB3.Button.A0303.SpintoreStrato.Orz.Work) AND A0303_Spintore.Orz_Coda.COut.Work) AND (A0303_Spintore.HMI.Selection.Orz = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5021- TRASLAZIONE - OP VAI A PRELIEVO"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.OP_Vai_A_Prelievo := ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND A0303_TraslazioneStrato.COut.Testa.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND A0303_TraslazioneStrato.COut.Testa.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND A0303_TraslazioneStrato.COut.Coda.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND A0303_TraslazioneStrato.COut.Coda.Ax.MinusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5021_TRASLAZIONE_OP_VAI_A_PRELIEVO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5022- TRASLAZIONE - OP PRELIEVO"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.OP_Prelievo := ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Pareggiatore.Rest_CheckNext) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Pareggiatore.Work_CheckNext) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Sostegno.Rest_CheckNext) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Sostegno.Work_CheckNext) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.SostegnoVrt.Rest_CheckNext) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND A0303_TraslazioneStrato.COut.Cumulativo.SostegnoVrt.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5022_TRASLAZIONE_OP_PRELIEVO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5023- TRASLAZIONE - OP VAI A DEPOSITO"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.OP_Vai_A_Deposito := ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND A0303_TraslazioneStrato.COut.Testa.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND A0303_TraslazioneStrato.COut.Testa.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND A0303_TraslazioneStrato.COut.Coda.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND A0303_TraslazioneStrato.COut.Coda.Ax.MinusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5023_TRASLAZIONE_OP_VAI_A_DEPOSITO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5024- TRASLAZIONE - OP DEPOSITO"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.OP_Deposito := ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Pareggiatore.Rest_CheckNext) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Pareggiatore.Work_CheckNext) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Sostegno.Rest_CheckNext) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.Manip_Sostegno.Work_CheckNext) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.SostegnoVrt.Rest_CheckNext) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND A0303_TraslazioneStrato.COut.Cumulativo.SostegnoVrt.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5024_TRASLAZIONE_OP_DEPOSITO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5025-  TRASLAZIONE -AX - JOG"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND A0303_TraslazioneStrato.COut.Testa.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND A0303_TraslazioneStrato.COut.Testa.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND A0303_TraslazioneStrato.COut.Coda.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND A0303_TraslazioneStrato.COut.Coda.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND NOT (A0303_TraslazioneStrato.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND NOT (A0303_TraslazioneStrato.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5025_TRASLAZIONE_AX_JOG) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5026-  TRASLAZIONE -AX - POS"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Ax.MoveToPos := ((MB4_Decoder.Code = #5026_TRASLAZIONE_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5026_TRASLAZIONE_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5026_TRASLAZIONE_AX_POS) AND NOT (A0303_Sostegno_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5026_TRASLAZIONE_AX_POS) AND A0303_TraslazioneStrato.COut.Testa.Ax.InPosition) AND A0303_TraslazioneStrato.COut.Coda.Ax.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5027 - TRASLAZIONE- MANIP SOSTEGNO L"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Rest := ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work := ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Rest_CheckNext) OR ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Work_CheckNext) OR ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Rest_CheckNext) OR ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND NOT (A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Standstill)) OR ((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND NOT (A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Rest) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Rest) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 1)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Rest) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Rest) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 2)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Testa.Manip_Sostegno.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 1)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 0)) OR ((((MB4_Decoder.Code = #5027_TRASLAZIONE_MANIP_SOSTEGNO) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Coda.Manip_Sostegno.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Sostegno = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5028 - TRASLAZIONE- MANIP PAREGGIATORE"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Rest := ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Work := ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Rest_CheckNext) OR ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Work_CheckNext) OR ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Rest_CheckNext) OR ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND NOT (A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Standstill)) OR ((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND NOT (A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Rest) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Rest) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 1)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Rest) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Rest) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 2)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Work) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Work) AND A0303_TraslazioneStrato.COut.Testa.Manip_Pareggiatore.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 1)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Work) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 0)) OR ((((MB4_Decoder.Code = #5028_TRASLAZIONE_MANIP_PAREGGIATORE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Pareggiatore.Work) AND A0303_TraslazioneStrato.COut.Coda.Manip_Pareggiatore.Work) AND (A0303_TraslazioneStrato.HMI.Selection.Manip_Pareggiatore = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5029 - TRASLAZIONE- SOSTEGNO VERTICALE"
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Rest := ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Work := ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Work_CheckNext) OR ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Rest_CheckNext) OR ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Work_CheckNext) OR ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Rest_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND NOT (A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Standstill)) OR ((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND NOT (A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Rest) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Rest) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 1)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Rest) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.SostegnoVrt.Rest) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Rest) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 2)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Work) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Testa.SostegnoVrt.Work) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 1)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Work) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 0)) OR ((((MB4_Decoder.Code = #5029_TRASLAZIONE_SOSTEGNO_VERTICALE) AND A04_HMI.MB3.Button.A0303.TraslazioneStrato.Manip_Sostegno.Work) AND A0303_TraslazioneStrato.COut.Coda.SostegnoVrt.Work) AND (A0303_TraslazioneStrato.HMI.Selection.SostegnoVrt = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5031- SOLLEVAMENTO - OP"
+      A04_HMI.MB3.Button.A0303.SollevamentoStrato.OP_Prelievo := ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND MB4_Decoder.OperationPlus);
+      A04_HMI.MB3.Button.A0303.SollevamentoStrato.OP_Deposito := ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND MB4_Decoder.OperationMinus);
+      IF (((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND A0303_Sollevamento.COut.Ax_Coda.MinusCheckNext) OR ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND A0303_Sollevamento.COut.Ax_Coda.PlusCheckNext) OR ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND A0303_Sollevamento.COut.Ax_Testa.MinusCheckNext) OR ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND A0303_Sollevamento.COut.Ax_Testa.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND NOT (A0303_Sollevamento.COut.Ax_Coda.Standstill)) OR ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND NOT (A0303_Sollevamento.COut.Ax_Testa.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5031_SOLLEVAMENTO_OP) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5032-  SOLLEVAMENTO - AX - JOG"
+      A04_HMI.MB3.Button.A0303.SollevamentoStrato.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SollevamentoStrato.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND A0303_Sollevamento.COut.Ax_Testa.MinusCheckNext) OR ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND A0303_Sollevamento.COut.Ax_Testa.PlusCheckNext) OR ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND A0303_Sollevamento.COut.Ax_Coda.MinusCheckNext) OR ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND A0303_Sollevamento.COut.Ax_Coda.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND NOT (A0303_Sollevamento.COut.Ax_Testa.Standstill)) OR ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND NOT (A0303_Sollevamento.COut.Ax_Coda.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5032_SOLLEVAMENTO_AX_JOG) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5033-  SOLLEVAMENTO -AX - POS"
+      A04_HMI.MB3.Button.A0303.SollevamentoStrato.Ax.MoveToPos := ((MB4_Decoder.Code = #5033_SOLLEVAMENTO_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5033_SOLLEVAMENTO_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5033_SOLLEVAMENTO_AX_POS) AND NOT (A0303_Sollevamento.COut.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5033_SOLLEVAMENTO_AX_POS) AND A0303_Sollevamento.COut.Ax_Coda.InPosition) AND A0303_Sollevamento.COut.Ax_Testa.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5041- SOSTEGNO ANTIRIBALTAMENTO - OP"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.OP_Work := ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND MB4_Decoder.OperationPlus);
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.OP_Work := ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND MB4_Decoder.OperationPlus);
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.OP_Rest := ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.OP_Rest := ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND MB4_Decoder.OperationMinus);
+      IF (((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND A0303_Sostegno_Testa.COut.Paletto.Work_CheckNext) OR ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND A0303_Sostegno_Testa.COut.Paletto.Rest_CheckNext) OR ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND A0303_Sostegno_Coda.COut.Paletto.Work_CheckNext) OR ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND A0303_Sostegno_Coda.COut.Paletto.Rest_CheckNext) OR ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND TRUE)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND NOT (A0303_Sostegno_Coda.COut.Paletto.Standstill)) OR ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND NOT (A0303_Sostegno_Testa.COut.Paletto.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5041_PALETTIANTIRIBALTAMENTO_OP) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5042 - SOSTEGNO ANTIRIBALTAMENTO TESTA - POS 0"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos0 := ((MB4_Decoder.Code = #5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0) AND A0303_Sostegno_Testa.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0) AND NOT (A0303_Sostegno_Testa.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos0) AND (A0303_Sostegno_Testa.COut.Paletto.Pos = 0)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5043 - SOSTEGNO ANTIRIBALTAMENTO TESTA - POS 1"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos1 := ((MB4_Decoder.Code = #5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1) AND A0303_Sostegno_Testa.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1) AND NOT (A0303_Sostegno_Testa.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos1) AND (A0303_Sostegno_Testa.COut.Paletto.Pos = 1)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5044 - SOSTEGNO ANTIRIBALTAMENTO TESTA - POS 2"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos2 := ((MB4_Decoder.Code = #5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2) AND A0303_Sostegno_Testa.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2) AND NOT (A0303_Sostegno_Testa.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Paletti.Pos2) AND (A0303_Sostegno_Testa.COut.Paletto.Pos = 2)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5046 - SOSTEGNO ANTIRIBALTAMENTO CODA - POS 0"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0 := ((MB4_Decoder.Code = #5046_PALETTIANTIRIBALTAMENTO_CODA_POS0) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5046_PALETTIANTIRIBALTAMENTO_CODA_POS0) AND A0303_Sostegno_Coda.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5046_PALETTIANTIRIBALTAMENTO_CODA_POS0) AND NOT (A0303_Sostegno_Coda.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5046_PALETTIANTIRIBALTAMENTO_CODA_POS0) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos0) AND (A0303_Sostegno_Coda.COut.Paletto.Pos = 0)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5047 - SOSTEGNO ANTIRIBALTAMENTO CODA - POS 1"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1 := ((MB4_Decoder.Code = #5047_PALETTIANTIRIBALTAMENTO_CODA_POS1) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5047_PALETTIANTIRIBALTAMENTO_CODA_POS1) AND A0303_Sostegno_Coda.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5047_PALETTIANTIRIBALTAMENTO_CODA_POS1) AND NOT (A0303_Sostegno_Coda.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5047_PALETTIANTIRIBALTAMENTO_CODA_POS1) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos1) AND (A0303_Sostegno_Coda.COut.Paletto.Pos = 1)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5048 - SOSTEGNO ANTIRIBALTAMENTO CODA - POS 2"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2 := ((MB4_Decoder.Code = #5048_PALETTIANTIRIBALTAMENTO_CODA_POS2) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5048_PALETTIANTIRIBALTAMENTO_CODA_POS2) AND A0303_Sostegno_Coda.COut.Paletto.Work_CheckNext) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5048_PALETTIANTIRIBALTAMENTO_CODA_POS2) AND NOT (A0303_Sostegno_Coda.COut.Paletto.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #5048_PALETTIANTIRIBALTAMENTO_CODA_POS2) AND A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Paletti.Pos2) AND (A0303_Sostegno_Coda.COut.Paletto.Pos = 2)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5051-  SOSTEGNO TESTA -AX JOG"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND A0303_Sostegno_Testa.COut.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND A0303_Sostegno_Testa.COut.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND NOT (A0303_Sostegno_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5051_SOSTEGNO_TESTA_AX_JOG) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5051-  SOSTEGNO TESTA -AX - POS"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Testa.Ax.MoveToPos := ((MB4_Decoder.Code = #5052_SOSTEGNO_TESTA_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5052_SOSTEGNO_TESTA_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5052_SOSTEGNO_TESTA_AX_POS) AND NOT (A0303_Sostegno_Testa.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5052_SOSTEGNO_TESTA_AX_POS) AND A0303_Sostegno_Testa.COut.Ax.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5053-  SOSTEGNO CODA -AX"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Ax.Bwd_Minus := ((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Ax.Fwd_Plus := ((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND A0303_Sostegno_Coda.COut.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND A0303_Sostegno_Coda.COut.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND NOT (A0303_Sostegno_Coda.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5053_SOSTEGNO_CODA_AX_JOG) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 5051-  SOSTEGNO CODA -AX - POS"
+      A04_HMI.MB3.Button.A0303.SostegnoAntirib.Coda.Ax.MoveToPos := ((MB4_Decoder.Code = #5054_SOSTEGNO_CODA_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #5054_SOSTEGNO_CODA_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5054_SOSTEGNO_CODA_AX_POS) AND NOT (A0303_Sostegno_Coda.COut.Ax.Standstill)) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #5054_SOSTEGNO_CODA_AX_POS) AND A0303_Sostegno_Coda.COut.Ax.InPosition) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6001- NAVETTA - OP VAI A PRELIEVO"
+      A04_HMI.MB3.Button.A0304.Navetta.OP_Vai_A_Prelievo := ((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND A0304_Navetta.COut.Coda.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND A0304_Navetta.COut.Testa.Ax.MinusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND NOT (A0304_Navetta.COut.Coda.Ax.Standstill)) OR ((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND NOT (A0304_Navetta.COut.Testa.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #6001_NAVETTA_OP_VAI_A_PRELIEVO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6002- NAVETTA - OP PRELIEVO"
+      A04_HMI.MB3.Button.A0304.Navetta.OP_Prelievo := ((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND A0304_Navetta.COut.Coda.PalettiEsterni.Work_CheckNext) OR ((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND A0304_Navetta.COut.Coda.PalettiInterni.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND NOT (A0304_Navetta.COut.Coda.Ax.Standstill)) OR ((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND NOT (A0304_Navetta.COut.Testa.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #6002_NAVETTA_OP_PRELIEVO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6003- NAVETTA - OP VAI A DEPOSITO"
+      A04_HMI.MB3.Button.A0304.Navetta.OP_Vai_A_Deposito := ((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND A0304_Navetta.COut.Coda.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND A0304_Navetta.COut.Testa.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND NOT (A0304_Navetta.COut.Coda.Ax.Standstill)) OR ((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND NOT (A0304_Navetta.COut.Testa.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #6003_NAVETTA_OP_VAI_A_DEPOSITO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6002- NAVETTA - OP DEPOSITO"
+      A04_HMI.MB3.Button.A0304.Navetta.OP_Deposito := ((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND A0304_Navetta.COut.Coda.PalettiEsterni.Work_CheckNext) OR ((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND A0304_Navetta.COut.Coda.PalettiInterni.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND NOT (A0304_Navetta.COut.Coda.Ax.Standstill)) OR ((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND NOT (A0304_Navetta.COut.Testa.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #6004_NAVETTA_OP_DEPOSITO) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6004-  NAVETTA -AX"
+      A04_HMI.MB3.Button.A0304.Navetta.Ax.Bwd_Minus := ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0304.Navetta.Ax.Fwd_Plus := ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6005_NAVETTA_AX) AND A0304_Navetta.COut.Testa.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND A0304_Navetta.COut.Testa.Ax.PlusCheckNext) OR ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND A0304_Navetta.COut.Coda.Ax.MinusCheckNext) OR ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND A0304_Navetta.COut.Coda.Ax.PlusCheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6005_NAVETTA_AX) AND NOT (A0304_Navetta.COut.Testa.Ax.Standstill)) OR ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND NOT (A0304_Navetta.COut.Coda.Ax.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB4_Decoder.Code = #6005_NAVETTA_AX) AND FALSE) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6005 - NAVETTA - PALETTI INTERNI"
+      A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Rest := ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Work := ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A0304_Navetta.COut.Testa.PalettiInterni.Rest_CheckNext) OR ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A0304_Navetta.COut.Testa.PalettiInterni.Work_CheckNext) OR ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A0304_Navetta.COut.Coda.PalettiInterni.Rest_CheckNext) OR ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A0304_Navetta.COut.Coda.PalettiInterni.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND NOT (A0304_Navetta.COut.Coda.PalettiInterni.Standstill)) OR ((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND NOT (A0304_Navetta.COut.Testa.PalettiInterni.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Rest) AND A0304_Navetta.COut.Testa.PalettiInterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 0)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Rest) AND A0304_Navetta.COut.Testa.PalettiInterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 1)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Rest) AND A0304_Navetta.COut.Coda.PalettiInterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 0)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Rest) AND A0304_Navetta.COut.Coda.PalettiInterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 2)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Work) AND A0304_Navetta.COut.Testa.PalettiInterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 0)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Work) AND A0304_Navetta.COut.Testa.PalettiInterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 1)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Work) AND A0304_Navetta.COut.Coda.PalettiInterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 0)) OR ((((MB4_Decoder.Code = #6006_NAVETTA_PALETTI_INTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Interni.Work) AND A0304_Navetta.COut.Coda.PalettiInterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiInterni = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6006 - NAVETTA - PALETTI ESTERNI"
+      A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Rest := ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND MB4_Decoder.OperationMinus);
+      A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Work := ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND MB4_Decoder.OperationPlus);
+      IF (((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A0304_Navetta.COut.Testa.PalettiEsterni.Rest_CheckNext) OR ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A0304_Navetta.COut.Testa.PalettiEsterni.Work_CheckNext) OR ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A0304_Navetta.COut.Coda.PalettiEsterni.Rest_CheckNext) OR ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A0304_Navetta.COut.Coda.PalettiEsterni.Work_CheckNext)) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND NOT (A0304_Navetta.COut.Coda.PalettiEsterni.Standstill)) OR ((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND NOT (A0304_Navetta.COut.Testa.PalettiEsterni.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Rest) AND A0304_Navetta.COut.Testa.PalettiEsterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 0)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Rest) AND A0304_Navetta.COut.Testa.PalettiEsterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 1)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Rest) AND A0304_Navetta.COut.Coda.PalettiEsterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 0)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Rest) AND A0304_Navetta.COut.Coda.PalettiEsterni.Rest) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 2)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Work) AND A0304_Navetta.COut.Testa.PalettiEsterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 0)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Work) AND A0304_Navetta.COut.Testa.PalettiEsterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 1)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Work) AND A0304_Navetta.COut.Coda.PalettiEsterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 0)) OR ((((MB4_Decoder.Code = #6007_NAVETTA_PALETTI_ESTERNI) AND A04_HMI.MB3.Button.A0304.Navetta.Paletti.Esterni.Work) AND A0304_Navetta.COut.Coda.PalettiEsterni.Work) AND (A0304_Navetta.HMI.Selection.PalettiEsterni = 2))) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code6007-  NAVETTA -AX - POS"
+      A04_HMI.MB3.Button.A0304.Navetta.Ax.MoveToPos := ((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND MB4_Decoder.OperationPlus);
+      IF ((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND TRUE) THEN
+         MB4_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND NOT (A0304_Navetta.Ax_Coda.Ax.Sts.Standstill)) OR ((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND NOT (A0304_Navetta.Ax_Testa.Ax.Sts.Standstill))) THEN
+         MB4_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND A0304_Navetta.Ax_Coda.COut.InPosition) OR ((MB4_Decoder.Code = #6008_NAVETTA_AX_POS) AND A0304_Navetta.Ax_Testa.COut.InPosition)) THEN
+         MB4_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Decoder"
+      #MB4_Decoder(
+         en := TRUE,
+         ButtonMinus := NOT ((NOT (MB3_Pb_Comando_Manuale_Jog_Minus_A04) AND NOT (A04_HMI.Area04.SuperUser.JogMinus))),
+         ButtonPlus := NOT ((NOT (MB3_Pb_Comando_Manuale_Jog_Plus_A04) AND NOT (A04_HMI.Area04.SuperUser.JogPlus))),
+         CodeReq := A04_HMI.MB3.ManCode_REQ,
+         Code => A04_HMI.MB3.ManCode_CMD,
+         Lamp => MB3_Lp_Comando_Manuale_Jog_Plus_A04
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

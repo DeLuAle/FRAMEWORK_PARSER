@@ -1,0 +1,22 @@
+﻿FUNCTION "FcP_F_Trig" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      CLK : Bool;   // Input to detect falling edge
+   END_VAR
+
+   VAR_OUTPUT 
+      Q : Bool;   // Pulse output
+   END_VAR
+
+   VAR_IN_OUT 
+      M : Bool;   // Memory bit
+   END_VAR
+
+
+BEGIN
+	#Q := #M AND NOT #CLK; // calculate falling edge
+	#M := #CLK; // Copy input to storage bit
+	
+END_FUNCTION
+

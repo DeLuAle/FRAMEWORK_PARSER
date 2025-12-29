@@ -1,0 +1,913 @@
+﻿FUNCTION_BLOCK "ProgramsManager_FB"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      ArchiveNo : USInt;
+      Enable : Bool := TRUE;
+      RstAlarms : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      COut : Struct
+         AlarmsPresence : Bool;
+         WarningPresence : Bool;
+         ProgramUpdated : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Scada_WrongPrgNo : Bool;
+         Scada_WrongPivotTable : Bool;
+         Scada_ArchiveFull : Bool;
+         Scada_ReadArchiveError : Bool;
+         Scada_WriteArchiveError : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT 
+      PIVOT : Array[*] of "Prg_Pivot";
+      GET_ITF : "Prg_GetITF";
+      RWD_EMPTY : Variant;
+      RWD_UPDATE : Variant;
+      RWD_GET : Variant;
+      RWD_HMI : Variant;
+      RWD_SCADA : Variant;
+      RWDHeader_HMI : "Prg_Header";
+      RWDHeader_SCADA : "Prg_Header";
+      HMI : "Prg_HMI";
+      SCADA : "Prg_SCADA";
+   END_VAR
+
+   VAR 
+      Status : Int;
+      Sts : Struct
+         ReadDone : Bool;
+         ReadError : Bool;
+         WriteDone : Bool;
+         WriteError : Bool;
+         PivotRecordRW : Int;
+         PivotIndexRW : Int;
+         PivotRecordFirstFree : Int;
+         PivotIndexRecordFirstFree : Int;
+         RecordToWrite : Int;
+         IndexToUpdate : Int;
+         ListFirstIndex : Int;
+         ListIndexMin : Int;
+         ListIndexMax : Int;
+         ProgramNumberToManage : DInt;
+         PercentageUnitVal : Real;
+         ScadaOpBusy : Bool;
+         ProgramUpdated : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         ReadExe : Bool;
+         WriteExe : Bool;
+      END_STRUCT;
+      Get : Struct
+         Status : Int;
+         RecordNo : Int;
+         ExeRead : Bool;
+      END_STRUCT;
+      Msg : Struct
+         Scada_WrongPrgNo : Bool;
+         Scada_WrongPivotTable : Bool;
+         Scada_ArchiveFull : Bool;
+         Scada_ReadArchiveError : Bool;
+         Scada_WriteArchiveError : Bool;
+      END_STRUCT;
+      SortPivotTable { S7_SetPoint := 'False'} : "SortPivot";
+      tonDone {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonSaveDoneScada {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonDeleteDoneScada {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonReadDoneScada {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonCopyDelay {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      mvRetVal : Int;
+      AcrhiveDimension : Int;
+      Enabled : Bool;
+   END_VAR
+
+
+BEGIN
+	REGION Info
+	
+	    //=============================================================================
+	    //PM FORMING
+	    //-----------------------------------------------------------------------------
+	    // Library: StandardBlocks
+	    // Tested with: S7-1518TF + MTP1500 UNIFIED
+	    // Engineering: TIA Portal V18
+	    // Restrictions: -
+	    // Requirements: S7-1500
+	    // Functionality: Program Manager
+	    //
+	    // v0.0.1  6/07/2022
+	    // v0.0.2  29/07/2022 General Improvment, HMI struct added, SCADA struct added, one Popup management
+	    // v0.0.3  03/08/2022 Scada warning implement"ProfileMng"
+	    // v0.0.4  03/08/2022 General Improvment
+	    // v1.0.0  28/12/2022 New Version TIA V18
+	    // v2.0.0  16/05/2024 Enable added 
+	    //=============================================================================
+	    
+	
+	END_REGION
+	
+	REGION Operations Enabled
+	    #Enabled := #Enable
+	    AND #Status = 0;
+	END_REGION
+	
+	REGION Detect Archive Dimension
+	    #AcrhiveDimension := DINT_TO_INT(UPPER_BOUND(ARR:=#PIVOT, DIM:=1));
+	    #Sts.ListIndexMin := 1;
+	    #Sts.ListIndexMax := #AcrhiveDimension - "HMI_LIST_ITEMS" + 1;
+	END_REGION
+	
+	REGION HMI List
+	    
+	    IF #HMI.PrgList.Button_Dec1 THEN
+	        #Sts.ListFirstIndex -= 1;
+	        #HMI.PrgList.Button_Dec1 := FALSE;
+	    END_IF;
+	    
+	    IF #HMI.PrgList.Button_Inc1 THEN
+	        #Sts.ListFirstIndex += 1;
+	        #HMI.PrgList.Button_Inc1 := FALSE;
+	    END_IF;
+	    
+	    IF #HMI.PrgList.Button_DecView THEN
+	        #Sts.ListFirstIndex -= "HMI_LIST_ITEMS";
+	        #HMI.PrgList.Button_DecView := FALSE;
+	    END_IF;
+	    
+	    IF #HMI.#PrgList.Button_IncView THEN
+	        #Sts.ListFirstIndex += "HMI_LIST_ITEMS";
+	        #HMI.#PrgList.Button_IncView := FALSE;
+	    END_IF;
+	    
+	    #Sts.ListFirstIndex := LIMIT(MN := #Sts.ListIndexMin, IN := #Sts.ListFirstIndex, MX := #Sts.ListIndexMax);
+	    
+	    FOR #i := 1 TO "HMI_LIST_ITEMS" DO
+	        #HMI.PrgList.Row[#i] := #PIVOT[#Sts.ListFirstIndex + #i - 1];
+	        #HMI.PrgList.RowHighlight[#i] := (#HMI.PrgList.Row[#i].PrgNo = #HMI.#ProgramNumber) 
+	                                    AND (#HMI.PrgList.Row[#i].PrgNo > 0);
+	    END_FOR;
+	   
+	
+	END_REGION
+	
+	REGION HMI Button color
+	    #HMI.PivotUpdate.ButtonColor := "HmiButtonColor"(Permit:=#Enabled, InProgress:=#HMI.PivotUpdate.InProgress, Done:=#HMI.PivotUpdate.Done, Error:=#HMI.PivotUpdate.InProgress AND #Status=999);
+	    #HMI.Open.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #HMI.Open.InProgress, Done := #HMI.Open.Done, Error := #HMI.Open.InProgress AND #Status = 999);
+	    #HMI.Save.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #HMI.Save.InProgress, Done := #HMI.Save.Done, Error := #HMI.Save.InProgress AND #Status = 999);
+	    #HMI.New.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #HMI.New.InProgress, Done := #HMI.New.Done, Error := #HMI.New.InProgress AND #Status = 999);
+	    #HMI.Delete.ButtonColor := "HmiButtonColor"(Permit:=#Enabled, InProgress:=#HMI.Delete.InProgress, Done:=#HMI.Delete.Done, Error:=#HMI.Delete.InProgress AND #Status=999);
+	    #HMI.Copy.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #HMI.Copy.InProgress, Done := #HMI.Copy.Done, Error := #HMI.Copy.InProgress AND #Status = 999);
+	END_REGION
+	
+	REGION Reset done Status
+	    #tonDone.TON(IN := #HMI.PivotUpdate.Done OR #HMI.Open.Done OR #HMI.Save.Done OR #HMI.New.Done OR #HMI.Delete.Done OR #HMI.Copy.Done,
+	                       PT := T#1S);
+	          IF #tonDone.Q THEN
+	              #HMI.PivotUpdate.Done := #HMI.Open.Done := #HMI.Save.Done := #HMI.New.Done := #HMI.Delete.Done := #HMI.Copy.Done := FALSE;
+	          END_IF;
+	  
+	END_REGION
+	
+	REGION SCADA Operation 
+	    #SCADA.Enable := #Enabled
+	    AND NOT #SCADA.Save.Execute
+	    AND NOT #SCADA.Delete.Execute
+	    AND NOT #SCADA.Open.Execute;
+	    
+	    #SCADA.Save.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #SCADA.Save.InProgress, Done := #SCADA.Save.Done, Error := #SCADA.Save.ErrorNo > 1);
+	    #SCADA.Delete.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #SCADA.Delete.InProgress, Done := #SCADA.Delete.Done, Error := #SCADA.Delete.ErrorNo > 1);
+	    #SCADA.Open.ButtonColor := "HmiButtonColor"(Permit := #Enabled, InProgress := #SCADA.Open.InProgress, Done := #SCADA.Open.Done, Error := #SCADA.Open.ErrorNo > 1);
+	    #SCADA.Save.Error := #SCADA.Save.ErrorNo > 1;
+	    #SCADA.Delete.Error := #SCADA.Delete.ErrorNo > 1;
+	    #SCADA.Open.Error := #SCADA.Open.ErrorNo > 1;
+	    
+	    IF NOT #SCADA.Save.Execute THEN #SCADA.Save.ErrorNo := 0; END_IF;
+	    IF NOT #SCADA.Delete.Execute THEN #SCADA.Delete.ErrorNo := 0; END_IF;
+	    IF NOT #SCADA.Open.Execute THEN #SCADA.Open.ErrorNo := 0; END_IF;
+	    
+	    #tonSaveDoneScada.TON(IN := #SCADA.Save.Done, PT := T#3S);
+	    IF #tonSaveDoneScada.Q THEN #SCADA.Save.Done := FALSE; END_IF;
+	    
+	    #tonDeleteDoneScada.TON(IN := #SCADA.Delete.Done,PT := T#3S);
+	    IF #tonDeleteDoneScada.Q THEN #SCADA.Delete.Done := FALSE; END_IF;
+	    
+	    #tonReadDoneScada.TON(IN := #SCADA.Open.Done, PT := T#3S);
+	    IF #tonReadDoneScada.Q THEN #SCADA.Open.Done := FALSE; END_IF;
+	    
+	    
+	    #Sts.ScadaOpBusy := #SCADA.Save.Done OR #SCADA.Save.Error OR 
+	    #SCADA.Delete.Done OR #SCADA.Delete.Error OR
+	    #SCADA.Open.Done OR #SCADA.Open.Error;
+	    
+	    //Scada Wanrning
+	    IF #RstAlarms THEN
+	        #Msg.Scada_WrongPrgNo := FALSE;
+	        #Msg.Scada_WrongPivotTable := FALSE;
+	        #Msg.Scada_ArchiveFull := FALSE;
+	        #Msg.Scada_ReadArchiveError := FALSE;
+	        #Msg.Scada_WriteArchiveError := FALSE;
+	    END_IF;
+	    
+	END_REGION
+	
+	REGION #Status 0 - Wait command
+	IF #Status = 0 THEN
+	    
+	    #Sts.ProgramUpdated := FALSE;
+	    //Reset open
+	    #HMI.Open.InProgress := FALSE;
+	    #SCADA.Open.InProgress := FALSE;
+	    //Reset delete
+	    #HMI.Delete.InProgress := FALSE;
+	    #SCADA.Delete.InProgress := FALSE;
+	    //Reset new
+	    #HMI.New.InProgress := FALSE;
+	    //Reset save
+	    #HMI.Save.InProgress := FALSE;
+	    #SCADA.Save.InProgress := FALSE;
+	    //Reset copy
+	    #HMI.Copy.InProgress := FALSE;
+	    #tonCopyDelay.TON(IN := FALSE,
+	                      PT := T#250ms);
+	    #HMI.Copy.SaveAsPNo := 0;
+	    //Reset update pivot
+	    #HMI.PivotUpdate.InProgress := FALSE;
+	    #HMI.PivotUpdate.ProgressPercentage := 0.0;
+	    //Reset Show Popup
+	    #HMI.PopUpConfirm.ShowPopup := FALSE;
+	    
+	    IF #SCADA.Save.Execute AND NOT #Sts.ScadaOpBusy THEN
+	        #SCADA.Save.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #SCADA.Save.Number;
+	    ELSIF #SCADA.Delete.Execute AND NOT #Sts.ScadaOpBusy THEN
+	        #SCADA.Delete.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #SCADA.Delete.Number;
+	    ELSIF #SCADA.Open.Execute AND NOT #Sts.ScadaOpBusy THEN
+	        #SCADA.Open.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #SCADA.Open.Number;
+	    ELSIF #HMI.Open.ButtonExecute THEN
+	        #HMI.Open.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #HMI.#ProgramNumber;
+	    ELSIF #HMI.Delete.ButtonExecute THEN
+	        #HMI.Delete.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #HMI.ProgramNumber;
+	    ELSIF #HMI.New.ButtonExecute THEN
+	        #HMI.New.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #HMI.ProgramNumber;
+	    ELSIF #HMI.Save.ButtonExecute THEN
+	        #HMI.Save.InProgress := TRUE;
+	        #HMI.Save.ShowPopUpSaveAs := FALSE;
+	        #Status := 10;
+	        IF #HMI.Save.SaveAsPNo <= 0 THEN
+	            #Sts.ProgramNumberToManage := #RWDHeader_HMI.PrgNo;
+	        ELSE
+	            #Sts.ProgramNumberToManage := #HMI.Save.SaveAsPNo;
+	        END_IF;
+	    ELSIF #HMI.Copy.ButtonExecute THEN
+	        #HMI.Copy.InProgress := TRUE;
+	        #Status := 10;
+	        #Sts.ProgramNumberToManage := #HMI.ProgramNumber;
+	    ELSIF #HMI.PivotUpdate.ButtonExecute OR "Sys".FirstPLCCycle THEN
+	        #HMI.PivotUpdate.InProgress := TRUE;
+	        #Status := 100;
+	    END_IF;
+	    
+	    IF #Status = 0 THEN
+	        GOTO lblGET;
+	        ; //RETURN;
+	    ELSE
+	        IF #Sts.ProgramNumberToManage <= 0 AND NOT #HMI.PivotUpdate.InProgress THEN
+	            IF #SCADA.Save.InProgress THEN
+	                #Msg.Scada_WrongPrgNo := TRUE;
+	                #SCADA.Save.ErrorNo := 2;
+	                #Status := 0;
+	            ELSIF #SCADA.Delete.InProgress THEN
+	                #Msg.Scada_WrongPrgNo := TRUE;
+	                #SCADA.Delete.ErrorNo := 2;
+	                #Status := 0;
+	            ELSIF #SCADA.Open.InProgress THEN
+	                #Msg.Scada_WrongPrgNo := TRUE;
+	                #SCADA.Open.ErrorNo := 2;
+	                #Status := 0;
+	            ELSE
+	                #HMI.Error.ErrorNo := 1;
+	                #Status := 999;
+	            END_IF;
+	        END_IF;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 10 - Verify program presence inside PIVOT
+	IF #Status = 10 THEN
+	    
+	    #Sts.PivotRecordRW := 0;
+	    #Sts.PivotIndexRW := 0;
+	    #Sts.PivotRecordFirstFree := 0;
+	    #Sts.PivotIndexRecordFirstFree := 0;
+	    
+	    FOR #i := 1 TO #AcrhiveDimension DO
+	        //Check the program presence on the table
+	        IF #PIVOT[#i].PrgNo = #Sts.ProgramNumberToManage AND
+	            #Sts.PivotIndexRW = 0
+	        THEN
+	            #Sts.PivotIndexRW := #i;
+	            #Sts.PivotRecordRW := #PIVOT[#i].RecordNo;
+	        END_IF;
+	        //Check the fist record free in case of a new program
+	        IF #PIVOT[#i].PrgNo = 0 AND #PIVOT[#i].RecordNo >= 1 AND
+	            #PIVOT[#i].RecordNo <= #AcrhiveDimension AND
+	            #Sts.PivotRecordFirstFree = 0
+	        THEN
+	            #Sts.PivotIndexRecordFirstFree := #i;
+	            #Sts.PivotRecordFirstFree := #PIVOT[#i].RecordNo;
+	        END_IF;
+	    END_FOR;
+	    
+	    IF #HMI.Save.InProgress OR #SCADA.Save.InProgress THEN
+	        IF #Sts.PivotRecordRW <= 0 AND #Sts.PivotRecordFirstFree <= 0 THEN
+	            IF #HMI.Save.InProgress THEN
+	                #HMI.Error.ErrorNo := 4;
+	                #Status := 999;
+	            ELSE
+	                #Msg.Scada_ArchiveFull := TRUE;
+	                #SCADA.Save.ErrorNo := 5;
+	                #Status := 0;
+	            END_IF;
+	        ELSE
+	            #Status := 20;
+	        END_IF;
+	    ELSIF #HMI.New.InProgress THEN
+	        IF #Sts.PivotRecordRW > 0 THEN
+	            #HMI.Error.ErrorNo := 2;
+	            #Status := 999;
+	        ELSIF #Sts.PivotRecordFirstFree <= 0 THEN
+	            #HMI.Error.ErrorNo := 4;
+	            #Status := 999; 
+	        ELSE          
+	            #Status := 11;
+	        END_IF;
+	    ELSIF #HMI.Delete.InProgress OR #SCADA.Delete.InProgress THEN
+	        IF #Sts.PivotRecordRW <= 0 THEN
+	            IF #HMI.Delete.InProgress THEN
+	                #HMI.Error.ErrorNo := 1;
+	                #Status := 999;
+	            ELSE
+	                #Msg.Scada_WrongPrgNo := TRUE;
+	                #SCADA.Delete.ErrorNo := 2;
+	                #Status := 0;
+	            END_IF;
+	        ELSE
+	            #Status := 15;
+	        END_IF;
+	    ELSIF #HMI.Open.InProgress OR #SCADA.Open.InProgress THEN
+	        IF #Sts.PivotRecordRW <= 0 THEN
+	            IF #HMI.Open.InProgress THEN
+	                #Status := 11;
+	            ELSE
+	                #Msg.Scada_WrongPrgNo := TRUE;
+	                #SCADA.Open.ErrorNo := 2;
+	                #Status := 0;
+	            END_IF;
+	        ELSE
+	            #Status := 15;
+	        END_IF;
+	    ELSIF #HMI.Copy.InProgress THEN
+	        IF #Sts.PivotRecordRW <= 0 THEN
+	            #HMI.Error.ErrorNo := 1;
+	            #Status := 999;
+	        ELSE
+	            #Status := 11;
+	        END_IF;
+	    ELSIF #GET_ITF.InProgress THEN
+	        IF #Sts.PivotRecordRW <= 0 THEN 
+	            #GET_ITF.Error := TRUE;
+	            #GET_ITF.InProgress := FALSE;
+	            #Status := 0;
+	        ELSE
+	            #Status := 15;
+	        END_IF;
+	    ELSE
+	        #Status := 999;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 11 - Wait confim NEW PROGRAM
+	    IF #Status = 11 THEN
+	        #HMI.PopUpConfirm.ShowPopup := TRUE;
+	        IF #HMI.Copy.InProgress THEN
+	            #HMI.PopUpConfirm.PopupPNo := #PIVOT[#Sts.PivotIndexRW].PrgNo;
+	            #HMI.PopUpConfirm.PopupPrgName := #PIVOT[#Sts.PivotIndexRW].PrgName;
+	        ELSE
+	            #HMI.PopUpConfirm.PopupPNo := #Sts.ProgramNumberToManage;
+	            #HMI.PopUpConfirm.PopupPrgName := '';
+	        END_IF;
+	        IF #HMI.PopUpConfirm.ButtonConfirmYes THEN
+	            #HMI.PopUpConfirm.ButtonConfirmYes := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmNo := FALSE;
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            IF #HMI.Copy.InProgress THEN
+	                #Status := 15;
+	            ELSE
+	                #HMI.New.InProgress := TRUE;
+	                #HMI.Open.InProgress := FALSE;
+	                #Status := 12;
+	            END_IF;
+	        ELSIF #HMI.PopUpConfirm.ButtonConfirmNo THEN
+	            #HMI.PopUpConfirm.ButtonConfirmYes := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmNo := FALSE;
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            #Status := 0;
+	        END_IF;
+	        
+	    END_IF;
+	END_REGION
+	
+	REGION #Status 12 - Create new Program
+	    IF #Status = 12 THEN
+	        
+	        #RWDHeader_HMI.PrgNo := #HMI.ProgramNumber;
+	        #RWDHeader_HMI.PrgName := 'New empty program';
+	        #HMI.New.Done := TRUE;
+	        #HMI.Save.InProgress := TRUE;
+	        #Status := 20;
+	        
+	    END_IF;
+	END_REGION
+	
+	REGION #Status 15 - Read Data
+	IF #Status = 15 THEN
+	    IF #SCADA.Open.InProgress THEN
+	        "ReadRecord"(ArchiveType := #ArchiveNo,
+	                     Exe := #Ctrl.ReadExe,
+	                     RecordToRead := #Sts.PivotRecordRW,
+	                     Done => #Sts.ReadDone,
+	                     Record => #RWD_SCADA,
+	                     Error => #Sts.ReadError);
+	    ELSE
+	        "ReadRecord"(ArchiveType := #ArchiveNo,
+	                     Exe := #Ctrl.ReadExe,
+	                     RecordToRead := #Sts.PivotRecordRW,
+	                     Done => #Sts.ReadDone,
+	                     Record => #RWD_HMI,
+	                     Error => #Sts.ReadError);
+	    END_IF;
+	   
+	    #Ctrl.ReadExe := TRUE;
+	    
+	    IF #Sts.ReadDone THEN
+	        IF #SCADA.Delete.InProgress THEN
+	            IF #SCADA.Delete.Number = #RWDHeader_HMI.PrgNo THEN
+	                #Status := 20;
+	            ELSE
+	                #Status := 0;
+	                #Msg.Scada_WrongPivotTable := TRUE;
+	                #SCADA.Delete.ErrorNo := 4;
+	            END_IF;
+	        ELSIF #SCADA.Open.InProgress THEN
+	            IF #SCADA.Open.Number = #RWDHeader_SCADA.PrgNo THEN
+	                #SCADA.Open.Done := TRUE;
+	                #SCADA.Open.ErrorNo := 1;
+	            ELSE
+	                #Msg.Scada_WrongPivotTable := TRUE;
+	                #SCADA.Open.ErrorNo := 4;
+	            END_IF;
+	            #Status := 0;
+	        ELSIF #HMI.Delete.InProgress THEN
+	            IF #HMI.ProgramNumber = #RWDHeader_HMI.PrgNo THEN
+	                #Status := 20;
+	            ELSE
+	                #Status := 999;
+	                #HMI.Error.ErrorNo := 3;
+	            END_IF;
+	        ELSIF #HMI.Open.InProgress THEN
+	            IF #HMI.ProgramNumber = #RWDHeader_HMI.PrgNo THEN
+	                #HMI.Open.Done := TRUE;
+	                #Status := 0;
+	            ELSE
+	                #Status := 999;
+	                #HMI.Error.ErrorNo := 3;
+	            END_IF;
+	        ELSIF #HMI.Copy.InProgress THEN
+	            IF #HMI.ProgramNumber = #RWDHeader_HMI.PrgNo THEN
+	                #tonCopyDelay.TON(IN := TRUE,
+	                                  PT := T#250ms);
+	                IF #tonCopyDelay.Q THEN
+	                    #HMI.Copy.InProgress := FALSE;
+	                    #HMI.Copy.Done := TRUE;
+	                    #Sts.ProgramNumberToManage := #HMI.Copy.SaveAsPNo;
+	                    #HMI.Save.InProgress := TRUE;
+	                    #HMI.Save.SaveAsPNo := 0;
+	                    #Status := 10;
+	                END_IF;
+	            ELSE
+	                #Status := 999;
+	                #HMI.Error.ErrorNo := 3;
+	            END_IF;
+	
+	        END_IF;
+	        #Ctrl.ReadExe := FALSE;
+	        #Sts.ReadDone := FALSE;
+	        
+	    ELSIF #Sts.ReadError THEN
+	        #Ctrl.ReadExe := FALSE;
+	        #Sts.ReadError := FALSE;
+	        IF #SCADA.Delete.InProgress THEN
+	            #Status := 0;
+	            #Msg.Scada_ReadArchiveError := TRUE;
+	            #SCADA.Delete.ErrorNo := 6;
+	        ELSIF #SCADA.Open.InProgress THEN
+	            #Status := 0;
+	            #Msg.Scada_ReadArchiveError := TRUE;
+	            #SCADA.Open.ErrorNo := 6;
+	        ELSE
+	            #Status := 999;
+	            #HMI.Error.ErrorNo := 5;
+	        END_IF;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 20 - Wait confim SAVE/DELETE
+	IF #Status = 20 THEN
+	    //Manage save confirm
+	    IF #HMI.Save.InProgress OR #SCADA.Save.InProgress THEN
+	        #HMI.PopUpConfirm.ShowPopup := #Sts.PivotRecordRW > 0 AND #HMI.Save.InProgress;
+	        IF #HMI.PopUpConfirm.ShowPopup THEN
+	            #HMI.PopUpConfirm.PopupPrgName := #PIVOT[#Sts.PivotIndexRW].PrgName;
+	            #HMI.PopUpConfirm.PopupPNo := #PIVOT[#Sts.PivotIndexRW].PrgNo;
+	        END_IF;
+	        
+	        IF #HMI.PopUpConfirm.ButtonConfirmYes OR NOT #HMI.PopUpConfirm.ShowPopup THEN
+	            IF #HMI.Save.InProgress THEN
+	                #RWDHeader_HMI.PrgNo := #Sts.ProgramNumberToManage;
+	                IF #HMI.Save.SaveAsPNo > 0 OR #HMI.Copy.SaveAsPNo > 0 THEN
+	                    #RWDHeader_HMI.PrgName := CONCAT_STRING(IN1 := 'copy of ', IN2 := #RWDHeader_HMI.PrgName);
+	                END_IF;
+	            ELSE
+	                #RWDHeader_SCADA.PrgNo := #Sts.ProgramNumberToManage;
+	            END_IF;
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmYes := FALSE;
+	            #Status := 30;
+	        ELSIF #HMI.PopUpConfirm.ButtonConfirmNo THEN
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmNo := FALSE;
+	            #Status := 0;
+	            #HMI.Save.SaveAsPNo := 0;
+	            #HMI.Copy.SaveAsPNo := 0;
+	        END_IF;
+	        
+	    ELSIF #HMI.Delete.InProgress OR #SCADA.Delete.InProgress THEN
+	        #HMI.PopUpConfirm.ShowPopup := #HMI.Delete.InProgress;
+	        IF #HMI.PopUpConfirm.ShowPopup THEN
+	            #HMI.PopUpConfirm.PopupPrgName := #RWDHeader_HMI.PrgName;
+	            #HMI.PopUpConfirm.PopupPNo := #RWDHeader_HMI.PrgNo;
+	        END_IF;
+	        
+	        IF #HMI.PopUpConfirm.ButtonConfirmYes OR NOT #HMI.PopUpConfirm.ShowPopup THEN
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmYes := FALSE;
+	            #Status := 30;
+	        ELSIF #HMI.PopUpConfirm.ButtonConfirmNo THEN
+	            #HMI.PopUpConfirm.ShowPopup := FALSE;
+	            #HMI.PopUpConfirm.ButtonConfirmNo := FALSE;
+	            #Status := 0;
+	        END_IF;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 30 - Write
+	#Sts.ProgramUpdated := FALSE;
+	IF #Status = 30 THEN
+	    
+	    //Check correct record
+	    IF #Sts.PivotRecordRW >= 1 AND #Sts.PivotRecordRW <= #AcrhiveDimension THEN
+	        #Sts.RecordToWrite := #Sts.PivotRecordRW;
+	    ELSIF #Sts.PivotRecordFirstFree >= 1 AND #Sts.PivotRecordFirstFree <= #AcrhiveDimension THEN
+	        #Sts.RecordToWrite := #Sts.PivotRecordFirstFree;
+	    END_IF;
+	    
+	    //Manage save confirm
+	    IF #HMI.Save.InProgress THEN
+	        
+	        "WriteRecord"(ArchiveType := #ArchiveNo,
+	                      Exe := #Ctrl.WriteExe,
+	                      RecordToWrite := #Sts.RecordToWrite,
+	                      Record := #RWD_HMI,
+	                      Done => #Sts.WriteDone,
+	                      Error => #Sts.WriteError);
+	        
+	        #Ctrl.WriteExe := TRUE;
+	        #HMI.Save.Done := #Sts.WriteDone;
+	    ELSIF #HMI.Delete.InProgress THEN
+	        
+	        "WriteRecord"(ArchiveType := #ArchiveNo,
+	                      Exe := #Ctrl.WriteExe,
+	                      RecordToWrite := #Sts.RecordToWrite,
+	                      Record := #RWD_EMPTY,
+	                      Done => #Sts.WriteDone,
+	                      Error => #Sts.WriteError);
+	        
+	        #Ctrl.WriteExe := TRUE;
+	        #HMI.Delete.Done := #Sts.WriteDone;
+	    ELSIF #SCADA.Save.InProgress THEN
+	        
+	        "WriteRecord"(ArchiveType := #ArchiveNo,
+	                      Exe := #Ctrl.WriteExe,
+	                      RecordToWrite := #Sts.RecordToWrite,
+	                      Record := #RWD_SCADA,
+	                      Done => #Sts.WriteDone,
+	                      Error => #Sts.WriteError);
+	        
+	        #Ctrl.WriteExe := TRUE;
+	        #SCADA.Save.Done := #Sts.WriteDone;
+	    ELSIF #SCADA.Delete.InProgress THEN
+	        
+	        "WriteRecord"(ArchiveType := #ArchiveNo,
+	                      Exe := #Ctrl.WriteExe,
+	                      RecordToWrite := #Sts.RecordToWrite,
+	                      Record := #RWD_EMPTY,
+	                      Done => #Sts.WriteDone,
+	                      Error => #Sts.WriteError);
+	        
+	        #Ctrl.WriteExe := TRUE;
+	        #SCADA.Delete.Done := #Sts.WriteDone;
+	    END_IF;
+	    
+	    IF #HMI.Save.Done OR #HMI.Delete.Done OR #SCADA.Save.Done OR #SCADA.Delete.Done THEN
+	        IF #HMI.Save.Done THEN
+	            #mvRetVal := MOVE_BLK_VARIANT(SRC := #RWD_HMI, COUNT := 1, SRC_INDEX := 0, DEST_INDEX := 0, DEST => #RWD_UPDATE);
+	            #Sts.ProgramUpdated := #mvRetVal = 0;
+	            IF #HMI.Save.SaveAsPNo > 0 THEN
+	                #HMI.ProgramNumber := #HMI.Save.SaveAsPNo;
+	                #HMI.Save.SaveAsPNo := 0;
+	            END_IF;
+	        ELSIF #SCADA.Save.Done THEN
+	            #mvRetVal := MOVE_BLK_VARIANT(SRC := #RWD_SCADA, COUNT := 1, SRC_INDEX := 0, DEST_INDEX := 0, DEST => #RWD_UPDATE);
+	            #Sts.ProgramUpdated := #mvRetVal = 0;
+	            #SCADA.Save.ErrorNo := 1;
+	        ELSIF #SCADA.Delete.Done THEN
+	            #SCADA.Delete.ErrorNo := 1;
+	        END_IF;
+	        #Status := 50;
+	        #Ctrl.WriteExe := FALSE;
+	        #Sts.WriteDone := 0;
+	    ELSIF #Sts.WriteError THEN
+	        #Ctrl.WriteExe := FALSE;
+	        #Sts.WriteError := FALSE;
+	        IF #SCADA.Save.InProgress THEN
+	            #Status := 0;
+	            #Msg.Scada_WriteArchiveError := TRUE;
+	            #SCADA.Save.ErrorNo := 7;
+	        ELSIF #SCADA.Delete.InProgress THEN
+	            #Status := 0;
+	            #Msg.Scada_WriteArchiveError := TRUE;
+	            #SCADA.Delete.ErrorNo := 7;
+	        ELSE
+	            #Status := 999;
+	            #HMI.Error.ErrorNo := 6;
+	        END_IF;
+	    END_IF;
+	    
+	END_IF;
+	END_REGION
+	
+	REGION #Status 50 - Update pivot
+	IF #Status = 50 THEN// Update Pivot table...
+	    
+	    IF #HMI.Save.InProgress THEN
+	        IF #Sts.PivotRecordRW > 0 THEN
+	            #PIVOT[#Sts.PivotIndexRW].PrgNo := #RWDHeader_HMI.PrgNo;
+	            #PIVOT[#Sts.PivotIndexRW].PrgName := #RWDHeader_HMI.PrgName;
+	            #PIVOT[#Sts.PivotIndexRW].RecordNo := #Sts.PivotRecordRW;
+	        ELSE
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgNo := #RWDHeader_HMI.PrgNo;
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgName := #RWDHeader_HMI.PrgName;
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].RecordNo := #Sts.PivotRecordFirstFree;
+	        END_IF;
+	    ELSIF #SCADA.Save.InProgress THEN
+	        IF #Sts.PivotRecordRW > 0 THEN
+	            #PIVOT[#Sts.PivotIndexRW].PrgNo := #RWDHeader_SCADA.PrgNo;
+	            #PIVOT[#Sts.PivotIndexRW].PrgName := #RWDHeader_SCADA.PrgName;
+	            #PIVOT[#Sts.PivotIndexRW].RecordNo := #Sts.PivotRecordRW;
+	        ELSE
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgNo := #RWDHeader_SCADA.PrgNo;
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgName := #RWDHeader_SCADA.PrgName;
+	            #PIVOT[#Sts.PivotIndexRecordFirstFree].RecordNo := #Sts.PivotRecordFirstFree;
+	        END_IF;
+	    ELSIF #HMI.Delete.InProgress OR #SCADA.Delete.InProgress THEN
+	            IF #Sts.PivotRecordRW > 0 THEN
+	                #PIVOT[#Sts.PivotIndexRW].PrgNo := 0;
+	                #PIVOT[#Sts.PivotIndexRW].PrgName := '';
+	                #PIVOT[#Sts.PivotIndexRW].RecordNo := #Sts.PivotRecordRW;
+	            ELSE
+	                #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgNo := 0;
+	                #PIVOT[#Sts.PivotIndexRecordFirstFree].PrgName := '';
+	                #PIVOT[#Sts.PivotIndexRecordFirstFree].RecordNo := #Sts.PivotRecordRW;
+	            END_IF;
+	     END_IF;
+	    
+	   #Status := 105;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 100 - Update Pivot
+	IF #Status = 100 THEN
+	    #Sts.PercentageUnitVal := 100.0 / INT_TO_REAL(#AcrhiveDimension);
+	    #HMI.PivotUpdate.ProgressPercentage := 0.0;
+	    #Sts.IndexToUpdate := 1;
+	    #Sts.ListFirstIndex := 1;
+	    #Status := 101;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 101 - Read data
+	IF #Status = 101 THEN
+	
+	    "ReadRecord"(ArchiveType:=#ArchiveNo,
+	                 Exe:=TRUE,RecordToRead:=#Sts.IndexToUpdate,
+	                 Done=>#Sts.ReadDone,Record=>#RWD_HMI,
+	                 Error=>#Sts.ReadError);
+	    
+	    IF #Sts.ReadDone THEN
+	        #Sts.ReadDone := FALSE;
+	        #Status := 102;
+	    ELSIF #Sts.ReadError THEN
+	        #Sts.ReadError := FALSE;
+	        #Status := 999;
+	        #HMI.Error.ErrorNo := 5;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 102 - Compile pivot
+	IF #Status = 102 THEN
+	
+	    #PIVOT[#Sts.IndexToUpdate].PrgNo := #RWDHeader_HMI.PrgNo;
+	    #PIVOT[#Sts.IndexToUpdate].PrgName := #RWDHeader_HMI.PrgName;
+	    #PIVOT[#Sts.IndexToUpdate].RecordNo := #Sts.IndexToUpdate;
+	    #HMI.PivotUpdate.ProgressPercentage += #Sts.PercentageUnitVal;
+	    
+	    #Status := 103;
+	END_IF;
+	
+	END_REGION
+	
+	REGION #Status 103 - Verify next step
+	IF #Status = 103 THEN
+	    IF #Sts.IndexToUpdate < #AcrhiveDimension THEN
+	        #Sts.IndexToUpdate +=1;
+	        #Status := 101;
+	    ELSE
+	        #Status := 105;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 105 - Sort Pivot
+	IF #Status = 105 THEN
+	    
+	    #SortPivotTable(Execute := TRUE,Table:=#PIVOT);
+	    
+	    IF #SortPivotTable.Done THEN
+	        #SortPivotTable.Execute := FALSE;
+	        #SortPivotTable(Table:=#PIVOT);
+	        #HMI.PivotUpdate.Done := TRUE;
+	        #Status := 0;
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	REGION #Status 999 - Error
+	IF #Status = 999 THEN
+	    IF #RstAlarms OR #HMI.Error.ButtonReset THEN
+	        #HMI.Error.ButtonReset := FALSE;
+	        #HMI.Error.ErrorNo := 0;
+	        #Status := 0;        
+	    END_IF;
+	END_IF;
+	END_REGION
+	
+	
+	
+	REGION <<< GET OPERATION >>>
+	
+	lblGET:
+	    
+	    REGION Get Status 0 - Wait command
+	        //Reset get
+	        IF NOT #GET_ITF.Execute THEN
+	            #GET_ITF.InProgress := #GET_ITF.Done := #GET_ITF.Error := FALSE;
+	        END_IF;
+	        
+	        IF #Get.Status = 0 THEN
+	            
+	            IF #GET_ITF.Execute AND NOT (#GET_ITF.Done OR #GET_ITF.Error) THEN
+	                IF #GET_ITF.PrgNo <= 0 THEN
+	                    #GET_ITF.Error := TRUE;
+	                ELSE
+	                    #GET_ITF.InProgress := TRUE;
+	                    #Get.#Status := 10;
+	                END_IF;
+	            END_IF;
+	            
+	        END_IF;
+	    END_REGION
+	
+	    REGION #Status 10 - Verify program presence inside PIVOT
+	        IF #Get.Status = 10 THEN
+	        
+	            #Get.RecordNo := 0;
+	
+	            FOR #i := 1 TO #AcrhiveDimension DO
+	                //Check the program presence on the table
+	                IF  #PIVOT[#i].PrgNo = #GET_ITF.PrgNo
+	                THEN
+	                    #Get.RecordNo := #PIVOT[#i].RecordNo;
+	                    EXIT;
+	                END_IF;
+	            END_FOR;
+	            IF #Get.RecordNo <> 0 THEN
+	                #Get.ExeRead := FALSE;
+	                #Get.Status := 15;
+	            ELSE
+	                #GET_ITF.Error := TRUE;
+	                #Get.Status := 0;
+	            END_IF;
+	        
+	        END_IF;
+	    END_REGION
+	
+	    REGION #Status 15 - Read Data
+	    IF #Get.Status = 15 THEN
+	    
+	        "ReadRecord"(ArchiveType:=#ArchiveNo,
+	                     Exe:=#Get.ExeRead,
+	                     RecordToRead:=#Get.RecordNo,
+	                     Done=>#Sts.ReadDone,
+	                     Record=>#RWD_GET,
+	                     Error=>#Sts.ReadError);
+	        #Get.ExeRead := TRUE;
+	        
+	        IF #Sts.ReadDone THEN
+	            #Sts.ReadDone := FALSE;
+	            #GET_ITF.Done := TRUE;
+	            #Get.Status := 0;
+	        ELSIF #Sts.ReadError THEN
+	            #Sts.ReadError := FALSE;
+	            #GET_ITF.Error := TRUE;
+	            #Get.Status := 0;
+	        END_IF;
+	        
+	    END_IF;
+	    END_REGION
+	
+	END_REGION
+	
+	REGION Reset Button
+	    #HMI.Open.ButtonExecute := FALSE;
+	    #HMI.Save.ButtonExecute := FALSE;
+	    #HMI.New.ButtonExecute := FALSE;
+	    #HMI.Delete.ButtonExecute := FALSE;
+	    #HMI.Copy.ButtonExecute := FALSE;
+	    #HMI.PivotUpdate.ButtonExecute := FALSE;
+	    #HMI.PopUpConfirm.ButtonConfirmNo := FALSE;
+	    #HMI.PopUpConfirm.ButtonConfirmYes := FALSE;
+	    
+	END_REGION
+	
+	
+	REGION Coordination Out 
+	    
+	    #Warning := #Msg;
+	    #COut.AlarmsPresence := FALSE;
+	    #COut.WarningPresence := #Msg.Scada_WrongPrgNo OR
+	                            #Msg.Scada_WrongPivotTable OR
+	                            #Msg.Scada_ArchiveFull OR
+	                            #Msg.Scada_ReadArchiveError OR
+	                            #Msg.Scada_WriteArchiveError;
+	                            
+	    #COut.ProgramUpdated := #Sts.ProgramUpdated;
+	                            
+	END_REGION
+	
+	
+	
+END_FUNCTION_BLOCK
+

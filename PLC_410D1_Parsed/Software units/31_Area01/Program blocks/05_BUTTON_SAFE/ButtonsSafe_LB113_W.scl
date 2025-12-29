@@ -1,0 +1,144 @@
+﻿// Block: ButtonsSafe_LB113_W
+// Title: Interlocks between operations selected
+
+FUNCTION_BLOCK "ButtonsSafe_LB113_W"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Interlocks between operations selected
+   VAR_INPUT
+      Reset_OthersPBs_Activation_IN : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Reset_OthersPBs_Activation_OUT : Bool;
+   END_VAR
+
+   VAR
+      i : Int;
+      iOperation : Int;
+      iConcurrentOperation : Int;
+      SettingWriteDone : Bool;
+      PbPanel : Buttons2Hands;
+      PB : Struct
+         ResetAlarms : Bool;
+         JBTorch_Fwd : Bool;
+         JBTorch_Bwd : Bool;
+         JBWeldMan : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      ITEMS : Int;
+      TORCH_FWD : Int;
+      TORCH_BWD : Int;
+      WELD_MAN : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Interlocks between operations selected"
+      IF Area01.AreaInterface.ManOneShot THEN
+          SettingWriteDone := FALSE;
+      END_IF;
+
+      // Interblocco tra operazioni
+      // 
+      IF NOT SettingWriteDone THEN
+          SettingWriteDone := TRUE;
+          
+          FOR iOperation := 1 TO ITEMS DO
+              FOR iConcurrentOperation := 1 TO ITEMS DO
+                  PbPanel.Enables[iOperation, iConcurrentOperation] := FALSE;
+              END_FOR;
+          END_FOR;
+          
+          
+          PbPanel.Enables[TORCH_FWD, WELD_MAN] := TRUE;
+          
+          PbPanel.Enables[WELD_MAN, TORCH_FWD] := TRUE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Buttons for Op selection"
+      PbPanel.Buttons[TORCH_FWD] := LB113_JB_Torch_Pb_Fwd;
+      PbPanel.Buttons[TORCH_BWD] := LB113_JB_Torch_Pb_Bwd;
+      PbPanel.Buttons[WELD_MAN] := LB113_JB_Weld_Pb_Man;
+
+
+   END_REGION
+
+   REGION "Operation enable"
+
+      PbPanel.OpEnabled[TORCH_FWD] := JB.COut.Torch.PlusCheckNext;
+      PbPanel.OpEnabled[TORCH_BWD] := JB.COut.Torch.MinusCheckNext;
+
+      PbPanel.OpEnabled[WELD_MAN] := JB.COut.Weld_CheckNext;
+
+   END_REGION
+
+   REGION "Operation running"
+
+      PbPanel.OpRunning[TORCH_FWD] := JB.COut.Torch.PlusRunning;
+      PbPanel.OpRunning[TORCH_BWD] := JB.COut.Torch.MinusRunning;
+
+      PbPanel.OpRunning[WELD_MAN] := JB.DataOut.WelderON;
+
+   END_REGION
+
+   REGION "Operation done"
+      PbPanel.OpDone[TORCH_FWD] := JB.COut.Torch.PlusLimitReached;
+      PbPanel.OpDone[TORCH_BWD] := JB.COut.Torch.MinusLimitReached;
+
+      PbPanel.OpDone[WELD_MAN] := FALSE;
+
+
+
+   END_REGION
+
+   REGION "Main"
+      #PbPanel(
+         en := TRUE,
+         Activation := (NOT (Reset_OthersPBs_Activation_IN) AND F_DB.LB113_W.Enable),
+         Items := #ITEMS,
+         TwoHandsPushed := F_DB.LB113_W.SafeMotion,
+         ResetAlarms => PB.ResetAlarms
+      );
+
+   END_REGION
+
+   REGION "Safe Buttons"
+      PB.JBTorch_Fwd := PbPanel.Operations[TORCH_FWD];
+      PB.JBTorch_Bwd := PbPanel.Operations[TORCH_BWD];
+      PB.JBWeldMan := PbPanel.Operations[WELD_MAN];
+
+
+   END_REGION
+
+   REGION "Lamp selection"
+
+      LB113_JB_Torch_Lp_Fwd := PbPanel.Lamps[TORCH_FWD];
+      LB113_JB_Torch_Lp_Bwd := PbPanel.Lamps[TORCH_BWD];
+
+      LB113_JB_Weld_Lp_Man := PbPanel.Lamps[WELD_MAN];
+
+
+   END_REGION
+
+   REGION "Reset others safe push buttons activation / execution"
+      Reset_OthersPBs_Activation_OUT := FALSE;
+
+      FOR i := 1 TO ITEMS DO
+          
+          IF PbPanel.Buttons[i] OR PbPanel.Operations[i] THEN
+              Reset_OthersPBs_Activation_OUT := TRUE;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

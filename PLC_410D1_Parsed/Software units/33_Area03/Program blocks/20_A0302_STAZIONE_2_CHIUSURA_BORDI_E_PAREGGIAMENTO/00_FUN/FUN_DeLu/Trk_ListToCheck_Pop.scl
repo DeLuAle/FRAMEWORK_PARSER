@@ -1,0 +1,54 @@
+﻿FUNCTION "Trk_ListToCheck_Pop" : Int
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Index : Int;   // Indice posizione da cancellare
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      RETVAL : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      "BUFFER_FUN_CLEAR-GAP_DONE" : Int := 0;
+      BUFFER_FUN_POP_RESULT_OK : Int := 0;
+   END_VAR
+
+
+BEGIN
+	// Cancella posizione POP
+	//  
+	"BTrk".A03_EXIT_TOCHECK.B[#Index] := "BTrk".Empty;
+	
+	
+	// Pulisci i gap
+	// 
+	// Ripeti fino a quando la funzione non ha retval <= 0
+	// Se < 0 = Errore OR Buffer pieno
+	// Se = 0 = Un Gap è stato recuperato
+	// 
+	// Se = 1 = Vuoto OR Tutto compattato
+	// 
+	FOR #i := 1 TO "BTRK_A03_EXIT_TOCHECK_ITEMS" DO
+	    
+	    #RETVAL := "Trk_ListToCheck_Clear_Gap"();
+	    
+	    IF #RETVAL <> #"BUFFER_FUN_CLEAR-GAP_DONE" THEN
+	        EXIT;
+	    END_IF;
+	    
+	END_FOR;
+	
+	// RETVAL OK
+	// 
+	#Trk_ListToCheck_Pop := #BUFFER_FUN_POP_RESULT_OK;
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

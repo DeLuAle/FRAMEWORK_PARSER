@@ -1,0 +1,101 @@
+﻿// Block: MwFakCalc_CALL
+// Title: Data In - PB Push Ax
+
+FUNCTION "MwFakCalc_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB Push Ax
+
+BEGIN
+   REGION "Data In - PB Push Ax"
+   END_REGION
+
+   REGION "Data In - PB Gripper"
+   END_REGION
+
+   REGION "DataIn - Sensor"
+      MwFakCalc.DataIn.MaterialPresenceEntry := A0201_Carrello_Riposizionatore_Phc_Prima_Encoder OR A0201_Profila_Phc_Prima_Encoder OR A02_DEBUG.MatPresence_AfterMW;
+      MwFakCalc.DataIn.MaterialPresenceExit := A0201_Carrello_Riposizionatore_Phc_Dopo_Encoder OR A02_DEBUG.MatPresence_AfterFAK;
+      MwFakCalc.DataIn.MaterialJam := A0201_Ls_Controllo_Inceppamento;
+
+      MwFakCalc.DataIn.PushAx_Ls_HomeFwd := A0201_Carrello_Misuratore_Posizione_Zero;
+      MwFakCalc.DataIn.PushAx_Ls_RestBwd := A0201_Carrello_Misuratore_Stop_Verso_Rest;
+      MwFakCalc.DataIn.PushAx_Ls_LowSpeedHome := A0201_Carrello_Misuratore_Rallentamento_Verso_Zero;
+      MwFakCalc.DataIn.PushAx_Ls_LowSpeedRest := A0201_Carrello_Misuratore_Rallentamento_Verso_Posizione_Rest; 
+      MwFakCalc.DataIn.PushAx_Ls_Touch := A0201_Carrello_Misuratore_In_Appoggio_Tra_Loro;
+      MwFakCalc.DataIn.Gripper_Ls_ForceOpen := A0201_Carrello_Misuratore_Posizione_Work;
+
+      MwFakCalc.DataIn.Gripper.Rest_Ls[1] := A0201_Pinza_Misuratore_Ls_Rest;
+      MwFakCalc.DataIn.Gripper.Work_Ls[1] := A0201_Pinza_Misuratore_Ls_Work;
+
+   END_REGION
+
+   REGION "Safety"
+
+      MwFakCalc.ZSI := F_DB.ZSI_Zone13;
+
+      MwFakCalc.DSI.PushAx := F_DB.DSI_S120_FAK_Pusher;
+
+      MwFakCalc.DSI.Gripper := F_DB.DSI_V_Air_A0301_A0302;
+
+   END_REGION
+
+   REGION "Drive e HWID"
+
+      MwFakCalc.Drive.PushAx.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      MwFakCalc.Drive.PushAx.AccessPoint := HW_Const_Values.CU3_PROFINET_interface_590A1_ModuleAccessPoint;
+      MwFakCalc.Drive.PushAx.AxisID := CU3_ID_6_1260A1_1_1260M1;
+      MwFakCalc.Drive.PushAx.TokenChain := TOKENCHAIN_CU3;
+
+
+      MwFakCalc.HWID.PushAx_TEL1 := HW_Const_Values.CU3_PROFINET_interface_1260A1_1_Standard_telegram_1;
+
+
+   END_REGION
+
+   REGION "Cin"
+      MwFakCalc.CIn.Manager.EnableStopDoorOpeningReq := TRUE;
+      MwFakCalc.CIn.Manager.EnableStopInPhase := RollformingMng.MachineInterface.AckStopInPhase;
+      MwFakCalc.CIn.Manager.EnableStopProgrammed := RollformingMng.MachineInterface.AckStopProgrammed;
+
+
+      MwFakCalc.CIn.Rollformer_Standstill := Rollformer.COut.Feed.Standstill;
+      MwFakCalc.CIn.Rollformer_CheckNextFwd := Rollformer.COut.Feed.Fwd_CheckNext;
+      MwFakCalc.CIn.Rollformer_CheckNextBwd := Rollformer.COut.Feed.Bwd_CheckNext;
+
+      MwFakCalc.CIn.MW_ActualFAK := PostPunchingMatCounter_PERS.PersistentValues.Data.FAK;
+
+      MwFakCalc.CIn.SemiAut_And_ButtonPressed := RollformingMng.Sts.Semiautomatic;
+
+      MwFakCalc.CIn.PostServo_MeasuredID := MwFakCalc_PS.MeasureID;
+      MwFakCalc.CIn.PostServo_MeasuredValueG := MwFakCalc_PS.MeasuredValueG;
+      MwFakCalc.CIn.PostServo_MeasuredValueW := MwFakCalc_PS.MeasuredValueW;
+
+
+   END_REGION
+
+   REGION "Machine Manager"
+      #MwFakCalc(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface,
+         Config := A02_Config.MwFakCalc,
+         PersistentValues := MwFakCalc_PERS.PersistentValues,
+         TO_Gripper_Encoder := A02_MwFacCalc_Gripper,
+         TO_Gripper_MeasInput := Gripper_MeasuInput,
+         TO_Wheel_MeasInput := Wheel_MeasInput
+      );
+
+   END_REGION
+
+   REGION "Data Out"
+      A0201_Pinza_Misuratore_V_Rest := MwFakCalc.DataOut.Gripper.RestSolenoid;
+      A0201_Pinza_Misuratore_V_Work := MwFakCalc.DataOut.Gripper.WorkSolenoid;
+
+      CU320_Trigger_Lettura_Correzione_Encoder := MwFakCalc.DataOut.MeasInput_ExeReg;
+      MwFakCalc_PS.StartMeasure :=MwFakCalc.DataOut.MeasInput_ExeReg;
+
+
+   END_REGION
+
+
+END_FUNCTION

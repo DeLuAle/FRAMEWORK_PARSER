@@ -1,0 +1,34 @@
+﻿// Block: INIT_Device_Valve
+
+FUNCTION "INIT_Device_Valve" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_IN_OUT
+      V : Valve;
+      Alarm : ValveAlr;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      V.ValveSts.AlarmPresence := FALSE;
+      V.ValveSts.RestPermit := FALSE;
+      V.ValveSts.RestInProgress := FALSE;
+      V.ValveSts.IsAtRest := TRUE;
+      V.ValveSts.WorkPermit := FALSE;
+      V.ValveSts.WorkInProgress := FALSE;
+      V.ValveSts.IsAtWork := FALSE;
+      V.ValveSts.StandStill := TRUE;
+
+      V.RestSolenoid := FALSE;
+      V.WorkSolenoid := FALSE;
+      V.ReqOilPressure := FALSE;
+
+      Alarm.TimeOutRest := FALSE;
+      Alarm.TimeOutWork := FALSe;
+      Alarm.LimitSwitches := FALSE;
+
+   END_REGION
+
+
+END_FUNCTION

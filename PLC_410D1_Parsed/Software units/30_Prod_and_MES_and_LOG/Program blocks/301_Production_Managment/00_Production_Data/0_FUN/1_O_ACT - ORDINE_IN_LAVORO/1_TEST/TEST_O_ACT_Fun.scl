@@ -1,0 +1,33 @@
+﻿// Block: TEST_O_ACT_Fun
+
+FUNCTION "TEST_O_ACT_Fun" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      IF TEST_Production.O_ACT.Push THEN
+         TEST_Production.O_ACT.Push := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 2"
+      IF TEST_Production.O_ACT.Pop THEN
+         TEST_Production.O_ACT.Pop := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 3"
+      IF TEST_Production.O_ACT.Pop_To_TODO THEN
+         TEST_Production.O_ACT.Pop_To_TODO := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4"
+      IF TEST_Production.O_ACT.Pop_To_ENDING THEN
+         TEST_Production.O_ACT.Pop_To_ENDING := FALSE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

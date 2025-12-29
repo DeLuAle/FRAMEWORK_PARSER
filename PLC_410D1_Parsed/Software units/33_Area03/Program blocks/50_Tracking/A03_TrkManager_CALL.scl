@@ -1,0 +1,18 @@
+﻿// Block: A03_TrkManager_CALL
+
+FUNCTION "A03_TrkManager_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      #A03_0102TrkManager(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         SuperUserLogged := TRUE
+      );
+
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,83 @@
+﻿FUNCTION "FC_CalcolaPuntiAccelerazione" : Bool
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      StartPos : Real;   // mm - posizione iniziale
+      EndPos : Real;   // mm - posizione finale
+      Acc : Real;   // mm/sÂ² - accelerazione
+      Dec : Real;   // mm/sÂ² - decelerazione
+      Jerk : Real;   // mm/sÂ³ - jerk massimo ammesso
+      VelMax : Real;   // mm/min - velocitÃ  massima in mm/min
+   END_VAR
+
+   VAR_OUTPUT 
+      Pos_EndAcc : Real;   // mm - punto fine accelerazione
+      Pos_StartDec : Real;   // mm - punto inizio decelerazione
+      Vel_Used : Real;   // mm/min - velocitÃ  effettiva usata
+      IsTrapezoidal : Bool;   // TRUE = profilo trapezoidale, FALSE = triangolare
+   END_VAR
+
+   VAR_TEMP 
+      TotalDist : Real;
+      Sa : Real;
+      Sd : Real;
+      Vpeak : Real;
+      SumSaSd : Real;
+      Dir : Real;
+      VelMax_Sec : Real;   // mm/s
+      Vpeak_Min : Real;   // mm/min
+      Ta : Real;   // s - tempo accelerazione
+      Td : Real;   // s - tempo decelerazione
+      Da : Real;   // mm - distanza accelerazione con jerk
+      Dd : Real;   // mm - distanza decelerazione con jerk
+   END_VAR
+
+
+BEGIN
+	
+	// Direzione del moto
+	IF #EndPos >= #StartPos THEN
+	    #Dir := 1.0;
+	ELSE
+	    #Dir := -1.0;
+	END_IF;
+	
+	// Conversione VelMax da mm/min a mm/s
+	#VelMax_Sec := #VelMax / 60.0;
+	
+	// Distanza totale
+	#TotalDist := ABS(#EndPos - #StartPos);
+	
+	// Tempo per raggiungere Acc e Dec con jerk
+	#Ta := #Acc / #Jerk;
+	#Td := #Dec / #Jerk;
+	
+	// Distanze con jerk considerato (profilo S)
+	#Da := #VelMax_Sec * #VelMax_Sec / (2.0 * #Acc) + (#Acc * #Acc) / (2.0 * #Jerk);
+	#Dd := #VelMax_Sec * #VelMax_Sec / (2.0 * #Dec) + (#Dec * #Dec) / (2.0 * #Jerk);
+	#SumSaSd := #Da + #Dd;
+	
+	IF #SumSaSd < #TotalDist THEN
+	    // Profilo trapezoidale
+	    #Vel_Used := #VelMax;
+	    #Pos_EndAcc := #StartPos + #Dir * #Da;
+	    #Pos_StartDec := #EndPos - #Dir * #Dd;
+	    #IsTrapezoidal := TRUE;
+	ELSE
+	    // Profilo triangolare
+	    #Vpeak := SQRT(2.0 * #Acc * #Dec * #TotalDist / (#Acc + #Dec));
+	    #Vpeak_Min := #Vpeak * 60.0;  // mm/min
+	    #Vel_Used := #Vpeak_Min;
+	    
+	    // Distanze con jerk (ricalcolate con Vpeak)
+	    #Da := #Vpeak * #Vpeak / (2.0 * #Acc) + (#Acc * #Acc) / (2.0 * #Jerk);
+	    #Dd := #Vpeak * #Vpeak / (2.0 * #Dec) + (#Dec * #Dec) / (2.0 * #Jerk);
+	    #Pos_EndAcc := #StartPos + #Dir * #Da;
+	    #Pos_StartDec := #EndPos - #Dir * #Dd;
+	    #IsTrapezoidal := FALSE;
+	END_IF;
+	
+	#FC_CalcolaPuntiAccelerazione := TRUE;
+	
+END_FUNCTION
+

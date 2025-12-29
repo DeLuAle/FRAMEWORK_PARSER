@@ -1,0 +1,23 @@
+﻿TYPE "Positioning_DOL_Machine_Config"
+VERSION : 0.1
+// Block: Positioning_DOL_Machine_Config
+   STRUCT
+      DelayMissingCondition : Time;
+      CyclicOBTime_ms : LReal;
+      Ax : OOAx_Config;
+      Ax_UM2 : udt_LinTranformation;
+      S120 : Struct
+         SpeedMotor : SpeedMotor_Config;
+         PowerOffDelay : Time;
+         StandstillVelocity : LReal;
+         AccTime : LReal;
+         DecTime : LReal;
+      END_STRUCT;
+      Fan : Struct
+         Presence : Bool;
+         DelayOff : Time;
+      END_STRUCT;
+      Brake_Presence : Bool;
+   END_STRUCT;
+
+END_TYPE

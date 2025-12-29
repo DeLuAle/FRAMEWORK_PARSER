@@ -1,0 +1,274 @@
+﻿FUNCTION "MES_Msg131_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      O_ID : DInt;   // ID di produzione (PLC) che richiede invio messaggio 131
+      MES_IDI : DInt;   // ID del messaggio MES→PLC che ha richiesto l’interrogazione
+      PART_PROD_Halted : "Prod_Halted";
+      BEAM_PROD_Halted : "Prod_Halted";
+   END_VAR
+
+   VAR_OUTPUT 
+      Err : "MES_Err_&_Msg";
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;   // Valore di ritorno della funzione di ricerca dati ItemProd usando ID_Prod (PLC) 
+      Msg : "MES_Msg";
+      strPayload : String;   // Stringa Payload per formare il messaggio
+      item_Prod : "Prod_Item";   // Item (Batch) di produzione da dove sono stati prelevati i dati inviati
+      indx : Int;
+      SospensioneParts : Int;
+      SospensioneBeams : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      NUMERO_MESSAGGIO : UDInt := 131;
+   END_VAR
+
+
+BEGIN
+	REGION NOTE
+	    (*
+	    PLC → MES – Topic = 131: Stato ordine di produzione
+	    
+	    Il messaggio viene inviato non appena un ordine cambia di stato, oppure in risposta a una richiesta di interrogazione da parte del MES (messaggio con Topic = 130).
+	
+	    *)
+	    
+	END_REGION ;
+	
+	#RETVAL := "PROD_FUN_RESULT_OK";
+	#MES_Msg131_Push := #RETVAL;
+	#Err.Presence := FALSE;
+	
+	
+	
+	
+	
+	
+	
+	
+	REGION Get ProdItem
+	    
+	    
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    //
+	    // Trova item di produzione corrispondente al ID_PROD (PLC)
+	    // 
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    
+	    // Trova ordine
+	    // 
+	    #RETVAL := "Prod_item_GetData"(O_ID := #O_ID, MES_IDP := '', Item => #item_Prod, indx => #indx);
+	    
+	    
+	    // Return value = #FAIL se non è stato trovato item di produzione 
+	    // 
+	    IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	        #MES_Msg131_Push := #RETVAL;
+	        #Err := "MES_Error_Set"(msg_RETVAL := #RETVAL, msg := #Msg);
+	        RETURN;
+	    
+	     END_IF;
+	     
+	END_REGION
+	
+	
+	
+	
+	
+	
+	REGION PayLoad creation
+	    
+	    
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	    //
+	    // CREAZIONE PAYLOAD
+	    // 
+	    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+	    
+	    // Creazione payload
+	    #strPayload := '';
+	    
+	    
+	    // IDI = ID del messaggio MES→PLC che ha richiesto l’interrogazione. Se = 0, il messaggio è stato inviato spontaneamente dal PLC
+	    // 
+	    IF #MES_IDI > 0 THEN
+	        
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IDI");
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #MES_IDI, NDec := 0));
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    ELSE
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IDI");
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := '0');
+	        #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    END_IF;
+	    
+	    
+	    // [IDP] Identificativo univoco che indentifica l’ordine di produzione nel PLC.
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_IDP");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := #item_Prod.MES_IDP);
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    
+	    // [SOR] Stato dell’ordine
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_SOR");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Status, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    
+	    // [STSP] Stato di sospensione della produzione dei semi-gusci. (No = 0; Sì ≥ 1).
+	    // Il ciclo automatico è fermo o in attesa delle condizioni per proseguire.
+	    
+	    #SospensioneParts := 0;
+	    
+	    IF #RETVAL = "PROD_ORDER_IS_AT_O_ACT"
+	        AND
+	        #PART_PROD_Halted.Code <> "IC_NonAttivo"
+	    THEN
+	        #SospensioneParts := 1;
+	        
+	    END_IF;
+	    
+	    
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_STSP");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #SospensioneParts, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    
+	    
+	    // [STS] Stato di #Sospensione della produzione dei pezzi.(No = 0; Sì ≥ 1)
+	    // Il ciclo automatico è fermo o in attesa delle condizioni per proseguire.
+	    
+	    
+	    
+	    
+	    #SospensioneBeams := 0;
+	    
+	    IF  (
+	        #RETVAL = "PROD_ORDER_IS_AT_O_ACT" 
+	        OR
+	        #RETVAL = "PROD_ORDER_IS_AT_O_ENDING" 
+	        )
+	        AND
+	        #BEAM_PROD_Halted.Code <> "IC_NonAttivo"
+	    THEN
+	        #SospensioneBeams := 1;
+	      
+	    END_IF;
+	    
+	    
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_STS");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #SospensioneBeams, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    
+	    // [QG] Numero di pezzi prodotti e conformi.
+	    //
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QG");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Beams_GOOD, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [QGR] Numero di pezzi prodotti conformi dopo ricondizionamento operatore.
+	    //
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QGR");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Beams_GOOD_R, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [QNG] Numero di pezzi non conformi.
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QNG");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Beams_NG, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [QPG] Numero di semi-gusci (parti) prodotti e conformi
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QPG");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Parts_GOOD, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	    // [QPGR]  Numero di semi-gusci (parti) prodotti e conformi dopo ricondizionamento operatore.
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QPGR");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Parts_GOOD_R, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    // [QPNG]   Numero di semi-gusci non conformi. (Nota: 1 parte = 0.5 pezzo)
+	    // 
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_QPNG");
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "Conv_NUM_to_STRING"(NumericValue := #item_Prod.Parts_NG, NDec := 0));
+	    #strPayload := CONCAT(IN1 := #strPayload, IN2 := "MES_MSG_KEY_SEPARATOR");
+	    
+	    
+	END_REGION ;
+	
+	REGION PUSH messaggio
+	    
+	    // Incrementa ultimo ID
+	    // 
+	    "MES_Send_Buffer_Msg_Topic1XX".lastId := "Inc_DINT_Circ"("MES_Send_Buffer_Msg_Topic1XX".lastId);
+	    
+	    
+	    // Prepararazione messaggio
+	    // 
+	    #Msg.Id := "MES_Send_Buffer_Msg_Topic1XX".lastId;
+	    #Msg.timestamp := "Conv_DT_to_STRING"("Now"());
+	    #Msg.topic := #NUMERO_MESSAGGIO;
+	    #Msg.payLoad := #strPayload;
+	    
+	    
+	    // Push messaggio
+	    // 
+	    #RETVAL := "MES_Buffer_Push"(Msg := #Msg,
+	                                 Evaluate_FULL := "ProductionMng_PERS".Pers.Data.MODE.MES_ON,
+	                                 Buffer_msg := "MES_Send_Buffer_Msg_Topic1XX".msg);
+	    
+	    // Push messaggio LOG
+	    // 
+	    "IPC_Push_Log_MES"(Msg := #Msg, Ack := #RETVAL);
+	    
+	    
+	    IF #RETVAL < "PROD_FUN_RESULT_OK" THEN
+	        #MES_Msg131_Push := #RETVAL;
+	        #Err := "MES_Error_Set"(msg_RETVAL := #RETVAL, msg := #Msg);
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    // Return value = OK
+	    // 
+	    #MES_Msg131_Push := "PROD_FUN_RESULT_OK";
+	    RETURN;
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,44 @@
+﻿// Block: PitTable1_CALL
+// Title: Data In - PB
+
+FUNCTION "PitTable1_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - PB
+
+BEGIN
+   REGION "Data In - PB"
+      PitTable1.DataIn.Pb_Up := NOT ((NOT (LB103_PitTableLoop1_Sel_Up) AND NOT (A02_HMI.MB2.Button.PitTable1.Work)));
+      PitTable1.DataIn.Pb_Dwn := NOT ((NOT (LB103_PitTableLoop1_Sel_Down) AND NOT (A02_HMI.MB2.Button.PitTable1.Rest)));
+   END_REGION
+
+   REGION "Data in - Ls"
+      PitTable1.DataIn.Ls_Down := Ansa1_Coprifossa_Ls_Basso;
+      PitTable1.DataIn.Ls_Up := Ansa1_Coprifossa_Ls_Alto;
+   END_REGION
+
+   REGION "Coordination in"
+      PitTable1.CIn.Manager := RollformingMng.COut.PitTable;
+      PitTable1.CIn.ExtEnable_Up := NOT (Areas_ITF.A02.MaterialPresence_Entry);
+      PitTable1.CIn.ExtEnable_Down := TRUE;
+   END_REGION
+
+   REGION "Machine !!! Verificare DSI !!!"
+      #PitTable1(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface,
+         ZSI := F_DB.ZSI_Zone11,
+         DSI := F_DB.DSI_V_Air_Gen,
+         Config := A02_Config.PitTableLoop1
+      );
+
+   END_REGION
+
+   REGION "Data out"
+      Ansa1_Coprifossa_V_Salita := PitTable1.Lift.DataOut.RestSolenoid;
+      Ansa1_Coprifossa_V_Discesa := PitTable1.Lift.DataOut.WorkSolenoid;
+      LB103_PitTableLoop1_Lp := PitTable1.DataOut.Lamp;
+   END_REGION
+
+
+END_FUNCTION

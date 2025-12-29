@@ -1,0 +1,39 @@
+﻿// Block: TwoHand_FB
+// Title: Two Hands LB11 - Control
+
+FUNCTION_BLOCK "TwoHand_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Two Hands LB11 - Control
+   VAR_INPUT
+      Enable : Bool;
+      ButtonL : Bool;
+      ButtonR : Bool;
+      Estop : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Sts : udt_BimanualSts;
+   END_VAR
+
+   VAR
+      TWO_H_EN : TWO_H_EN;
+   END_VAR
+
+
+BEGIN
+   REGION "Two Hands LB11 - Control"
+      #TWO_H_EN(
+         en := TRUE,
+         ENABLE := (Enable AND Estop),
+         IN1 := ButtonL,
+         IN2 := ButtonR,
+         DISCTIME := T#500ms,
+         Q => Sts.SafeMotion
+      );
+
+      Sts.Enable := Enable;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

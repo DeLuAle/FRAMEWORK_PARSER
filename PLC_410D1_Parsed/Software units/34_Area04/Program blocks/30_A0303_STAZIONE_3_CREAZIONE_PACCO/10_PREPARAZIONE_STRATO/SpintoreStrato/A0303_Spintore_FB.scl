@@ -1,0 +1,345 @@
+﻿// Block: A0303_Spintore_FB
+// Title: Reset allarmi 
+
+FUNCTION_BLOCK "A0303_Spintore_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset allarmi 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+         LsPosition1 : Bool;
+         LsMaxPosition : Bool;
+      END_STRUCT;
+      CIn : Struct
+         Manager : Struct
+            EnableStopDoorOpeningReq : Bool;
+            EnableStopInPhase : Bool;
+            EnableStopProgrammed : Bool;
+            Control_ON : Bool;
+            CanMoveFreely : Bool;
+            Rest : Bool;
+            Work : Bool;
+         END_STRUCT;
+         Manip : Struct
+            OutOfWorkspace : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Config : Struct
+         Testa : Struct
+            Vrt : ValveMachine_Config;
+            Orz : ValveMachine_Config;
+         END_STRUCT;
+         Coda : Struct
+            Vrt : ValveMachine_Config;
+            Orz : ValveMachine_Config;
+         END_STRUCT;
+         DelayMissingCondition : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Vrt : ValveMachine_COut;
+         Orz : ValveMachine_COut;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Testa : Struct
+            Vrt : ValveAlr;
+            Orz : ValveAlr;
+         END_STRUCT;
+         Coda : Struct
+            Vrt : ValveAlr;
+            Orz : ValveAlr;
+         END_STRUCT;
+         PassaggioPezzoNonOK : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Testa : Struct
+            Vrt : ValveMachine_Wng;
+            Orz : ValveMachine_Wng;
+         END_STRUCT;
+         Coda : Struct
+            Vrt : ValveMachine_Wng;
+            Orz : ValveMachine_Wng;
+         END_STRUCT;
+         OP_REST_MissingCnd : Bool;
+         OP_WORK_MissingCnd : Bool;
+      END_STRUCT;
+      HMI : Struct
+         Selection : Struct
+            Vrt : Int;
+            Orz : Int;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         OP_Rest_Man : Bool;
+         OP_Work_Man : Bool;
+         OP_Rest_Aut : Bool;
+         OP_Work_Aut : Bool;
+         OP_Rest : Bool;
+         OP_Work : Bool;
+      END_STRUCT;
+      Sts : Struct
+         OP_Ax_CanMoveFreely : Bool;
+         OP_Rest_Cnd : Bool;
+         OP_Work_Cnd : Bool;
+      END_STRUCT;
+      Vrt_Testa : ValveMachine_FB;
+      Vrt_Coda : ValveMachine_FB;
+      Orz_Testa : ValveMachine_FB;
+      Orz_Coda : ValveMachine_FB;
+      AUX : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+         LsPosition1_PE : Bool;
+         LsPosition1_NE : Bool;
+      END_STRUCT;
+      TON_OP_REST_MissingCnd : IEC_TIMER;
+      TON_OP_WORK_MissingCnd : IEC_TIMER;
+      TON_CheckPos1Ok : IEC_TIMER;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+         LsPosition1 : Bool;
+      END_STRUCT;
+      NE : Struct
+         LsPosition1 : Bool;
+      END_STRUCT;
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset allarmi"
+      IF AreaInterface.RstAlarms THEN
+          ;
+      END_IF;
+
+   END_REGION
+
+   REGION "Fronti Sensori"
+      PE.LsPosition1 := PosEdge(DataIn.LsPosition1);
+      NE.LsPosition1 := NegEdge(DataIn.LsPosition1);
+   END_REGION
+
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_Ax_CanMoveFreely := CIn.Manager.CanMoveFreely;
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.OP_Rest_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Rest);
+      Ctrl.OP_Work_Aut := (CIn.Manager.Control_ON AND CIn.Manager.Work);
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (MAN)"
+      PE.OP_Rest_PB := PosEdge(DataIn.OP_Rest_PB);
+      PE.OP_Work_PB := PosEdge(DataIn.OP_Work_PB);
+      Ctrl.OP_Rest_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Rest_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Rest_Man)) AND DataIn.OP_Rest_PB) AND NOT (DataIn.OP_Work_PB));
+      Ctrl.OP_Work_Man := (((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND PE.OP_Work_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Ctrl.OP_Work_Man)) AND DataIn.OP_Work_PB) AND NOT (DataIn.OP_Rest_PB));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Rest := NOT ((NOT (Ctrl.OP_Rest_Man) AND NOT (Ctrl.OP_Rest_Aut)));
+      Ctrl.OP_Work := NOT ((NOT (Ctrl.OP_Work_Man) AND NOT (Ctrl.OP_Work_Aut)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Rest_Cnd := (CIn.Manager.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Sts.OP_Work_Cnd := (CIn.Manager.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+   END_REGION
+
+   REGION "Verticale + Orizzontale -  Cin Manager (Esecuzione sequenza comandi)"
+      Vrt_Testa.Cin.Manager.Control_ON := Vrt_Coda.Cin.Manager.Control_ON :=
+      Orz_Testa.Cin.Manager.Control_ON := Orz_Coda.Cin.Manager.Control_ON := Ctrl.OP_Rest OR Ctrl.OP_Work;
+      //
+      Vrt_Testa.Cin.Manager.Rest := FALSE;
+      Vrt_Coda.Cin.Manager.Rest := FALSE;
+      Orz_Testa.Cin.Manager.Rest := FALSE;
+      Orz_Coda.Cin.Manager.Rest := FALSE;
+
+      //************************************
+      Vrt_Testa.Cin.Manager.Work := FALSE;
+      Vrt_Coda.Cin.Manager.Work:= FALSE;
+      Orz_Testa.Cin.Manager.Work := FALSE;
+      Orz_Coda.Cin.Manager.Work := FALSE;
+      //
+
+      IF Ctrl.OP_Rest AND Sts.OP_Rest_Cnd THEN
+          
+          Vrt_Testa.Cin.Manager.Rest := NOT Vrt_Testa.COut.Rest;
+          Vrt_Coda.Cin.Manager.Rest := NOT Vrt_Coda.COut.Rest;
+          Orz_Testa.Cin.Manager.Rest := Vrt_Testa.COut.Rest AND Vrt_Coda.COut.Rest;
+          Orz_Coda.Cin.Manager.Rest := Vrt_Testa.COut.Rest AND Vrt_Coda.COut.Rest;
+          
+          
+      ELSIF Ctrl.OP_Work AND Sts.OP_Work_Cnd THEN
+          
+          
+          Vrt_Testa.Cin.Manager.Work := Orz_Testa.COut.Rest;
+          Vrt_Coda.Cin.Manager.Work := Orz_Coda.COut.Rest;
+          
+          Orz_Testa.Cin.Manager.Work := Vrt_Testa.COut.Work AND Vrt_Coda.COut.Work;
+          Orz_Coda.Cin.Manager.Work := Vrt_Testa.COut.Work AND Vrt_Coda.COut.Work;
+              
+
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Verticale + Orizzontale - CIn Abilitazioni Manager"
+      //Stop Door Opening Request
+      Vrt_Testa.Cin.Manager.EnableStopDoorOpeningReq := Vrt_Coda.Cin.Manager.EnableStopDoorOpeningReq :=
+      Orz_Testa.Cin.Manager.EnableStopDoorOpeningReq := Orz_Coda.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager.EnableStopDoorOpeningReq;
+
+      //Stop In Phase
+      Vrt_Testa.Cin.Manager.EnableStopInPhase := Vrt_Coda.Cin.Manager.EnableStopInPhase :=
+      Orz_Testa.Cin.Manager.EnableStopInPhase := Orz_Coda.Cin.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;
+
+      //Stop Programmed
+      Vrt_Testa.Cin.Manager.EnableStopProgrammed := Vrt_Coda.Cin.Manager.EnableStopProgrammed :=
+      Orz_Testa.Cin.Manager.EnableStopProgrammed := Orz_Coda.Cin.Manager.EnableStopProgrammed := CIn.Manager.EnableStopProgrammed;
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_OP_REST_MissingCnd(
+         IN := Ctrl.OP_Rest,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_WORK_MissingCnd(
+         IN := Ctrl.OP_Work,
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
+         Warning.OP_REST_MissingCnd := FALSE;
+      ELSIF #TON_OP_REST_MissingCnd.Q THEN
+         Warning.OP_REST_MissingCnd := TRUE;
+      END_IF;
+      IF (Sts.OP_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
+         Warning.OP_WORK_MissingCnd := FALSE;
+      ELSIF #TON_OP_WORK_MissingCnd.Q THEN
+         Warning.OP_WORK_MissingCnd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Verticale - CIn External alarm"
+      Vrt_Testa.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Verticale - Cin Ext Enable"
+      Vrt_Testa.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Vrt_Testa.Cin.Work_ExtEnable := ((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND CIn.Manip.OutOfWorkspace);
+   END_REGION
+
+   REGION "Verticale - Valve Manager"
+      #Vrt_Testa(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Testa.Vrt,
+         Alarm := Alarm.Testa.Vrt,
+         Warning := Warning.Testa.Vrt
+      );
+
+   END_REGION
+
+   REGION "Orizzontale - CIn External alarm"
+      Orz_Testa.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Orizzontale - Cin Ext Enable"
+      Orz_Testa.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Orz_Testa.Cin.Work_ExtEnable := ((CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND CIn.Manip.OutOfWorkspace);
+   END_REGION
+
+   REGION "Orizzontale - Valve Manager"
+      #Orz_Testa(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Testa.Orz,
+         Alarm := Alarm.Testa.Orz,
+         Warning := Warning.Testa.Orz
+      );
+
+   END_REGION
+
+   REGION "Verticale - CIn External alarm"
+      Vrt_Coda.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Verticale - Cin Ext Enable"
+      Vrt_Coda.Cin.Rest_ExtEnable := (CIn.Manager.Control_ON OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Vrt_Coda.Cin.Work_ExtEnable := ((Orz_Coda.COut.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND CIn.Manip.OutOfWorkspace);
+   END_REGION
+
+   REGION "Verticale - Valve Manager"
+      #Vrt_Coda(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Coda.Vrt,
+         Alarm := Alarm.Coda.Vrt,
+         Warning := Warning.Coda.Vrt
+      );
+
+   END_REGION
+
+   REGION "Orizzontale - CIn External alarm"
+      Orz_Coda.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Orizzontale - Cin Ext Enable"
+      Orz_Coda.Cin.Rest_ExtEnable := (Vrt_Coda.COut.Rest OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely));
+      Orz_Coda.Cin.Work_ExtEnable := ((Vrt_Coda.COut.Work OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND Sts.OP_Ax_CanMoveFreely)) AND CIn.Manip.OutOfWorkspace);
+   END_REGION
+
+   REGION "Orizzontale - Valve Manager"
+      #Orz_Coda(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Coda.Orz,
+         Alarm := Alarm.Coda.Orz,
+         Warning := Warning.Coda.Orz
+      );
+
+   END_REGION
+
+   REGION "Verticale - COut"
+      COut.Vrt.Rest := (Vrt_Testa.COut.Rest AND Vrt_Coda.COut.Rest);
+      COut.Vrt.Work := (Vrt_Testa.COut.Work AND Vrt_Coda.COut.Work);
+      COut.Vrt.Standstill := (Vrt_Testa.COut.Standstill AND Vrt_Coda.COut.Standstill);
+   END_REGION
+
+   REGION "Orizzontale - COut"
+      COut.Orz.Rest := (Orz_Testa.COut.Rest AND Orz_Coda.COut.Rest);
+      COut.Orz.Work := (Orz_Testa.COut.Work AND Orz_Coda.COut.Work);
+      COut.Orz.Standstill := (Orz_Testa.COut.Standstill AND Orz_Coda.COut.Standstill);
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

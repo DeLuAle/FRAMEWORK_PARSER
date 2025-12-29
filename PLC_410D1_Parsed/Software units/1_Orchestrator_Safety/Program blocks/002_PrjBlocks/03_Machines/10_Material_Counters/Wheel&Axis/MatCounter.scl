@@ -1,0 +1,377 @@
+﻿// Block: MatCounter
+// Title: Save persistent pos axis value
+
+FUNCTION_BLOCK "MatCounter"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Save persistent pos axis value
+   VAR_INPUT
+      CIn : MatCountCIn;
+      StandstillVelocityThreshold : LReal;
+      Config : Struct
+         Default_FAK : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      COut : Struct
+         AlarmsPresence : Bool;
+         WarningsPresence : Bool;
+         StopFeeding : Bool;
+         CounterValid : Bool;
+         Standstill : Bool;
+         PresetDone : Bool;
+         ActualVelocity : LReal;
+      END_STRUCT;
+      Alr : Struct
+         CounterNotInOperation : Bool;
+      END_STRUCT;
+      Wng : Struct
+         EncoderNotValid : Bool;
+         EncoderPosNotValid : Bool;
+         PresetRunning : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : MatCountPersistent;
+   END_VAR
+
+   VAR
+      Status : Int;
+      Sts : Struct
+         PLCStartUpDone : Bool;
+         Initialization : Bool;
+         InOperation : Bool;
+         PresetDone : Bool;
+         FAKCalcDoneAndApply : Bool;
+         RestorePreviousFAKDone : Bool;
+         FAKManChangeApply : Bool;
+         SetDefaultFAKDone : Bool;
+         FAKManChange : Bool;
+         HMIOperationDone : Bool;
+         NewPositionToForce : LReal;
+         NewFAK : LReal;
+         VelocityLessThanThreshold : Bool;
+      END_STRUCT;
+      tonInOperation : TON_TIME;
+      tonOpDone : TON_TIME;
+      HMI : Struct
+         PbFAKCalculation : Bool;
+         PbFAKDefault : Bool;
+         PbFAKPrevious : Bool;
+         FAKSetDefaultDone : Bool;
+         FAKCalcDone : Bool;
+         FAKSetPrevDone : Bool;
+         LenghtDesired : LReal;
+         LenghtMeasured : LReal;
+         FAKPrevious : LReal;
+         FAKDefault : LReal;
+      END_STRUCT;
+      Aux : Struct
+         PbFAKCalculation : Bool;
+         PbFAKDefault : Bool;
+         PbFAKPrevious : Bool;
+      END_STRUCT;
+      Check_Velocity : Check_Axis_Velocity;
+   END_VAR
+
+   VAR_TEMP
+      InOperationCnd : Bool;
+      ActualFAK : LReal;
+      AxPosFAK : LReal;
+      FAKCalculationExe : Bool;
+      FAKDefaultExe : Bool;
+      FAKPreviousExe : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      "0_INIT" : Int;
+      "1_IN_OPERATION" : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Save persistent pos axis value"
+      PersistentValues.Data.AxPosition := CIn.AxisPos;
+   END_REGION
+
+   REGION "Save Configuratio data in the persistent data for to be used in  the conversion function"
+      PersistentValues.Data.COUNTER_MODULE := #MATERIAL_COUNTERS_MODULE;
+   END_REGION
+
+   REGION "Reset startup done"
+      IF Sys.FirstPLCCycle THEN
+         Sts.PLCStartUpDone := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Fp HMI Buttons"
+      FAKCalculationExe := PosEdge(HMI.PbFAKCalculation);
+      FAKDefaultExe := PosEdge(HMI.PbFAKDefault);
+      FAKPreviousExe := PosEdge(HMI.PbFAKPrevious);
+   END_REGION
+
+   REGION "In operation delayed"
+      #tonInOperation(
+         IN := ((Sts.PLCStartUpDone AND CIn.EncoderValid) AND CIn.EncoderPosValid),
+         PT := T#10S
+      );
+
+      InOperationCnd := #tonInOperation.Q;
+      IF NOT (#tonInOperation.Q) THEN
+         Status := 0;
+      END_IF;
+   END_REGION
+
+   REGION "Main"
+      CASE Status OF
+              
+          0_INIT:
+              
+              //Reset several status
+              Sts.Initialization := TRUE;
+              Sts.InOperation := FALSE;
+              Sts.PresetDone := FALSE;
+              Sts.FAKCalcDoneAndApply := FALSE;
+              Sts.RestorePreviousFAKDone := FALSE;
+              Sts.FAKManChangeApply := FALSE;
+              
+              
+              
+              // Check FAK Value
+              IF (PersistentValues.Data.FAK < FAK_MIN_VALUE) OR (PersistentValues.Data.FAK > FAK_MAX_VALUE) THEN
+                  PersistentValues.Data.FAK := Config.Default_FAK;
+              END_IF;
+              
+              PersistentValues.Data.FAK := PersistentValues.Par.FAK;
+              
+              //If conditions are ok then start
+              IF InOperationCnd THEN
+                  
+                  IF PersistentValues.Data.CounterValueInit > 0.0 THEN
+                      Sts.NewPositionToForce := PersistentValues.Data.CounterValueInit;
+                  ELSE
+                      Sts.NewPositionToForce := 0.0;
+                  END_IF;
+                  
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+
+                  Status := 1_IN_OPERATION;
+              END_IF;
+              
+          1_IN_OPERATION:
+              
+              Sts.Initialization := FALSE;
+              Sts.InOperation := TRUE;
+              
+              //Update counter
+              MatCounter_UPD(Data:=PersistentValues.Data);
+                                                
+              
+              //=====================================================
+              //PRESET
+              //=====================================================
+              IF CIn.PresetExe AND NOT Sts.PresetDone THEN
+                  Sts.NewPositionToForce := CIn.PresetPosition;
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+                  
+                  Sts.PresetDone := TRUE;
+              END_IF;
+              
+              IF NOT CIn.PresetExe AND Sts.PresetDone THEN
+                  Sts.PresetDone := FALSE;
+              END_IF;
+              
+              //=====================================================
+              //NEW FAK
+              //=====================================================
+              IF FAKCalculationExe AND NOT Sts.FAKCalcDoneAndApply THEN
+                  
+                  Sts.NewPositionToForce := PersistentValues.Data.CounterValue;
+                  
+                  Sts.NewFAK := ( HMI.LenghtMeasured / HMI.LenghtDesired ) * PersistentValues.Data.FAK;
+                  
+                  PersistentValues.Data.FAKPrevious := PersistentValues.Data.FAK;
+                  PersistentValues.Data.FAK := Sts.NewFAK;
+                  PersistentValues.Par.FAK := Sts.NewFAK;
+                  HMI.LenghtMeasured := HMI.LenghtDesired;
+                  
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+                  
+                  Sts.FAKCalcDoneAndApply := TRUE;
+              END_IF;
+              //=====================================================
+              //DEFAULT FAK
+              //=====================================================
+              IF FAKDefaultExe AND NOT Sts.SetDefaultFAKDone THEN
+                  Sts.NewPositionToForce := PersistentValues.Data.CounterValue;
+                  Sts.NewFAK := Config.Default_FAK;
+                  PersistentValues.Data.FAKPrevious := PersistentValues.Data.FAK;
+                  PersistentValues.Data.FAK := Sts.NewFAK;
+                  PersistentValues.Par.FAK := Sts.NewFAK;
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+                  
+                  Sts.SetDefaultFAKDone := TRUE;
+              END_IF;
+              //=====================================================
+              //PREVIOUS FAK
+              //=====================================================
+              IF FAKPreviousExe AND NOT Sts.FAKCalcDoneAndApply THEN
+                  Sts.NewPositionToForce := PersistentValues.Data.CounterValue;
+                  Sts.NewFAK := PersistentValues.Data.FAKPrevious;
+                  PersistentValues.Data.FAKPrevious := PersistentValues.Data.FAK;
+                  PersistentValues.Data.FAK := Sts.NewFAK;
+                  PersistentValues.Par.FAK := Sts.NewFAK;
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+                  
+                  Sts.RestorePreviousFAKDone := TRUE;
+              END_IF;
+              //=====================================================
+              //MANUAL FAK
+              //=====================================================
+              IF Sts.FAKManChange AND NOT Sts.FAKManChangeApply THEN
+                  Sts.NewPositionToForce := PersistentValues.Data.CounterValue;
+                  Sts.NewFAK := PersistentValues.Par.FAK;
+                  PersistentValues.Data.FAKPrevious := PersistentValues.Data.FAK;
+                  PersistentValues.Data.FAK := Sts.NewFAK;
+                  PersistentValues.Par.FAK := Sts.NewFAK;
+                  AxPosFAK := PersistentValues.Data.AxPosition * PersistentValues.Data.FAK;
+                  PersistentValues.Data.CounterOffset := Sts.NewPositionToForce - AxPosFAK;
+                  
+                  //Update counter
+                  MatCounter_UPD(Data := PersistentValues.Data);
+                  
+                  Sts.FAKManChangeApply := TRUE;
+              END_IF;
+      END_CASE;
+
+   END_REGION
+
+   REGION "Save counter value for reloading at system start up"
+      IF Sts.InOperation THEN
+         PersistentValues.Data.CounterValueInit := PersistentValues.Data.CounterValue;
+      END_IF;
+   END_REGION
+
+   REGION "Counter not in opration"
+      IF (CIn.Rst OR Sts.InOperation) THEN
+         Alr.CounterNotInOperation := FALSE;
+      ELSIF CIn.CheckNextFeeding THEN
+         Alr.CounterNotInOperation := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Encoder not valid"
+      Wng.EncoderNotValid := NOT (CIn.EncoderValid);
+   END_REGION
+
+   REGION "Encoder pos not valid"
+      Wng.EncoderPosNotValid := NOT (CIn.EncoderPosValid);
+   END_REGION
+
+   REGION "Preset running"
+      Wng.PresetRunning := CIn.PresetExe;
+   END_REGION
+
+   REGION "HMI operation done message show"
+      #tonOpDone(
+         IN := NOT (((NOT (Sts.FAKCalcDoneAndApply) AND NOT (Sts.SetDefaultFAKDone)) AND NOT (Sts.RestorePreviousFAKDone))),
+         PT := T#3S
+      );
+
+      Sts.HMIOperationDone := NOT (((NOT (Sts.FAKCalcDoneAndApply) AND NOT (Sts.SetDefaultFAKDone)) AND NOT (Sts.RestorePreviousFAKDone)));
+      IF (#tonOpDone.Q AND Sts.FAKCalcDoneAndApply) THEN
+         Sts.FAKCalcDoneAndApply := FALSE;
+      END_IF;
+      IF (#tonOpDone.Q AND Sts.SetDefaultFAKDone) THEN
+         Sts.SetDefaultFAKDone := FALSE;
+      END_IF;
+      IF (#tonOpDone.Q AND Sts.RestorePreviousFAKDone) THEN
+         Sts.RestorePreviousFAKDone := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Stop Feeding"
+      COut.StopFeeding := NOT ((((Sts.InOperation AND NOT (CIn.PresetExe)) AND NOT (Sts.PresetDone)) AND NOT (Alr.CounterNotInOperation)));
+   END_REGION
+
+   REGION "Velocity less then threshold = Additional Standstill status using calculated velocity"
+      #Check_Velocity(
+         en := TRUE,
+         AcualPosition := CIn.AxisPos,
+         PositionModule := CIn.AxisModule,
+         StandstillVelocityThreshold := StandstillVelocityThreshold,
+         LessThanStandstillThreshold => Sts.VelocityLessThanThreshold
+      );
+
+   END_REGION
+
+   REGION "Update status"
+      COut.AlarmsPresence := Alr.CounterNotInOperation;
+      COut.WarningsPresence := Wng.EncoderNotValid OR Wng.EncoderPosNotValid OR Wng.PresetRunning;
+      COut.CounterValid := Sts.InOperation;
+      COut.Standstill := CIn.Standstill AND Sts.VelocityLessThanThreshold;
+      COut.PresetDone := Sts.PresetDone;
+
+      COut.ActualVelocity := Check_Velocity.VelocityCalculated;
+
+
+      PersistentValues.Data.CounterValid := COut.CounterValid;
+      PersistentValues.Data.Standstill := COut.Standstill;
+
+   END_REGION
+
+   REGION "HMI"
+      IF NOT Sts.PLCStartUpDone THEN
+          PersistentValues.Par.FAK := PersistentValues.Data.FAK;
+          HMI.PbFAKCalculation := FALSE;
+          HMI.PbFAKDefault := FALSE;
+          HMI.PbFAKPrevious := FALSE;
+          Sts.PLCStartUpDone := TRUE;
+      END_IF;
+
+      //Check FAK Value
+      PersistentValues.Par.FAK := (IN := PersistentValues.Par.FAK, MN := FAK_MIN_VALUE, MX := FAK_MAX_VALUE);
+
+
+
+
+
+      //HMI Change value
+      Sts.FAKManChange := PersistentValues.Par.FAK <> PersistentValues.Data.FAK;
+
+      IF NOT Sts.FAKManChange THEN
+          Sts.FAKManChangeApply := FALSE;
+      END_IF;
+
+      HMI.FAKDefault := Config.Default_FAK;
+      HMI.FAKPrevious := PersistentValues.Data.FAKPrevious;
+
+      HMI.FAKSetDefaultDone := Sts.HMIOperationDone AND Sts.SetDefaultFAKDone;
+      HMI.FAKCalcDone := Sts.HMIOperationDone AND Sts.FAKCalcDoneAndApply;
+      HMI.FAKSetPrevDone := Sts.HMIOperationDone AND Sts.RestorePreviousFAKDone;
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

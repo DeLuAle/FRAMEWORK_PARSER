@@ -1,0 +1,46 @@
+﻿// Block: ForceNormalStop
+// Title: Froce Normal Stop
+
+FUNCTION_BLOCK "ForceNormalStop"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Froce Normal Stop
+   VAR_INPUT
+      Door_NormalStop : Bool;
+      Door_SafeStop : Bool;
+      AreaCycleOn : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      ForceNormalStop : Bool;
+   END_VAR
+
+   VAR
+      DlyRestartAfterDoorOpn : TON;
+      MemDoorOpen : Bool;
+      MemDoorsNewClosed : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Froce Normal Stop"
+      #DlyRestartAfterDoorOpn(
+         IN := MemDoorsNewClosed,
+         PT := T#2s
+      );
+
+      IF (DlyRestartAfterDoorOpn.Q OR NOT (AreaCycleOn)) THEN
+         MemDoorOpen := FALSE;
+      ELSIF Door_NormalStop THEN
+         MemDoorOpen := TRUE;
+      END_IF;
+      IF NOT (MemDoorOpen) THEN
+         MemDoorsNewClosed := FALSE;
+      ELSIF ((MemDoorOpen AND NOT (Door_NormalStop)) AND NOT (Door_SafeStop)) THEN
+         MemDoorsNewClosed := TRUE;
+      END_IF;
+      ForceNormalStop := MemDoorsNewClosed;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,113 @@
+﻿FUNCTION "MES_Buffer_Push" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Msg : "MES_Msg";
+      Evaluate_FULL : Bool;
+   END_VAR
+
+   VAR_IN_OUT 
+      Buffer_msg : Array[*] of "MES_Msg";
+   END_VAR
+
+   VAR_TEMP 
+      myCounter : DInt;
+      index_MIN_Buffer : Int;
+      index_MAX_Buffer : Int;
+      CORREZIONE_INDICE_0 : Int;   // Indice base-0 per MOVE_BLK_VARIANT
+      i : Int;
+      RETVAL : DInt;
+      NumToShift : UDInt;
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_CLEAR_GAP_ITERATIONS : Int := 5;
+   END_VAR
+
+
+BEGIN
+	// Dimensione del buffer dei messaggi da inviare
+	// 
+	#index_MIN_Buffer := DINT_TO_INT(LOWER_BOUND(ARR := #Buffer_msg, DIM := 1));
+	#index_MAX_Buffer := DINT_TO_INT(UPPER_BOUND(ARR := #Buffer_msg, DIM := 1));
+	
+	
+	
+	// Correzione indice zero per funzione MOVE_BLK_VARIANT
+	// 
+	// Counting at the parameters SRC_INDEX AND DEST_INDEX always begins with the low limit "0", regardless OF the later declaration OF the ARRAY."
+	// 
+	IF #index_MIN_Buffer > 0 THEN
+	    #CORREZIONE_INDICE_0 := - #index_MIN_Buffer;
+	END_IF;
+	
+	
+	// Pulisci i gap
+	// 
+	
+	FOR #i := #index_MIN_Buffer TO #index_MAX_Buffer DO
+	
+	    #RETVAL := "MES_Buffer_Clear_GAP"(Buffer_msg:=#Buffer_msg);
+	    
+	    IF #RETVAL <> "PROD_FUN_RESULT_CLEAR_GAP_DONE" THEN
+	        EXIT;
+	    END_IF;
+	    
+	    IF #i >= #MAX_CLEAR_GAP_ITERATIONS THEN
+	        EXIT;
+	    END_IF;
+	    
+	    
+	END_FOR;
+	
+	
+	// Uscita per buffer pieno e non permettere di fare push su buffer pieno
+	// 
+	// 
+	IF #RETVAL < 0 AND #Evaluate_FULL AND NOT "DEBUG_MES".ENABLE  THEN
+	    
+	    #MES_Buffer_Push := #RETVAL;
+	    
+	    RETURN;
+	    
+	END_IF;
+	
+	
+	// Shift in alto del buffer..Posizione più vecchia viene eliminato...Prima posizione è duplicata
+	// 
+	#NumToShift := INT_TO_UDINT(#index_MAX_Buffer - #index_MIN_Buffer);
+	
+	IF #NumToShift > 0 THEN
+	    #RETVAL := MOVE_BLK_VARIANT(
+	                                SRC := #Buffer_msg,
+	                                COUNT := #NumToShift,
+	                                SRC_INDEX := 1 + #CORREZIONE_INDICE_0,
+	                                DEST_INDEX := 2 + #CORREZIONE_INDICE_0,
+	                                DEST => #Buffer_msg);
+	    
+	    // Uscita per errore shift
+	    // 
+	    IF #RETVAL <> 0 THEN
+	        #MES_Buffer_Push := "PROD_ERR_BUFFER_MSGs_SHIFT";
+	        RETURN;
+	    END_IF;
+	END_IF;
+	
+	// Push su prima posizione
+	// 
+	#Buffer_msg[#index_MIN_Buffer] := #Msg;
+	
+	
+	
+	// RETVAL OK 
+	//
+	#MES_Buffer_Push := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,30 @@
+﻿// Block: PTrk
+
+DATA_BLOCK PTrk
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Last_P_ID : DInt;
+      Empty : PTrk_Item;
+      A0202 : Struct
+         Empty : Bool;
+         Ready : Bool;
+         Part_Qty : Int;
+         Part_Len : Real;
+         Beam_Len_Candidate : Real;
+         P : Array[1..PTRK_A0202_ITEMS] of PTrk_Item;
+      END_STRUCT;
+      A02_EXIT_TOCHECK : Array[1..PTRK_A0202_EXIT_TOCHECK_ITEMS] of PTrk_Item;
+      A0301 : Struct
+         Empty : Bool;
+         Ready : Bool;
+         Part_Qty : Int;
+         Part_Len : Real;
+         Beam_Len_Candidate : Real;
+         P : Array[1..PTRK_A0301_ITEMS] of PTrk_Item;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

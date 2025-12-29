@@ -1,0 +1,46 @@
+﻿// Block: DelayOnOff
+// Title: Delay ON-OFF
+
+FUNCTION_BLOCK "DelayOnOff"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Delay ON-OFF
+   VAR_INPUT
+      IN : Bool;
+      DelayON : Time;
+      DelayOFF : Time;
+   END_VAR
+
+   VAR_OUTPUT
+      OUT : Bool;
+   END_VAR
+
+   VAR
+      tonDelayOn : IEC_TIMER;
+      tonDelayOff : IEC_TIMER;
+      Result : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Delay ON-OFF"
+      #tonDelayOn(
+         IN := IN,
+         PT := DelayON
+      );
+
+      #tonDelayOff(
+         IN := NOT (IN),
+         PT := DelayOFF
+      );
+
+      IF #tonDelayOff.Q THEN
+         Result := FALSE;
+      ELSIF #tonDelayOn.Q THEN
+         Result := TRUE;
+      END_IF;
+      OUT := Result;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

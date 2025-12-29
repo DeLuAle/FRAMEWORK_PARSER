@@ -1,0 +1,41 @@
+﻿// Block: DecoilersHU_CALL
+// Title: Data in
+
+FUNCTION "DecoilersHU_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data in
+
+BEGIN
+   REGION "Data in"
+      DecoilersHU.DataIn.Pb_Stop := NOT (NOT (A01_HMI.MB1.Button.CoilHandling.DecoilersHU.Stop));
+      DecoilersHU.DataIn.Pb_Start := NOT (NOT (A01_HMI.MB1.Button.CoilHandling.DecoilersHU.Start));
+      DecoilersHU.Pump_M.FdbkRunning := HU_Decoilers_Pump_Fdbk;
+   END_REGION
+
+   REGION "Coordination in"
+      DecoilersHU.CIn.EnableStopStopDueDoorOpeningRequest := TRUE;
+      DecoilersHU.CIn.EnableStopInPhase := CoilHandling.MachineInterface.AckStopInPhase;
+      DecoilersHU.CIn.EnableStopProgrammed := CoilHandling.MachineInterface.AckStopProgrammed;
+      DecoilersHU.CIn.PressureReq := NOT ((((((((((NOT (DecoilersHRot.Rotation.V.ReqOilPressure) AND NOT (DecoilersHRot.Pivot.V.ReqOilPressure)) AND NOT (Decoiler1.COut.Jaws.ReqOilPressure)) AND NOT (Decoiler1.COut.Coupling.ReqOilPressure)) AND NOT (Decoiler1.COut.SnubberLift.ReqOilPressure)) AND NOT (Decoiler1.COut.SnubberRoll.ReqOilPressure)) AND NOT (Decoiler2.COut.Jaws.ReqOilPressure)) AND NOT (Decoiler2.COut.Coupling.ReqOilPressure)) AND NOT (Decoiler2.COut.SnubberLift.ReqOilPressure)) AND NOT (Decoiler2.COut.SnubberRoll.ReqOilPressure)));
+   END_REGION
+
+   REGION "Machine Manager"
+      #DecoilersHU(
+         en := TRUE,
+         AreaInterface := Area01.AreaInterface,
+         ZSI := F_DB.ZSI_Zone01,
+         DSI := F_DB.DSI_HU_Decoilers_Pump
+      );
+
+   END_REGION
+
+   REGION "Data out"
+      // Valvola messa in pressione comandata su "Areas_ITF".A01.Safety_CtrlSafe.HU_Decoilers_StandbyValve
+
+      HU_Decoilers_Pump_C := DecoilersHU.Pump_M.Contactor;
+      DecoilersHU.DataOut.Pressure_V := DecoilersHU.DataOut.Pressure_V;
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,106 @@
+﻿FUNCTION "PROD_item_Push_to_Bottom" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Item : "Prod_Item";
+      Reserve : Int;   // Quantità di item riservati liberi su buffer
+   END_VAR
+
+   VAR_IN_OUT 
+      Buffer : Array[*] of "Prod_Item";
+   END_VAR
+
+   VAR_TEMP 
+      RETVAL : DInt;
+      index_MIN : Int;
+      index_MAX : Int;
+      CORREZIONE_INDICE_0 : Int;   // Indice base-0 per MOVE_BLK_VARIANT
+      i : Int;
+      IndexDestination : Int;
+      ItemsFree : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      MAX_CLEAR_GAP_ITERATIONS : Int := 5;
+   END_VAR
+
+
+BEGIN
+	// Dimensione del buffer da inviare
+	// 
+	#index_MIN := DINT_TO_INT(LOWER_BOUND(ARR := #Buffer, DIM := 1));
+	#index_MAX := DINT_TO_INT(UPPER_BOUND(ARR := #Buffer, DIM := 1));
+	
+	
+	// Correzione indice zero per funzione MOVE_BLK_VARIANT
+	// 
+	// Counting at the parameters SRC_INDEX AND DEST_INDEX always begins with the low limit "0", regardless OF the later declaration OF the ARRAY."
+	// 
+	IF #index_MIN > 0 THEN
+	    #CORREZIONE_INDICE_0 := - #index_MIN;
+	END_IF;
+	
+	
+	// Uscita perchè l'item che si vuole caricare non è valido
+	// 
+	#RETVAL := "Prod_item_Check_DataValid"(#Item);
+	
+	IF #RETVAL < 0 THEN
+	    #PROD_item_Push_to_Bottom := #RETVAL;
+	    RETURN;
+	END_IF;
+	
+	
+	// Pulisci i gap
+	// 
+	FOR #i := #index_MIN TO #index_MAX DO
+	    #RETVAL := "PROD_item_Clear_GAP"(#Buffer);
+	    
+	    IF #RETVAL <> "PROD_FUN_RESULT_CLEAR_GAP_DONE" THEN
+	        EXIT;
+	    END_IF;
+	    
+	    IF #i >= #MAX_CLEAR_GAP_ITERATIONS THEN
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	
+	// Ricerca prima posizione libera dopo la rimozione dei gap
+	// 
+	#IndexDestination := #index_MAX + 1;
+	
+	FOR #i := #index_MIN TO #index_MAX  DO
+	    IF #Buffer[#i].O_ID <= 0 THEN
+	        #IndexDestination := #i;
+	        EXIT;
+	    END_IF;
+	END_FOR;
+	
+	
+	// Calcolo spazio rimanente
+	// 
+	#ItemsFree := #index_MAX - #IndexDestination + 1;
+	
+	
+	// Uscita per mancanza spazio
+	// 
+	IF #ItemsFree <= #Reserve THEN
+	    #PROD_item_Push_to_Bottom := "PROD_ERR_BUFFER_ORDERs_NO_SPACE";
+	    RETURN;
+	END_IF;
+	
+	
+	// Push ordine su prima posizione libera 
+	// 
+	#Buffer[#IndexDestination] := #Item;
+	
+	
+	
+	// RETVAL OK 
+	//
+	#PROD_item_Push_to_Bottom := "PROD_FUN_RESULT_OK";
+	
+	
+END_FUNCTION
+

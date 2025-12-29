@@ -1,0 +1,50 @@
+﻿FUNCTION "TokenChain_FC" : Void
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Enable : Bool;   // Enable chain of token
+      Timeout : Time;   // Time for execute single token
+   END_VAR
+
+   VAR_IN_OUT 
+      TokenChainData : Array[*] of "TokenChain_Data";
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+      LBound : DInt;
+      UBound : DInt;
+   END_VAR
+
+
+BEGIN
+	#LBound := LOWER_BOUND(ARR := #TokenChainData, DIM := 1);
+	#UBound := UPPER_BOUND(ARR := #TokenChainData, DIM := 1);
+	
+	
+	FOR #i := #LBound TO #UBound DO
+	    // Timeout
+	    #TokenChainData[#i].TimeOut.TON(IN := #TokenChainData[#i].TOKEN = #TokenChainData[#i].OldToken,
+	                        PT := #Timeout);
+	        #TokenChainData[#i].OldToken := #TokenChainData[#i].TOKEN;
+	    
+	    IF #TokenChainData[#i].TimeOut.Q THEN
+	        #TokenChainData[#i].TOKEN += 1;
+	    END_IF;
+	    
+	    // End of round
+	    IF #TokenChainData[#i].TOKEN > #TokenChainData[#i].USER THEN
+	        #TokenChainData[#i].TOKEN := 1;
+	    END_IF;
+	    
+	    // Not enabled 
+	    IF NOT #Enable THEN
+	        #TokenChainData[#i].TOKEN := 0;
+	    END_IF;
+	    
+	    // Init Chain
+	    #TokenChainData[#i].USER := 0;
+	    
+	END_FOR;
+END_FUNCTION
+

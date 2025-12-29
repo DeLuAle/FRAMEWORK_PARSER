@@ -1,0 +1,61 @@
+﻿// Block: PPrf_CALL
+// Title: Profile program manager
+
+FUNCTION "PPrf_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Profile program manager
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Profile program manager"
+      #ProfileMng(
+         en := TRUE,
+         ArchiveNo := 0,
+         PIVOT := PPrf_MAIN.PIVOT,
+         GET_ITF := PPrf_MAIN.GET_ITF,
+         RWD_EMPTY := PPrf_MAIN.RWD.EMPTY,
+         RWD_UPDATE := PPrf_MAIN.RWD.UPDATE,
+         RWD_GET := PPrf_MAIN.RWD.GET,
+         RWD_HMI := PPrf_MAIN.RWD.HMI,
+         RWD_SCADA := PPrf_MAIN.RWD.SCADA,
+         RWDHeader_HMI := PPrf_MAIN.RWD.HMI.Header,
+         RWDHeader_SCADA := PPrf_MAIN.RWD.SCADA.Header,
+         HMI := PPrf_MAIN.HMI,
+         SCADA := PPrf_MAIN.SCADA
+      );
+
+   END_REGION
+
+   REGION "Activate Profile"
+      #SetPrfOnWork_IDB(
+         en := TRUE,
+         Enable := (ProfileMng.Status = 0),
+         HMI := PPrf_MAIN.HMI,
+         GET_ITF := PPrf_MAIN.GET_ITF,
+         GET_Data := PPrf_MAIN.RWD.GET,
+         PRG_Data := PPrf_MAIN.ON_WORK
+      );
+
+   END_REGION
+
+   REGION "Update Profile"
+      IF (ProfileMng.COut.ProgramUpdated AND (PPrf_MAIN.ON_WORK.Header.PrgNo = PPrf_MAIN.RWD.UPDATE.Header.PrgNo)) THEN
+         PPrf_MAIN.ON_WORK := PPrf_MAIN.RWD.UPDATE;
+      END_IF;
+   END_REGION
+
+   REGION "Conversione codice spessore in mm"
+      PPrf_MAIN.ON_WORK.GeneralData.Material_Thickness := (PPrf_MAIN.ON_WORK.GeneralData.Beam_TK_Code) / 100.0;
+
+   END_REGION
+
+   REGION "Forzatura paramteri aspo e raddrizza"
+      PPrf_MAIN.ON_WORK.A01_CoilHandling.MaterialFeeding.StraightenerRollsUse := 1;
+   END_REGION
+
+
+END_FUNCTION

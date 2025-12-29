@@ -1,0 +1,763 @@
+﻿// Block: Axis_WritePar_FB
+// Title: Check profile parameters data presence & valid
+
+FUNCTION_BLOCK "Axis_WritePar_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Check profile parameters data presence & valid
+   VAR_INPUT
+      OptionON : Bool;
+      Execute : Bool;
+      Rst : Bool;
+      SelectMotorEncoder : Bool;
+      ParametersValuePresence : Bool;
+      Parameters : Struct
+         EncoderInverseDirection : Bool;
+         MotorInverseDirection : Bool;
+         LoadGearNumerator : UDInt;
+         LoadGearDenominator : UDInt;
+         MechanicsLeadScrew : LReal;
+         EncoderDistancePerRevolution : LReal;
+         DynamicsLimitsMaxVelocity : LReal;
+         DynamicsLimitsVelocity : LReal;
+         ControlLoop_Kv : LReal;
+         ControlLoop_Kpc : LReal;
+         ControlLoop_Vtc : LReal;
+      END_STRUCT;
+      Ax_Sts_PM : TAx_Pos_Sts;
+      Ax_Sts_SIEMENS : TAx_STATUSWORD;
+   END_VAR
+
+   VAR_OUTPUT
+      Ready : Bool;
+      Running : Bool;
+      Done : Bool;
+      AlarmsPresence : Bool;
+      WarningsPresene : Bool;
+      Ctrl_ForcePowerOff : Bool;
+      Ctrl_ResetHw : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+      Persistent_AxisParameters_OK : Bool;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         WriteResult : Int;
+         DoneWrite_Axis_EncoderInverseDirection : Bool;
+         DoneWrite_Axis_MotorInverseDirection : Bool;
+         DoneWrite_Axis_LoadGearNumerator : Bool;
+         DoneWrite_Axis_LoadGearDenominator : Bool;
+         DoneWrite_Axis_MechanicsLeadScrew : Bool;
+         DoneWrite_Axis_EncoderDistancePerRevolution : Bool;
+         DoneWrite_Axis_DynamicsLimitsMaxVelocity : Bool;
+         DoneWrite_Axis_DynamicsLimitsVelocity : Bool;
+         DoneWrite_Axis_LoopControl_Kv : Bool;
+         DoneWrite_Axis_LoopControl_Kpc : Bool;
+         DoneWrite_Axis_LoopControl_Vtc : Bool;
+      END_STRUCT;
+      Ctrl_WritePar : Bool;
+      Alarm : Struct
+         TOut_AxisPowerRemoving : Bool;
+         TOut_TOAxisParWrite_EncoderInverseDirection : Bool;
+         TOut_TOAxisParWrite_MotorInverseDirection : Bool;
+         TOut_TOAxisParWrite_LoadGearNumerator : Bool;
+         TOut_TOAxisParWrite_LoadGearDenominator : Bool;
+         TOut_TOAxisParWrite_MechanicsLeadScrew : Bool;
+         TOut_TOAxisParWrite_EncoderDistancePerRevolution : Bool;
+         TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity : Bool;
+         TOut_TOAxisParWrite_DynamicsLimitsVelocity : Bool;
+         TOut_TOAxisParWrite_LoopControl_Kv : Bool;
+         TOut_TOAxisParWrite_LoopControl_Kpc : Bool;
+         TOut_TOAxisParWrite_LoopControl_Vtc : Bool;
+         TOut_AxisResetHwDone : Bool;
+      END_STRUCT;
+      Warning : Struct
+         ParametersNotValid : Bool;
+         ParameterNeedToBeChanged : Bool;
+      END_STRUCT;
+      Status : Int;
+      EncoderNumber : Int;
+      TON_TimeOut : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      RstAlarms : Bool;
+      Busy : Bool;
+      Ax_ParToChange : Struct
+         EncoderInverseDirection : Bool;
+         MotorInverseDirection : Bool;
+         LoadGearNumerator : Bool;
+         LoadGearDenominator : Bool;
+         MechanicsLeadScrew : Bool;
+         EncoderDistancePerRevolution : Bool;
+         DynamicsLimitsMaxVelocity : Bool;
+         DynamicsLimitsVelocity : Bool;
+         ControlLoop_Kv : Bool;
+         ControlLoop_Kpc : Bool;
+         ControlLoop_Vtc : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      MOTOR_ENCODER_NUMBER : Int;
+      MWHEEL_ENCODER_NUMBER : Int;
+      WRITE_RESULT_GOOD : Word;
+      WRITE_RESULT_IDLE : Word;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Check profile parameters data presence & valid"
+      Warning.ParametersNotValid := ((NOT (((((((((Parameters.LoadGearNumerator > 0) AND (Parameters.LoadGearDenominator > 0)) AND (Parameters.EncoderDistancePerRevolution > 0.0)) AND (Parameters.MechanicsLeadScrew > 0.0)) AND (Parameters.DynamicsLimitsMaxVelocity > 0.0)) AND (Parameters.DynamicsLimitsVelocity > 0.0)) AND (Parameters.ControlLoop_Kv > 0.0)) AND (Parameters.ControlLoop_Kpc > 0.0))) OR NOT ParametersValuePresence) AND OptionON);
+   END_REGION
+
+   REGION "Network 3: Encoder number selected"
+      EncoderNumber := #MOTOR_ENCODER_NUMBER;
+      IF (#MOTOR_ENCODER_NUMBER AND NOT SelectMotorEncoder) THEN
+         EncoderNumber := #MWHEEL_ENCODER_NUMBER;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4: Encoder inverse direction need to be changed"
+      Ax_ParToChange.EncoderInverseDirection := ((Parameters.EncoderInverseDirection AND NOT TO_Ax.Sensor.InverseDirection) OR (NOT Parameters.EncoderInverseDirection AND TO_Ax.Sensor.InverseDirection));
+   END_REGION
+
+   REGION "Network 5: Motor inverse direction need to be changed"
+      Ax_ParToChange.MotorInverseDirection := ((Parameters.MotorInverseDirection AND NOT TO_Ax.Actor.InverseDirection) OR (NOT Parameters.MotorInverseDirection AND TO_Ax.Actor.InverseDirection));
+   END_REGION
+
+   REGION "Network 6: Load gear numerator need to be changed"
+      Ax_ParToChange.LoadGearNumerator := (Parameters.LoadGearNumerator <> TO_Ax.LoadGear.Numerator);
+   END_REGION
+
+   REGION "Network 7: Load gear denominator need to be changed"
+      Ax_ParToChange.LoadGearDenominator := (Parameters.LoadGearDenominator <> TO_Ax.LoadGear.Denominator);
+   END_REGION
+
+   REGION "Network 8: Encoder distance per revolution need to be changed"
+      Ax_ParToChange.EncoderDistancePerRevolution := ((Parameters.EncoderDistancePerRevolution <> TO_Ax.Sensor.Parameter.DistancePerRevolution) AND (EncoderNumber = #MWHEEL_ENCODER_NUMBER));
+   END_REGION
+
+   REGION "Network 9: Mechanics lead screw need to be changed"
+      Ax_ParToChange.MechanicsLeadScrew := (Parameters.MechanicsLeadScrew <> TO_Ax.Mechanics.LeadScrew);
+   END_REGION
+
+   REGION "Network 10: Dinamics Limits Max velocity need to be changed"
+      Ax_ParToChange.DynamicsLimitsMaxVelocity := (Parameters.DynamicsLimitsMaxVelocity <> TO_Ax.DynamicLimits.MaxVelocity);
+   END_REGION
+
+   REGION "Network 11: Dinamics Limits Velocity need to be changed"
+      Ax_ParToChange.DynamicsLimitsVelocity := (Parameters.DynamicsLimitsVelocity <> TO_Ax.DynamicLimits.Velocity);
+   END_REGION
+
+   REGION "Network 12: Position control Kv need to be changed"
+      Ax_ParToChange.ControlLoop_Kv := (Parameters.ControlLoop_Kv <> TO_Ax.PositionControl.Kv);
+   END_REGION
+
+   REGION "Network 13: Position control Kpc need to be changed"
+      Ax_ParToChange.ControlLoop_Kpc := (Parameters.ControlLoop_Kpc <> TO_Ax.PositionControl.Kpc);
+   END_REGION
+
+   REGION "Network 14: Dynamic axis model Vtc need to be changed"
+      Ax_ParToChange.ControlLoop_Vtc := (Parameters.ControlLoop_Vtc <> TO_Ax.DynamicAxisModel.VelocityTimeConstant);
+   END_REGION
+
+   REGION "Network 15: Warning  Axis TO parameter need to be change"
+      Warning.ParameterNeedToBeChanged := ((((NOT (((((NOT Ax_ParToChange.EncoderInverseDirection AND NOT Ax_ParToChange.MotorInverseDirection) AND NOT Ax_ParToChange.LoadGearNumerator) AND NOT Ax_ParToChange.LoadGearDenominator) AND NOT Ax_ParToChange.MechanicsLeadScrew)) OR NOT ((((((NOT Ax_ParToChange.DynamicsLimitsMaxVelocity AND NOT Ax_ParToChange.DynamicsLimitsVelocity) AND NOT Ax_ParToChange.EncoderDistancePerRevolution) AND NOT Ax_ParToChange.ControlLoop_Kv) AND NOT Ax_ParToChange.ControlLoop_Kpc) AND NOT Ax_ParToChange.ControlLoop_Vtc))) AND OptionON) AND ParametersValuePresence) AND NOT Warning.ParametersNotValid);
+   END_REGION
+
+   REGION "Network 19: Reser alarms start"
+      RstAlarms := (((Status = 0) AND NOT Execute) AND Rst);
+   END_REGION
+
+   REGION "Network 20: Reset alarms"
+      IF RstAlarms THEN
+          Alarm.TOut_AxisPowerRemoving :=
+          Alarm.TOut_TOAxisParWrite_EncoderInverseDirection :=
+          Alarm.TOut_TOAxisParWrite_MotorInverseDirection :=
+          Alarm.TOut_TOAxisParWrite_LoadGearNumerator :=
+          Alarm.TOut_TOAxisParWrite_LoadGearDenominator :=
+          Alarm.TOut_TOAxisParWrite_MechanicsLeadScrew :=
+          Alarm.TOut_TOAxisParWrite_EncoderDistancePerRevolution :=
+          Alarm.TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity :=
+          Alarm.TOut_TOAxisParWrite_DynamicsLimitsVelocity :=
+          Alarm.TOut_TOAxisParWrite_LoopControl_Kv :=
+          Alarm.TOut_TOAxisParWrite_LoopControl_Kpc :=
+          Alarm.TOut_TOAxisParWrite_LoopControl_Vtc :=
+          Alarm.TOut_AxisResetHwDone := FALSE;
+         
+      END_IF;
+
+   END_REGION
+
+   REGION "Network 21: Alarms presence"
+      AlarmsPresence := (NOT (((((NOT Alarm.TOut_AxisPowerRemoving AND NOT Alarm.TOut_TOAxisParWrite_EncoderInverseDirection) AND NOT Alarm.TOut_TOAxisParWrite_MotorInverseDirection) AND NOT Alarm.TOut_TOAxisParWrite_LoadGearNumerator) AND NOT Alarm.TOut_TOAxisParWrite_LoadGearDenominator)) OR NOT (((((NOT Alarm.TOut_TOAxisParWrite_MechanicsLeadScrew AND NOT Alarm.TOut_TOAxisParWrite_EncoderDistancePerRevolution) AND NOT Alarm.TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity) AND NOT Alarm.TOut_TOAxisParWrite_DynamicsLimitsVelocity) AND NOT Alarm.TOut_TOAxisParWrite_LoopControl_Kv)) OR NOT (((NOT Alarm.TOut_TOAxisParWrite_LoopControl_Kpc AND NOT Alarm.TOut_TOAxisParWrite_LoopControl_Vtc) AND NOT Alarm.TOut_AxisResetHwDone)));
+   END_REGION
+
+   REGION "Network 22: Warnings presence"
+      WarningsPresene := NOT ((NOT Warning.ParametersNotValid AND NOT Warning.ParameterNeedToBeChanged));
+   END_REGION
+
+   REGION "Network 23: Ready"
+      Ready := ((((((Status = 0) AND OptionON) AND ParametersValuePresence) AND NOT AlarmsPresence) AND Warning.ParameterNeedToBeChanged) AND NOT Persistent_AxisParameters_OK);
+   END_REGION
+
+   REGION "Network 24: SEQUENCE"
+      CASE Status OF
+              
+              
+          //=============================================================================================
+          // STATUS = 0 IDLE
+          //=============================================================================================
+          //  
+          
+          0:
+              
+              TON_TimeOut(IN:=FALSE,PT:=T#10s);
+              
+              Ctrl_ForcePowerOff := FALSE;
+              Ctrl_WritePar := FALSE;
+              Ctrl_ResetHw := FALSE;
+              Ctrl_ForcePowerOff := FALSE;
+              
+              
+              Running := FALSE;
+              Done := FALSE;
+              
+              
+              
+              IF  Ready AND Execute THEN
+                  
+                  Running := TRUE;
+                  Ready := FALSE;
+                  
+                  
+                  Persistent_AxisParameters_OK := FALSE;
+                  
+                  
+                  
+                  Sts.DoneWrite_Axis_EncoderInverseDirection := FALSE;
+                  Sts.DoneWrite_Axis_MotorInverseDirection := FALSE;
+                  Sts.DoneWrite_Axis_LoadGearNumerator := FALSE;
+                  Sts.DoneWrite_Axis_LoadGearDenominator := FALSE;
+                  Sts.DoneWrite_Axis_EncoderDistancePerRevolution := FALSE;
+                  Sts.DoneWrite_Axis_MechanicsLeadScrew := FALSE;
+                  Sts.DoneWrite_Axis_DynamicsLimitsMaxVelocity := FALSE;
+                  Sts.DoneWrite_Axis_DynamicsLimitsVelocity := FALSE;
+                  Sts.DoneWrite_Axis_LoopControl_Kv := FALSE;
+                  Sts.DoneWrite_Axis_LoopControl_Kpc := FALSE;
+                  Sts.DoneWrite_Axis_LoopControl_Vtc := FALSE;
+                  
+                  
+                  
+                  Status += 1;
+                  
+                  
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 1 STOP AXIS
+          //=============================================================================================
+          //        
+          
+          1:
+              
+              TON_TimeOut(IN := TRUE,PT := T#3S);
+              
+              Ctrl_ForcePowerOff := TRUE;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_AxisPowerRemoving := TRUE;
+                  Status := 0;
+                  
+              ELSIF NOT Ax_Sts_PM.Enabled AND Ax_Sts_PM.Standstill THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#3S);
+                  Status += 1;
+              END_IF;
+              
+              
+              
+              
+          //=============================================================================================
+          // STATUS = 2 WRITE ENCODER INVERSION
+          //=============================================================================================
+          //    
+          
+          2:
+              TON_TimeOut(IN := TRUE,PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.EncoderInverseDirection AND NOT
+              Sts.DoneWrite_Axis_EncoderInverseDirection AND NOT
+              Alarm.TOut_TOAxisParWrite_EncoderInverseDirection;
+              
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.EncoderInverseDirection,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.Sensor[EncoderNumber].InverseDirection);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.EncoderInverseDirection THEN
+                  Sts.DoneWrite_Axis_EncoderInverseDirection := TRUE;
+              END_IF;
+              
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_EncoderInverseDirection := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+          //=============================================================================================
+          // STATUS = 3 WRITE MOTOR INVERSION
+          //=============================================================================================
+          //
+              
+              
+          3:
+              TON_TimeOut(IN := TRUE,PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.MotorInverseDirection AND NOT
+              Sts.DoneWrite_Axis_MotorInverseDirection AND NOT
+              Alarm.TOut_TOAxisParWrite_MotorInverseDirection;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.MotorInverseDirection,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.Actor.InverseDirection);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.MotorInverseDirection THEN
+                  Sts.DoneWrite_Axis_MotorInverseDirection := TRUE;
+              END_IF;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_MotorInverseDirection := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 4 WRITE LOAD GEAR NUMERATOR
+          //=============================================================================================
+          //
+          
+              
+          4:
+              TON_TimeOut(IN := TRUE,PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.LoadGearNumerator AND NOT
+              Sts.DoneWrite_Axis_LoadGearNumerator AND NOT
+              Alarm.TOut_TOAxisParWrite_LoadGearNumerator;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.LoadGearNumerator,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.LoadGear.Numerator);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.LoadGearNumerator THEN
+                  Sts.DoneWrite_Axis_LoadGearNumerator := TRUE;
+              END_IF;
+              
+              IF  TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_LoadGearNumerator := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+              
+          //=============================================================================================
+          // STATUS = 5 WRITE LOAD GEAR DENOMIANTOR
+          //=============================================================================================
+          //
+          
+          5:
+              TON_TimeOut(IN := TRUE,PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.LoadGearDenominator AND NOT
+              Sts.DoneWrite_Axis_LoadGearDenominator AND NOT
+              Alarm.TOut_TOAxisParWrite_LoadGearDenominator;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.LoadGearDenominator,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.LoadGear.Denominator);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.LoadGearDenominator THEN
+                  Sts.DoneWrite_Axis_LoadGearDenominator := TRUE;
+              END_IF;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_LoadGearDenominator := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+          //=============================================================================================
+          // STATUS = 6 WRITE MECHANICS LEAD SCREW
+          //=============================================================================================
+          //  
+              
+          6:
+              TON_TimeOut(IN := TRUE,PT := T#1s);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.MechanicsLeadScrew AND NOT
+              Sts.DoneWrite_Axis_MechanicsLeadScrew AND NOT
+              Alarm.TOut_TOAxisParWrite_MechanicsLeadScrew;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.MechanicsLeadScrew,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.Mechanics.LeadScrew);
+              
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.MechanicsLeadScrew THEN
+                  Sts.DoneWrite_Axis_MechanicsLeadScrew := TRUE;
+              ELSIF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_MechanicsLeadScrew := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+              
+          //=============================================================================================
+          // STATUS = 7 WRITE ENCODER DISTANCE PER REVOLUTION
+          //=============================================================================================
+          //      
+              
+          7:
+              TON_TimeOut(IN := TRUE, PT := T#1s);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.EncoderDistancePerRevolution AND NOT
+              Sts.DoneWrite_Axis_EncoderDistancePerRevolution AND NOT
+              Alarm.TOut_TOAxisParWrite_EncoderDistancePerRevolution;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.EncoderDistancePerRevolution,
+                       BUSY => Busy,
+                       DSTBLK =>TO_Ax.Sensor[EncoderNumber].Parameter.DistancePerRevolution);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.EncoderDistancePerRevolution THEN
+                  Sts.DoneWrite_Axis_EncoderDistancePerRevolution := TRUE;
+              ELSIF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_EncoderDistancePerRevolution := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 8 WRITE DYNAMICS LIMITS MAX VELOCITY
+          //=============================================================================================
+          //    
+              
+          8:
+              TON_TimeOut(IN := TRUE, PT := T#1s);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.DynamicsLimitsMaxVelocity AND NOT
+              Sts.DoneWrite_Axis_DynamicsLimitsMaxVelocity AND NOT
+              Alarm.TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.DynamicsLimitsMaxVelocity,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.DynamicLimits.MaxVelocity);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.DynamicsLimitsMaxVelocity THEN
+                  Sts.DoneWrite_Axis_DynamicsLimitsMaxVelocity := TRUE;
+              ELSIF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 9 WRITE DYNAMICS LIMITS VELOCITY
+          //=============================================================================================
+          // 
+              
+          9:
+              TON_TimeOut(IN := TRUE,PT := T#1s);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.DynamicsLimitsVelocity AND NOT
+              Sts.DoneWrite_Axis_DynamicsLimitsVelocity AND NOT
+              Alarm.TOut_TOAxisParWrite_DynamicsLimitsVelocity;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.DynamicsLimitsVelocity,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.DynamicLimits.Velocity);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.DynamicsLimitsVelocity THEN
+                  Sts.DoneWrite_Axis_DynamicsLimitsVelocity := TRUE;
+              ELSIF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_DynamicsLimitsVelocity := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+              
+          //=============================================================================================
+          // STATUS = 10 WRITE POSITION CONTROL KV
+          //=============================================================================================
+          // 
+          
+          10:
+              TON_TimeOut(IN := TRUE, PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.ControlLoop_Kv AND NOT Sts.DoneWrite_Axis_LoopControl_Kv AND
+              NOT Alarm.TOut_TOAxisParWrite_LoopControl_Kv;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.ControlLoop_Kv,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.PositionControl.Kv);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.ControlLoop_Kv THEN
+                  Sts.DoneWrite_Axis_LoopControl_Kv := TRUE;
+              ELSIF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Kv := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+          //=============================================================================================
+          // STATUS = 11 WRITE POSITION CONTROL Kpc
+          //=============================================================================================
+          //   
+              
+          11:
+              TON_TimeOut(IN := TRUE, PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.ControlLoop_Kpc AND NOT
+              Sts.DoneWrite_Axis_LoopControl_Kpc AND NOT
+              Alarm.TOut_TOAxisParWrite_LoopControl_Kpc;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.ControlLoop_Kpc,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.PositionControl.Kpc);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.ControlLoop_Kpc THEN
+                  Sts.DoneWrite_Axis_LoopControl_Kpc := TRUE;
+              END_IF;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Kpc := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 12 WRITE POSITION CONTROL Vtc
+          //=============================================================================================
+          // 
+              
+          12:
+              TON_TimeOut(IN := TRUE,PT := T#1S);
+              
+              Ctrl_WritePar :=
+              Ax_ParToChange.ControlLoop_Vtc AND NOT
+              Sts.DoneWrite_Axis_LoopControl_Vtc AND NOT
+              Alarm.TOut_TOAxisParWrite_LoopControl_Vtc;
+              
+              Sts.WriteResult :=
+              (REQ := Ctrl_WritePar,
+                       SRCBLK := Parameters.ControlLoop_Vtc,
+                       BUSY => Busy,
+                       DSTBLK => TO_Ax.DynamicAxisModel.VelocityTimeConstant);
+              
+              IF Sts.WriteResult = WRITE_RESULT_GOOD OR NOT Ax_ParToChange.ControlLoop_Vtc THEN
+                  Sts.DoneWrite_Axis_LoopControl_Vtc := TRUE;
+              END_IF;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Vtc := TRUE;
+                  //#Status := 0;
+              END_IF;
+              
+              IF NOT Ctrl_WritePar AND Sts.WriteResult = WRITE_RESULT_IDLE AND NOT Busy THEN
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+              
+          //=============================================================================================
+          // STATUS = 13 CHECK WRITE RESULTS
+          //=============================================================================================
+          //       
+          
+          13:
+              
+              IF  Alarm.TOut_TOAxisParWrite_EncoderInverseDirection OR
+                  Alarm.TOut_TOAxisParWrite_MotorInverseDirection OR
+                  Alarm.TOut_TOAxisParWrite_LoadGearNumerator OR
+                  Alarm.TOut_TOAxisParWrite_LoadGearDenominator OR
+                  Alarm.TOut_TOAxisParWrite_MechanicsLeadScrew OR
+                  Alarm.TOut_TOAxisParWrite_DynamicsLimitsMaxVelocity OR
+                  Alarm.TOut_TOAxisParWrite_DynamicsLimitsVelocity OR
+                  Alarm.TOut_TOAxisParWrite_EncoderDistancePerRevolution OR
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Kv OR
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Kpc OR
+                  Alarm.TOut_TOAxisParWrite_LoopControl_Vtc
+                  OR NOT Sts.DoneWrite_Axis_EncoderInverseDirection
+                  OR NOT Sts.DoneWrite_Axis_MotorInverseDirection
+                  OR NOT Sts.DoneWrite_Axis_LoadGearNumerator
+                  OR NOT Sts.DoneWrite_Axis_LoadGearDenominator
+                  OR NOT Sts.DoneWrite_Axis_MechanicsLeadScrew
+                  OR NOT Sts.DoneWrite_Axis_EncoderDistancePerRevolution
+                  OR NOT Sts.DoneWrite_Axis_DynamicsLimitsMaxVelocity
+                  OR NOT Sts.DoneWrite_Axis_DynamicsLimitsVelocity
+                  OR NOT Sts.DoneWrite_Axis_LoopControl_Kv
+                  OR NOT Sts.DoneWrite_Axis_LoopControl_Kpc
+                  OR NOT Sts.DoneWrite_Axis_LoopControl_Vtc
+              THEN
+                  Status := 0;
+              ELSE
+                  TON_TimeOut(IN:=FALSE ,PT:=T#1S);
+                  Status += 1;
+              END_IF;
+              
+          
+          //=============================================================================================
+          // STATUS = 14 RESET HW EXECUTE
+          //=============================================================================================
+          //     
+              
+          14:
+              
+              TON_TimeOut(IN := TRUE,PT := T#60S);
+              Ctrl_ResetHw := TRUE;
+              
+              IF TON_TimeOut.Q THEN
+                  Alarm.TOut_AxisResetHwDone := true;
+                  Status := 0;
+                  
+              ELSIF Ax_Sts_PM.RstHWDone THEN
+                  Ctrl_ResetHw := FALSE;
+                  Status += 1;
+              END_IF;
+              
+          //=============================================================================================
+          // STATUS = 15 DONE
+          //=============================================================================================
+          //      
+              
+          15:
+              
+              TON_TimeOut(IN := FALSE,PT := T#10S);
+              
+              Sts.DoneWrite_Axis_EncoderInverseDirection := FALSE;
+              Sts.DoneWrite_Axis_MotorInverseDirection := FALSE;
+              Sts.DoneWrite_Axis_LoadGearNumerator := FALSE;
+              Sts.DoneWrite_Axis_LoadGearDenominator := FALSE;
+              Sts.DoneWrite_Axis_EncoderDistancePerRevolution := FALSE;
+              Sts.DoneWrite_Axis_MechanicsLeadScrew := FALSE;
+              Sts.DoneWrite_Axis_DynamicsLimitsMaxVelocity := FALSE;
+              Sts.DoneWrite_Axis_DynamicsLimitsVelocity := FALSE;
+              Sts.DoneWrite_Axis_LoopControl_Kv := FALSE;
+              Sts.DoneWrite_Axis_LoopControl_Kpc := FALSE;
+              Sts.DoneWrite_Axis_LoopControl_Vtc := FALSE;
+             
+             
+              Ctrl_ForcePowerOff := FALSE;
+              Ctrl_WritePar := FALSE;
+              Ctrl_ResetHw := FALSE;
+              Ctrl_ForcePowerOff := FALSE;
+              
+              
+              
+              
+              
+              Done := TRUE;
+              
+              
+              IF NOT Execute THEN
+                  Status := 0;
+              END_IF;
+           
+           
+              
+          ELSE
+              Status := 0;
+              
+      END_CASE;
+
+
+
+   END_REGION
+
+   REGION "Network 25"
+      Persistent_AxisParameters_OK := (NOT Warning.ParameterNeedToBeChanged AND (Status = 0));
+   END_REGION
+
+
+END_FUNCTION_BLOCK

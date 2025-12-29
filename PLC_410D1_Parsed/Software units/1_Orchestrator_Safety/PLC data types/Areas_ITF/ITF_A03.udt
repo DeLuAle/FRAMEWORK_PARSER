@@ -1,0 +1,58 @@
+﻿TYPE "ITF_A03"
+VERSION : 0.1
+// Block: ITF_A03
+   STRUCT
+      AreaInterface : AreaInterface;
+      Infeed_REQ_ON : Bool;
+      PB : Struct
+         MB3_PB_Reset : Bool;
+         MB3_Area01_PB_Start : Bool;
+         MB3_Area01_PB_Stop : Bool;
+         MB3_Area02_PB_Start : Bool;
+         MB3_Area02_PB_Stop : Bool;
+         Area_DataOut_LampCycle : Bool;
+      END_STRUCT;
+      Safety_SuperUser : Struct
+         PbSafetyReset : Bool;
+         SgnSafetyReset : Bool;
+      END_STRUCT;
+      Safety_EntryEnable : Struct
+         Z21 : Bool;
+         Z23 : Bool;
+         Z25 : Bool;
+         Z27 : Bool;
+      END_STRUCT;
+      Safety_CtrlSafe : Struct
+         Sinamics_Trasporto : Bool;
+         Sinamics_Ribaltatore : Bool;
+         Sinamics_Spintore : Bool;
+         Sinamics_Bordatrice : Bool;
+         Sinamics_CassettaBordatrice : Bool;
+         Sinamics_Rulliera1 : Bool;
+         Sinamics_Rulliera2 : Bool;
+         Sinamics_PareggiatoreTesta : Bool;
+         Sinamics_PareggiatoreCoda : Bool;
+         Sinamics_ManipolatoreTesta : Bool;
+         Sinamics_ManipolatoreCoda : Bool;
+         F_Contactor_Bloccaggio_Pareggiatore_Coda : Bool;
+         F_Contactor_Bloccaggio_Pareggiatore_Testa : Bool;
+         F_Contactor_HU_CYTROPAC_STO : Bool;
+         F_Contactor_HU_CYTROPAC_StandbyValve : Bool;
+      END_STRUCT;
+      Doors_Closed : Bool;
+      Production_Running : Bool;
+      Production_Halted : Struct
+         Code : Int;
+         Message_N : Int;
+      END_STRUCT;
+      A0302_PareggiatoreTesta_COut_Ax : Positioning_DOL_Machine_COut;
+      A0302_PareggiatoreCoda_COut_Ax : Positioning_DOL_Machine_COut;
+      ManipOutOfWorkSpace : Bool;
+      A0301_Pos1_ReadyToRecive : Bool;
+      SetUp_Bordatrice_Done : Array[1..9] of Bool;
+      FreeBool : Array[1..16] of Bool;
+      FreeLReal : Array[1..16] of LReal;
+      FreeDINT : Array[1..16] of DInt;
+   END_STRUCT;
+
+END_TYPE

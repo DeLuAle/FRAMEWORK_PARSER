@@ -1,0 +1,77 @@
+﻿// Block: Prod_O_ACT_Pop_&_O_TODO_Push
+// Title: SPOSTA ACT SU TODO 
+
+FUNCTION "Prod_O_ACT_Pop_&_O_TODO_Push" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// SPOSTA ACT SU TODO 
+   VAR_TEMP
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+   REGION "SPOSTA ACT SU TODO"
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // PUSH
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+      RETVAL :=PROD_item_Push_to_Top(item := Production.O_ACT , Evaluate_FULL := true, Buffer := Production.O_TODO);
+
+
+      IF RETVAL < 0 THEN
+          
+          Prod_O_ACT_Pop_&_O_TODO_Push := RETVAL;
+          
+      END_IF;
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // POP
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+      RETVAL := Prod_O_ACT_Pop();
+
+
+      // Uscita per errore OP
+      // 
+      IF RETVAL < 0 THEN
+          
+          Prod_O_ACT_Pop_&_O_TODO_Push := RETVAL;
+          
+      END_IF;
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // OK
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+      Prod_O_ACT_Pop_&_O_TODO_Push := PROD_FUN_RESULT_OK;
+
+
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

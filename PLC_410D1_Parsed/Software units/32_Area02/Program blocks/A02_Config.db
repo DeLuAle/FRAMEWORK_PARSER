@@ -1,0 +1,72 @@
+﻿// Block: A02_Config
+
+DATA_BLOCK A02_Config
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Area02_Main : AreaConfig;
+      RollformingMng : Struct
+         SensorsDelayOn : Time;
+         SensorsDelayOff : Time;
+         SensorExtractor_DelayOn : Time;
+         SensorExtractor_DelayOff : Time;
+      END_STRUCT;
+      PitTableLoop1 : Struct
+         LIFT : ValveMachine_Config;
+         Exist : Bool;
+      END_STRUCT;
+      A0201_Profilatrice_RegolazioneFormato : Struct
+         Ax_D : Array[1..6] of Positioning_DOL_Machine_Config;
+         Ax_M : Array[7..14] of Positioning_MOL_Machine_Config;
+      END_STRUCT;
+      Area02_HU : Struct
+         Pump : HU_Pump_Config;
+         Tank : HU_Tank_Config;
+      END_STRUCT;
+      PostPunchingMatCounter : Struct
+         Default_FAK : LReal;
+      END_STRUCT;
+      Rollformer : PositioningMachine_Config;
+      RollfomerLubr : LubrValve_Config;
+      MwFakCalc : Struct
+         PushAx : SpeedMachine_Config;
+         Gripper : ValveMachine_Config;
+         MaterialPresenceDly : Time;
+         MaterialAbsenceDly : Time;
+         PushAx_FwdTimeout : Time;
+         PushAx_BwdTimeout : Time;
+         Default_FAK : LReal;
+      END_STRUCT;
+      FlyingCarriage : udt_FlyingCarriage_Config;
+      FinalCut : Struct
+         CheckRestPosition : Bool;
+         CutHead : ValveMachine_Config;
+         DrawHead : ValveMachine_Config;
+         MarkHead : ValveMachine_Config;
+         Locking : ValveMachine_Config;
+         Locking_AI_HighLimit : Real;
+         Locking_AI_LowLimit : Real;
+      END_STRUCT;
+      FinalCutLub : Struct
+         EnableWngSystemOff : Bool;
+         ExternalPump : Bool;
+         PumpWorkDuration : Time;
+         PumpPauseDuration : Time;
+         LowTankLevelDly : Time;
+      END_STRUCT;
+      AccRollConveyor : Struct
+         Roll1 : SpeedMachine_Config;
+         Roll2 : SpeedMachine_Config;
+         Roll3 : SpeedMachine_Config;
+         PusherVert : Array[1..6] of ValveMachine_Config;
+         PusherHoriz : Array[1..6] of ValveMachine_Config;
+         SensorsDelayOn : Time;
+         SensorsDelayOff : Time;
+         ExitLeftDelayOn : Time;
+         ExitLeftDelayOff : Time;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

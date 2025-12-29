@@ -1,0 +1,636 @@
+﻿// Block: A02_HMI_FB
+
+FUNCTION_BLOCK "A02_HMI_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
+   VAR
+      MB2_Decoder : ButtonsHMIDecoder;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+      tempIdxMove : Int;
+      tempIdxPos : Int;
+      tempIdxVert : Int;
+      tempIdxHoriz : Int;
+   END_VAR
+
+   VAR CONSTANT
+      "2001_HU_AREA02" : Int;
+      "2011_PIT_TABLE1" : Int;
+      "2021_ROLLFORMER_MOVE" : Int;
+      "2022_ROLLFORMER_LUBR_1" : Int;
+      "2023_ROLLFORMER_LUBR_2" : Int;
+      "2024_ROLLFORMER_LUBR_3" : Int;
+      "2031_MWFAKCALC_PUSHAX" : Int;
+      "2032_MWFAKCALC_GRIPPER" : Int;
+      "2041_FLYINGCARRIAGE_MOVE" : Int;
+      "2042_FLYINGCARRIAGE_POS" : Int;
+      "2043_FLYINGCARRIAGE_ZERO" : Int;
+      "2044_FLYINGCARRIAGE_LUBR" : Int;
+      "2051_FINALCUT_LOCKING" : Int;
+      "2052_FINALCUT_CUTHEAD" : Int;
+      "2053_FINALCUT_DRAWHEAD" : Int;
+      "2054_FINALCUT_MARKHEAD" : Int;
+      "2055_FINALCUT_LUBR" : Int;
+      "2061_ACCROLLCONVEYOR_COMBO_MOVE" : Int;
+      "2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT" : Int;
+      "2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ" : Int;
+      "2071_ACCROLLCONVEYOR_ROLL1" : Int;
+      "2072_ACCROLLCONVEYOR_ROLL2" : Int;
+      "2073_ACCROLLCONVEYOR_ROLL3" : Int;
+      "2081_ACCROLLCONVEYOR_PUSHER_VERT_1" : Int;
+      "2082_ACCROLLCONVEYOR_PUSHER_VERT_2" : Int;
+      "2083_ACCROLLCONVEYOR_PUSHER_VERT_3" : Int;
+      "2084_ACCROLLCONVEYOR_PUSHER_VERT_4" : Int;
+      "2085_ACCROLLCONVEYOR_PUSHER_VERT_5" : Int;
+      "2086_ACCROLLCONVEYOR_PUSHER_VERT_6" : Int;
+      "2091_ACCROLLCONVEYOR_PUSHER_HORIZ_1" : Int;
+      "2092_ACCROLLCONVEYOR_PUSHER_HORIZ_2" : Int;
+      "2093_ACCROLLCONVEYOR_PUSHER_HORIZ_3" : Int;
+      "2094_ACCROLLCONVEYOR_PUSHER_HORIZ_4" : Int;
+      "2095_ACCROLLCONVEYOR_PUSHER_HORIZ_5" : Int;
+      "2096_ACCROLLCONVEYOR_PUSHER_HORIZ_6" : Int;
+      "2100_MODULO1_OP_MOVE" : Int;
+      "2101_MODULO1_OP_POS" : Int;
+      "2102_MODULO1_MOT_MOVE" : Int;
+      "2103_MODULO1_MOT_POS" : Int;
+      "2104_MODULO2_OP_MOVE" : Int;
+      "2105_MODULO2_OP_POS" : Int;
+      "2106_MODULO2_MOT_MOVE" : Int;
+      "2107_MODULO2_MOT_POS" : Int;
+      "2108_MODULO3_OP_MOVE" : Int;
+      "2109_MODULO3_OP_POS" : Int;
+      "2110_MODULO3_MOT_MOVE" : Int;
+      "2111_MODULO3_MOT_POS" : Int;
+      "2112_PASSAGGIO2_OP_MOVE" : Int;
+      "2113_PASSAGGIO2_OP_POS" : Int;
+      "2114_PASSAGGIO2_MOT_MOVE" : Int;
+      "2115_PASSAGGIO2_MOT_POS" : Int;
+      "2116_PASSAGGIO14_OP_MOVE" : Int;
+      "2117_PASSAGGIO14_OP_POS" : Int;
+      "2118_PASSAGGIO14_MOT_MOVE" : Int;
+      "2119_PASSAGGIO14_MOT_POS" : Int;
+      "2120_PASSAGGIO17_OP_MOVE" : Int;
+      "2121_PASSAGGIO17_OP_POS" : Int;
+      "2122_PASSAGGIO17_MOT_MOVE" : Int;
+      "2123_PASSAGGIO17_MOT_POS" : Int;
+      "2124_PASSAGGIO18_OP_MOVE" : Int;
+      "2125_PASSAGGIO18_OP_POS" : Int;
+      "2126_PASSAGGIO18_MOT_MOVE" : Int;
+      "2127_PASSAGGIO18_MOT_POS" : Int;
+      "2280_PASSAGGIO2_COMBO_MOVE" : Int;
+      "2281_PASSAGGIO2_COMBO_POS" : Int;
+      "2282_PASSAGGIO14_COMBO_MOVE" : Int;
+      "2283_PASSAGGIO14_COMBO_POS" : Int;
+      "2284_PASSAGGIO17_COMBO_MOVE" : Int;
+      "2285_PASSAGGIO17_COMBO_POS" : Int;
+      "2286_PASSAGGIO18_COMBO_MOVE" : Int;
+      "2287_PASSAGGIO18_COMBO_POS" : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset Op"
+      MB2_Decoder.OpEnabled := FALSE;
+      MB2_Decoder.OpRunning := FALSE;
+      MB2_Decoder.OpDone := FALSE;
+
+   END_REGION
+
+   REGION "MB2 Code 2001 - Area 02 HU"
+      A02_HMI.MB2.Button.Area02HU.Stop := ((MB2_Decoder.Code = #2001_HU_AREA02) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Area02HU.Start := ((MB2_Decoder.Code = #2001_HU_AREA02) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2001_HU_AREA02) AND Area02_HU.Pump.COut.CheckNext_Run) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2001_HU_AREA02) AND Area02_HU.Pump.COut.PressureRunning) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2001_HU_AREA02) AND FALSE) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2011 - Pit Table 1"
+      A02_HMI.MB2.Button.PitTable1.Rest := ((MB2_Decoder.Code = #2011_PIT_TABLE1) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.PitTable1.Work := ((MB2_Decoder.Code = #2011_PIT_TABLE1) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2011_PIT_TABLE1) AND NOT (PitTable1.Lift.COut.Rest_CheckNext)) AND NOT (PitTable1.Lift.COut.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2011_PIT_TABLE1) AND NOT (PitTable1.Lift.COut.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2011_PIT_TABLE1) AND A02_HMI.MB2.Button.PitTable1.Rest) AND PitTable1.Lift.COut.Rest) OR (((MB2_Decoder.Code = #2011_PIT_TABLE1) AND A02_HMI.MB2.Button.PitTable1.Work) AND PitTable1.Lift.COut.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2021 - Rollformer Move"
+      A02_HMI.MB2.Button.Rollformer.Feed.Bwd_Minus := ((MB2_Decoder.Code = #2021_ROLLFORMER_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Rollformer.Feed.Fwd_Plus := ((MB2_Decoder.Code = #2021_ROLLFORMER_MOVE) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2021_ROLLFORMER_MOVE) AND NOT (Rollformer.COut.Feed.Fwd_CheckNext)) AND NOT (Rollformer.COut.Feed.Bwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2021_ROLLFORMER_MOVE) AND NOT (Rollformer.COut.Feed.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2021_ROLLFORMER_MOVE) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2022 - Rollformer Lubr 1"
+      A02_HMI.MB2.Button.Rollformer.Lubr1.Stop := ((MB2_Decoder.Code = #2022_ROLLFORMER_LUBR_1) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Rollformer.Lubr1.Start := ((MB2_Decoder.Code = #2022_ROLLFORMER_LUBR_1) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2022_ROLLFORMER_LUBR_1) AND RollformerLubr.Valves1.COut.LubrReq) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2022_ROLLFORMER_LUBR_1) AND RollformerLubr.Valves1.COut.LubrReq) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2022_ROLLFORMER_LUBR_1) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2023 - Rollformer Lubr 2"
+      A02_HMI.MB2.Button.Rollformer.Lubr2.Stop := ((MB2_Decoder.Code = #2023_ROLLFORMER_LUBR_2) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Rollformer.Lubr2.Start := ((MB2_Decoder.Code = #2023_ROLLFORMER_LUBR_2) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2023_ROLLFORMER_LUBR_2) AND RollformerLubr.Valves2.COut.LubrReq) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2023_ROLLFORMER_LUBR_2) AND RollformerLubr.Valves2.COut.LubrReq) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2023_ROLLFORMER_LUBR_2) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2024 - Rollformer Lubr 3"
+      A02_HMI.MB2.Button.Rollformer.Lubr3.Stop := ((MB2_Decoder.Code = #2024_ROLLFORMER_LUBR_3) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Rollformer.Lubr3.Start := ((MB2_Decoder.Code = #2024_ROLLFORMER_LUBR_3) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2024_ROLLFORMER_LUBR_3) AND RollformerLubr.Valves3.COut.LubrReq) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2024_ROLLFORMER_LUBR_3) AND RollformerLubr.Pump.RunContactor) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2024_ROLLFORMER_LUBR_3) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2031 - MwFakCalc push ax"
+      A02_HMI.MB2.Button.MwFacCalc.PushAx.Bwd_Minus := ((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.MwFacCalc.PushAx.Fwd_Plus := ((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND NOT (MwFakCalc.COut.PushAx.Fwd_CheckNext)) AND NOT (MwFakCalc.COut.PushAx.Bwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND NOT (MwFakCalc.COut.PushAx.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND A02_HMI.MB2.Button.MwFacCalc.PushAx.Bwd_Minus) AND MwFakCalc.DataIn.PushAx_Ls_RestBwd) OR (((MB2_Decoder.Code = #2031_MWFAKCALC_PUSHAX) AND A02_HMI.MB2.Button.MwFacCalc.PushAx.Fwd_Plus) AND MwFakCalc.DataIn.PushAx_Ls_HomeFwd)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2032 - MwFakCalc gripper"
+      A02_HMI.MB2.Button.MwFacCalc.Gripper.Rest := ((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.MwFacCalc.Gripper.Work := ((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND NOT (MwFakCalc.COut.Gripper.Rest_CheckNext)) AND NOT (MwFakCalc.COut.Gripper.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND NOT (MwFakCalc.COut.Gripper.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND A02_HMI.MB2.Button.MwFacCalc.Gripper.Rest) AND MwFakCalc.COut.Gripper.Rest) OR (((MB2_Decoder.Code = #2032_MWFAKCALC_GRIPPER) AND A02_HMI.MB2.Button.MwFacCalc.Gripper.Work) AND MwFakCalc.COut.Gripper.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2041 - Flying carriage move"
+      A02_HMI.MB2.Button.FlyingCarriage.Move.Bwd_Minus := ((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FlyingCarriage.Move.Fwd_Plus := ((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND NOT (FlyingCarriage.COut.CheckNext_Minus)) AND NOT (FlyingCarriage.COut.CheckNext_Plus))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND NOT (FlyingCarriage.COut.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND A02_HMI.MB2.Button.FlyingCarriage.Move.Bwd_Minus) OR ((MB2_Decoder.Code = #2041_FLYINGCARRIAGE_MOVE) AND A02_HMI.MB2.Button.FlyingCarriage.Move.Fwd_Plus)) AND FlyingCarriage.COut.PositioningDone) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2042 - Flying carriage pos"
+      A02_HMI.MB2.Button.FlyingCarriage.Move.MoveToPos := ((MB2_Decoder.Code = #2042_FLYINGCARRIAGE_POS) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2042_FLYINGCARRIAGE_POS) AND NOT (FlyingCarriage.COut.CheckNext_Minus)) AND NOT (FlyingCarriage.COut.CheckNext_Plus))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2042_FLYINGCARRIAGE_POS) AND NOT (FlyingCarriage.COut.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2042_FLYINGCARRIAGE_POS) AND A02_HMI.MB2.Button.FlyingCarriage.Move.MoveToPos) AND FlyingCarriage.COut.PositioningDone) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2043 - Flying carriage zero"
+      A02_HMI.MB2.Button.FlyingCarriage.ZeroFind := ((MB2_Decoder.Code = #2043_FLYINGCARRIAGE_ZERO) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2043_FLYINGCARRIAGE_ZERO) AND NOT (FlyingCarriage.COut.CheckNext_Minus)) AND NOT (FlyingCarriage.COut.CheckNext_Plus))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2043_FLYINGCARRIAGE_ZERO) AND NOT (FlyingCarriage.COut.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2043_FLYINGCARRIAGE_ZERO) AND A02_HMI.MB2.Button.FlyingCarriage.ZeroFind) AND FlyingCarriage.Sts.AtHomePosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2044 - Flying carriage lubr"
+      A02_HMI.MB2.Button.FlyingCarriage.Lubr.Stop := ((MB2_Decoder.Code = #2044_FLYINGCARRIAGE_LUBR) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FlyingCarriage.Lubr.Start := ((MB2_Decoder.Code = #2044_FLYINGCARRIAGE_LUBR) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2044_FLYINGCARRIAGE_LUBR) AND CarriageLubr_Control.COut.LubrReq) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2044_FLYINGCARRIAGE_LUBR) AND CarriageLub_Pump.ValveCmd) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2044_FLYINGCARRIAGE_LUBR) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2051 - Final cut locking heads"
+      A02_HMI.MB2.Button.FinalCut.Locking.Rest := ((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FinalCut.Locking.Work := ((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND NOT (FinalCut.COut.Locking.Rest_CheckNext)) AND NOT (FinalCut.COut.Locking.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND NOT (FinalCut.COut.Locking.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND A02_HMI.MB2.Button.FinalCut.Locking.Rest) AND FinalCut.COut.Locking.Rest) OR (((MB2_Decoder.Code = #2051_FINALCUT_LOCKING) AND A02_HMI.MB2.Button.FinalCut.Locking.Work) AND FinalCut.COut.Locking.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2052 - Final cut cut head"
+      A02_HMI.MB2.Button.FinalCut.CutHead.Rest := ((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FinalCut.CutHead.Work := ((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND NOT (FinalCut.COut.CutHead.Rest_CheckNext)) AND NOT (FinalCut.COut.CutHead.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND NOT (FinalCut.COut.CutHead.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND A02_HMI.MB2.Button.FinalCut.CutHead.Rest) AND FinalCut.COut.CutHead.Rest) OR (((MB2_Decoder.Code = #2052_FINALCUT_CUTHEAD) AND A02_HMI.MB2.Button.FinalCut.CutHead.Work) AND FinalCut.COut.CutHead.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2053 - Final cut draw head"
+      A02_HMI.MB2.Button.FinalCut.DrawHead.Rest := ((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FinalCut.DrawHead.Work := ((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND NOT (FinalCut.COut.DrawHead.Rest_CheckNext)) AND NOT (FinalCut.COut.DrawHead.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND NOT (FinalCut.COut.DrawHead.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND A02_HMI.MB2.Button.FinalCut.DrawHead.Rest) AND FinalCut.COut.DrawHead.Rest) OR (((MB2_Decoder.Code = #2053_FINALCUT_DRAWHEAD) AND A02_HMI.MB2.Button.FinalCut.DrawHead.Work) AND FinalCut.COut.DrawHead.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2054 - Final cut mark head"
+      A02_HMI.MB2.Button.FinalCut.MarkHead.Rest := ((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FinalCut.MarkHead.Work := ((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND NOT (FinalCut.COut.MarkHead.Rest_CheckNext)) AND NOT (FinalCut.COut.MarkHead.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND NOT (FinalCut.COut.MarkHead.Standstill)) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND A02_HMI.MB2.Button.FinalCut.MarkHead.Rest) AND FinalCut.COut.MarkHead.Rest) OR (((MB2_Decoder.Code = #2054_FINALCUT_MARKHEAD) AND A02_HMI.MB2.Button.FinalCut.MarkHead.Work) AND FinalCut.COut.MarkHead.Work)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2055 - Final cut lubr"
+      A02_HMI.MB2.Button.FinalCut.Lubr.Stop := ((MB2_Decoder.Code = #2055_FINALCUT_LUBR) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.FinalCut.Lubr.Start := ((MB2_Decoder.Code = #2055_FINALCUT_LUBR) AND MB2_Decoder.OperationPlus);
+      IF ((MB2_Decoder.Code = #2055_FINALCUT_LUBR) AND FinalCutLub.COut.IsRunning) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2055_FINALCUT_LUBR) AND FinalCutLub.COut.IsRunning) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2055_FINALCUT_LUBR) AND Sys.Bit0) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2061 - AccDecConveyor ROLLS COMBO MOVE"
+      A02_HMI.MB2.Button.AccRollConveyor.MoveCombo.Bwd_Minus := ((MB2_Decoder.Code = #2061_ACCROLLCONVEYOR_COMBO_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.MoveCombo.Fwd_Plus := ((MB2_Decoder.Code = #2061_ACCROLLCONVEYOR_COMBO_MOVE) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2061_ACCROLLCONVEYOR_COMBO_MOVE) AND NOT (AccRollConveyor.COut.Rolls.Fwd_CheckNext)) AND NOT (AccRollConveyor.COut.Rolls.Bwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2061_ACCROLLCONVEYOR_COMBO_MOVE) AND NOT (AccRollConveyor.COut.Rolls.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2061_ACCROLLCONVEYOR_COMBO_MOVE) AND FALSE) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2062 - AccDecConveyor PUSHER VERT COMBO"
+      A02_HMI.MB2.Button.AccRollConveyor.PusherVertCombo.Rest := ((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.PusherVertCombo.Work := ((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND NOT (AccRollConveyor.COut.PusherVert.Rest_CheckNext)) AND NOT (AccRollConveyor.COut.PusherVert.Work_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND NOT (AccRollConveyor.COut.PusherVert.AllStandstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND MB2_Decoder.OperationMinus) AND AccRollConveyor.COut.PusherVert.AllDown) OR (((MB2_Decoder.Code = #2062_ACCROLLCONVEYOR_PUSHER_COMBO_VERT) AND MB2_Decoder.OperationPlus) AND AccRollConveyor.COut.PusherVert.TwoUp)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2063 - AccDecConveyor PUSHER VERT COMBO"
+      A02_HMI.MB2.Button.AccRollConveyor.PusherHorizCombo.Rest := ((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.PusherHorizCombo.Work := ((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND NOT (AccRollConveyor.COut.PusherHoriz.Left_CheckNext)) AND NOT (AccRollConveyor.COut.PusherHoriz.Right_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND NOT (AccRollConveyor.COut.PusherHoriz.AllStandstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND MB2_Decoder.OperationMinus) AND AccRollConveyor.COut.PusherHoriz.InLeftPos) OR (((MB2_Decoder.Code = #2063_ACCROLLCONVEYOR_PUSHER_COMBO_HORIZ) AND MB2_Decoder.OperationPlus) AND AccRollConveyor.COut.PusherHoriz.InRightPos)) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2071 - AccDecConveyor ROLLS 1"
+      A02_HMI.MB2.Button.AccRollConveyor.Move1.Bwd_Minus := ((MB2_Decoder.Code = #2071_ACCROLLCONVEYOR_ROLL1) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.Move1.Fwd_Plus := ((MB2_Decoder.Code = #2071_ACCROLLCONVEYOR_ROLL1) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2071_ACCROLLCONVEYOR_ROLL1) AND NOT (AccRollConveyor.Roll1.COut.Bwd_CheckNext)) AND NOT (AccRollConveyor.Roll1.COut.Fwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2071_ACCROLLCONVEYOR_ROLL1) AND NOT (AccRollConveyor.Roll1.COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2071_ACCROLLCONVEYOR_ROLL1) AND FALSE) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2072 - AccDecConveyor ROLLS 2"
+      A02_HMI.MB2.Button.AccRollConveyor.Move2.Bwd_Minus := ((MB2_Decoder.Code = #2072_ACCROLLCONVEYOR_ROLL2) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.Move2.Fwd_Plus := ((MB2_Decoder.Code = #2072_ACCROLLCONVEYOR_ROLL2) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2072_ACCROLLCONVEYOR_ROLL2) AND NOT (AccRollConveyor.Roll2.COut.Bwd_CheckNext)) AND NOT (AccRollConveyor.Roll2.COut.Fwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2072_ACCROLLCONVEYOR_ROLL2) AND NOT (AccRollConveyor.Roll2.COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2072_ACCROLLCONVEYOR_ROLL2) AND FALSE) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2073 - AccDecConveyor ROLLS 3"
+      A02_HMI.MB2.Button.AccRollConveyor.Move3.Bwd_Minus := ((MB2_Decoder.Code = #2073_ACCROLLCONVEYOR_ROLL3) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.AccRollConveyor.Move3.Fwd_Plus := ((MB2_Decoder.Code = #2073_ACCROLLCONVEYOR_ROLL3) AND MB2_Decoder.OperationPlus);
+      IF NOT ((((MB2_Decoder.Code = #2073_ACCROLLCONVEYOR_ROLL3) AND NOT (AccRollConveyor.Roll3.COut.Bwd_CheckNext)) AND NOT (AccRollConveyor.Roll3.COut.Fwd_CheckNext))) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2073_ACCROLLCONVEYOR_ROLL3) AND NOT (AccRollConveyor.Roll3.COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB2_Decoder.Code = #2073_ACCROLLCONVEYOR_ROLL3) AND FALSE) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2081  ...   PUSHER SINGLE"
+
+
+      FOR i := 1 TO MAX_PUSHER DO
+          
+          A02_HMI.MB2.Button.AccRollConveyor.PusherVert_Single[i].Rest := FALSE;
+          A02_HMI.MB2.Button.AccRollConveyor.PusherVert_Single[i].Work := FALSE;
+          A02_HMI.MB2.Button.AccRollConveyor.PusherVert_Single[i].Work := FALSE;
+          
+          A02_HMI.MB2.Button.AccRollConveyor.PusherHoriz_Single[i].Rest := FALSE;
+          A02_HMI.MB2.Button.AccRollConveyor.PusherHoriz_Single[i].Work := FALSE;
+          A02_HMI.MB2.Button.AccRollConveyor.PusherHoriz_Single[i].Work := FALSE;
+          
+          tempIdxVert := 2081_ACCROLLCONVEYOR_PUSHER_VERT_1 + (i - 1);
+          tempIdxHoriz := 2091_ACCROLLCONVEYOR_PUSHER_HORIZ_1 + (i - 1);
+          
+          IF MB2_Decoder.Code = tempIdxVert THEN
+              
+              A02_HMI.MB2.Button.AccRollConveyor.PusherVert_Single[i].Rest := MB2_Decoder.OperationMinus;
+              A02_HMI.MB2.Button.AccRollConveyor.PusherVert_Single[i].Work := MB2_Decoder.OperationPlus;
+              
+              MB2_Decoder.OpEnabled := AccRollConveyor.PusherVert[i].COut.Rest_CheckNext OR AccRollConveyor.PusherVert[i].COut.Work_CheckNext;
+              MB2_Decoder.OpRunning := AccRollConveyor.PusherVert[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+              MB2_Decoder.OpDone := (MB2_Decoder.OperationMinus AND AccRollConveyor.PusherVert[i].COut.Rest) OR (MB2_Decoder.OperationPlus AND AccRollConveyor.PusherVert[i].COut.Work);
+              
+          END_IF;
+          
+          IF MB2_Decoder.Code = tempIdxHoriz THEN
+              
+              A02_HMI.MB2.Button.AccRollConveyor.PusherHoriz_Single[i].Rest := MB2_Decoder.OperationMinus;
+              A02_HMI.MB2.Button.AccRollConveyor.PusherHoriz_Single[i].Work := MB2_Decoder.OperationPlus;
+              
+              MB2_Decoder.OpEnabled := AccRollConveyor.PusherHoriz[i].COut.Rest_CheckNext OR AccRollConveyor.PusherHoriz[i].COut.Work_CheckNext;
+              MB2_Decoder.OpRunning := AccRollConveyor.PusherHoriz[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+              MB2_Decoder.OpDone := (MB2_Decoder.OperationMinus AND AccRollConveyor.PusherHoriz[i].COut.Rest) OR (MB2_Decoder.OperationPlus AND AccRollConveyor.PusherHoriz[i].COut.Work);
+              
+          END_IF;
+          
+          
+      END_FOR;
+
+   END_REGION
+
+   REGION "MB2 Code REGOLAZIONE FORMATO"
+
+      FOR i := 1 TO 14 DO
+          
+          A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].Bwd_Minus := FALSE;
+          A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].Fwd_Plus := FALSE;
+          A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].MoveToPos := FALSE;
+          
+          tempIdxMove := 2100_MODULO1_OP_MOVE + ((i - 1) * 2);
+          tempIdxPos := 2101_MODULO1_OP_POS + ((i - 1) * 2);
+          
+          IF MB2_Decoder.Code = tempIdxMove THEN
+              
+              A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].Bwd_Minus := MB2_Decoder.OperationMinus;
+              A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].Fwd_Plus := MB2_Decoder.OperationPlus;
+              
+              IF i <= 6 THEN
+                  MB2_Decoder.OpEnabled := A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.MinusCheckNext OR A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.PlusCheckNext;
+                  MB2_Decoder.OpRunning := NOT A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+                  MB2_Decoder.OpDone := A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.PlusLimitReached OR A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.MinusLimitReached OR A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.InPosition;
+              ELSE
+                  MB2_Decoder.OpEnabled := A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.MinusCheckNext OR A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.PlusCheckNext;
+                  MB2_Decoder.OpRunning := NOT A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+                  MB2_Decoder.OpDone := A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.PlusLimitReached OR A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.MinusLimitReached OR A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.InPosition;
+              END_IF;
+              
+          ELSIF MB2_Decoder.Code = tempIdxPos THEN
+              A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Single_PB[i].MoveToPos := MB2_Decoder.OperationPlus;
+              
+              IF i <= 6 THEN
+                  MB2_Decoder.OpEnabled := A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.MinusCheckNext OR A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.PlusCheckNext;
+                  MB2_Decoder.OpRunning := NOT A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+                  MB2_Decoder.OpDone :=  A0201_Profilatrice_RegolazioneFormato.AX_D[i].COut.InPosition;
+              ELSE
+                  MB2_Decoder.OpEnabled := A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.MinusCheckNext OR A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.PlusCheckNext;
+                  MB2_Decoder.OpRunning := NOT A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.Standstill AND MB2_Decoder.OpEnabled;
+                  MB2_Decoder.OpDone := A0201_Profilatrice_RegolazioneFormato.AX_M[i].COut.InPosition;
+              END_IF;
+              
+              
+          END_IF;
+          
+          
+      END_FOR;
+
+          
+          
+          
+
+   END_REGION
+
+   REGION "MB2 Code 2280_PASSAGGIO2_COMBO_MOVE"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio02_Combo.Bwd_Minus := ((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio02_Combo.Fwd_Plus := ((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2280_PASSAGGIO2_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2281_PASSAGGIO2_COMBO_POS"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio02_Combo.MoveToPos := ((MB2_Decoder.Code = #2281_PASSAGGIO2_COMBO_POS) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2281_PASSAGGIO2_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2281_PASSAGGIO2_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2281_PASSAGGIO2_COMBO_POS) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2281_PASSAGGIO2_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[7].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[8].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2282_PASSAGGIO14_COMBO_MOVE"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio14_Combo.Bwd_Minus := ((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio14_Combo.Fwd_Plus := ((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2282_PASSAGGIO14_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2283_PASSAGGIO14_COMBO_POS"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio14_Combo.MoveToPos := ((MB2_Decoder.Code = #2283_PASSAGGIO14_COMBO_POS) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2283_PASSAGGIO14_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2283_PASSAGGIO14_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2283_PASSAGGIO14_COMBO_POS) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2283_PASSAGGIO14_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[9].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[10].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2284_PASSAGGIO17_COMBO_MOVE"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio17_Combo.Bwd_Minus := ((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio17_Combo.Fwd_Plus := ((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2284_PASSAGGIO17_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2285_PASSAGGIO17_COMBO_POS"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio17_Combo.MoveToPos := ((MB2_Decoder.Code = #2285_PASSAGGIO17_COMBO_POS) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2285_PASSAGGIO17_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2285_PASSAGGIO17_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2285_PASSAGGIO17_COMBO_POS) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2285_PASSAGGIO17_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[11].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[12].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2286_PASSAGGIO18_COMBO_MOVE"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio18_Combo.Bwd_Minus := ((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND MB2_Decoder.OperationMinus);
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio18_Combo.Fwd_Plus := ((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2286_PASSAGGIO18_COMBO_MOVE) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Code 2287_PASSAGGIO18_COMBO_POS"
+      A02_HMI.MB2.Button.Profilatrice_RegolazioneFormato.Passaggio18_Combo.MoveToPos := ((MB2_Decoder.Code = #2287_PASSAGGIO18_COMBO_POS) AND MB2_Decoder.OperationPlus);
+      IF ((((MB2_Decoder.Code = #2287_PASSAGGIO18_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.MinusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.MinusCheckNext) OR (((MB2_Decoder.Code = #2287_PASSAGGIO18_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.PlusCheckNext) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.PlusCheckNext)) THEN
+         MB2_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB2_Decoder.Code = #2287_PASSAGGIO18_COMBO_POS) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.Standstill)) AND NOT (A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.Standstill)) AND MB2_Decoder.OpEnabled) THEN
+         MB2_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB2_Decoder.Code = #2287_PASSAGGIO18_COMBO_POS) AND A0201_Profilatrice_RegolazioneFormato.AX_M[13].COut.InPosition) AND A0201_Profilatrice_RegolazioneFormato.AX_M[14].COut.InPosition) THEN
+         MB2_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB2 Decoder"
+      #MB2_Decoder(
+         en := TRUE,
+         ButtonMinus := NOT ((NOT (MB2_Pb_Comando_Manuale_Jog_Menus) AND NOT (A02_HMI.Area02.SuperUser.JogMinus))),
+         ButtonPlus := NOT ((NOT (MB2_Pb_Comando_Manuale_Jog_Plus) AND NOT (A02_HMI.Area02.SuperUser.JogPlus))),
+         CodeReq := A02_HMI.MB2.ManCode_REQ,
+         Code => A02_HMI.MB2.ManCode_CMD,
+         Lamp => MB2_Lp_Comando_Manuale_Jog_Plus
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

@@ -1,0 +1,44 @@
+﻿ORGANIZATION_BLOCK "MC_PreServo"
+
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+VAR_INPUT
+  Initial_Call : Bool;
+  PIP_Input : Bool;
+  PIP_Output : Bool;
+  IO_System : USInt;
+  Event_Count : Int;
+  Synchronous : Bool;
+  CycleTime : UDInt;
+END_VAR
+
+VAR_TEMP
+
+END_VAR
+
+VAR CONSTANT
+
+END_VAR
+
+
+BEGIN
+	// Copia conteggio e control word da Encoder 2 Telegramma 106 asse carro taglio al volo...
+	// ...a Telegramma 81 Encoder carrellino per calcolo FAK
+	// 
+	"Encoder"."1248A1".Input.G1_XIST1 :=  "A02_Carriage_Actor_Interface_AddressIn".G2_XIST1;
+	"Encoder"."1248A1".Input.G1_XIST2 := "A02_Carriage_Actor_Interface_AddressIn".G2_XIST2;
+	"Encoder"."1248A1".Input.G1_ZSW := "A02_Carriage_Actor_Interface_AddressIn".G2_ZSW;
+	
+	
+	// Extracorsa profila 
+	"Rollformer_MinStroke" := TRUE;
+	"Rollformer_MaxStroke" := "FlyingCarriage_MaxStroke" AND ("Rollformer_MaxStroke" OR NOT "A02_Carriage".StatusWord.%X22);
+	
+	//Extracorsa carro al volo
+	"FlyingCarriage_MinStroke" := "FlyingCarriage_MinStroke";
+	"FlyingCarriage_MaxStroke" := "FlyingCarriage_MaxStroke";
+	
+	
+	
+END_ORGANIZATION_BLOCK
+

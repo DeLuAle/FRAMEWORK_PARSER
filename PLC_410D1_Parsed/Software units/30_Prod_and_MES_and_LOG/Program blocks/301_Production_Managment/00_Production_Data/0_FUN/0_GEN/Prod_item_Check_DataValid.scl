@@ -1,0 +1,195 @@
+﻿// Block: Prod_item_Check_DataValid
+// Title: Generazione codice di return se < 0 allora l'item non è valido
+
+FUNCTION "Prod_item_Check_DataValid" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Generazione codice di return se < 0 allora l'item non è valido
+   VAR_INPUT
+      Item : Prod_Item;
+   END_VAR
+
+   VAR_TEMP
+      PrgNo_PivotIndx : Int;
+      ProfileCode_PivotIndx : Int;
+      ProfileCode_PPrf : DInt;
+      ProfileCode_match : Bool;
+      i : Int;
+      strPos : Int;
+      RETVAL : DInt;
+   END_VAR
+
+   VAR CONSTANT
+      OK : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Generazione codice di return se < 0 allora l'item non è valido"
+      Prod_item_Check_DataValid := PROD_FUN_RESULT_OK;
+
+
+      IF (Item.Type <> PROD_ITEM_TYPE_MES) AND (Item.Type <> PROD_ITEM_TYPE_HMI) THEN
+          Prod_item_Check_DataValid := PROD_ERR_Type_UNKNOW;
+          RETURN;
+      END_IF;
+
+      IF Item.O_ID <= 0 THEN
+          Prod_item_Check_DataValid := PROD_ERR_O_ID_empty;
+          RETURN;
+      END_IF;
+
+      IF (Item.MES_IDP = '') AND (Item.Type = 1)  THEN
+          Prod_item_Check_DataValid := PROD_ERR_MES_IDP_NOT_Empty;
+          RETURN;
+      END_IF;
+
+
+
+      // Codice di errore = "PROD_ERR_MES_IDP_Duplicate" se IDP è già stato assegnato ad un ordine
+      // 
+      Sys.ByPass := Sys.ByPass;
+      //
+      IF #Item.Type = 1  THEN
+          #RETVAL := "Prod_Item_Check_IDP_Duplicate"(#Item.MES_IDP);
+          
+          IF #RETVAL < 0 THEN
+              #Prod_item_Check_Valid := #RETVAL;
+              RETURN;
+          END_IF;
+          
+          
+      END_IF;
+
+
+      IF (Item.MES_IDP <> 'HMI') AND (Item.Type = 2) THEN
+          Prod_item_Check_DataValid := PROD_ERR_MES_IDP_Empty;
+          RETURN;
+      END_IF;
+
+
+      IF Item.PPrf_No <= 0 THEN
+          Prod_item_Check_DataValid := PROD_ERR_PPrfNo_Empty;
+          RETURN;
+      END_IF;
+
+
+
+
+
+
+
+
+
+
+      // Ricerca se il numero del programma profilo esiste nella lista PIVOT dei programmi
+      // 
+
+      PrgNo_PivotIndx := 0;
+
+      FOR i := 1 TO PPRF_TOTAL_ARCHIVE_ITEMS DO
+          
+          IF Item.PPrf_No = PPrf_MAIN.PIVOT[i].PrgNo THEN
+              
+              PrgNo_PivotIndx := i;
+              
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+      IF PrgNo_PivotIndx = 0 THEN
+          Prod_item_Check_DataValid := PROD_ERR_PPrfNo_NotExist;
+          RETURN;
+      END_IF;
+
+      // Verifica corrispondenza nome profilo MES
+      //
+      IF (Item.MES_PPrf_Name <> '') AND (Item.Type = PROD_ITEM_TYPE_MES) THEN
+          
+          strPos := (IN1 := PPrf_MAIN.PIVOT[PrgNo_PivotIndx].PrgName , IN2 :=Item.MES_PPrf_Name );
+          
+          IF strPos <= 0 THEN
+              Prod_item_Check_DataValid := PROD_ERR_PPrf_Name_Mismatch;
+              RETURN;
+          END_IF;
+      END_IF;
+
+
+      IF Item.Beams_W_A < BEAM_W_MIN THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_W_A_Min;
+          RETURN;
+      END_IF;
+
+      IF Item.Beams_W_A > BEAM_W_MAX THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_W_A_Max;
+          RETURN;
+      END_IF;
+
+
+      IF Item.Beams_H_B < BEAM_H_MIN THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_H_B_Min;
+          RETURN;
+      END_IF;
+
+      IF Item.Beams_H_B > BEAM_H_MAX THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_H_B_Max;
+          RETURN;
+      END_IF;
+
+
+      IF Item.Beams_Thickness < BEAM_TK_MIN THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_Tickness_Min;
+          RETURN;
+      END_IF;
+
+
+      IF Item.Beams_Thickness > BEAM_TK_MAX THEN
+          Prod_item_Check_DataValid := PROD_ERR_Beam_Tickness_Max;
+          RETURN;
+      END_IF;
+
+
+      IF Item.Beams_Len < BEAM_LEN_MIN OR Item.Parts_Len < P_LEN_MIN THEN
+          Prod_item_Check_DataValid := PROD_ERR_Len_min;
+          RETURN;
+      END_IF;
+
+
+      IF Item.Beams_Len > BEAM_LEN_MAX OR Item.Parts_Len > P_LEN_MAX THEN
+          Prod_item_Check_DataValid := PROD_ERR_Len_max;
+          RETURN;
+      END_IF;
+
+
+      IF NOT Item.Kanban_Style THEN
+
+          IF Item.Beams_REQ <= 0 THEN
+              Prod_item_Check_DataValid := PROD_ERR_Beams_REQ_empty;
+              RETURN;
+          END_IF;
+          
+          IF Item.Parts_REQ <= 0 THEN
+              Prod_item_Check_DataValid := PROD_ERR_Parts_REQ_empty;
+              RETURN;
+          END_IF;
+          
+          IF Item.Parts_ToGo <= 0 THEN
+              Prod_item_Check_DataValid := PROD_ERR_No_Parts_ToGo;
+              RETURN;
+          END_IF;
+
+      END_IF;
+              
+              
+              
+          
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

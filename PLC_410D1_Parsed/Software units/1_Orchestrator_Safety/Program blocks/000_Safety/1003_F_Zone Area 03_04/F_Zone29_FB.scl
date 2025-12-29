@@ -1,0 +1,131 @@
+﻿// Block: F_Zone29_FB
+// Title: < < < < <  < < < < <  DOOR > > > > > > > > > >
+
+FUNCTION_BLOCK "F_Zone29_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// < < < < <  < < < < <  DOOR > > > > > > > > > >
+   VAR
+      D22_LightCurtain_Ext : Door_FB;
+      D24_LightCurtain_Int : Door_FB;
+      FNS : ForceNormalStop;
+      F_Sinamics_Navetta_Testa : FDevice_Sinamics_FB;
+      F_Sinamics_Navetta_Coda : FDevice_Sinamics_FB;
+      F_SafetyValve_Air_A0304 : FDevice_Valve_FB;
+   END_VAR
+
+   VAR_TEMP
+      DoorNormalStop : Bool;
+      DoorSafeStop : Bool;
+      Door_OK : Bool;
+      FDBK : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Zone Entry enable"
+      F_DB.ZSI_Zone29.Door_EntryEnable := Areas_ITF.A04.Safety_EntryEnable.Z29;
+   END_REGION
+
+   REGION "D22 - LightCurtain External Unload"
+      #D22_LightCurtain_Ext(
+         en := TRUE,
+         LS := D22_Ls,
+         EntryReq := (D22_Pb_EntryReq_LB305 OR D22_Pb_EntryReq_LB306),
+         EntryEnable := F_DB.ZSI_Zone29.Door_EntryEnable,
+         Reset := NOT (((NOT (D22_Pb_SafetyReset_LB305) AND NOT (D22_Pb_SafetyReset_LB306)) AND NOT (F_DB.SuperUserReset))),
+         LockEnable := FALSE,
+         Sts := F_DB.D22
+      );
+
+   END_REGION
+
+   REGION "D24 - LightCurtain Internal Unload"
+      #D24_LightCurtain_Int(
+         en := TRUE,
+         LS := (D24_Ls OR F_DB.D22.OK),
+         EntryReq := (D24_Pb_EntryReq_LB307 OR D24_Pb_EntryReq_LB308),
+         EntryEnable := F_DB.ZSI_Zone29.Door_EntryEnable,
+         Reset := NOT (((NOT (D24_Pb_SafetyReset_LB307) AND NOT (D24_Pb_SafetyReset_LB308)) AND NOT (F_DB.SuperUserReset))),
+         LockEnable := FALSE,
+         Sts := F_DB.D24
+      );
+
+   END_REGION
+
+   REGION "Cumulative Zone Safety (collect)"
+      DoorNormalStop := NOT ((NOT (F_DB.D22.NormalStop) AND NOT (F_DB.D24.NormalStop)));
+      DoorSafeStop := NOT ((NOT (F_DB.D22.SafeStop) AND NOT (F_DB.D24.SafeStop)));
+      Door_OK := (F_DB.D22.OK AND F_DB.D24.OK);
+   END_REGION
+
+   REGION "Zone must stay in Normal Stop During Restart"
+      #FNS(
+         en := TRUE,
+         Door_NormalStop := DoorNormalStop,
+         Door_SafeStop := DoorSafeStop,
+         AreaCycleOn := NOT (NOT (Areas_ITF.A03.AreaInterface.Cycle)),
+         ForceNormalStop => F_DB.FNS_Zone29
+      );
+
+   END_REGION
+
+   REGION "Cumulative Zone Safety"
+      F_DB.ZSI_Zone29.Door_NormalStop := NOT ((NOT (DoorNormalStop) AND NOT (FNS.ForceNormalStop)));
+      F_DB.ZSI_Zone29.Door_SafeStop := NOT (NOT (DoorSafeStop));
+      F_DB.ZSI_Zone29.Door_Opened := NOT (Door_OK);
+   END_REGION
+
+   REGION "EV Sezionamento Pneumatica Scarico Pacco - FDBK"
+      FDBK := NOT (F_SafetyValve_Air_A0304.EV_SAFETY);
+   END_REGION
+
+   REGION "EV Sezionamento Pneumatica Scarico Pacco"
+      #F_SafetyValve_Air_A0304(
+         en := TRUE,
+         QBAD_FIO := NOT (QBAD_FDo_V_Air_A0304),
+         Estop := F_DB.A03_Estop,
+         Door_SafeStop := F_DB.ZSI_Zone29.Door_SafeStop,
+         Reset := NOT ((NOT (F_DB.SafetyReset) AND NOT (F_DB.SuperUserReset))),
+         C_FEEDBACK := FDBK,
+         V_FEEDBACK_CHA := Fdbk_V_Air_A0304_Ch1,
+         V_FEEDBACK_CHB := Fdbk_V_Air_A0304_Ch2,
+         CtrlSafe := TRUE,
+         DSI := F_DB.DSI_V_Air_A0304,
+         EV_SAFETY => FDo_V_Air_A0304
+      );
+
+   END_REGION
+
+   REGION "S120 - Ax Testa Navetta"
+      #F_Sinamics_Navetta_Testa(
+         en := TRUE,
+         Estop := F_DB.A03_Estop,
+         Two_Hand_CMD := FALSE,
+         Door_SafeStop := F_DB.ZSI_Zone29.Door_SafeStop,
+         CtrlSafe := Areas_ITF.A04.Safety_CtrlSafe.Sinamics_NavettaTesta,
+         Reset := NOT ((NOT (F_DB.SafetyReset) AND NOT (F_DB.SuperUserReset))),
+         Tlg30_IN := NavettaAxTesta_StsIn,
+         DSI := F_DB.DSI_NavettaTesta,
+         Tlg30_OUT => NavettaAxTesta_CtrlOut
+      );
+
+   END_REGION
+
+   REGION "S120 - Ax Coda Navetta"
+      #F_Sinamics_Navetta_Coda(
+         en := TRUE,
+         Estop := F_DB.A03_Estop,
+         Two_Hand_CMD := FALSE,
+         Door_SafeStop := F_DB.ZSI_Zone29.Door_SafeStop,
+         CtrlSafe := Areas_ITF.A04.Safety_CtrlSafe.Sinamics_NavettaCoda,
+         Reset := NOT ((NOT (F_DB.SafetyReset) AND NOT (F_DB.SuperUserReset))),
+         Tlg30_IN := NavettaAxCoda_StsIn,
+         DSI := F_DB.DSI_NavettaCoda,
+         Tlg30_OUT => NavettaAxCoda_CtrlOut
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

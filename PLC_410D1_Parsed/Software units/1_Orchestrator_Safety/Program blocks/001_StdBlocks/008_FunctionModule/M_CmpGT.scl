@@ -1,0 +1,22 @@
+﻿// Block: M_CmpGT
+// Title: Xa > Xb return TRUE
+
+FUNCTION "M_CmpGT" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Xa > Xb return TRUE
+   VAR_INPUT
+      Xa : LReal;
+      Xb : LReal;
+      MODULE : LReal;
+   END_VAR
+
+
+BEGIN
+   REGION "Xa > Xb return TRUE"
+      M_CmpGT := M_PosAMinusPosB(PosA := Xa, PosB := Xb, MODULE := MODULE) > 0.0;
+
+   END_REGION
+
+
+END_FUNCTION

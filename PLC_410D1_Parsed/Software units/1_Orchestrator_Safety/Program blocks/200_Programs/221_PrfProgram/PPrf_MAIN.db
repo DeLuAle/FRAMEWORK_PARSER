@@ -1,0 +1,23 @@
+﻿// Block: PPrf_MAIN
+
+DATA_BLOCK PPrf_MAIN
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      PIVOT : Array[1..PPRF_TOTAL_ARCHIVE_ITEMS] of Prg_Pivot;
+      GET_ITF : Prg_GetITF;
+      RWD : Struct
+         EMPTY : PPrf_Data;
+         UPDATE : PPrf_Data;
+         GET : PPrf_Data;
+         HMI : PPrf_Data;
+         SCADA : PPrf_Data;
+      END_STRUCT;
+      HMI : Prg_HMI;
+      SCADA : Prg_SCADA;
+      ON_WORK : PPrf_Data;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

@@ -1,0 +1,25 @@
+﻿// Block: Area02_HU_CALL
+// Title: Machine Manager
+
+FUNCTION "Area02_HU_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Machine Manager
+   VAR_TEMP
+      retval : Int;
+      OilTemperature : Real;
+      AnalTemperature_Real : Real;
+   END_VAR
+
+
+BEGIN
+   REGION "Machine Manager"
+      #Area02_HU(
+         en := TRUE,
+         AreaInterface := Area02.AreaInterface
+      );
+
+   END_REGION
+
+
+END_FUNCTION

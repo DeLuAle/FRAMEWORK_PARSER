@@ -1,0 +1,106 @@
+﻿// Block: Prod_O_TODO_Pop_&_O_OUT_Push
+// Title: SPOSTA TODO[Index] -> ENDING[1]
+
+FUNCTION "Prod_O_TODO_Pop_&_O_OUT_Push" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// SPOSTA TODO[Index] -> ENDING[1]
+   VAR_INPUT
+      Index : Int;
+   END_VAR
+
+   VAR_TEMP
+      RETVAL : DInt;
+   END_VAR
+
+
+BEGIN
+   REGION "SPOSTA TODO[Index] -> ENDING[1]"
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // CONTROLLI INTERNI
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+      // Uscita per limiti indice array TODO
+      // 
+      IF (Index < 1) OR (Index > PROD_TODO_ITEMS) THEN
+          Prod_O_TODO_Pop_&_O_OUT_Push := PROD_ERR_O_TODO_INDEX_EXCEEDS_BOUNDS;
+          RETURN;
+      END_IF;
+
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // POP
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 
+
+
+
+      // O_OUT - Push
+      // 
+      RETVAL := PROD_item_Push_to_Top(item := Production.O_TODO[Index], Evaluate_FULL := FALSE, Buffer := Production.O_OUT);
+
+
+      // Uscita per errore PUSH
+      // 
+      IF RETVAL < PROD_FUN_RESULT_OK THEN
+        
+          Prod_O_TODO_Pop_&_O_OUT_Push := RETVAL;
+          RETURN;
+      END_IF;
+
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // POP
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ 
+
+
+
+      // O_TODO - Pop
+      //  
+
+      RETVAL := PROD_item_Pop(Index := Index, Buffer := Production.O_TODO);
+
+
+      // uscita per errore POP
+      //
+      IF RETVAL < PROD_FUN_RESULT_OK THEN
+          
+          Prod_O_TODO_Pop_&_O_OUT_Push := RETVAL;
+          RETURN;
+      END_IF;
+
+
+
+
+
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+      //
+      // OK
+      // 
+      //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-
+
+
+
+
+      Prod_O_TODO_Pop_&_O_OUT_Push := PROD_FUN_RESULT_OK;
+
+
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION

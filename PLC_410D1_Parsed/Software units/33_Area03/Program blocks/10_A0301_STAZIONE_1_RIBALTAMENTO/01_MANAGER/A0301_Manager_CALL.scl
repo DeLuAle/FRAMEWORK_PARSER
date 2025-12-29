@@ -1,0 +1,121 @@
+﻿// Block: A0301_Manager_CALL
+
+FUNCTION "A0301_Manager_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // TRASFERIMENTO CIn TRASPORTO
+      A0301_Manager.CIn.Trasporto := A0301_Trasporto.COut.Ax;
+
+      // TRASFERIMENTO Cin UTENZE FERMI P1
+      A0301_Manager.CIn.P1.Fermi := A0301_Fermi_P1.COut.Fermi;
+      A0301_Manager.CIn.P1.Sfalsatore := A0301_Fermi_P1.COut.Pareggiatore;
+
+      // TRASFERIMENTO CIn UTENZE FERMI P2
+      A0301_Manager.CIn.P2.Fermi := A0301_Fermi_P2.COut.Fermi;
+      A0301_Manager.CIn.P2.Sollevatore := A0301_Fermi_P2.COut.Sollevatori;
+
+      // TRASFERIMENTO CIn UTENZE FERMI P3
+      A0301_Manager.CIn.P3.Fermi := A0301_Fermi_P3.COut.Fermi;
+
+      // TRASFERIMENTO CIn UTENZE RIBALTATORE
+      A0301_Manager.CIn.Ribaltatore.Solleva_Rib := A0301_Ribaltatore.COut.Solleva_Rib;
+      A0301_Manager.CIn.Ribaltatore.Ax := A0301_Ribaltatore.COut.Ribaltatore;
+      A0301_Manager.CIn.Ribaltatore.Sts_Ribaltatore := A0301_Ribaltatore.COut.Ribaltatore_Sts;
+
+      // TRASFERIMENTO CIn UTENZE FERMI P4
+      A0301_Manager.CIn.P4.Fermi := A0301_Fermi_P4.COut.Fermi;
+
+      // TRASFERIMENTO CIn UTENZE FERMI P5
+      A0301_Manager.CIn.P5.Spintore_Lat.Spin_Lat1 := A0301_Spintore_Lat.COut.Spin_Lat1;
+      A0301_Manager.CIn.P5.Spintore_Lat.Spin_Lat2 := A0301_Spintore_Lat.COut.Spin_Lat2;
+      A0301_Manager.CIn.P5.Spintore_Lat.Vrt_1 := A0301_Spintore_Lat.COut.Vrt_1;
+      A0301_Manager.CIn.P5.Spintore_Lat.Orz_1 := A0301_Spintore_Lat.COut.Orz_1;
+      A0301_Manager.CIn.P5.Spintore_Lat.Vrt_2 := A0301_Spintore_Lat.COut.Vrt_2;
+      A0301_Manager.CIn.P5.Spintore_Lat.Orz_2 := A0301_Spintore_Lat.COut.Orz_2;
+      A0301_Manager.CIn.P5.Sollevatori := A0301_Spintore_Lat.COut.Sollevatori;
+      A0301_Manager.CIn.P5.SensUscitaBanco := A0302_Spintore.IEC.FTC_On;
+
+      // TRASFERIMENTO CIn UTENZE SPINTORE LONGITUDINALE
+
+      A0301_Manager.CIn.SpintoreLong.Spin_Ev := A0302_Spintore.COut.Spintore;
+
+      A0301_Manager.CIn.SpintoreLong.Ax_Sts.PosAttesa_Reached := A0302_Spintore.COut.Ax_Sts.PosAttesa_Reached;
+      A0301_Manager.CIn.SpintoreLong.Ax_Sts.PosFineSpinta_Reached := A0302_Spintore.COut.Ax_Sts.PosFineSpinta_Reached;
+
+      // Production Mng
+      A0301_Manager.CIn.ProdManager := Areas_ITF.Prod.A03_A04;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn del blocco >>"
+      // SOSTITUIRE Sys.ByPass  CON INGRESSI DIGITALI
+
+      //
+      // MB3 Pulsante semiautomatico 
+      A0301_Manager.DataIn.SemiAut_Pb := MB3_Pb_Avanti_Stazione_1_Area03;
+
+      REGION TRASFERIMENTO DataIn SENSORI INGRESSO USCITA P1
+          // PRESENZA PEZZO INGRESSO
+          A0301_Manager.DataIn.P1.Sens_Ing[1] := A0301_Cinghia_1_Phc_1;
+          A0301_Manager.DataIn.P1.Sens_Ing[2] := A0301_Cinghia_2_Phc_1;
+          A0301_Manager.DataIn.P1.Sens_Ing[3] := A0301_Cinghia_4_Phc_1;
+          // USCITA PEZZO
+          A0301_Manager.DataIn.P1.Sens_Out[1] := A0301_Cinghia_1_Phc_2;
+          A0301_Manager.DataIn.P1.Sens_Out[2] := A0301_Cinghia_2_Phc_2;
+          A0301_Manager.DataIn.P1.Sens_Out[3] := A0301_Cinghia_4_Phc_2;
+      END_REGION ;
+
+      REGION TRASFERIMENTO DataIn SENSORI INGRESSO USCITA P2
+          // PRESENZA PEZZO INGRESSO
+          A0301_Manager.DataIn.P2.Sens_Ing[1] := A0301_Cinghia_1_Phc_3;
+          A0301_Manager.DataIn.P2.Sens_Ing[2] := A0301_Cinghia_2_Phc_3;
+          A0301_Manager.DataIn.P2.Sens_Ing[3] := A0301_Cinghia_4_Phc_3;
+          // USCITA PEZZO solo PREDISPOSTO
+          A0301_Manager.DataIn.P2.Sens_Out[1] := Sys.ByPass;
+          A0301_Manager.DataIn.P2.Sens_Out[2] := Sys.ByPass;
+          A0301_Manager.DataIn.P2.Sens_Out[3] := Sys.ByPass;
+      END_REGION ;
+
+      REGION TRASFERIMENTO DataIn SENSORI INGRESSO USCITA P3
+          // PRESENZA PEZZO INGRESSO
+          A0301_Manager.DataIn.P3.Sens_Ing[1] := A0301_Cinghia_1_Phc_5;
+          A0301_Manager.DataIn.P3.Sens_Ing[2] := A0301_Cinghia_2_Phc_5;
+          A0301_Manager.DataIn.P3.Sens_Ing[3] := A0301_Cinghia_4_Phc_5;
+          // USCITA PEZZO
+          A0301_Manager.DataIn.P3.Sens_Out[1] := A0301_Cinghia_1_Phc_6;
+          A0301_Manager.DataIn.P3.Sens_Out[2] := A0301_Cinghia_2_Phc_6;
+          A0301_Manager.DataIn.P3.Sens_Out[3] := A0301_Cinghia_4_Phc_6;
+      END_REGION ;
+
+      REGION TRASFERIMENTO DataIn SENSORI INGRESSO USCITA P4
+          // PRESENZA PEZZO INGRESSO
+          A0301_Manager.DataIn.P4.Sens_Ing[1] := A0301_Cinghia_1_Phc_7;
+          A0301_Manager.DataIn.P4.Sens_Ing[2] := A0301_Cinghia_2_Phc_7;
+          A0301_Manager.DataIn.P4.Sens_Ing[3] := A0301_Cinghia_4_Phc_7;
+          // USCITA PEZZO
+          A0301_Manager.DataIn.P4.Sens_Out[1] := A0301_Cinghia_1_Phc_8;
+          A0301_Manager.DataIn.P4.Sens_Out[2] := A0301_Cinghia_2_Phc_8;
+          A0301_Manager.DataIn.P4.Sens_Out[3] := A0301_Cinghia_4_Phc_8;
+      END_REGION ;
+
+      //  TRASFERIMENTO DataIn SENSORI USCITA BANCO P5
+      A0301_Manager.DataIn.P5.Sens_Fuori_Ingombro_A0301 := A0302_Spintore.IEC.FTC_On;
+
+
+   END_REGION
+
+   REGION "<< Machine Call >>"
+      #A0301_Manager(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         Par := A0301_PERS.Par_Mng,
+         Data := A0301_PERS.Data_Mng
+      );
+
+   END_REGION
+
+
+END_FUNCTION

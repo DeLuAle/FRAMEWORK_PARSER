@@ -1,0 +1,72 @@
+﻿// Block: ValveMachine_NotExist
+// Title: Execute
+
+FUNCTION "ValveMachine_NotExist" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Execute
+   VAR_INPUT
+      Execute : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      V_Alarm : ValveAlr;
+      V_Warning : ValveMachine_Wng;
+   END_VAR
+
+   VAR_IN_OUT
+      ValveMachine : ValveMachine_FB;
+   END_VAR
+
+   VAR_TEMP
+      i : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1: Execute"
+      IF Execute THEN
+          
+          // Machine Interface
+          // 
+          MachineInterface_NotExist(ValveMachine.MachineInterface);
+          
+          // Machine coordination out
+          // 
+          ValveMachine.COut.CtrlSafe := FALSE;
+          ValveMachine.COut.Standstill := TRUE;
+          ValveMachine.COut.ReqOilPressure := FALSE;
+          ValveMachine.COut.Rest_CheckNext := FALSE;
+          ValveMachine.COut.Work_CheckNext := FALSE;
+          ValveMachine.COut.Rest := TRUE;
+          ValveMachine.COut.Work := FALSE;
+          
+          // Machine Data Out
+          // 
+          ValveMachine.DataOut.RestSolenoid := FALSE;
+          ValveMachine.DataOut.WorkSolenoid := FALSE;
+          
+          // Valve device + Alarms
+          // 
+          INIT_Device_Valve(V     := ValveMachine.V,
+                              Alarm := V_Alarm);
+          
+          // Machine Warnings
+          // 
+          V_Warning.NotAutReady := FALSE;
+          V_Warning.PressureRunning_Timeout := FALSE;
+          V_Warning.Rest_MissingExtEnable := FALSE;
+          V_Warning.Work_MissingExtEnable := FALSE;
+          
+          FOR i := 1 TO 8 DO
+              V_Warning.Missing_Rest_Ls_ON[i] := FALSE;
+              V_Warning.Missing_Work_Ls_ON[i] := FALSE;
+          END_FOR;
+          
+          
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION

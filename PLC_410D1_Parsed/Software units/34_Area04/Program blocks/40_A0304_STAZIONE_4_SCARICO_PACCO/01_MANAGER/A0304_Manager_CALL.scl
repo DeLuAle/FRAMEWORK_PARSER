@@ -1,0 +1,57 @@
+﻿// Block: A0304_Manager_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0304_Manager_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // // TRASFERIMENTO CIn Navetta
+      A0304_Manager.CIn.Navetta := A0304_Navetta.COut;
+
+      //TRASFERIMENTO Cin Sollevamento
+      A0304_Manager.CIn.Sollevamento.ReadyToDrop := A0303_Manager.Sts.Sollevatore.InPosDeposito OR A0303_Manager.Sts.Sollevatore.InPosPreDeposito ; //(("BTrk".A0303.Stacker.Layers_Qty >= "BTrk".A0303.Stacker.Layers_Target) OR "BTrk".A0303.Stacker.Completato ) AND "A0303_Manager".Sts.Sollevatore.InPosDeposito ;
+
+      A0304_Manager.CIn.Antiribaltamento.Rest :=A0303_Manager.Sts.SostegnoTesta.Ax.InRestPos AND A0303_Manager.Sts.SostegnoCoda.Ax.InRestPos AND A0303_Sostegno_Testa.COut.Paletto.RestPosition AND A0303_Sostegno_Coda.COut.Paletto.RestPosition;
+      A0304_Manager.CIn.Antiribaltamento.PalettoPos0 := A0303_Sostegno_Testa.COut.Paletto.RestPosition AND A0303_Sostegno_Coda.COut.Paletto.RestPosition;
+
+
+      // Mng 03
+      A0304_Manager.CIn.Manager03.IsWaiting_NoPiecesBefore := A0303_Manager.Warning.IsWaiting_NoPiecesBefore;
+
+      // Production Mng
+      A0304_Manager.CIn.ProdManager := Areas_ITF.Prod.A03_A04;
+
+
+   END_REGION
+
+   REGION "DataIn"
+      A0304_Manager.DataIn.PbScaricaPacco := (LB305_Scarico_Esterno_DX_Pb_ConfermaPaccoScaricato OR LB306_Scarico_Esterno_SX_Pb_ConfermaPaccoScaricato);
+      A0304_Manager.DataIn.PbReggiaturaConclusa := (LB305_Scarico_Esterno_DX_Pb_PaccoReggiato OR LB306_Scarico_Esterno_SX_Pb_PaccoReggiato);
+   END_REGION
+
+   REGION "<< Machine Call >>"
+      #A0304_Manager(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         Par_Navetta := A0304_Navetta_PERS.Par_Mach
+      );
+
+   END_REGION
+
+   REGION "<< OP CND >>"
+      //Vai a Prelievo
+      A0304_Manager.OP_CND.VaiAPrelievo[0].Visible := TRUE;
+      A0304_Manager.OP_CND.VaiAPrelievo[0].Condition := BTrk.A0304.Empty;
+      A0304_Manager.OP_CND.VaiAPrelievo[0].Description :='Assenza Trk nu navetta';
+
+      A0304_Manager.OP_CND.VaiAPrelievo[1].Visible := TRUE;
+      A0304_Manager.OP_CND.VaiAPrelievo[1].Condition := A0304_Manager.Sts.InPosPrePrelievo;
+      A0304_Manager.OP_CND.VaiAPrelievo[1].Description := 'Non in posizione di prelievo';
+
+   END_REGION
+
+
+END_FUNCTION

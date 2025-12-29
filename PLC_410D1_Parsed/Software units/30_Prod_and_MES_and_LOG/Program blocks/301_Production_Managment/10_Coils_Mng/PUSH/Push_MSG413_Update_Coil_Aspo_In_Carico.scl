@@ -1,0 +1,182 @@
+﻿FUNCTION_BLOCK "Push_MSG413_Update_Coil_Aspo_In_Carico"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      PT_RETRY : Time := T#5s;
+   END_VAR
+
+   VAR_IN_OUT 
+      Msg413_Err : "MES_Err_&_Msg";
+      Prev_Data : "Coil_Item";
+   END_VAR
+
+   VAR 
+      Msg413_Send : Struct
+         Status : Int;
+         Exe : Bool;
+         RETVAL : DInt;
+         TON_Retry {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT 
+      MSG_XXX_SEND_IDLE : Int := 0;
+      MSG_XXX_SEND_EXE : Int := 2;
+      MSG_XXX_SEND_PAUSE : Int := 3;
+   END_VAR
+
+
+BEGIN
+	
+	
+	
+	REGION PUSH MSG413
+	    
+	(*
+	PPLC → MES – Topic = 413: Stato rotolo nell’aspo in carico 
+	*)
+	    
+	    
+	    CASE #Msg413_Send.Status OF
+	            
+	        #MSG_XXX_SEND_IDLE:
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.C_ID <> #Prev_Data.C_ID
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.MES_IDP <> #Prev_Data.MES_IDP
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            (*
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Decoiler_N <> #Prev_Data.Decoiler_N
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Numero_Rotolo <> #Prev_Data.Numero_Rotolo
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Numero_Rotolo <> #Prev_Data.Numero_Rotolo
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Numero_Colata <> #Prev_Data.Numero_Colata
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.MES_CN <> #Prev_Data.MES_CN
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.MES_HN <> #Prev_Data.MES_HN
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.MES_HN <> #Prev_Data.MES_HN
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Stato_Rotolo <> #Prev_Data.Stato_Rotolo
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Provini_Richiesti <> #Prev_Data.Provini_Richiesti
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Provini_Eseguiti <> #Prev_Data.Provini_Eseguiti
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            IF ABS("Production".Coil_Data.ASPO_IN_CARICO.Diametro_Rotolo - #Prev_Data.Diametro_Rotolo) > 0.1
+	            THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Spessore_Errore <> #Prev_Data.Spessore_Errore THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Spessore_materiale_TEV <> #Prev_Data.Spessore_materiale_TEV THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            *)
+	            
+	            IF "Production".Coil_Data.ASPO_IN_CARICO.Spessore_Deroga_TKD <> #Prev_Data.Spessore_Deroga_TKD THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_EXE;
+	            END_IF;
+	            
+	            
+	            
+	            RETURN;
+	            
+	            
+	        #MSG_XXX_SEND_EXE:
+	            
+	            
+	            #Msg413_Send.RETVAL := "MES_Msg413_Push"(MES_IDI := 0, Err := #Msg413_Err);
+	            
+	            
+	            IF #Msg413_Send.RETVAL < "PROD_FUN_RESULT_OK" THEN
+	                
+	                #Msg413_Send.TON_Retry (IN := FALSE,
+	                                        PT := #PT_RETRY);
+	                
+	                #Msg413_Send.Status := #MSG_XXX_SEND_PAUSE;
+	                
+	                RETURN;
+	                
+	            END_IF;
+	            
+	            
+	            
+	            #Prev_Data := "Production".Coil_Data.ASPO_IN_CARICO;
+	            
+	            #Msg413_Send.Status := #MSG_XXX_SEND_IDLE;
+	            
+	            
+	            RETURN;
+	            
+	            
+	            
+	        #MSG_XXX_SEND_PAUSE:
+	            
+	            
+	            #Msg413_Send.TON_Retry (IN := TRUE,
+	            PT := #PT_RETRY);
+	            
+	            
+	            IF #Msg413_Send.TON_Retry.Q THEN
+	                #Msg413_Send.Status := #MSG_XXX_SEND_IDLE;
+	            END_IF;
+	            
+	            
+	        ELSE
+	            
+	            #Msg413_Send.Status := #MSG_XXX_SEND_IDLE;
+	            
+	    END_CASE;
+	END_REGION
+	
+	
+	
+END_FUNCTION_BLOCK
+

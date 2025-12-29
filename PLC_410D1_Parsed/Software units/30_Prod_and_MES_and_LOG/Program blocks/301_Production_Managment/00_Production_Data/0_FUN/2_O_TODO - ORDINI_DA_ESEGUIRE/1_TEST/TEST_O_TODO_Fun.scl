@@ -1,0 +1,48 @@
+﻿// Block: TEST_O_TODO_Fun
+
+FUNCTION "TEST_O_TODO_Fun" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 1"
+      IF TEST_Production.O_TODO.Clear_Gap THEN
+         TEST_Production.O_TODO.Clear_Gap := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 2"
+      IF TEST_Production.O_TODO.Push_Top THEN
+         TEST_Production.O_TODO.Push_Top := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 3"
+      IF TEST_Production.O_TODO.Push_Bottom THEN
+         TEST_Production.O_TODO.Push_Bottom := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 4"
+   END_REGION
+
+   REGION "Network 5"
+      IF TEST_Production.O_TODO.Pop THEN
+         TEST_Production.O_TODO.Pop := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 6"
+      IF TEST_Production.O_TODO.Pop_&_Push_ACT THEN
+         TEST_Production.O_TODO.Pop_&_Push_ACT := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Network 7"
+      IF TEST_Production.O_TODO.Pop_&_Push_ENDING THEN
+         TEST_Production.O_TODO.Pop_&_Push_ENDING := FALSE;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION

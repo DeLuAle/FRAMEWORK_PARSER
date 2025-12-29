@@ -1,0 +1,67 @@
+﻿// Block: BIT_COUNT
+// Title: Detect 
+
+FUNCTION "BIT_COUNT" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Detect 
+   VAR_INPUT
+      Data : Variant;
+   END_VAR
+
+   VAR_TEMP
+      i : ULInt;
+      BitNumber : ULInt;
+      LocalByte : Byte;
+      LocalWord : Word;
+      LocalInt : Int;
+      LocalDWord : DWord;
+      LocalDint : DInt;
+      DataToCheck : DWord;
+      Result : DWord;
+      retVal : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Detect"
+      IF  (Data) =  THEN
+          BitNumber := 8;
+          retVal := (SRC:=Data, COUNT:=1, SRC_INDEX:=0, DEST_INDEX:=0, DEST=>LocalByte);
+          DataToCheck := LocalByte;
+      ELSIF (Data) =  THEN
+          BitNumber := 16;
+          retVal := (SRC:=Data, COUNT:=1, SRC_INDEX:=0, DEST_INDEX:=0, DEST=>LocalWord);
+          DataToCheck := LocalWord;
+      ELSIF (Data) =  THEN
+          BitNumber := 16;
+          retVal := (SRC:=Data, COUNT:=1, SRC_INDEX:=0, DEST_INDEX:=0, DEST=>LocalInt);
+          DataToCheck := (LocalInt);
+      ELSIF (Data) =  THEN
+          BitNumber := 32;
+          retVal := (SRC:=Data, COUNT:=1, SRC_INDEX:=0, DEST_INDEX:=0, DEST=>LocalDWord);
+          DataToCheck := LocalDWord;
+      ELSIF (Data) =  THEN
+          BitNumber := 32;
+          retVal := (SRC:=Data, COUNT:=1, SRC_INDEX:=0, DEST_INDEX:=0, DEST=>LocalDint);
+          DataToCheck := (LocalDint);
+      ELSE
+          BitNumber := 0;
+      END_IF;
+
+      BIT_COUNT := 0;
+
+      IF BitNumber > 0 THEN
+          //Count data
+          FOR i := 0 TO BitNumber -1 DO
+              Result := (IN:=DataToCheck, N:=i);
+              IF Result.%X0 THEN
+                  BIT_COUNT +=1;
+              END_IF;
+          END_FOR;
+      END_IF;
+
+   END_REGION
+
+
+END_FUNCTION

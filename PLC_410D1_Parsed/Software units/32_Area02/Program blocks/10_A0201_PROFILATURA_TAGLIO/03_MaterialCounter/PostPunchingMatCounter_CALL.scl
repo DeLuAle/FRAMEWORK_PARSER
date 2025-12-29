@@ -1,0 +1,35 @@
+﻿// Block: PostPunchingMatCounter_CALL
+// Title: Coordination IN
+
+FUNCTION "PostPunchingMatCounter_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Coordination IN
+
+BEGIN
+   REGION "Coordination IN"
+      PostPunchingMatCounter.CIn.Rst := Area02.AreaInterface.RstAlarms;
+      PostPunchingMatCounter.CIn.Standstill := Rollformer.COut.Feed.Standstill;
+      PostPunchingMatCounter.CIn.CheckNextFeeding := (NOT ((NOT (Rollformer.COut.Feed.Bwd_CheckNext) AND NOT (Rollformer.COut.Feed.Fwd_CheckNext))) AND RollformingMng_PERS.PersistentValues.Data.MaterialPresence);
+      PostPunchingMatCounter.CIn.EncoderValid := A02_Rollformer.StatusWord;
+      PostPunchingMatCounter.CIn.EncoderPosValid := (RollformingMng_PERS.PersistentValues.Data.MaterialPresence OR (NOT (RollformingMng_PERS.PersistentValues.Data.MaterialPresence) AND PostPunchingMatCounter.CIn.EncoderValid));
+      PostPunchingMatCounter.CIn.AxisPos := A02_Rollformer.ActualPosition;
+   END_REGION
+
+   REGION "Copy FAK from post punching"
+      IF RollformingMng.COut.FAK_UpdatePPrf.FAK_Apply THEN
+         PostPunchingMatCounter_PERS.PersistentValues.Par.FAK := RollformingMng.COut.FAK_UpdatePPrf.FAK_Calculate;
+      END_IF;
+   END_REGION
+
+   REGION "Main"
+      #PostPunchingMatCounter(
+         en := TRUE,
+         Config := A02_Config.PostPunchingMatCounter,
+         PersistentValues := PostPunchingMatCounter_PERS.PersistentValues
+      );
+
+   END_REGION
+
+
+END_FUNCTION

@@ -1,0 +1,127 @@
+﻿// Block: F_Estop_FB
+// Title: ESTOP CC / Leggii
+
+FUNCTION_BLOCK "F_Estop_FB"
+VERSION : 0.1
+// ESTOP CC / Leggii
+   VAR
+      ESTOP_CC : ESTOP1;
+      ESTOP_A01_FRONT : ESTOP1;
+      ESTOP_A01_REAR : ESTOP1;
+      ESTOP_A02_FRONT : ESTOP1;
+      ESTOP_A02_REAR : ESTOP1;
+      ESTOP_A03_FRONT_1 : ESTOP1;
+      ESTOP_A03_REAR_1 : ESTOP1;
+      ESTOP_A03_FRONT_2 : ESTOP1;
+      ESTOP_A03_REAR_2 : ESTOP1;
+      ESTOP_A03_FRONT_3 : ESTOP1;
+      ESTOP_A03_REAR_3 : ESTOP1;
+      EStop : Bool;
+      EStop_Delay : Bool;
+      F_SafetyValve_Air_Gen : FDevice_Valve_FB;
+   END_VAR
+
+   VAR_TEMP
+      Fdbk : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      TIME_DELAY : Time;
+   END_VAR
+
+
+BEGIN
+   REGION Logic
+      // FB calls extracted from F_LAD logic
+
+      #ESTOP_CC(
+         en := TRUE,
+         E_STOP := GEN_PEm,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A01_FRONT(
+         en := TRUE,
+         E_STOP := A01_PEm_Front,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A01_REAR(
+         en := TRUE,
+         E_STOP := A01_PEm_Rear,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A02_FRONT(
+         en := TRUE,
+         E_STOP := A02_PEm_Front,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A02_REAR(
+         en := TRUE,
+         E_STOP := A02_PEm_Rear,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_FRONT_1(
+         en := TRUE,
+         E_STOP := A03_PEm_Front_1,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_REAR_1(
+         en := TRUE,
+         E_STOP := A03_PEm_Rear_1,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_FRONT_2(
+         en := TRUE,
+         E_STOP := A03_PEm_Front_2,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_REAR_2(
+         en := TRUE,
+         E_STOP := A03_PEm_Rear_2,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_FRONT_3(
+         en := TRUE,
+         E_STOP := A03_PEm_Front_3,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+      #ESTOP_A03_REAR_3(
+         en := TRUE,
+         E_STOP := A03_PEm_Rear_3,
+         ACK_NEC := TRUE,
+         ACK := F_DB.SafetyReset,
+         TIME_DEL := #TIME_DELAY
+      );
+
+   END_REGION
+
+END_FUNCTION_BLOCK

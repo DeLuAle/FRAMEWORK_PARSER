@@ -1,0 +1,1160 @@
+﻿// Block: HMI_A03_FB
+
+FUNCTION_BLOCK "HMI_A03_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
+   VAR_OUTPUT
+      MB3_LpJog : Bool;
+   END_VAR
+
+   VAR
+      MB3_Decoder : ButtonsHMIDecoder;
+   END_VAR
+
+   VAR CONSTANT
+      "3002_TRASPORTO" : Int;
+      "3011_FERMI_P1" : Int;
+      "3012_FERMI_P1_SFALSATORE" : Int;
+      "3021_FERMI_P2" : Int;
+      "3022_FERMI_P2_SOLLEVATORE" : Int;
+      "3031_FERMI_P3" : Int;
+      "3032_SOLLEVA_RIBALTA" : Int;
+      "3033_ROT_RIBALTA" : Int;
+      "3034_ROT_RIBALTA_AX-POS" : Int;
+      "3041_FERMI_P4" : Int;
+      "3042_SPINTORE_LAT_VRT_P5" : Int;
+      "3043_SPINTORE_LAT_ORZ_P5" : Int;
+      "3044_SOLLEVATORI_P5" : Int;
+      "3045_SPINTORE_LAT_OP" : Int;
+      "3051_RIBALTATORE_OP-POS0" : Int;
+      "3052_RIBALTATORE_OP-POS1" : Int;
+      "3053_RIBALTATORE_OP-POS2" : Int;
+      "3054_RIBALTATORE_OP-POS3" : Int;
+      "4001_HU_CYTROPACK" : Int;
+      "4011_SPINTORE_OP" : Int;
+      "4012_SPINTORE_AX" : Int;
+      "4013_SPINTORE_VRT" : Int;
+      "4014_SPINTORE_ORZ" : Int;
+      "4021_BORDATRICE_AX" : Int;
+      "4031_RULLIERA_OP" : Int;
+      "4032_RULLIERA_AX" : Int;
+      "4033_BORDATRICE_REG-CASSETTA" : Int;
+      "4034_BORDATRICE_PASS01" : Int;
+      "4035_BORDATRICE_PASS02" : Int;
+      "4036_BORDATRICE_PASS03" : Int;
+      "4037_BORDATRICE_PASS04" : Int;
+      "4038_BORDATRICE_REG-CASSETTA_AX-POS" : Int;
+      "4041_CENTRATORI_OP" : Int;
+      "4042_CENTRATORI_CENTRAGGIO" : Int;
+      "4043_CENTRATORI_SOLLEVAMENTO" : Int;
+      "4051_PAREGGIATORE_CODA_OP" : Int;
+      "4052_PAREGGIATORE_CODA_AX" : Int;
+      "4053_PAREGGIATORE_CODA_BLOCCAGGIO" : Int;
+      "4054_PAREGGIATORE_CODA_BATTUTAVERTICALE" : Int;
+      "4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT" : Int;
+      "4061_PAREGGIATORE_TESTA_OP" : Int;
+      "4062_PAREGGIATORE_TESTA_AX" : Int;
+      "4063_PAREGGIATORE_TESTA_BLOCCAGGIO" : Int;
+      "4064_PAREGGIATORE_TESTA_SOLLEVAMENTO" : Int;
+      "4065_PAREGGIATORE_TESTA_CENTRAGGIO" : Int;
+      "4066_PAREGG_TESTA_AX_POS" : Int;
+      "4067_PAREGG_CODA_AX_POS" : Int;
+      "4070_MANIPOLATORE_OP" : Int;
+      "4071_MANIPOLATORE_AX" : Int;
+      "4072_MANIPOLATORE_AX-POS" : Int;
+      "4073_MANIPOLATORE_MAGNETE" : Int;
+      "4074_MANIPOLATORE_SOLLEVATORE" : Int;
+      "4080_BORDATRICE_PASS01_LATO-OP" : Int;
+      "4081_BORDATRICE_PASS01_LATO-MOT" : Int;
+      "4082_BORDATRICE_PASS02_LATO-OP" : Int;
+      "4083_BORDATRICE_PASS02_LATO-MOT" : Int;
+      "4084_BORDATRICE_PASS03_LATO-OP" : Int;
+      "4085_BORDATRICE_PASS03_LATO-MOT" : Int;
+      "4086_BORDATRICE_PASS04_LATO-OP" : Int;
+      "4087_BORDATRICE_PASS04_LATO-MOT" : Int;
+      "4088_BORDATRICE_PASS01-COMBO_AX-POS" : Int;
+      "4089_BORDATRICE_PASS02-COMBO_AX-POS" : Int;
+      "4090_BORDATRICE_PASS03-COMBO_AX-POS" : Int;
+      "4091_BORDATRICE_PASS04-COMBO_AX-POS" : Int;
+      "4092_BORDATRICE_PASS01-LATO-OP_AX-POS" : Int;
+      "4093_BORDATRICE_PASS01-LATO-MOT_AX-POS" : Int;
+      "4094_BORDATRICE_PASS02-LATO-OP_AX-POS" : Int;
+      "4095_BORDATRICE_PASS02-LATO-MOT_AX-POS" : Int;
+      "4096_BORDATRICE_PASS03-LATO-OP_AX-POS" : Int;
+      "4097_BORDATRICE_PASS03-LATO-MOT_AX-POS" : Int;
+      "4098_BORDATRICE_PASS04-LATO-OP_AX-POS" : Int;
+      "4099_BORDATRICE_PASS04-LATO-MOT_AX-POS" : Int;
+      "5001_SPALLA_OP_POS" : Int;
+      "5002_SPALLA_TESTA_AX_JOG" : Int;
+      "5003_SPALLA_TESTA_AX_POS" : Int;
+      "5005_SPALLA_CODA_AX" : Int;
+      "5006_SPALLA_CODA_AX_POS" : Int;
+      "5011_SPINTORE_OP" : Int;
+      "5012_SPINTORE_VRT" : Int;
+      "5013_SPINTORE_ORZ" : Int;
+      "5021_TRASLAZIONE_OP_VAI_A_PRELIEVO" : Int;
+      "5022_TRASLAZIONE_OP_PRELIEVO" : Int;
+      "5023_TRASLAZIONE_OP_VAI_A_DEPOSITO" : Int;
+      "5024_TRASLAZIONE_OP_DEPOSITO" : Int;
+      "5025_TRASLAZIONE_AX_JOG" : Int;
+      "5026_TRASLAZIONE_AX_POS" : Int;
+      "5027_TRASLAZIONE_MANIP_SOSTEGNO" : Int;
+      "5028_TRASLAZIONE_MANIP_PAREGGIATORE" : Int;
+      "5029_TRASLAZIONE_SOSTEGNO_VERTICALE" : Int;
+      "5031_SOLLEVAMENTO_OP" : Int;
+      "5032_SOLLEVAMENTO_AX_JOG" : Int;
+      "5033_SOLLEVAMENTO_AX_POS" : Int;
+      "5041_PALETTIANTIRIBALTAMENTO_OP" : Int;
+      "5042_PALETTIANTIRIBALTAMENTO_TESTA_POS0" : Int;
+      "5043_PALETTIANTIRIBALTAMENTO_TESTA_POS1" : Int;
+      "5044_PALETTIANTIRIBALTAMENTO_TESTA_POS2" : Int;
+      "5046_PALETTIANTIRIBALTAMENTO_CODA_POS0" : Int;
+      "5047_PALETTIANTIRIBALTAMENTO_CODA_POS1" : Int;
+      "5048_PALETTIANTIRIBALTAMENTO_CODA_POS2" : Int;
+      "5051_SOSTEGNO_TESTA_AX_JOG" : Int;
+      "5052_SOSTEGNO_TESTA_AX_POS" : Int;
+      "5053_SOSTEGNO_CODA_AX_JOG" : Int;
+      "5054_SOSTEGNO_CODA_AX_POS" : Int;
+      "6001_NAVETTA_OP_VAI_A_PRELIEVO" : Int;
+      "6002_NAVETTA_OP_PRELIEVO" : Int;
+      "6003_NAVETTA_OP_VAI_A_DEPOSITO" : Int;
+      "6004_NAVETTA_OP_DEPOSITO" : Int;
+      "6005_NAVETTA_AX" : Int;
+      "6006_NAVETTA_PALETTI_INTERNI" : Int;
+      "6007_NAVETTA_PALETTI_ESTERNI" : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset Op"
+      MB3_Decoder.OpEnabled := FALSE;
+      MB3_Decoder.OpRunning := FALSE;
+      MB3_Decoder.OpDone := FALSE;
+
+   END_REGION
+
+   REGION "MB3 Code 3002 - Trasporto"
+      A03_HMI.MB3.Button.A0301.Trasporto.Bwd_Minus := ((MB3_Decoder.Code = #3002_TRASPORTO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.Trasporto.Fwd_Plus := ((MB3_Decoder.Code = #3002_TRASPORTO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3002_TRASPORTO) AND A0301_Trasporto.Ax.COut.Fwd_CheckNext) OR ((MB3_Decoder.Code = #3002_TRASPORTO) AND A0301_Trasporto.COut.Ax.Bwd_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3002_TRASPORTO) AND A03_HMI.MB3.Button.A0301.Trasporto.Fwd_Plus) AND A0301_Trasporto.Ax.COut.Fwd_Running) OR (((MB3_Decoder.Code = #3002_TRASPORTO) AND A03_HMI.MB3.Button.A0301.Trasporto.Bwd_Minus) AND A0301_Trasporto.COut.Ax.Bwd_Running)) AND NOT (A0301_Trasporto.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3002_TRASPORTO) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3011 - Fermi_P1"
+      A03_HMI.MB3.Button.A0301.P1.Fermi.Rest := ((MB3_Decoder.Code = #3011_FERMI_P1) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P1.Fermi.Work := ((MB3_Decoder.Code = #3011_FERMI_P1) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3011_FERMI_P1) AND A0301_Fermi_P1.COut.Fermi.Rest_CheckNext) OR ((MB3_Decoder.Code = #3011_FERMI_P1) AND A0301_Fermi_P1.COut.Fermi.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3011_FERMI_P1) AND A0301_Fermi_P1.COut.Fermi.Rest) OR ((MB3_Decoder.Code = #3011_FERMI_P1) AND A0301_Fermi_P1.COut.Fermi.Work)) AND NOT (A0301_Fermi_P1.COut.Fermi.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3011_FERMI_P1) AND A03_HMI.MB3.Button.A0301.P1.Fermi.Rest) AND A0301_Fermi_P1.COut.Fermi.Rest) OR (((MB3_Decoder.Code = #3011_FERMI_P1) AND A03_HMI.MB3.Button.A0301.P1.Fermi.Work) AND A0301_Fermi_P1.COut.Fermi.Work)) AND A0301_Fermi_P1.COut.Fermi.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3012 - P1 Sfalsatore"
+      A03_HMI.MB3.Button.A0301.P1.Pareggiatore.Rest := ((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P1.Pareggiatore.Work := ((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A0301_Fermi_P1.COut.Pareggiatore.Rest_CheckNext) OR ((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A0301_Fermi_P1.COut.Pareggiatore.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A0301_Fermi_P1.COut.Pareggiatore.Rest) OR ((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A0301_Fermi_P1.COut.Pareggiatore.Work)) AND NOT (A0301_Fermi_P1.COut.Pareggiatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A03_HMI.MB3.Button.A0301.P1.Pareggiatore.Rest) AND A0301_Fermi_P1.COut.Pareggiatore.Rest) OR (((MB3_Decoder.Code = #3012_FERMI_P1_SFALSATORE) AND A03_HMI.MB3.Button.A0301.P1.Pareggiatore.Work) AND A0301_Fermi_P1.COut.Pareggiatore.Work)) AND A0301_Fermi_P1.COut.Pareggiatore.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3021 - Fermi P2"
+      A03_HMI.MB3.Button.A0301.P2.Fermi.Rest := ((MB3_Decoder.Code = #3021_FERMI_P2) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P2.Fermi.Work := ((MB3_Decoder.Code = #3021_FERMI_P2) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3021_FERMI_P2) AND A0301_Fermi_P2.COut.Fermi.Rest_CheckNext) OR ((MB3_Decoder.Code = #3021_FERMI_P2) AND A0301_Fermi_P2.COut.Fermi.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3021_FERMI_P2) AND NOT (A0301_Fermi_P2.COut.Fermi.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3021_FERMI_P2) AND A03_HMI.MB3.Button.A0301.P2.Fermi.Rest) AND A0301_Fermi_P2.COut.Fermi.Rest) OR (((MB3_Decoder.Code = #3021_FERMI_P2) AND A03_HMI.MB3.Button.A0301.P2.Fermi.Work) AND A0301_Fermi_P2.COut.Fermi.Work)) AND A0301_Fermi_P2.COut.Fermi.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3022 - P2 - Sollevatore"
+      A03_HMI.MB3.Button.A0301.P2.Sollevatori.Rest := ((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P2.Sollevatori.Work := ((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND A0301_Fermi_P2.COut.Sollevatori.Rest_CheckNext) OR ((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND A0301_Fermi_P2.COut.Sollevatori.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND NOT (A0301_Fermi_P2.COut.Sollevatori.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND A03_HMI.MB3.Button.A0301.P2.Sollevatori.Rest) AND A0301_Fermi_P2.COut.Sollevatori.Rest) OR (((MB3_Decoder.Code = #3022_FERMI_P2_SOLLEVATORE) AND A03_HMI.MB3.Button.A0301.P2.Sollevatori.Work) AND A0301_Fermi_P2.COut.Sollevatori.Work)) AND A0301_Fermi_P2.COut.Sollevatori.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3031 - Fermi P3"
+      A03_HMI.MB3.Button.A0301.P3.Fermi.Rest := ((MB3_Decoder.Code = #3031_FERMI_P3) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P3.Fermi.Work := ((MB3_Decoder.Code = #3031_FERMI_P3) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3031_FERMI_P3) AND A0301_Fermi_P3.COut.Fermi.Rest_CheckNext) OR ((MB3_Decoder.Code = #3031_FERMI_P3) AND A0301_Fermi_P3.COut.Fermi.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3031_FERMI_P3) AND A0301_Fermi_P3.COut.Fermi.Rest) OR ((MB3_Decoder.Code = #3031_FERMI_P3) AND A0301_Fermi_P3.COut.Fermi.Work)) AND NOT (A0301_Fermi_P3.COut.Fermi.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3031_FERMI_P3) AND A03_HMI.MB3.Button.A0301.P3.Fermi.Rest) AND A0301_Fermi_P3.COut.Fermi.Rest) OR (((MB3_Decoder.Code = #3031_FERMI_P3) AND A03_HMI.MB3.Button.A0301.P3.Fermi.Work) AND A0301_Fermi_P3.COut.Fermi.Work)) AND A0301_Fermi_P3.COut.Fermi.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3032 - Solleva Ribalta"
+      A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib.Rest := ((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib.Work := ((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A0301_Ribaltatore.COut.Solleva_Rib.Rest_CheckNext) OR ((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A0301_Ribaltatore.COut.Solleva_Rib.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A0301_Ribaltatore.COut.Solleva_Rib.Rest) OR ((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A0301_Ribaltatore.COut.Solleva_Rib.Work)) AND NOT (A0301_Ribaltatore.COut.Solleva_Rib.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib.Rest) AND A0301_Ribaltatore.COut.Solleva_Rib.Rest) OR (((MB3_Decoder.Code = #3032_SOLLEVA_RIBALTA) AND A03_HMI.MB3.Button.A0301.Ribaltatore.Solleva_Rib.Work) AND A0301_Ribaltatore.COut.Solleva_Rib.Work)) AND A0301_Ribaltatore.COut.Solleva_Rib.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3033 - Rotazione Ribalta"
+      A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.Bwd_Minus := ((((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.AreaInterface.Man) AND MB3_Decoder.OperationMinus) AND NOT (A0301_Ribaltatore.Ax.DataIn.LS_Minus));
+      A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.Fwd_Plus := ((((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.AreaInterface.Man) AND MB3_Decoder.OperationPlus) AND NOT (A0301_Ribaltatore.Ax.DataIn.LS_Plus));
+      IF (((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR ((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3033_ROT_RIBALTA) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3034 - Rotazione Ribalta -AX_POS"
+      IF A0301_Ribaltatore.HMI.OP_Sel_Pos0 THEN
+         A0301_Ribaltatore.Ax.Ctrl.Pos := A0301_Ribaltatore_PERS.Par_Aut.Pos_0;
+      END_IF;
+      A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.MoveToPos := ((((MB3_Decoder.Code = #3034_ROT_RIBALTA_AX-POS) AND (A0301_Ribaltatore.COut.Ribaltatore.ActualPosition <> A0301_Ribaltatore.HMI.Ax.TargetPosition)) AND MB3_Decoder.OperationMinus) OR A0301_Ribaltatore_PERS.Par_Aut.Pos_0 OR A0301_Ribaltatore_PERS.Par_Aut.Pos_1 OR A0301_Ribaltatore_PERS.Par_Aut.Pos_2 OR A0301_Ribaltatore_PERS.Par_Aut.Pos_3);
+      IF ((((MB3_Decoder.Code = #3034_ROT_RIBALTA_AX-POS) AND A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.MoveToPos) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR (((MB3_Decoder.Code = #3034_ROT_RIBALTA_AX-POS) AND A03_HMI.MB3.Button.A0301.Ribaltatore.Rotazione.MoveToPos) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3034_ROT_RIBALTA_AX-POS) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3034_ROT_RIBALTA_AX-POS) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6008 - Rotazione Ribalta - OP POS0"
+      A0301_Ribaltatore.HMI.OP_Sel_Pos0 := (((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND (A0301_Ribaltatore.COut.Ribaltatore.ActualPosition > 0.25)) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR ((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos0 := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus)) AND MB3_Decoder.OpRunning) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos0 := FALSE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3051_RIBALTATORE_OP-POS0) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus)) AND MB3_Decoder.OpRunning) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6009 - Rotazione Ribalta - OP POS1"
+      A0301_Ribaltatore.HMI.OP_Sel_Pos1 := (((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND (A0301_Ribaltatore.COut.Ribaltatore.ActualPosition <> A0301_Ribaltatore_PERS.Par_Aut.Pos_1)) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos1 := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos1 := FALSE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3052_RIBALTATORE_OP-POS1) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6010 - Rotazione Ribalta - OP POS2"
+      A0301_Ribaltatore.HMI.OP_Sel_Pos2 := (((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND (A0301_Ribaltatore.COut.Ribaltatore.ActualPosition <> A0301_Ribaltatore_PERS.Par_Aut.Pos_2)) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos2 := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos2 := FALSE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3053_RIBALTATORE_OP-POS2) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6011 - Rotazione Ribalta - OP POS3"
+      A0301_Ribaltatore.HMI.OP_Sel_Pos3 := (((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND (A0301_Ribaltatore.COut.Ribaltatore.ActualPosition <> A0301_Ribaltatore_PERS.Par_Aut.Pos_3)) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.MinusCheckNext) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.MinusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached)) OR (((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.PlusRunning) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached))) AND NOT (A0301_Ribaltatore.COut.Ribaltatore.Standstill)) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos3 := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         A0301_Ribaltatore.HMI.OP_Sel_Pos3 := FALSE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.InPosition) AND A0301_Ribaltatore.COut.Ribaltatore.Standstill) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.MinusLsSwReached) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.COut.Ribaltatore.PlusLsSwReached) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.Ax.DataIn.LS_Minus) OR ((MB3_Decoder.Code = #3054_RIBALTATORE_OP-POS3) AND A0301_Ribaltatore.Ax.DataIn.LS_Plus)) AND MB3_Decoder.OpRunning) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3041 - Fermi P4"
+      A03_HMI.MB3.Button.A0301.P4.Fermi.Rest := ((MB3_Decoder.Code = #3041_FERMI_P4) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.P4.Fermi.Work := ((MB3_Decoder.Code = #3041_FERMI_P4) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3041_FERMI_P4) AND A0301_Fermi_P4.COut.Fermi.Rest_CheckNext) OR ((MB3_Decoder.Code = #3041_FERMI_P4) AND A0301_Fermi_P4.COut.Fermi.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3041_FERMI_P4) AND A0301_Fermi_P4.COut.Fermi.Rest) OR ((MB3_Decoder.Code = #3041_FERMI_P4) AND A0301_Fermi_P4.COut.Fermi.Work)) AND NOT (A0301_Fermi_P4.COut.Fermi.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3041_FERMI_P4) AND A03_HMI.MB3.Button.A0301.P4.Fermi.Rest) AND A0301_Fermi_P4.COut.Fermi.Rest) OR (((MB3_Decoder.Code = #3041_FERMI_P4) AND A03_HMI.MB3.Button.A0301.P4.Fermi.Work) AND A0301_Fermi_P4.COut.Fermi.Work)) AND A0301_Fermi_P4.COut.Fermi.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3042 - P5 - Spintore Laterale-Vrt"
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Rest := ((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Work := ((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A0301_Spintore_Lat.COut.Vrt_1.Rest_CheckNext) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Vrt_2.Rest_CheckNext) OR (((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A0301_Spintore_Lat.COut.Vrt_1.Rest_CheckNext) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2)) OR ((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A0301_Spintore_Lat.COut.Vrt_1.Work_CheckNext) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Vrt_2.Work_CheckNext) OR (((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A0301_Spintore_Lat.COut.Vrt_1.Work_CheckNext) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Rest) OR ((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Work)) AND NOT (A0301_Spintore_Lat.COut.Vrt_1.Standstill)) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND NOT (A0301_Spintore_Lat.COut.Vrt_2.Standstill)) OR (((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Rest) OR ((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Work)) AND NOT (A0301_Spintore_Lat.COut.Vrt_1.Standstill)) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Rest) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Vrt_2.Rest) AND A0301_Spintore_Lat.COut.Vrt_2.Standstill) OR (((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Rest) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) AND A0301_Spintore_Lat.COut.Vrt_1.Rest) AND A0301_Spintore_Lat.COut.Vrt_1.Standstill) OR ((((((((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Work) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Vrt_2.Work) AND A0301_Spintore_Lat.COut.Vrt_2.Standstill) OR (((MB3_Decoder.Code = #3042_SPINTORE_LAT_VRT_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Vrt.Work) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) AND A0301_Spintore_Lat.COut.Vrt_1.Work) AND A0301_Spintore_Lat.COut.Vrt_1.Standstill)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3043 - P5 - Spintore Laterale-Orz"
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Rest := ((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Work := ((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A0301_Spintore_Lat.COut.Orz_1.Rest_CheckNext) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Orz_2.Rest_CheckNext) OR (((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A0301_Spintore_Lat.COut.Orz_1.Rest_CheckNext) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2)) OR ((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A0301_Spintore_Lat.COut.Orz_1.Work_CheckNext) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Orz_2.Work_CheckNext) OR (((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A0301_Spintore_Lat.COut.Orz_1.Work_CheckNext) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Rest) OR ((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Work)) AND NOT (A0301_Spintore_Lat.COut.Orz_1.Standstill)) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND NOT (A0301_Spintore_Lat.COut.Orz_2.Standstill)) OR (((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Rest) OR ((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Work)) AND NOT (A0301_Spintore_Lat.COut.Orz_1.Standstill)) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Rest) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Orz_2.Rest) AND A0301_Spintore_Lat.COut.Orz_2.Standstill) OR (((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Rest) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) AND A0301_Spintore_Lat.COut.Orz_1.Rest) AND A0301_Spintore_Lat.COut.Orz_1.Standstill) OR ((((((((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Work) AND A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2) AND A0301_Spintore_Lat.COut.Orz_2.Work) AND A0301_Spintore_Lat.COut.Orz_2.Standstill) OR (((MB3_Decoder.Code = #3043_SPINTORE_LAT_ORZ_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Orz.Work) AND NOT (A0301_Spintore_Lat.Sts.En/Dis_SpinLat_2))) AND A0301_Spintore_Lat.COut.Orz_1.Work) AND A0301_Spintore_Lat.COut.Orz_1.Standstill)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3045 - P5 - Spintore Laterale-OP"
+      A03_HMI.MB3.Button.A0301.SpintoreLat.OP.Work := ((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND MB3_Decoder.OperationPlus);
+      A03_HMI.MB3.Button.A0301.SpintoreLat.OP.Rest := ((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND MB3_Decoder.OperationMinus);
+      IF (((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND A0301_Spintore_Lat.COut.Spin_Lat1.Rest_CheckNext) OR ((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND A0301_Spintore_Lat.COut.Spin_Lat1.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND NOT (A0301_Spintore_Lat.COut.Spin_Lat1.Standstill)) AND NOT (A0301_Spintore_Lat.Alarm.Orz_1_AnalSens_Issue)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #3045_SPINTORE_LAT_OP) AND A0301_Spintore_Lat.COut.Spin_Lat1.Work) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 3044 - P5 - Sollevatori"
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori.Rest := ((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori.Work := ((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A0301_Spintore_Lat.COut.Sollevatori.Rest_CheckNext) OR ((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A0301_Spintore_Lat.COut.Sollevatori.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A0301_Spintore_Lat.COut.Sollevatori.Rest) OR ((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A0301_Spintore_Lat.COut.Sollevatori.Work)) AND NOT (A0301_Spintore_Lat.COut.Sollevatori.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori.Rest) AND A0301_Spintore_Lat.COut.Sollevatori.Rest) OR (((MB3_Decoder.Code = #3044_SOLLEVATORI_P5) AND A03_HMI.MB3.Button.A0301.SpintoreLat.Sollevatori.Work) AND A0301_Spintore_Lat.COut.Sollevatori.Work)) AND A0301_Spintore_Lat.COut.Sollevatori.Standstill) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4001 - Area 03 HU Cytropack"
+      A03_HMI.MB3.Button.A0302.HU_Cytropack.Stop := ((MB3_Decoder.Code = #4001_HU_CYTROPACK) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.HU_Cytropack.Start := ((MB3_Decoder.Code = #4001_HU_CYTROPACK) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4001_HU_CYTROPACK) AND Sys.ByPass) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4001_HU_CYTROPACK) AND Sys.ByPass) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4001_HU_CYTROPACK) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4011 -  SPINTORE -OP"
+      A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Rest := ((MB3_Decoder.Code = #4011_SPINTORE_OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Work := ((MB3_Decoder.Code = #4011_SPINTORE_OP) AND MB3_Decoder.OperationPlus);
+      IF ((((((MB3_Decoder.Code = #4011_SPINTORE_OP) AND A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Rest) AND A0302_Spintore.COut.Ax.MinusCheckNext) AND A0302_Spintore.COut.Vrt.Rest_CheckNext) AND A0302_Spintore.COut.Orz.Rest_CheckNext) OR (((((MB3_Decoder.Code = #4011_SPINTORE_OP) AND A03_HMI.MB3.Button.A0302.SpintoreLong.OP.Work) AND A0302_Spintore.COut.Ax.PlusCheckNext) AND A0302_Spintore.COut.Vrt.Work_CheckNext) AND A0302_Spintore.COut.Orz.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4011_SPINTORE_OP) AND NOT (A0302_Spintore.COut.Ax.Standstill)) OR ((MB3_Decoder.Code = #4011_SPINTORE_OP) AND NOT (A0302_Spintore.COut.Vrt.Standstill)) OR ((MB3_Decoder.Code = #4011_SPINTORE_OP) AND NOT (A0302_Spintore.COut.Orz.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4011_SPINTORE_OP) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4012 -  SPINTORE -AX"
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4012_SPINTORE_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4012_SPINTORE_AX) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4012_SPINTORE_AX) AND A0302_Spintore.COut.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4012_SPINTORE_AX) AND A0302_Spintore.COut.Ax.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4012_SPINTORE_AX) AND NOT (A0302_Spintore.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4012_SPINTORE_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4013 - SPINTORE - VERTICALE"
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Vrt.Rest := ((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Vrt.Work := ((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND A0302_Spintore.COut.Vrt.Rest_CheckNext) OR ((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND A0302_Spintore.COut.Vrt.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND NOT (A0302_Spintore.COut.Vrt.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND A03_HMI.MB3.Button.A0302.SpintoreLong.Vrt.Rest) AND A0302_Spintore.COut.Vrt.Rest) OR (((MB3_Decoder.Code = #4013_SPINTORE_VRT) AND A03_HMI.MB3.Button.A0302.SpintoreLong.Vrt.Work) AND A0302_Spintore.COut.Vrt.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4014 - SPINTORE - ORIZZONTALE"
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Orz.Rest := ((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.SpintoreLong.Orz.Work := ((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND A0302_Spintore.COut.Orz.Rest_CheckNext) OR ((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND A0302_Spintore.COut.Orz.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND NOT (A0302_Spintore.COut.Orz.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND A03_HMI.MB3.Button.A0302.SpintoreLong.Orz.Rest) AND A0302_Spintore.COut.Orz.Rest) OR (((MB3_Decoder.Code = #4014_SPINTORE_ORZ) AND A03_HMI.MB3.Button.A0302.SpintoreLong.Orz.Work) AND A0302_Spintore.COut.Orz.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4031 -  RULLIERA - OP"
+      A03_HMI.MB3.Button.A0302.Rulliera.OP.Rest := ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Rulliera.OP.Work := ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4031_RULLIERA_OP) AND A0302_Rulliera.COut.Ax_1.Bwd_CheckNext) OR ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND A0302_Rulliera.COut.Ax_1.Fwd_CheckNext) OR ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND A0302_Rulliera.COut.Ax_2.Bwd_CheckNext) OR ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND A0302_Rulliera.COut.Ax_2.Fwd_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4031_RULLIERA_OP) AND NOT (A0302_Rulliera.COut.Ax_1.Standstill)) OR ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND NOT (A0302_Rulliera.COut.Ax_2.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4031_RULLIERA_OP) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4032 -  RULLIERA -AX"
+      A03_HMI.MB3.Button.A0302.Rulliera.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Rulliera.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4032_RULLIERA_AX) AND A0302_Rulliera.COut.Ax_1.Bwd_CheckNext) OR ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND A0302_Rulliera.COut.Ax_1.Fwd_CheckNext) OR ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND A0302_Rulliera.COut.Ax_2.Bwd_CheckNext) OR ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND A0302_Rulliera.COut.Ax_2.Fwd_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4032_RULLIERA_AX) AND NOT (A0302_Rulliera.COut.Ax_1.Standstill)) OR ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND NOT (A0302_Rulliera.COut.Ax_2.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4032_RULLIERA_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4021 -  BORDATRICE -AX"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND A0302_Bordatrice.COut.Ax.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Ax.Bwd_Minus) OR (((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND A0302_Bordatrice.COut.Ax.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Ax.Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND NOT (A0302_Bordatrice.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4021_BORDATRICE_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4033 -  REGOLAZ. BORDATRICE - CASSETTA"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Bwd_Minus := (((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND MB3_Decoder.OperationMinus) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.MinusLimitReached));
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Fwd_Plus := (((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND MB3_Decoder.OperationPlus) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.PlusLimitReached));
+      IF ((((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Fwd_Plus) OR (((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Bwd_Minus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4033_BORDATRICE_REG-CASSETTA) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4038 -  REGOLAZ. BORDATRICE - CASSETTA_AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Ax.MoveToPos := (((MB3_Decoder.Code = #4038_BORDATRICE_REG-CASSETTA_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_D[1].HMI.TargetPosition)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4038_BORDATRICE_REG-CASSETTA_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4038_BORDATRICE_REG-CASSETTA_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4038_BORDATRICE_REG-CASSETTA_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_D[1].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4034 -  REGOLAZ. BORDATRICE - PASSAGGIO 01 - COMBO"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Bwd_Minus := ((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Fwd_Plus := ((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.MinusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Bwd_Minus) OR ((((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.PlusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.Standstill)) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.MinusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.MinusLimitReached) OR ((((MB3_Decoder.Code = #4034_BORDATRICE_PASS01) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.PlusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4088 -  REGOLAZ. BORDATRICE - PASSAGGIO 01 - COMBO AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[1].MoveToPos := ((((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio01_Combo_TargetPos)) OR ((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio01_Combo_TargetPos))) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.Standstill)) OR ((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4088_BORDATRICE_PASS01-COMBO_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.InPosition) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4080 -  REGOLAZ. BORDATRICE - PASSAGGIO 01 - LATO-OP"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Bwd_Minus := ((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Fwd_Plus := ((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Bwd_Minus) OR (((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4080_BORDATRICE_PASS01_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4092 -    REGOLAZ. BORDATRICE - PASSAGGIO 01 - LATO-OP AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[2].MoveToPos := (((MB3_Decoder.Code = #4092_BORDATRICE_PASS01-LATO-OP_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[2].HMI.TargetPosition)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4092_BORDATRICE_PASS01-LATO-OP_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4092_BORDATRICE_PASS01-LATO-OP_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4092_BORDATRICE_PASS01-LATO-OP_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[2].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4081 -  REGOLAZ. BORDATRICE - PASSAGGIO 01 - LATO-MOT"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Bwd_Minus := ((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Fwd_Plus := ((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Bwd_Minus) OR (((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4081_BORDATRICE_PASS01_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4093 -  REGOLAZ. BORDATRICE - PASSAGGIO 01 - LATO-MOT AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[3].MoveToPos := (((MB3_Decoder.Code = #4093_BORDATRICE_PASS01-LATO-MOT_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[3].HMI.TargetPosition)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4093_BORDATRICE_PASS01-LATO-MOT_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4093_BORDATRICE_PASS01-LATO-MOT_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4093_BORDATRICE_PASS01-LATO-MOT_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[3].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4035 -  REGOLAZ. BORDATRICE - PASSAGGIO 02 - COMBO"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Bwd_Minus := ((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Fwd_Plus := ((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.MinusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Bwd_Minus) OR ((((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.PlusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.Standstill)) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.MinusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.MinusLimitReached) OR ((((MB3_Decoder.Code = #4035_BORDATRICE_PASS02) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.PlusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4089 -  REGOLAZ. BORDATRICE - PASSAGGIO 02 - COMBO AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[2].MoveToPos := ((((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio02_Combo_TargetPos)) OR ((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio02_Combo_TargetPos))) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.Standstill)) OR ((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4089_BORDATRICE_PASS02-COMBO_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.InPosition) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4082 -  REGOLAZ. BORDATRICE - PASSAGGIO 02 - LATO-OP"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Bwd_Minus := ((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Fwd_Plus := ((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Bwd_Minus) OR (((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4082_BORDATRICE_PASS02_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4094 -    REGOLAZ. BORDATRICE - PASSAGGIO 02 - LATO-OP AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[4].MoveToPos := (((MB3_Decoder.Code = #4094_BORDATRICE_PASS02-LATO-OP_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[4].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4094_BORDATRICE_PASS02-LATO-OP_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4094_BORDATRICE_PASS02-LATO-OP_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4094_BORDATRICE_PASS02-LATO-OP_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[4].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4083 -  REGOLAZ. BORDATRICE - PASSAGGIO 02 - LATO-MOT"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Bwd_Minus := ((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Fwd_Plus := ((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Bwd_Minus) OR (((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4083_BORDATRICE_PASS02_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4095 -  REGOLAZ. BORDATRICE - PASSAGGIO 02 - LATO-MOT AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[5].MoveToPos := (((MB3_Decoder.Code = #4095_BORDATRICE_PASS02-LATO-MOT_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[5].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4095_BORDATRICE_PASS02-LATO-MOT_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4095_BORDATRICE_PASS02-LATO-MOT_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4095_BORDATRICE_PASS02-LATO-MOT_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[5].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4036 -  REGOLAZ. BORDATRICE - PASSAGGIO 03 - COMBO"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Bwd_Minus := ((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Fwd_Plus := ((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.MinusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Bwd_Minus) OR ((((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.PlusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.Standstill)) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.MinusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.MinusLimitReached) OR ((((MB3_Decoder.Code = #4036_BORDATRICE_PASS03) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.PlusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4090 -  REGOLAZ. BORDATRICE - PASSAGGIO 03 - COMBO AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[3].MoveToPos := ((((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio03_Combo_TargetPos)) OR ((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio03_Combo_TargetPos))) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.Standstill)) OR ((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4090_BORDATRICE_PASS03-COMBO_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.InPosition) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4084 -  REGOLAZ. BORDATRICE - PASSAGGIO 03 - LATO-OP"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Bwd_Minus := ((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Fwd_Plus := ((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Bwd_Minus) OR (((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4084_BORDATRICE_PASS03_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4096 -    REGOLAZ. BORDATRICE - PASSAGGIO 03 - LATO-OP AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[6].MoveToPos := (((MB3_Decoder.Code = #4096_BORDATRICE_PASS03-LATO-OP_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[6].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4096_BORDATRICE_PASS03-LATO-OP_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4096_BORDATRICE_PASS03-LATO-OP_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4096_BORDATRICE_PASS03-LATO-OP_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[6].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4085 -  REGOLAZ. BORDATRICE - PASSAGGIO 03 - LATO-MOT"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Bwd_Minus := ((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Fwd_Plus := ((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Bwd_Minus) OR (((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4085_BORDATRICE_PASS03_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4097 -  REGOLAZ. BORDATRICE - PASSAGGIO 03 - LATO-MOT AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[7].MoveToPos := (((MB3_Decoder.Code = #4097_BORDATRICE_PASS03-LATO-MOT_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[7].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4097_BORDATRICE_PASS03-LATO-MOT_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4097_BORDATRICE_PASS03-LATO-MOT_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4097_BORDATRICE_PASS03-LATO-MOT_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[7].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4037 -  REGOLAZ. BORDATRICE - PASSAGGIO 04 - COMBO"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Bwd_Minus := ((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Fwd_Plus := ((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.MinusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Bwd_Minus) OR ((((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.PlusCheckNext) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.MinusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.MinusLimitReached) OR ((((MB3_Decoder.Code = #4037_BORDATRICE_PASS04) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.PlusLimitReached) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4091 -  REGOLAZ. BORDATRICE - PASSAGGIO 04 - COMBO AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Passaggio_Combo[4].MoveToPos := ((((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio04_Combo_TargetPos)) OR ((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.HMI.Passaggio04_Combo_TargetPos))) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) OR ((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4091_BORDATRICE_PASS04-COMBO_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.InPosition) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4086 -  REGOLAZ. BORDATRICE - PASSAGGIO 04 - LATO-OP"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Bwd_Minus := ((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Fwd_Plus := ((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Bwd_Minus) OR (((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4086_BORDATRICE_PASS04_LATO-OP) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4098 -    REGOLAZ. BORDATRICE - PASSAGGIO 04 - LATO-OP AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[8].MoveToPos := (((MB3_Decoder.Code = #4098_BORDATRICE_PASS04-LATO-OP_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[8].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4098_BORDATRICE_PASS04-LATO-OP_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4098_BORDATRICE_PASS04-LATO-OP_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4098_BORDATRICE_PASS04-LATO-OP_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[8].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4087 -  REGOLAZ. BORDATRICE - PASSAGGIO 04 - LATO-MOT"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Bwd_Minus := ((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Fwd_Plus := ((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.MinusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Bwd_Minus) OR (((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.PlusCheckNext) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Bwd_Minus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.MinusLimitReached) OR (((MB3_Decoder.Code = #4087_BORDATRICE_PASS04_LATO-MOT) AND A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].Fwd_Plus) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.PlusLimitReached)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4099 -  REGOLAZ. BORDATRICE - PASSAGGIO 04 - LATO-MOT AX-POS"
+      A03_HMI.MB3.Button.A0302.Bordatrice.Regolazione.Single_PB[9].MoveToPos := (((MB3_Decoder.Code = #4099_BORDATRICE_PASS04-LATO-MOT_AX-POS) AND (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.ActualPosition <> A0302_Bordatrice_RegolazioneFormato.AX_M[9].HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4099_BORDATRICE_PASS04-LATO-MOT_AX-POS) AND TRUE) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4099_BORDATRICE_PASS04-LATO-MOT_AX-POS) AND NOT (A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4099_BORDATRICE_PASS04-LATO-MOT_AX-POS) AND A0302_Bordatrice_RegolazioneFormato.AX_M[9].COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4041- CENTARTORI - OP"
+      A03_HMI.MB3.Button.A0302.Centratori.OP.Rest := ((MB3_Decoder.Code = #4041_CENTRATORI_OP) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Centratori.OP.Work := ((MB3_Decoder.Code = #4041_CENTRATORI_OP) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4041_CENTRATORI_OP) AND A0302_Centratori.COut.Centraggio.Rest_CheckNext) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4041_CENTRATORI_OP) AND NOT (A0302_Centratori.COut.Centraggio.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4041_CENTRATORI_OP) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4042- CENTARTORI - CENTRAGGIO"
+      A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Rest := ((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Work := ((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A0302_Centratori.COut.Centraggio.Rest_CheckNext) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND NOT (A0302_Centratori.COut.Centraggio.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Rest) AND A0302_Centratori.COut.Centraggio.Rest) AND A0302_Centratori.HMI.Selection.Centraggio[1]) OR ((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Rest) AND A0302_Centratori.COut.Centraggio.Rest) AND A0302_Centratori.HMI.Selection.Centraggio[2]) OR ((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Rest) AND A0302_Centratori.COut.Centraggio.Rest) AND A0302_Centratori.HMI.Selection.Centraggio[2]) OR ((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Work) AND A0302_Centratori.COut.Centraggio.Work) AND A0302_Centratori.HMI.Selection.Centraggio[1]) OR ((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Work) AND A0302_Centratori.COut.Centraggio.Work) AND A0302_Centratori.HMI.Selection.Centraggio[2]) OR ((((MB3_Decoder.Code = #4042_CENTRATORI_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.Centratori.Centraggio.Work) AND A0302_Centratori.COut.Centraggio.Work) AND A0302_Centratori.HMI.Selection.Centraggio[3])) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4043- CENTARTORI - SOLLEVAMENTO"
+      A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Rest := ((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Work := ((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A0302_Centratori.COut.Sollevamento.Rest_CheckNext) OR ((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A0302_Centratori.COut.Sollevamento.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND NOT (A0302_Centratori.COut.Sollevamento.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Rest) AND A0302_Centratori.COut.Sollevamento.Rest) AND A0302_Centratori.HMI.Selection.Sollevamento[1]) OR ((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Rest) AND A0302_Centratori.COut.Sollevamento.Rest) AND A0302_Centratori.HMI.Selection.Sollevamento[2]) OR ((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Rest) AND A0302_Centratori.COut.Sollevamento.Rest) AND A0302_Centratori.HMI.Selection.Sollevamento[2]) OR ((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Work) AND A0302_Centratori.COut.Sollevamento.Work) AND A0302_Centratori.HMI.Selection.Sollevamento[1]) OR ((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Work) AND A0302_Centratori.COut.Sollevamento.Work) AND A0302_Centratori.HMI.Selection.Sollevamento[2]) OR ((((MB3_Decoder.Code = #4043_CENTRATORI_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.Centratori.Sollevamento.Work) AND A0302_Centratori.COut.Sollevamento.Work) AND A0302_Centratori.HMI.Selection.Sollevamento[3])) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4051- PAREGGIATORE CODA - OP"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.OP_Ax.MoveToPos := ((MB3_Decoder.Code = #4051_PAREGGIATORE_CODA_OP) AND MB3_Decoder.OperationPlus);
+      IF ((((((MB3_Decoder.Code = #4051_PAREGGIATORE_CODA_OP) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.Ax.MinusCheckNext) OR (((((MB3_Decoder.Code = #4051_PAREGGIATORE_CODA_OP) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Rest_CheckNext) AND A0302_PareggiatoreCoda.COut.Ax.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4051_PAREGGIATORE_CODA_OP) AND NOT (A0302_PareggiatoreCoda.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4051_PAREGGIATORE_CODA_OP) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Work) AND A0302_PareggiatoreCoda.COut.Ax_InWPos) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4052 -  PAREGGIATORE CODA -AX"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND A0302_PareggiatoreCoda.COut.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND A0302_PareggiatoreCoda.COut.Ax.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND NOT (A0302_PareggiatoreCoda.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4052_PAREGGIATORE_CODA_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6012 -  PAREGGIATORE CODA -AX_POS"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Ax.MoveToPos := (((MB3_Decoder.Code = #4067_PAREGG_CODA_AX_POS) AND (A0302_PareggiatoreCoda.Ax.COut.ActualPosition <> A0302_PareggiatoreCoda.Ax.HMI.TargetPosition)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4067_PAREGG_CODA_AX_POS) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Rest) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4067_PAREGG_CODA_AX_POS) AND NOT (A0302_PareggiatoreCoda.Ax.COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4067_PAREGG_CODA_AX_POS) AND A0302_PareggiatoreCoda.COut.Ax_InWPos) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4053 - PAREGGIATORE CODA - BLOCCAGGIO"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio.Rest := ((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio.Work := ((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Rest_CheckNext) OR ((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND NOT (A0302_PareggiatoreCoda.COut.Bloccaggio.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio.Rest) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Rest) OR (((MB3_Decoder.Code = #4053_PAREGGIATORE_CODA_BLOCCAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.Bloccaggio.Work) AND A0302_PareggiatoreCoda.COut.Bloccaggio.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4054 - PAREGGIATORE CODA - BATTUTA VERTICALE"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale.Rest := ((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale.Work := ((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Rest_CheckNext) OR ((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND NOT (A0302_PareggiatoreCoda.COut.BattutaVerticale.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale.Rest) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Rest) OR (((MB3_Decoder.Code = #4054_PAREGGIATORE_CODA_BATTUTAVERTICALE) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.BattutaVerticale.Work) AND A0302_PareggiatoreCoda.COut.BattutaVerticale.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4055 - PAREGGIATORE CODA - PAREGGIATORE LONGITUDINALE"
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale.Rest := ((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale.Work := ((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Rest_CheckNext) OR ((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND NOT (A0302_PareggiatoreCoda.COut.PareggiatoreLong.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale.Rest) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Rest) OR (((MB3_Decoder.Code = #4055_PAREGGIATORE_CODA_PAREGGIATORELONGIT) AND A03_HMI.MB3.Button.A0302.PareggiatoreCoda.PareggiatoreLongitudinale.Work) AND A0302_PareggiatoreCoda.COut.PareggiatoreLong.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4051- PAREGGIATORE TESTA - OP"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.OP_Ax.MoveToPos := ((MB3_Decoder.Code = #4061_PAREGGIATORE_TESTA_OP) AND MB3_Decoder.OperationPlus);
+      IF ((((((MB3_Decoder.Code = #4061_PAREGGIATORE_TESTA_OP) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Rest_CheckNext) AND A0302_PareggiatoreTesta.Centraggio.COut.Rest_CheckNext) AND A0302_PareggiatoreTesta.Sollevamento.COut.Rest_CheckNext) AND A0302_PareggiatoreTesta.Ax.COut.MinusCheckNext) OR (((((MB3_Decoder.Code = #4061_PAREGGIATORE_TESTA_OP) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Rest_CheckNext) AND A0302_PareggiatoreTesta.Centraggio.COut.Rest_CheckNext) AND A0302_PareggiatoreTesta.Sollevamento.COut.Rest_CheckNext) AND A0302_PareggiatoreTesta.Ax.COut.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4061_PAREGGIATORE_TESTA_OP) AND NOT (A0302_PareggiatoreTesta.Ax.COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4061_PAREGGIATORE_TESTA_OP) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Work) AND A0302_PareggiatoreTesta.COut.Ax_InWPos) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4062 -  PAREGGIATORE TESTA -AX"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND A0302_PareggiatoreTesta.COut.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND A0302_PareggiatoreTesta.COut.Ax.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND NOT (A0302_PareggiatoreTesta.COut.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4062_PAREGGIATORE_TESTA_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 6012 -  PAREGGIATORE TESTA -AX_POS"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Ax.MoveToPos := (((MB3_Decoder.Code = #4066_PAREGG_TESTA_AX_POS) AND (A0302_PareggiatoreTesta.Ax.COut.ActualPosition <> A0302_PareggiatoreTesta.Ax.HMI.Sts.TargetPos)) AND MB3_Decoder.OperationPlus);
+      IF ((MB3_Decoder.Code = #4066_PAREGG_TESTA_AX_POS) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Rest) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4066_PAREGG_TESTA_AX_POS) AND NOT (A0302_PareggiatoreTesta.Ax.COut.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4066_PAREGG_TESTA_AX_POS) AND A0302_PareggiatoreTesta.COut.Ax_InWPos) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4063 - PAREGGIATORE TESTA - BLOCCAGGIO"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Bloccaggio.Rest := ((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Bloccaggio.Work := ((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Rest_CheckNext) OR ((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND NOT (A0302_PareggiatoreTesta.COut.Bloccaggio.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Bloccaggio.Rest) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Rest) OR (((MB3_Decoder.Code = #4063_PAREGGIATORE_TESTA_BLOCCAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Bloccaggio.Work) AND A0302_PareggiatoreTesta.COut.Bloccaggio.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4064 - PAREGGIATORE TESTA - SOLLEVAMENTO"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Sollevamento.Rest := ((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Sollevamento.Work := ((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND A0302_PareggiatoreTesta.COut.Sollevatore.Rest_CheckNext) OR ((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND A0302_PareggiatoreTesta.COut.Sollevatore.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND NOT (A0302_PareggiatoreTesta.COut.Sollevatore.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Sollevamento.Rest) AND A0302_PareggiatoreTesta.COut.Sollevatore.Rest) OR (((MB3_Decoder.Code = #4064_PAREGGIATORE_TESTA_SOLLEVAMENTO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Sollevamento.Work) AND A0302_PareggiatoreTesta.COut.Sollevatore.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4064 - PAREGGIATORE TESTA - CENTRAGGIO"
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Centratore.Rest := ((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Centratore.Work := ((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND MB3_Decoder.OperationPlus);
+      IF (((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND A0302_PareggiatoreTesta.COut.Centraggio.Rest_CheckNext) OR ((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND A0302_PareggiatoreTesta.COut.Centraggio.Work_CheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND NOT (A0302_PareggiatoreTesta.COut.Centraggio.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Centratore.Rest) AND A0302_PareggiatoreTesta.COut.Centraggio.Rest) OR (((MB3_Decoder.Code = #4065_PAREGGIATORE_TESTA_CENTRAGGIO) AND A03_HMI.MB3.Button.A0302.PareggiatoreTesta.Centratore.Work) AND A0302_PareggiatoreTesta.COut.Centraggio.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4071-  MANIPOLATORE - OP"
+      A03_HMI.MB3.Button.A0302.Manipolatore.OP_Ax.MoveToPos := ((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND MB3_Decoder.OperationPlus);
+      IF ((((((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND A0302_Manipolatore.COut.Coda.Sollevatore.Rest_CheckNext) AND A0302_Manipolatore.COut.Testa.Sollevatore.Rest_CheckNext) AND A0302_Manipolatore.COut.Coda.Magnete.Rest_CheckNext) AND A0302_Manipolatore.COut.Testa.Magnete.Rest_CheckNext) OR (((((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND A0302_Manipolatore.COut.Coda.Sollevatore.Rest_CheckNext) AND A0302_Manipolatore.COut.Testa.Sollevatore.Rest_CheckNext) AND A0302_Manipolatore.COut.Coda.Magnete.Work_CheckNext) AND A0302_Manipolatore.COut.Testa.Magnete.Work_CheckNext) OR (((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND A0302_Manipolatore.COut.Testa.Ax.MinusCheckNext) AND A0302_Manipolatore.COut.Coda.Ax.MinusCheckNext) OR (((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND A0302_Manipolatore.COut.Testa.Ax.PlusCheckNext) AND A0302_Manipolatore.COut.Coda.Ax.PlusCheckNext)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND NOT (A0302_Manipolatore.COut.Coda.Ax.Standstill)) AND NOT (A0302_Manipolatore.COut.Testa.Ax.Standstill)) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4070_MANIPOLATORE_OP) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4071-  MANIPOLATORE -AX"
+      A03_HMI.MB3.Button.A0302.Manipolatore.Ax.Bwd_Minus := ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Manipolatore.Ax.Fwd_Plus := ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND A0302_Manipolatore.COut.Testa.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND A0302_Manipolatore.COut.Coda.Ax.MinusCheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Ax.Bwd_Minus) OR ((((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND A0302_Manipolatore.COut.Testa.Ax.PlusCheckNext) OR ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND A0302_Manipolatore.COut.Coda.Ax.PlusCheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Ax.Fwd_Plus)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND NOT (A0302_Manipolatore.COut.Testa.Ax.Standstill)) OR ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND NOT (A0302_Manipolatore.COut.Coda.Ax.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((MB3_Decoder.Code = #4071_MANIPOLATORE_AX) AND FALSE) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4072-  MANIPOLATORE -AX-POS"
+      A03_HMI.MB3.Button.A0302.Manipolatore.Ax.MoveToPos := ((((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND (A0302_Manipolatore.Ax_Testa.COut.ActualPosition <> A0302_Manipolatore.Ax_Testa.HMI.Sts.TargetPos)) OR ((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND (A0302_Manipolatore.Ax_Coda.COut.ActualPosition <> A0302_Manipolatore.Ax_Coda.HMI.Sts.TargetPos))) AND MB3_Decoder.OperationPlus);
+      IF ((((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND A0302_Manipolatore.COut.Testa.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND A0302_Manipolatore.COut.Coda.Ax.MinusCheckNext) OR ((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND A0302_Manipolatore.COut.Testa.Ax.PlusCheckNext) OR ((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND A0302_Manipolatore.COut.Coda.Ax.PlusCheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Ax.MoveToPos) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND NOT (A0302_Manipolatore.COut.Testa.Ax.Standstill)) OR ((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND NOT (A0302_Manipolatore.COut.Coda.Ax.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4072_MANIPOLATORE_AX-POS) AND A0302_Manipolatore.Ax_Testa.COut.InPosition) AND A0302_Manipolatore.Ax_Coda.COut.InPosition) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4073 - MANIPOLATORE- MAGNETE"
+      A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Rest := ((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Work := ((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A0302_Manipolatore.COut.Testa.Magnete.Rest_CheckNext) OR ((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A0302_Manipolatore.COut.Coda.Magnete.Rest_CheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Rest) OR ((((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A0302_Manipolatore.COut.Testa.Magnete.Work_CheckNext) OR ((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A0302_Manipolatore.COut.Testa.Magnete.Rest_CheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Work)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND NOT (A0302_Manipolatore.COut.Testa.Magnete.Standstill)) OR ((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND NOT (A0302_Manipolatore.COut.Coda.Magnete.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Rest) AND A0302_Manipolatore.COut.Testa.Magnete.Rest) OR (((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Rest) AND A0302_Manipolatore.COut.Coda.Magnete.Rest) OR (((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Work) AND A0302_Manipolatore.COut.Testa.Magnete.Work) OR (((MB3_Decoder.Code = #4073_MANIPOLATORE_MAGNETE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Magnete.Work) AND A0302_Manipolatore.COut.Coda.Magnete.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Code 4074 - MANIPOLATORE- SOLLEVATORE"
+      A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Rest := ((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND MB3_Decoder.OperationMinus);
+      A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Work := ((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND MB3_Decoder.OperationPlus);
+      IF (((((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A0302_Manipolatore.COut.Testa.Sollevatore.Rest_CheckNext) OR ((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A0302_Manipolatore.COut.Coda.Sollevatore.Rest_CheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Rest) OR ((((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A0302_Manipolatore.COut.Testa.Sollevatore.Work_CheckNext) OR ((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A0302_Manipolatore.COut.Testa.Sollevatore.Rest_CheckNext)) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Work)) THEN
+         MB3_Decoder.OpEnabled := TRUE;
+      END_IF;
+      IF (((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND NOT (A0302_Manipolatore.COut.Testa.Sollevatore.Standstill)) OR ((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND NOT (A0302_Manipolatore.COut.Coda.Sollevatore.Standstill))) THEN
+         MB3_Decoder.OpRunning := TRUE;
+      END_IF;
+      IF ((((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Rest) AND A0302_Manipolatore.COut.Testa.Sollevatore.Rest) OR (((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Rest) AND A0302_Manipolatore.COut.Coda.Sollevatore.Rest) OR (((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Work) AND A0302_Manipolatore.COut.Testa.Sollevatore.Work) OR (((MB3_Decoder.Code = #4074_MANIPOLATORE_SOLLEVATORE) AND A03_HMI.MB3.Button.A0302.Manipolatore.Sollevatore.Work) AND A0302_Manipolatore.COut.Coda.Sollevatore.Work)) THEN
+         MB3_Decoder.OpDone := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "MB3 Decoder"
+      #MB3_Decoder(
+         en := TRUE,
+         ButtonMinus := NOT ((NOT (MB3_Pb_Comando_Manuale_Jog_Minus_A03) AND NOT (A03_HMI.Area03.SuperUser.JogMinus))),
+         ButtonPlus := NOT ((NOT (MB3_Pb_Comando_Manuale_Jog_Plus_A03) AND NOT (A03_HMI.Area03.SuperUser.JogPlus))),
+         CodeReq := A03_HMI.MB3.ManCode_REQ,
+         Code => A03_HMI.MB3.ManCode_CMD,
+         Lamp => MB3_LpJog
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

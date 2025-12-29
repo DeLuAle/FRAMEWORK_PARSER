@@ -1,0 +1,178 @@
+﻿// Block: SinamicsCU_Modulblock
+// Title: Info
+
+FUNCTION_BLOCK "SinamicsCU_Modulblock"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      Rst : Bool;
+      Tel393_HWID : HW_IO;
+      AccessPoint : HW_IO;
+      AxisID : USInt;
+      TokenChain : Int;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      AlarmPresence : Bool;
+      WarningPresence : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : SinamicsCU_Alarms;
+      Warning : SinamicsCU_Warnings;
+      Diag : TO_Diagnostic;
+   END_VAR
+
+   VAR
+      GetTelIn : GETIO;
+      SetTelOut : SETIO_PART;
+      ReadAlarm : RW_SINAMICS_Par;
+      ReadWarning : RW_SINAMICS_Par;
+      PathTest : Array[1..4] of PathTestSignal;
+      TEL_IN : Tel393In_PM;
+      TEL_OUT : Tel393Out_PM;
+   END_VAR
+
+
+BEGIN
+   REGION "Info"
+      //=============================================================================
+      //PM FORMING
+      //-----------------------------------------------------------------------------
+      // Library: StandardBlocks
+      // Tested with: S7-1518TF
+      // Engineering: TIA Portal V18
+      // Restrictions: -
+      // Requirements: S7-1500
+      // Functionality: Sinamics CU device
+      //
+      // v1.0.0  28/12/2022 
+      // v1.1.0  14/02/2022 Simulation added
+      //=============================================================================
+
+
+   END_REGION
+
+   REGION "Read data from CU"
+      #GetTelIn(
+         en := TRUE,
+         ID := Tel393_HWID,
+         INPUTS := TEL_IN
+      );
+
+   END_REGION
+
+   REGION "Communication Fault"
+      IF (((GetTelIn.STATUS <> 0) OR (SetTelOut.STATUS <> 0)) AND NOT (Simulation)) THEN
+         Alarm.CommunicationFault := TRUE;
+      ELSIF Rst THEN
+         Alarm.CommunicationFault := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Read Fault And Alarm Presence"
+      Alarm.CUFault := (TEL_IN.CU_ZSW1.faultPresent AND NOT (Simulation));
+      Warning.CUWarning := TEL_IN.CU_ZSW1.alarmPresent;
+      Warning.CUSafetyMessagePresence := ((NOT (TEL_IN.CU_ZSW1.noSafetyMessagePresent) AND NOT (Alarm.CommunicationFault)) AND NOT (Simulation));
+   END_REGION
+
+   REGION "Diganostic"
+
+      Diag.DeviceType := 1;
+      Diag.TO_SimulationActive := Simulation;
+          
+      IF AccessPoint > 0 AND TokenChain > 0 AND NOT Simulation THEN
+          
+          ReadAlarm(Enable := Alarm.CUFault,
+                     ReadWrite := 0,
+                     ParNo := 2131,
+                     Index := 0,
+                     AxisNo := AxisID,
+                     HW_ID := AccessPoint,
+                     TokenChain := TokenChain);
+          
+          ReadWarning(Enable := Warning.CUWarning AND NOT Alarm.CUFault,
+                       ReadWrite := 0,
+                       ParNo := 2132,
+                       Index := 0,
+                       AxisNo := AxisID,
+                       HW_ID := AccessPoint,
+                       TokenChain := TokenChain);
+          
+          
+          IF Alarm.CUFault THEN
+              IF ReadAlarm.Done THEN
+                  Diag.Drive_Message := (ReadAlarm.ValueReadReal);
+              END_IF;
+          ELSIF Warning.CUWarning THEN
+              IF ReadWarning.Done THEN
+                  Diag.Drive_Message := (ReadWarning.ValueReadReal);
+              END_IF;
+          ELSE
+              Diag.Drive_Message := 0;
+          END_IF;
+          
+          Diag.Drive_ErrorPresence := Alarm.CUFault;
+      ELSE
+          Diag.Drive_Message := 0;
+          Diag.Drive_ErrorPresence := FALSE;
+      END_IF;
+
+      IF AlarmPresence THEN
+          Diag.MessageType := 2;
+      ELSIF WarningPresence THEN
+          Diag.MessageType := 1;
+      ELSE
+          Diag.MessageType := 0;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Reset Alarms"
+      TEL_OUT.A_DIGITAL_1.2ndacknowledge := Rst;
+   END_REGION
+
+   REGION "Path test"
+      //Read path test Info 
+      PathTest[1].TestRequired := TEL_IN.E_DIGITAL_1.Axis1_PathTestReq;
+      PathTest[1].TestRunning := TEL_IN.E_DIGITAL_1.Axis1_PathTestRunning;
+      PathTest[2].TestRequired := TEL_IN.E_DIGITAL_1.Axis2_PathTestReq;
+      PathTest[2].TestRunning := TEL_IN.E_DIGITAL_1.Axis2_PathTestRunning;
+      PathTest[3].TestRequired := TEL_IN.E_DIGITAL_1.Axis3_PathTestReq;
+      PathTest[3].TestRunning := TEL_IN.E_DIGITAL_1.Axis3_PathTestRunning;
+      PathTest[4].TestRequired := TEL_IN.E_DIGITAL_1.Axis4_PathTestReq;
+      PathTest[4].TestRunning := TEL_IN.E_DIGITAL_1.Axis4_PathTestRunning;
+
+
+      //Write Path Test out
+      TEL_OUT.A_DIGITAL_1.PathTestAxis1 := PathTest[1].TestRunCmd;
+      TEL_OUT.A_DIGITAL_1.PathTestAxis2 := PathTest[2].TestRunCmd;
+      TEL_OUT.A_DIGITAL_1.PathTestAxis3 := PathTest[3].TestRunCmd;
+      TEL_OUT.A_DIGITAL_1.PathTestAxis4 := PathTest[4].TestRunCmd;
+
+   END_REGION
+
+   REGION "Alarm Presence"
+      AlarmPresence := NOT ((NOT (Alarm.CommunicationFault) AND NOT (Alarm.CUFault)));
+   END_REGION
+
+   REGION "Warning Presence"
+      WarningPresence := NOT (((NOT (Warning.CUWarning) AND NOT (Warning.CUSafetyMessagePresence)) AND NOT (Simulation)));
+   END_REGION
+
+   REGION "Write data to CU"
+      #SetTelOut(
+         en := TRUE,
+         ID := Tel393_HWID,
+         OFFSET := 4,
+         LEN := 2,
+         OUTPUTS := TEL_OUT.A_DIGITAL_1
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

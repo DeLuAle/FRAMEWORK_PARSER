@@ -1,0 +1,171 @@
+﻿// Block: Area01_ITF
+
+FUNCTION "Area01_ITF" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Areas ITF"
+      Areas_ITF.A01.AreaInterface := Area01.AreaInterface;
+
+      Areas_ITF.A01.CoilHandling_MachineInterface := CoilHandling.MachineInterface;
+
+      Areas_ITF.A01.Infeed_REQ_ON :=
+      Coilcar.COut.Move.Infeed_ReqON
+      OR
+      Decoiler1.COut.Feed.Infeed_ReqON
+      OR
+      Decoiler2.COut.Feed.Infeed_ReqON
+      OR
+      DecoilersHRot.COut.Traslation.Infeed_ReqON
+      OR
+      Straightener.COut.Feed.Infeed_ReqON
+      OR
+      JB.COut.Pinchroll_Feed.Infeed_ReqON
+      OR
+      JB.COut.Torch.Infeed_ReqON;
+
+      REGION PB
+          
+          Areas_ITF.A01.PB.MB1_PB_Reset := MB1_Pb_ResetAlarms;
+          Areas_ITF.A01.PB.LB114_Interlock_PB_FeedA02 := LB114_FeedA01.Reset_OthersPBs_Activation_OUT;
+          
+          Areas_ITF.A01.PB.Area_DataOut_LampCycle := Area01.DataOut.lampCycle;
+          
+      END_REGION
+
+
+
+      REGION Safety_SuperUser
+          
+          Areas_ITF.A01.Safety_SuperUser.PbSafetyReset := A01_HMI.Area01.SuperUser.PbSafetyRst;
+          Areas_ITF.A01.Safety_SuperUser.SgnSafetyReset := A01_HMI.Area01.SuperUser.SgnSafetyRst;
+          
+          
+      END_REGION
+
+
+
+
+
+
+   END_REGION
+
+   REGION "Entry enable Z01 (DECOILER HORIZONTAL ROTATION)"
+      Areas_ITF.A01.Safety_EntryEnable.Z01 := ((((DecoilersHU.MachineInterface.MotionsStandStill AND DecoilersHRot.MachineInterface.MotionsStandStill) AND DecoilersHRot.COut.Decoiler2_InLine) AND Decoiler1.MachineInterface.MotionsStandStill) OR (((DecoilersHU.MachineInterface.MotionsStandStill AND DecoilersHRot.MachineInterface.MotionsStandStill) AND DecoilersHRot.COut.Decoiler1_InLine) AND Decoiler2.MachineInterface.MotionsStandStill) OR (((DecoilersHU.MachineInterface.MotionsStandStill AND DecoilersHRot.MachineInterface.MotionsStandStill) AND Decoiler1.MachineInterface.MotionsStandStill) AND Decoiler2.MachineInterface.MotionsStandStill));
+   END_REGION
+
+   REGION "Entry enable Z02 (DECOILER 1)"
+      Areas_ITF.A01.Safety_EntryEnable.Z02 := Decoiler1.MachineInterface.MotionsStandStill;
+   END_REGION
+
+   REGION "Entry enable Z03 (DECOILER 2)"
+      Areas_ITF.A01.Safety_EntryEnable.Z03 := Decoiler2.MachineInterface.MotionsStandStill;
+   END_REGION
+
+   REGION "Entry enable Z05"
+      Areas_ITF.A01.Safety_EntryEnable.Z05 := ((Peeler.MachineInterface.MotionsStandStill AND Straightener.MachineInterface.MotionsStandStill) AND JB.MachineInterface.MotionsStandStill);
+      Areas_ITF.A01.Safety_EntryEnable.Z05 := (((Areas_ITF.A01.Safety_EntryEnable.Z05 AND F_DB.DSI_V_CoilCar.DevicesInSafeState) AND F_DB.DSI_V_JB_Cut_Rest.DevicesInSafeState) AND F_DB.DSI_V_JB_Cut_Work.DevicesInSafeState);
+   END_REGION
+
+   REGION "Entry enable Z10 = Material Feeding (Z05 + CONSENSO AREA 02)"
+      Areas_ITF.A01.Safety_EntryEnable.Z10 := Straightener.MachineInterface.MotionsStandStill;
+   END_REGION
+
+   REGION "Ctrl Safe decoilers HU (Motor + Safety shut‑off valves with monitored position feedbacks)"
+      // C.Olio a bordo Aspi
+
+      Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_Motor := (DecoilersHU.COut.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_StandbyValve := (DecoilersHU.DataOut.Pressure_V OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_SafetyValve_HorizRot := (NOT ((NOT (DecoilersHRot.COut.Rotation.CtrlSafe) AND NOT (DecoilersHRot.COut.Pivot.CtrlSafe))) OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_SafetyValve_Decoiler1 := (Decoiler1.COut.Jaws.CtrlSafe OR Decoiler1.COut.SnubberLift.CtrlSafe OR Decoiler1.COut.SnubberRoll.CtrlSafe OR Decoiler1.COut.Coupling.CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_SafetyValve_Decoiler2 := (Decoiler2.COut.Jaws.CtrlSafe OR Decoiler2.COut.SnubberLift.CtrlSafe OR Decoiler2.COut.SnubberRoll.CtrlSafe OR Decoiler2.COut.Coupling.CtrlSafe);
+   END_REGION
+
+   REGION "Ctrl Safe Area 01 HU  (Motor + Safety shut‑off valves with monitored position feedbacks)"
+      // C.Olio su banco di intestazione
+
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_Motor := (Area01_HU.Pump.COut.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_StandbyValve := (Area01_HU.Pump.DataOut.EvStandby OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_DegasValve := (Area01_HU.Pump.DataOut.EvAccumulator OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_SafetyValve_CoilCar := (Coilcar.COut.Lift1.CtrlSafe OR Coilcar.COut.Lift2.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_SafetyValve_Peeler := (Peeler.Lift.COut.CtrlSafe OR Peeler.Extension.COut.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_SafetyValve_JB_CutRest := ((((JB.CutHead.COut.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe) AND Area01_HU.Pump.COut.PressureRunning) AND JB.CutHead.COut.Rest_CheckNext) AND JB.CutHead.Cin.Rest_ExtEnable);
+      Areas_ITF.A01.Safety_CtrlSafe.HU_A01_SafetyValve_JB_CutWork := ((((JB.CutHead.COut.CtrlSafe OR A01_DEBUG.Forse_Contactors_CtrlSafe) AND Area01_HU.Pump.COut.PressureRunning) AND JB.CutHead.COut.Work_CheckNext) AND JB.CutHead.Cin.Work_ExtEnable);
+   END_REGION
+
+   REGION "Ctrl Safe S120"
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_CoilCar := (Coilcar.Move.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_DecoilersTranslation := (DecoilersHRot.COut.Traslation.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_Decoiler1 := (Decoiler1.Feed.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_Decoiler2 := (Decoiler2.Feed.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_Straightener := (Straightener.Feed.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_JB_Torch := (JB.Torch.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+      Areas_ITF.A01.Safety_CtrlSafe.Sinamics_JB_PinchR := (JB.PinchRoll_Feed.COut.CtrlSafe OR A01_DEBUG.Force_Sinamics_CtrlSafe);
+   END_REGION
+
+   REGION "+++"
+
+      Areas_ITF.A01.Doors_Closed :=
+      (F_DB.D01.OK OR F_DB.D02.OK OR F_DB.D03.OK)
+      AND
+      (F_DB.D04.OK OR F_DB.D05.OK)
+      AND
+      F_DB.D07.OK;
+
+
+
+      Areas_ITF.A01.Production_Running := CoilHandling.COut.Gen.Production_Running;
+
+
+      Areas_ITF.A01.Production_Halted.Code := 0;
+      Areas_ITF.A01.Production_Halted.Message_N := 0;
+
+
+
+      Areas_ITF.A01.MaterialCounter := CoilHandlingMatCounter_PERS.PersistentValues.Data;
+
+      Areas_ITF.A01.MaterialPresence := CoilHandling_PERS.PersistentValues.Data.MaterialPresence;
+      Areas_ITF.A01.MaterialPresence_StraightenerEntry := CoilHandling_PERS.PersistentValues.Data.MaterialPresence_StraightenerEntry;
+      Areas_ITF.A01.MaterialPresence_StraightenerExit := CoilHandling_PERS.PersistentValues.Data.MaterialPresence_StraightenerExit;
+      Areas_ITF.A01.MaterialPresence_JBPinchExit := CoilHandling_PERS.PersistentValues.Data.MaterialPresence_JBPinchExit;
+
+
+      Areas_ITF.A01.Material_STS := CoilHandling.COut.Gen.Material_STS;
+
+      Areas_ITF.A01.Decoiler_InLine := CoilHandling.COut.Gen.DecoilerInLineNumber;
+
+
+      Areas_ITF.A01.Coil_Diameter := CoilHandling.COut.Gen.CoilDiameter;
+
+      Areas_ITF.A01.WeldDone := JB.COut.JunctionDone;
+
+
+      Areas_ITF.A01.Deroga_Spessore_Errato := CoilHandling.COut.MES.Deroga_Spessore_Errato;
+      Areas_ITF.A01.Spessore_Lamiera_Errato := CoilHandling.COut.MES.Spessore_Lamiera_Errato;
+      Areas_ITF.A01.Spessore_Lamiera_Errore_Valore := CoilHandling.COut.MES.Spessore_Lamiera_Errore_Valore;
+      Areas_ITF.A01.Spessore_Lamiera_Sensore_Valore := CoilHandling.COut.MES.Spessore_Lamiera_Sensore_Valore;
+      Areas_ITF.A01.Provino_Eseguito := CoilHandling.COut.MES.Provino_Eseguito;
+
+
+
+
+      Areas_ITF.A01.Loop1_COut := Loop1.COut;
+
+      Areas_ITF.A01.Loop1_Lamp := Loop1.DataOut.LampSystemOn;
+
+      Areas_ITF.A01.Loop1_MachineInterface := Loop1.MachineInterfaceExit;
+
+
+      Areas_ITF.A01.NxtEndOfMaterial := NOT CoilHandling_PERS.PersistentValues.Data.MaterialPresence_StraightenerEntry OR NOT CoilHandling_PERS.PersistentValues.Data.MaterialPresence_Decoiler;
+
+      Areas_ITF.A01.EmptyingConfirmed := CoilHandling.COut.Gen.EmptyingConfirmed;
+
+      Areas_ITF.A01.StraightnerPowerOn := Straightener.Feed.Ax.AxisSts.Enabled;
+
+
+
+   END_REGION
+
+
+END_FUNCTION

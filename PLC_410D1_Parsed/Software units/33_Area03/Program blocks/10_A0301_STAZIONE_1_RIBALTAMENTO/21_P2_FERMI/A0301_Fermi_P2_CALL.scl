@@ -1,0 +1,144 @@
+﻿// Block: A0301_Fermi_P2_CALL
+// Title: << TRASFERIMENTO stati CIn del blocco >>
+
+FUNCTION "A0301_Fermi_P2_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// << TRASFERIMENTO stati CIn del blocco >>
+
+BEGIN
+   REGION "<< TRASFERIMENTO stati CIn del blocco >>"
+      // TRASFERIMENTO #CIn MANAGER
+      A0301_Fermi_P2.CIn.Manager_Fermi := A0301_Manager.COut.P2.Fermi;
+      A0301_Fermi_P2.CIn.Manager_Sollevatori := A0301_Manager.COut.P2.Sollevatore;
+      //
+      A0301_Fermi_P2.CIn.SemiAut := A0301_Manager.DataIn.SemiAut_Pb;
+
+      // TRASFERIMENTO #CIn FERMI POSTAZIONI P2 E DEI SOLLEVATORI SU P3
+      // Trasferimento status alla Stazione P2 da COut a Cin delle stazioni successive
+      A0301_Fermi_P2.CIn.P1.Fermi := A0301_Fermi_P1.COut.Fermi;
+
+      // Trasferimento status alla Stazione P2 da COut a Cin dello Sfasatore P1
+      A0301_Fermi_P2.CIn.P1.Pareggiatore := A0301_Fermi_P1.COut.Pareggiatore;
+
+      REGION TRASFERIMENTO CIn TRASPORTO E RIBALTATORE
+          
+          // Trasferimenti status lettura posizioni Ribaltatore al Cin delle stazioni
+          A0301_Fermi_P2.CIn.Sts_Ribalta := A0301_Ribaltatore.COut.Ribaltatore_Sts;
+          
+          // Trasferimenti status lettura posizioni Trasporto al Cin delle stazioni
+          A0301_Fermi_P2.CIn.Trasporto := A0301_Trasporto.COut.Ax;
+      END_REGION ;
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataIn  >>"
+
+
+      REGION TRASFERIMENTO DataIn DIGITAL INPUT dei LIMIT SWITCH
+          
+          // Trasferimento ingressi digitali Limit Switch Fermi P2
+          // 
+          A0301_Fermi_P2.Fermi[1].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_1.1_Ls_Rest_7;
+          A0301_Fermi_P2.Fermi[2].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_2.1_Ls_Rest_7;
+          A0301_Fermi_P2.Fermi[3].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_3.1_Ls_Rest_7;
+          A0301_Fermi_P2.Fermi[4].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_4.1_Ls_Rest_7;
+          A0301_Fermi_P2.Fermi[5].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_5.1_Ls_Rest_7;
+          A0301_Fermi_P2.Fermi[6].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_6.1_Ls_Rest_7;
+          
+          // Trasferimento ingressi digitali Limit Switch Sollevatori P2
+          A0301_Fermi_P2.Sollevatori[1].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_1.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[1].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_1.1_Ls_Work_6;
+          A0301_Fermi_P2.Sollevatori[2].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_2.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[2].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_2.1_Ls_Work_6;
+          A0301_Fermi_P2.Sollevatori[3].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_3.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[3].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_3.1_Ls_Work_6;
+          A0301_Fermi_P2.Sollevatori[4].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_4.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[4].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_4.1_Ls_Work_6;
+          A0301_Fermi_P2.Sollevatori[5].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_5.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[5].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_5.1_Ls_Work_6;
+          A0301_Fermi_P2.Sollevatori[6].DataIn.Rest_Ls[1] := A0301_CinghiaTrasporto_6.1_Ls_Rest_5;
+          A0301_Fermi_P2.Sollevatori[6].DataIn.Work_Ls[1] := A0301_CinghiaTrasporto_6.1_Ls_Work_6;
+          
+      END_REGION ;
+
+   END_REGION
+
+   REGION "DataIn - Fermi"
+   END_REGION
+
+   REGION "DataIn - Fermi [1..6]"
+      // TRASFERIMENTO STATO PULSANTI - Comando manuale diretto 
+      A0301_Fermi_P2.Fermi[6].DataIn.PB := A0301_Fermi_P2.Fermi[5].DataIn.PB := A0301_Fermi_P2.Fermi[4].DataIn.PB :=
+      A0301_Fermi_P2.Fermi[3].DataIn.PB := A0301_Fermi_P2.Fermi[2].DataIn.PB := A0301_Fermi_P2.Fermi[1].DataIn.PB;
+
+   END_REGION
+
+   REGION "DataIn - Sollevatori"
+   END_REGION
+
+   REGION "DataIn - Sollevatori [1..6]"
+      // TRASFERIMENTO STATO PULSANTI - Comando manuale diretto 
+      A0301_Fermi_P2.Sollevatori[6].DataIn.PB := A0301_Fermi_P2.Sollevatori[5].DataIn.PB := A0301_Fermi_P2.Sollevatori[4].DataIn.PB :=
+      A0301_Fermi_P2.Sollevatori[3].DataIn.PB := A0301_Fermi_P2.Sollevatori[2].DataIn.PB := A0301_Fermi_P2.Sollevatori[1].DataIn.PB;
+
+   END_REGION
+
+   REGION "<< RICHIAMO STAZIONE 2 - FERMI P2 >>"
+      #A0301_Fermi_P2(
+         en := TRUE,
+         AreaInterface := Area03.AreaInterface,
+         ZSI := F_DB.ZSI_Zone21,
+         DSI := F_DB.DSI_V_Air_A0301_A0302,
+         Config := PrjConfig_A03.A0301.Fermi_P2
+      );
+
+   END_REGION
+
+   REGION "<< TRASFERIMENTO stati DataOut  >>"
+      REGION COMANDO DELLE USCITE FERMI P2
+          
+          // Fermi blocco prodotto Stazione P2 - RIPOSO
+          // 
+          A0301_CinghiaTrasporto_1.1_V_Rest_7 := A0301_Fermi_P2.Fermi[1].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Rest_7 := A0301_Fermi_P2.Fermi[2].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Rest_7 := A0301_Fermi_P2.Fermi[3].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Rest_7 := A0301_Fermi_P2.Fermi[4].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Rest_7 := A0301_Fermi_P2.Fermi[5].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Rest_7 := A0301_Fermi_P2.Fermi[6].DataOut.RestSolenoid;
+          
+          // Fermi blocco prodotto Stazione P2 - LAVORO
+          // 
+          A0301_CinghiaTrasporto_1.1_V_Work_8 := A0301_Fermi_P2.Fermi[1].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Work_8 := A0301_Fermi_P2.Fermi[2].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Work_8 := A0301_Fermi_P2.Fermi[3].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Work_8 := A0301_Fermi_P2.Fermi[4].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Work_8 := A0301_Fermi_P2.Fermi[5].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Work_8 := A0301_Fermi_P2.Fermi[6].DataOut.WorkSolenoid;
+      END_REGION ;
+
+      REGION COMANDO DELLE USCITE SOLLEVATORE P2
+          // Sollevatore Semi guscio prodotto Stazione P2 - RIPOSO
+          // 
+          A0301_CinghiaTrasporto_1.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[1].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[2].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[3].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[4].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[5].DataOut.RestSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Rest_5 := A0301_Fermi_P2.Sollevatori[6].DataOut.RestSolenoid;
+          
+          // Sollevatore Semi guscio prodotto Stazione P2 - LAVORO
+          // 
+          A0301_CinghiaTrasporto_1.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[1].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_2.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[2].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_3.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[3].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_4.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[4].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_5.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[5].DataOut.WorkSolenoid;
+          A0301_CinghiaTrasporto_6.1_V_Work_6 := A0301_Fermi_P2.Sollevatori[6].DataOut.WorkSolenoid;
+          
+      END_REGION ;*)
+
+   END_REGION
+
+
+END_FUNCTION

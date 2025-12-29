@@ -1,0 +1,33 @@
+﻿FUNCTION "MES_Msg422_Decoder" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      payLoad : String;
+   END_VAR
+
+
+BEGIN
+	REGION INFO
+	    (*
+	        
+	    MES → PLC – Topic = 422: Interrogazione stato rotolo al taglio finale
+	    
+	    Il MES può richiedere in qualsiasi momento lo stato del materiale del rotolo che è presente al taglio dopo profilatura.
+	    
+	    Il PLC, dopo aver inviato l’ACK di ricezione, risponde con un messaggio con Topic = 423.
+	    
+	    Payload: vuoto
+	
+	    
+	    *)
+	    
+	END_REGION
+	
+	
+	
+	#MES_Msg422_Decoder := "PROD_FUN_RESULT_OK";
+	
+	
+	
+END_FUNCTION
+

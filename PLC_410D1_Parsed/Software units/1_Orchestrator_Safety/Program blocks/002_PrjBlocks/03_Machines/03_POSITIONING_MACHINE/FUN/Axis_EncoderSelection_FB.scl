@@ -1,0 +1,277 @@
+﻿// Block: Axis_EncoderSelection_FB
+// Title: Status Active Encoder
+
+FUNCTION_BLOCK "Axis_EncoderSelection_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Status Active Encoder
+   VAR_INPUT
+      OptionON : Bool;
+      Execute : Bool;
+      Rst : Bool;
+      SelectMotorEncoder : Bool;
+      Ax_Sts_PM : TAx_Pos_Sts;
+      Ax_Sts_SIEMENS : TAx_STATUSWORD;
+   END_VAR
+
+   VAR_OUTPUT
+      Ready : Bool;
+      Running : Bool;
+      Done : Bool;
+      MotorEncoderIsActive : Bool;
+      MeasWheelEncoderIsActive : Bool;
+      AlarmsPresence : Bool;
+      WarningPresence : Bool;
+      Ctrl_ForceAxPowerOff : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      TO_Ax : TO_PositioningAxis;
+      Persistent_EncoderSelection_OK : Bool;
+   END_VAR
+
+   VAR
+      Status : Int;
+      Alarm : Struct
+         TOut_AxisPowerRemoving : Bool;
+         TOut_WaitCndEncoderChange : Bool;
+         TOut_WaitDoneEncoderChange : Bool;
+         Error_MC_SetSensor : Bool;
+         ErrorId_MC_SetSensor : Word;
+         Error_NoEncoderChange : Bool;
+      END_STRUCT;
+      Warning : Struct
+         EncInUseNeedToBeChanged : Bool;
+      END_STRUCT;
+      TON_TimeOutInit : TON_TIME;
+      My_SetSensor : MC_SETSENSOR;
+   END_VAR
+
+   VAR CONSTANT
+      MOTOR_ENCODER_NUMBER : Int;
+      MWHEEL_ENCODER_NUMBER : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Status Active Encoder"
+      MotorEncoderIsActive := TO_Ax.StatusSensor.Control;
+      MeasWheelEncoderIsActive := TO_Ax.StatusSensor.Control;
+   END_REGION
+
+   REGION "Warning encoder need to be changed"
+      Warning.EncInUseNeedToBeChanged := (((SelectMotorEncoder AND NOT (MotorEncoderIsActive)) OR (NOT (SelectMotorEncoder) AND NOT (MeasWheelEncoderIsActive))) AND OptionON);
+   END_REGION
+
+   REGION "Set Encoder selection OK memory"
+      Persistent_EncoderSelection_OK := NOT (Warning.EncInUseNeedToBeChanged);
+   END_REGION
+
+   REGION "Reset alarms"
+      IF ((((Status = 0) AND NOT (Execute)) AND Rst) OR (NOT (OptionON) AND AlarmsPresence)) THEN
+         Alarm.TOut_AxisPowerRemoving := FALSE;
+      END_IF;
+      IF ((((Status = 0) AND NOT (Execute)) AND Rst) OR (NOT (OptionON) AND AlarmsPresence)) THEN
+         Alarm.TOut_WaitCndEncoderChange := FALSE;
+      END_IF;
+      IF ((((Status = 0) AND NOT (Execute)) AND Rst) OR (NOT (OptionON) AND AlarmsPresence)) THEN
+         Alarm.TOut_WaitDoneEncoderChange := FALSE;
+      END_IF;
+      IF ((((Status = 0) AND NOT (Execute)) AND Rst) OR (NOT (OptionON) AND AlarmsPresence)) THEN
+         Alarm.Error_MC_SetSensor := FALSE;
+      END_IF;
+      IF ((((Status = 0) AND NOT (Execute)) AND Rst) OR (NOT (OptionON) AND AlarmsPresence)) THEN
+         Alarm.Error_NoEncoderChange := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Alarms presence"
+      AlarmsPresence := NOT (((((NOT (Alarm.TOut_AxisPowerRemoving) AND NOT (Alarm.TOut_WaitCndEncoderChange)) AND NOT (Alarm.TOut_WaitDoneEncoderChange)) AND NOT (Alarm.Error_MC_SetSensor)) AND NOT (Alarm.Error_NoEncoderChange)));
+   END_REGION
+
+   REGION "Ready"
+      Ready := ((((OptionON AND (Status = 0)) AND NOT (AlarmsPresence)) AND Warning.EncInUseNeedToBeChanged) AND NOT (Persistent_EncoderSelection_OK));
+   END_REGION
+
+   REGION "Sequence"
+      CASE Status OF
+              
+          //=============================================================================================
+          // STATUS = 0 IDLE
+          //=============================================================================================
+          //
+          0:
+              
+              TON_TimeOutInit(IN:=FALSE,PT:=T#1s);
+              
+              
+              Ctrl_ForceAxPowerOff := FALSE;
+              
+              My_SetSensor.Execute := FALSE;
+              
+              Running := FALSE;
+              Done := FALSE;
+              
+              
+              IF  Ready AND Execute THEN
+                  
+                  Running := TRUE;
+                  Ready := FALSE;
+                  
+                  
+                  Status += 1;
+                  
+              END_IF;
+              
+              
+              
+              
+          //=============================================================================================
+          //  STATUS 1 - STOP AXIS REMOVING POWER
+          //=============================================================================================
+          //
+          1:
+              
+              TON_TimeOutInit(IN:=TRUE,PT:=T#10s);
+              
+              Ctrl_ForceAxPowerOff := TRUE;
+              
+              
+              IF  TON_TimeOutInit.Q THEN
+                  
+                  Alarm.TOut_AxisPowerRemoving := TRUE;
+                  Status := 0;
+                  
+                  
+              ELSIF   NOT Ax_Sts_PM.Enabled AND Ax_Sts_PM.Standstill THEN
+                  
+                  TON_TimeOutInit(IN:=FALSE,PT:=T#10s);
+                  
+                  Status += 1;
+              END_IF;
+              
+              
+              
+              
+          //=============================================================================================
+          // STATUS 2 - START SELECTION DESIRED ENCODER
+          //=============================================================================================
+          //
+          2:
+              
+              TON_TimeOutInit(IN:=TRUE,PT:=T#1s);
+              
+              IF    TON_TimeOutInit.Q THEN
+                  
+                  Alarm.TOut_WaitCndEncoderChange := TRUE;
+                  
+                  Status := 0;
+                  
+                  
+              ELSIF   NOT My_SetSensor.Done
+                  AND
+                  NOT My_SetSensor.Busy
+                  AND
+                  NOT My_SetSensor.Error
+                  AND
+                  NOT My_SetSensor.Execute THEN
+                  
+                  My_SetSensor.Execute := TRUE;
+                  
+                  
+                  IF  SelectMotorEncoder THEN
+                      My_SetSensor.Sensor := MOTOR_ENCODER_NUMBER;
+                  ELSE
+                      My_SetSensor.Sensor := MWHEEL_ENCODER_NUMBER;
+                  END_IF;
+                  
+                  Status += 1;
+              END_IF;
+              
+
+
+          //=============================================================================================
+          // STATUS 3 - CHECK EXECUTION OF MC_SETSENSOR
+          //=============================================================================================
+          //
+          3:
+              
+              TON_TimeOutInit(IN:=TRUE,PT:=T#1s);
+              
+              IF    TON_TimeOutInit.Q THEN
+                  
+                  Alarm.TOut_WaitDoneEncoderChange := TRUE;
+                  
+                  Status := 0;
+                  
+              ELSIF      My_SetSensor.Error THEN
+                  
+                  Alarm.Error_MC_SetSensor := TRUE;
+                  Alarm.ErrorId_MC_SetSensor := My_SetSensor.ErrorId;
+                  Status := 0;
+                  
+                  
+              ELSIF My_SetSensor.Done THEN
+                  
+                  TON_TimeOutInit(IN:=FALSE,PT:=T#1s);
+                  
+                  My_SetSensor.Execute := false;
+                  Status += 1;
+                  
+                  
+              END_IF;
+              
+
+          //=============================================================================================
+          // STATUS 4 - CHECK CHANGE OF SELECTED ENCODER
+          //=============================================================================================
+          //
+          4:
+              
+              IF  Warning.EncInUseNeedToBeChanged THEN
+                  
+                  Alarm.Error_NoEncoderChange := TRUE;
+                  Status := 0;
+              ELSE
+                  Status += 1;
+              END_IF;
+              
+
+
+          //=============================================================================================
+          // STATUS 5 - DONE
+          //=============================================================================================
+          //   
+          5:
+              
+              Ctrl_ForceAxPowerOff := FALSE;
+              My_SetSensor.Execute := FALSE;
+              
+              
+              Done := TRUE;
+              
+              IF NOT Execute THEN
+                  Status := 0;
+              END_IF;
+              
+              
+          ELSE
+              Status := 0;
+              
+      END_CASE;
+
+              
+
+   END_REGION
+
+   REGION "Function MC_SetSensor (Change Active Encoder)"
+      #My_SetSensor(
+         en := OptionON,
+         Axis := TO_Ax,
+         Mode := 0
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

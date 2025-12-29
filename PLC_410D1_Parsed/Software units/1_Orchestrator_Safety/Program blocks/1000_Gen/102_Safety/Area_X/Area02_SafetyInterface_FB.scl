@@ -1,0 +1,340 @@
+﻿// Block: Area02_SafetyInterface_FB
+// Title: <<<<  C O N T R O L   S A F E T Y  D I A G N O S T I C   >>>>> 
+
+FUNCTION_BLOCK "Area02_SafetyInterface_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<<<  C O N T R O L   S A F E T Y  D I A G N O S T I C   >>>>> 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      Passivation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         WarningsPresence : Bool;
+         AlarmsPresence : Bool;
+         PathTestRollformer_DriveCtrlSafe : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : Struct
+         FDBACK_Error : Struct
+            F_Contactor_Rollformer_CambioFormato : Bool;
+            F_Contactor_FinalCut_HU_Motor : Bool;
+            F_Contactor_FinalCut_HU_Valve : Bool;
+         END_STRUCT;
+         S120_SafetyFaultActive : Struct
+            Cassetta1_OP : Bool;
+            Cassetta1_MOT : Bool;
+            Cassetta2_OP : Bool;
+            Cassetta2_MOT : Bool;
+            Cassetta3_OP : Bool;
+            Cassetta3_MOT : Bool;
+            Rollformer : Bool;
+            FAK_PusherAx : Bool;
+            FlyCarriage : Bool;
+            AccRolls1 : Bool;
+            AccRolls2 : Bool;
+            AccRolls3 : Bool;
+         END_STRUCT;
+         UnathorizedOpen : Struct
+            D10 : Bool;
+            D11 : Bool;
+            D12 : Bool;
+            D14 : Bool;
+            D15 : Bool;
+            D16 : Bool;
+            D18 : Bool;
+         END_STRUCT;
+         PathTest_Rollformer : Bool;
+      END_STRUCT;
+      Warning : Struct
+         Selectors : Struct
+            Maintenance_MB2 : Bool;
+         END_STRUCT;
+         Feedback : Struct
+            F_Valve_Area02_HU : Bool;
+         END_STRUCT;
+         DoorOpened : Struct
+            D10 : Bool;
+            D11 : Bool;
+            D12 : Bool;
+            D14 : Bool;
+            D15 : Bool;
+            D16 : Bool;
+            D18 : Bool;
+         END_STRUCT;
+         DoorOpenRequest : Struct
+            D10 : Bool;
+            D11 : Bool;
+            D12 : Bool;
+            D14 : Bool;
+            D15 : Bool;
+            D16 : Bool;
+            D18 : Bool;
+         END_STRUCT;
+         PathTest_Rollformer : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Sts : Struct
+         FdbackErrorPresence : Bool;
+         S120SftyFaultPresence : Bool;
+         DoorUnauthorizedOpen : Bool;
+         DoorOpened : Bool;
+         DoorOpenRequest : Bool;
+         DoorNotLocked : Bool;
+      END_STRUCT;
+      PathTest_Rollformer : PathTest;
+   END_VAR
+
+   VAR_TEMP
+      SteadyOn : Bool;
+      BlinkFast : Bool;
+      BlinkLow : Bool;
+      DummyLamp : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Fdback error"
+
+
+      Alarm.FDBACK_Error.F_Contactor_Rollformer_CambioFormato := Main_Safety_RTG1_DB.F_Zone11.F_Contactor_CambioFormato_Profilatrice.ERROR;
+      Alarm.FDBACK_Error.F_Contactor_FinalCut_HU_Motor := Main_Safety_RTG1_DB.F_Zone13.F_Contactor_HU_FinalCut_Motor.ERROR;
+      Alarm.FDBACK_Error.F_Contactor_FinalCut_HU_Valve := Main_Safety_RTG1_DB.F_Zone13.F_SafetyValve_FinalCut.FDO_FBK_ERROR;
+
+   END_REGION
+
+   REGION "S120 Safety Fault"
+
+      Alarm.S120_SafetyFaultActive.Cassetta1_OP := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta1_OP.SftyFault;
+      Alarm.S120_SafetyFaultActive.Cassetta1_MOT := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta1_MOT.SftyFault;
+      Alarm.S120_SafetyFaultActive.Cassetta2_OP := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta2_OP.SftyFault;
+      Alarm.S120_SafetyFaultActive.Cassetta2_MOT := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta2_MOT.SftyFault;
+      Alarm.S120_SafetyFaultActive.Cassetta3_OP := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta3_OP.SftyFault;
+      Alarm.S120_SafetyFaultActive.Cassetta3_MOT := Main_Safety_RTG1_DB.F_Zone11.F_Sinamics_Cassetta3_MOT.SftyFault;
+      Alarm.S120_SafetyFaultActive.Rollformer := Main_Safety_RTG1_DB.F_Zone20.F_Sinamics_Rollformer.SftyFault;
+      Alarm.S120_SafetyFaultActive.FAK_PusherAx := Main_Safety_RTG1_DB.F_Zone13.F_Sinamics_FAK_Pusher.SftyFault;
+      Alarm.S120_SafetyFaultActive.FlyCarriage := Main_Safety_RTG1_DB.F_Zone13.F_Sinamics_Carriage.SftyFault;
+      Alarm.S120_SafetyFaultActive.AccRolls1 := Main_Safety_RTG1_DB.F_Zone15.F_Sinamics_AccRolls1.SftyFault;
+      Alarm.S120_SafetyFaultActive.AccRolls2 := Main_Safety_RTG1_DB.F_Zone15.F_Sinamics_AccRolls2.SftyFault;
+      Alarm.S120_SafetyFaultActive.AccRolls3 := Main_Safety_RTG1_DB.F_Zone15.F_Sinamics_AccRolls3.SftyFault;
+
+
+   END_REGION
+
+   REGION "Door D10 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D10 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D10.OK)) AND NOT (F_DB.D10.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D10 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D11 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D11 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D11.OK)) AND NOT (F_DB.D11.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D11 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D12 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D12 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D12.OK)) AND NOT (F_DB.D12.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D12 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D14 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D14 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D14.OK)) AND NOT (F_DB.D14.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D14 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D05 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D15 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D15.OK)) AND NOT (F_DB.D15.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D15 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D16 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D16 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D16.OK)) AND NOT (F_DB.D16.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D16 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door D18 - Alarm unauthorized door opening"
+      IF AreaInterface.RstAlarms THEN
+         Alarm.UnathorizedOpen.D18 := FALSE;
+      ELSIF ((AreaInterface.Cycle AND NOT (F_DB.D16.OK)) AND NOT (F_DB.D18.NormalStop)) THEN
+         Alarm.UnathorizedOpen.D18 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Warning selector set-up MB2"
+      IF A01_Sel_SetUp THEN
+         Warning.Selectors.Maintenance_MB2 := FALSE;
+      ELSIF (NOT ((NOT (LB114_Button_L) AND NOT (LB114_Button_R))) OR NOT ((NOT (LB211_DeadMan_Ch1) AND NOT (LB211_DeadMan_Ch2))) OR NOT ((NOT (LB112_Button_L) AND NOT (LB112_Button_R)))) THEN
+         Warning.Selectors.Maintenance_MB2 := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Feddback valve"
+
+      Warning.Feedback.F_Valve_Area02_HU := Main_Safety_RTG1_DB.F_Zone13.F_SafetyValve_FinalCut.EV_SAFETY_FBK_WARNING;
+
+
+
+
+
+   END_REGION
+
+   REGION "Door open"
+      //Door opened
+      Warning.DoorOpened.D10 := F_DB.D10.Warning_DoorOpened;
+      Warning.DoorOpened.D11 := F_DB.D11.Warning_DoorOpened;
+      Warning.DoorOpened.D12 := F_DB.D12.Warning_DoorOpened;
+      Warning.DoorOpened.D14 := F_DB.D14.Warning_DoorOpened;
+      Warning.DoorOpened.D15 := F_DB.D15.Warning_DoorOpened;
+      Warning.DoorOpened.D16 := F_DB.D16.Warning_DoorOpened;
+      Warning.DoorOpened.D18 := F_DB.D18.Warning_DoorOpened;
+
+
+   END_REGION
+
+   REGION "Door open request"
+
+      //Door open reequest
+      Warning.DoorOpenRequest.D10 := F_DB.D10.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D11 := F_DB.D11.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D12 := F_DB.D12.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D14 := F_DB.D14.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D15 := F_DB.D15.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D16 := F_DB.D16.Warning_DoorOpenRequest;
+      Warning.DoorOpenRequest.D18 := F_DB.D18.Warning_DoorOpenRequest;
+
+
+   END_REGION
+
+   REGION "Door not closed"
+
+      //
+
+      #Warning.DoorNotLocked.D04 := "D04_LockEnable" AND NOT "D04_Cancello_Bloccato";
+      #Warning.DoorNotLocked.D05 := "D05_LockEnable" AND NOT "D05_Cancello_Bloccato";
+      #Warning.DoorNotLocked.D07 := "D07_LockEnable" AND NOT "D07_Cancello_Bloccato";
+
+
+   END_REGION
+
+   REGION "Path test - Bordatrice"
+      #PathTest_Rollformer(
+         en := TRUE,
+         Door_OK := ((NOT (F_DB.ZSI_Zone20.Door_NormalStop) AND NOT (F_DB.ZSI_Zone20.Door_SafeStop)) AND NOT (F_DB.ZSI_Zone20.Door_Opened)),
+         AreaInterface := AreaInterface,
+         DevicesInSafeState := F_DB.DSI_S120_Rollformer.DevicesInSafeState,
+         PathTest := Generic.CU_585A1.PathTest[1],
+         AlarmPresence => Alarm.PathTest_Rollformer,
+         WarningPresence => Warning.PathTest_Rollformer,
+         DriveCtrlSafe => COut.PathTestRollformer_DriveCtrlSafe
+      );
+
+   END_REGION
+
+   REGION "<<<<  S 1 2  0  SOS    >>>>>"
+      Areas_ITF.AG.SOS.RollformerEnable := Main_Safety_RTG1_DB.F_Zone20.F_Sinamics_Rollformer.EnableSOS;
+   END_REGION
+
+   REGION "Cumulative Door Unhautorized open"
+      Sts.DoorUnauthorizedOpen := NOT (((((((NOT (Alarm.UnathorizedOpen.D10) AND NOT (Alarm.UnathorizedOpen.D11)) AND NOT (Alarm.UnathorizedOpen.D12)) AND NOT (Alarm.UnathorizedOpen.D14)) AND NOT (Alarm.UnathorizedOpen.D15)) AND NOT (Alarm.UnathorizedOpen.D16)) AND NOT (Alarm.UnathorizedOpen.D18)));
+   END_REGION
+
+   REGION "Cumulative Fdback error"
+      Sts.FdbackErrorPresence := NOT (((NOT (Alarm.FDBACK_Error.F_Contactor_Rollformer_CambioFormato) AND NOT (Alarm.FDBACK_Error.F_Contactor_FinalCut_HU_Motor)) AND NOT (Alarm.FDBACK_Error.F_Contactor_FinalCut_HU_Valve)));
+   END_REGION
+
+   REGION "Cumulative S120 Safety Fault"
+      Sts.S120SftyFaultPresence := (NOT ((((((NOT (Alarm.S120_SafetyFaultActive.Cassetta1_OP) AND NOT (Alarm.S120_SafetyFaultActive.Cassetta1_MOT)) AND NOT (Alarm.S120_SafetyFaultActive.Cassetta2_OP)) AND NOT (Alarm.S120_SafetyFaultActive.Cassetta2_MOT)) AND NOT (Alarm.S120_SafetyFaultActive.Cassetta3_OP)) AND NOT (Alarm.S120_SafetyFaultActive.Cassetta3_MOT))) OR NOT ((((((NOT (Alarm.S120_SafetyFaultActive.Rollformer) AND NOT (Alarm.S120_SafetyFaultActive.FAK_PusherAx)) AND NOT (Alarm.S120_SafetyFaultActive.FlyCarriage)) AND NOT (Alarm.S120_SafetyFaultActive.AccRolls1)) AND NOT (Alarm.S120_SafetyFaultActive.AccRolls2)) AND NOT (Alarm.S120_SafetyFaultActive.AccRolls3))));
+   END_REGION
+
+   REGION "Cumulative Door Open Area 02"
+      Sts.DoorOpened := (NOT (((((NOT (Warning.DoorOpened.D10) AND NOT (Warning.DoorOpened.D11)) AND NOT (Warning.DoorOpened.D12)) AND NOT (Warning.DoorOpened.D14)) AND NOT (Warning.DoorOpened.D15))) OR NOT ((NOT (Warning.DoorOpened.D16) AND NOT (Warning.DoorOpened.D18))));
+   END_REGION
+
+   REGION "Cumulative Door Open Request Area"
+      Sts.DoorOpenRequest := (NOT (((((NOT (Warning.DoorOpenRequest.D10) AND NOT (Warning.DoorOpenRequest.D11)) AND NOT (Warning.DoorOpenRequest.D12)) AND NOT (Warning.DoorOpenRequest.D14)) AND NOT (Warning.DoorOpenRequest.D15))) OR NOT ((NOT (Warning.DoorOpenRequest.D16) AND NOT (Warning.DoorOpenRequest.D18))));
+   END_REGION
+
+   REGION "Cumulative Door not Locked"
+      Sts.DoorNotLocked := Sys.ByPass;
+   END_REGION
+
+   REGION "Lamp Safety reset MB2"
+      SteadyOn := NOT ((F_DB.A02_Estop AND F_DB.A02_EstopDelay));
+      BlinkFast := NOT ((((NOT (Passivation) AND NOT (Sts.FdbackErrorPresence)) AND NOT (Sts.S120SftyFaultPresence)) AND NOT (Sts.DoorUnauthorizedOpen)));
+      BlinkLow := ((Sts.DoorOpened AND NOT (Sts.DoorOpenRequest)) AND NOT (Sts.DoorNotLocked));
+   END_REGION
+
+   REGION "Lamp D10"
+   END_REGION
+
+   REGION "Lamp D11"
+   END_REGION
+
+   REGION "Lamp D12"
+   END_REGION
+
+   REGION "Lamp D14"
+   END_REGION
+
+   REGION "Lamp D15"
+   END_REGION
+
+   REGION "Lamp D16"
+   END_REGION
+
+   REGION "Lamp D18"
+   END_REGION
+
+   REGION "Warning presence"
+      COut.WarningsPresence := NOT ((((NOT (Warning.Selectors.Maintenance_MB2) AND NOT (Sts.DoorOpened)) AND NOT (Sts.DoorOpenRequest)) AND NOT (Sts.DoorNotLocked)));
+   END_REGION
+
+   REGION "Alarms  presence"
+      COut.AlarmsPresence := NOT (((((F_DB.A02_Estop AND NOT (Passivation)) AND NOT (Sts.FdbackErrorPresence)) AND NOT (Sts.S120SftyFaultPresence)) AND NOT (Sts.DoorUnauthorizedOpen)));
+   END_REGION
+
+   REGION "Area ITF"
+      Areas_ITF.A02.Doors_Closed :=
+      NOT F_DB.ZSI_Zone11.Door_Opened;
+
+   END_REGION
+
+   REGION "Collect machine to zone interface"
+
+      MachineInterface.AutReady := AreaInterface.Aut AND NOT COut.AlarmsPresence;
+      MachineInterface.Aborting := COut.AlarmsPresence;
+      MachineInterface.MotionsStandStill := TRUE;
+      MachineInterface.AckStopInPhase := AreaInterface.StopInPhase;
+      MachineInterface.AckStopProgrammed := AreaInterface.StopProgrammed;
+      MachineInterface.AlarmsPresence := COut.AlarmsPresence;
+      MachineInterface.WarningPresence := COut.WarningsPresence;
+
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

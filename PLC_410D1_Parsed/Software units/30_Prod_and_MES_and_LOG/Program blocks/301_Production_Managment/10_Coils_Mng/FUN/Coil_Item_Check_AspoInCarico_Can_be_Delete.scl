@@ -1,0 +1,51 @@
+﻿FUNCTION "Coil_Item_Check_AspoInCarico_Can_be_Delete" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Production : "Prod_Coil_Area";
+      Item_Delete : "Coil_Item";
+   END_VAR
+
+   VAR_TEMP 
+      Item : "Coil_Item";
+   END_VAR
+
+
+BEGIN
+	
+	REGION INIT
+	    
+	    #Coil_Item_Check_AspoInCarico_Can_be_Delete := "PROD_FUN_RESULT_OK";
+	    
+	END_REGION
+	
+	
+	REGION Check
+	    
+	    
+	    IF #Production.Decoiler_InLine <= 0 THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Delete := "ERR_COIL_DATA_CAN_NOT_DELETE_DECOILER_NOT_IN_LOAD_POSITION";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    IF #Item_Delete.MES_CN <> "Production".Coil_Data.ASPO_IN_CARICO.MES_CN THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Delete := "ERR_COIL_DATA_CAN_NOT_DELETE_DATA_NOT_MATCH";
+	        RETURN;
+	    END_IF;
+	    
+	    IF #Item_Delete.MES_HN <> "Production".Coil_Data.ASPO_IN_CARICO.MES_HN THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Delete := "ERR_COIL_DATA_CAN_NOT_DELETE_DATA_NOT_MATCH";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+END_FUNCTION
+

@@ -1,0 +1,165 @@
+﻿FUNCTION_BLOCK "Analogic_SensorManagement"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      AnalogSensor : Int := 0;   // Valore RAW del' Ingresso analogico
+      Preset_Conditions : Bool := FALSE;   // Condizioni per eseguire preset
+      Standstill_Tolerance : LReal := 0.2;   // Soglia di stabilità
+      Standstill_Delay : Time := T#10MS;   // Ritardo per stato standstill
+      Filter_Tau : Time := T#10S;   // Cosatnte di tempo per filtro segnale
+      Check_AI_Value : Bool := TRUE;   // Disabilita controllo valore ingresso analogico
+   END_VAR
+
+   VAR_OUTPUT 
+      ScaleValue : LReal;   // Valore normalizzato / filtrato e allineato al punto di misura
+      Standstill : Bool;   // Valore del sensore stabile
+   END_VAR
+
+   VAR_IN_OUT 
+      Par : "Analogic_SensorManagement_Par";
+      Data : "Analogic_SensorManagement_Data";
+      HMI : "HMI_Preset";
+      Warning : "Analogic_SensorManagement_Warning";
+   END_VAR
+
+   VAR 
+      retval { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Word;
+      Analog_Norm_UnFiltered { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real;
+      Analog_Norm_Filtered { ExternalAccessible := 'False'; ExternalVisible := 'False'; ExternalWritable := 'False'} : Real;
+      Analog_Norm_Filtered_LREAL : LReal;
+      Filter { S7_SetPoint := 'False'} : "Filter_1°Order";
+      Monitoring : Struct
+         TonStandstill {InstructionName := 'TON_TIME'; LibVersion := '1.0'; S7_SetPoint := 'False'} : TON_TIME;   // Tempo in cicli della CPU per monitorare la stabilità
+         Delta : LReal;   // Differenza tra i valori
+         OldValue : LReal;   // Valore precedente del sensore per il confronto
+      END_STRUCT;
+      ButtonTrigger {InstructionName := 'R_TRIG'; LibVersion := '1.0'; S7_SetPoint := 'False'} : R_TRIG;
+   END_VAR
+
+
+BEGIN
+	REGION #Warning generali
+	    
+	    // Warning sensor disabled
+	    // 
+	    #Warning.SensorDisabled := NOT #Par.Enable;
+	    
+	    
+	    // Warning analogic sensor need to be preset
+	    // 
+	    #Warning.PresetNeed := #Par.Enable AND NOT #Data.OffsetValid;
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	REGION Normalizazione ingresso analogico
+	    
+	    // Analog sensor conversion without Offset
+	    // 
+	    #retval := SCALE(IN := #AnalogSensor, HI_LIM := #Par.RangeHigh, LO_LIM := #Par.RangeLow, BIPOLAR := FALSE, OUT => #Analog_Norm_UnFiltered);
+	    
+	    // Warning errore segnale analogico
+	    // 
+	    #Warning.SignalError := #Par.Enable AND #retval <> 0 AND #Check_AI_Value;
+	    
+	    // Forza Valore safe
+	    // 
+	    IF #Warning.SignalError THEN
+	        #Analog_Norm_UnFiltered := 0.0;
+	    END_IF;
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	REGION Normalizazione ingresso analogico con filtro
+	    
+	    
+	    #Filter(Sample := #Analog_Norm_UnFiltered,
+	            Tau := #Filter_Tau,
+	            Q => #Analog_Norm_Filtered);
+	    
+	    
+	    #Analog_Norm_Filtered_LREAL := REAL_TO_LREAL(#Analog_Norm_Filtered);
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	REGION Preset valore
+	    
+	    // TODO: Se dovesse essere necessario si potrebbe limitare valore di inserimento su HMI
+	    
+	    #ButtonTrigger(CLK := #HMI.Button);
+	    
+	    IF #ButtonTrigger.Q AND #Preset_Conditions THEN
+	        #Data.OffsetValue := #HMI.Value - #Analog_Norm_Filtered_LREAL;
+	        #Data.OffsetValid := TRUE;
+	    END_IF;
+	    
+	    #HMI.Feedback := #Data.OffsetValue + #Analog_Norm_Filtered_LREAL;
+	    
+	END_REGION
+	
+	
+	REGION Actual value
+	    
+	    #ScaleValue := 0.0;
+	    
+	    IF #Par.Enable AND #Data.OffsetValid THEN
+	        
+	        #ScaleValue := #Analog_Norm_Filtered_LREAL + #Data.OffsetValue;
+	        
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION Controllo di stabilità del sensore
+	    
+	    
+	    // Calcolo della differenza tra il valore corrente e quello precedente
+	    // 
+	    #Monitoring.Delta := ABS(IN := #ScaleValue - #Monitoring.OldValue);
+	    
+	    // Controllo di stabilità
+	    // 
+	    IF #Monitoring.Delta < #Standstill_Tolerance THEN
+	        #Monitoring.TonStandstill(IN := TRUE,
+	                                  PT := #Standstill_Delay,
+	                                  Q => #Standstill);
+	        
+	        
+	    ELSE  // Delta >= SogliaStandstill
+	        #Monitoring.TonStandstill(IN := FALSE,
+	                                  PT := #Standstill_Delay);
+	        #Standstill := FALSE;
+	        
+	        
+	    END_IF;
+	    
+	    // Aggiorna valore sensore
+	    // 
+	    #Monitoring.OldValue := #ScaleValue;
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

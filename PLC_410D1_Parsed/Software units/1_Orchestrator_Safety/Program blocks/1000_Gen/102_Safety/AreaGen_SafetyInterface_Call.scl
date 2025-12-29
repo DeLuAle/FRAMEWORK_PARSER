@@ -1,0 +1,24 @@
+﻿// Block: AreaGen_SafetyInterface_Call
+// Title: Call
+
+FUNCTION "AreaGen_SafetyInterface_Call" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Call
+
+BEGIN
+   REGION "Call"
+      // AreaGen_SafetyInterface
+
+      #AreaGen_Safetyinterface(
+         en := TRUE,
+         AreaInterface1 := Areas_ITF.A01.AreaInterface,
+         AreaInterface2 := Areas_ITF.A02.AreaInterface,
+         AreaInterface3 := Areas_ITF.A03.AreaInterface,
+         AreaInterface4 := Areas_ITF.A04.AreaInterface
+      );
+
+   END_REGION
+
+
+END_FUNCTION

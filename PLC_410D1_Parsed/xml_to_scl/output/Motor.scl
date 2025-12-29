@@ -1,0 +1,48 @@
+﻿// Block: Motor
+// Title: Info
+
+FUNCTION_BLOCK "Motor"
+VERSION : 0.1
+// Info
+   VAR_INPUT
+      MotorCtrl : MotorCtrl;
+      ThermalProtection : Bool;
+      FdbkRunning : Bool;
+      FeedbackTimeout : Time;
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      MotorSts : MotorSts;
+      Contactor : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Alarm : MotorAlr;
+   END_VAR
+
+   VAR
+      DelayContactorFeedbackON : IEC_TIMER;
+      Ctrl_RunContactor : Bool;
+   END_VAR
+
+   VAR_TEMP
+      DelayOnStart : Bool;
+      DelayOffStart : Bool;
+      AlarmPresence : Bool;
+      RunPermitted : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION Logic
+      // FB calls extracted from LAD logic
+
+      #DelayContactorFeedbackON(
+         IN := (((Ctrl_RunContactor AND NOT FdbkRunning) OR (NOT Ctrl_RunContactor AND FdbkRunning)) AND NOT Simulation),
+         PT := FeedbackTimeout
+      );
+
+   END_REGION
+
+END_FUNCTION_BLOCK

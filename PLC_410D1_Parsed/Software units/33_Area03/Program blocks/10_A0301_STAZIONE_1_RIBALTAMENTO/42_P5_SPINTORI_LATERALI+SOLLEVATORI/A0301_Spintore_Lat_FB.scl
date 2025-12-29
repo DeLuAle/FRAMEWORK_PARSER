@@ -1,0 +1,888 @@
+﻿// Block: A0301_Spintore_Lat_FB
+// Title: Reset allarmi 
+
+FUNCTION_BLOCK "A0301_Spintore_Lat_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Reset allarmi 
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : udt_DeviceSafetyInterface;
+      DataIn : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+         Orz_1_AnalSens : Int;
+         Orz_2_AnalSens : Int;
+      END_STRUCT;
+      CIn : Struct
+         Manager_SpinLat_1 : ValveMachine_Manager;
+         Manager_SpinLat_2 : ValveMachine_Manager;
+         Manager_Sollevatori : ValveMachine_Manager;
+         SemiAut_Pb : Bool;
+         P4 : Struct
+            Fermi : ValveMachine_COut;
+         END_STRUCT;
+         P5 : Struct
+            SpintoreLong : Struct
+               Ax_Sts : Struct
+                  PosAttesa_Reached : Bool;
+                  PosFineSpinta_Reached : Bool;
+               END_STRUCT;
+               Spintore : ValveMachine_COut;
+               Ax : Positioning_EPOS_Machine_COut;
+               Vrt : ValveMachine_COut;
+               Orz : ValveMachine_COut;
+            END_STRUCT;
+         END_STRUCT;
+         Trasporto : SpeedMachine_COut;
+      END_STRUCT;
+      Config : Struct
+         Vrt_1 : ValveMachine_Config;
+         Orz_1 : ValveMachine_Config;
+         Vrt_2 : ValveMachine_Config;
+         Orz_2 : ValveMachine_Config;
+         Sollevatori : Array[1..7] of ValveMachine_Config;
+         QuotaIngombro_SpinLat2 : Real;
+         QuotaIngombro_SpinLat1 : Real;
+         DelayMissingCondition : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      COut : Struct
+         Spin_Lat1 : Struct
+            Standstill : Bool;
+            Rest_CheckNext : Bool;
+            Work_CheckNext : Bool;
+            Rest : Bool;
+            Work : Bool;
+         END_STRUCT;
+         Spin_Lat2 : Struct
+            Standstill : Bool;
+            Rest_CheckNext : Bool;
+            Work_CheckNext : Bool;
+            Rest : Bool;
+            Work : Bool;
+         END_STRUCT;
+         Vrt_1 : ValveMachine_COut;
+         Orz_1 : ValveMachine_COut;
+         Vrt_2 : ValveMachine_COut;
+         Orz_2 : ValveMachine_COut;
+         Sollevatori : ValveMachine_COut;
+      END_STRUCT;
+   END_VAR
+
+   VAR_IN_OUT
+      Spin_Lat_1 : Struct
+         Par : Analogic_SensorManagement_Par;
+         Data : Struct
+            Sens : Analogic_SensorManagement_Data;
+            HMI : HMI_Preset;
+         END_STRUCT;
+         Par_Mach : A0301_Mach_Sens_Par;
+      END_STRUCT;
+      Spin_Lat_2 : Struct
+         Par : Analogic_SensorManagement_Par;
+         Data : Struct
+            Sens : Analogic_SensorManagement_Data;
+            HMI : HMI_Preset;
+         END_STRUCT;
+         Par_Mach : A0301_Mach_Sens_Par;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         Vrt_1 : ValveAlr;
+         Orz_1 : ValveAlr;
+         Orz_1_AnalSens_Issue : Bool;
+         Vrt_2 : ValveAlr;
+         Orz_2 : ValveAlr;
+         Orz_2_AnalSens_Issue : Bool;
+         Sollevatori : Array[1..7] of ValveAlr;
+         Finestre : Struct
+            SpinLat2_SpinLong_Stop : Bool;
+            SpinLat1_SpinLong_Stop : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Warning : Struct
+         Vrt_1 : ValveMachine_Wng;
+         Orz_1 : ValveMachine_Wng;
+         Orz_1_AnalSens : Analogic_SensorManagement_Warning;
+         Vrt_2 : ValveMachine_Wng;
+         Orz_2 : ValveMachine_Wng;
+         Orz_2_AnalSens : Analogic_SensorManagement_Warning;
+         Sollevatori : Array[1..7] of ValveMachine_Wng;
+         Finestre : Struct
+            SpinLat2_SpinLong_Stop : Bool;
+            SpinLat1_SpinLong_Stop : Bool;
+         END_STRUCT;
+         OP_REST_MissingCnd : Bool;
+         OP_WORK_MissingCnd : Bool;
+      END_STRUCT;
+      HMI : Struct
+         Selection : Array[1..6] of Bool;
+         Sollevatori_Sts : "UDT_HMI-Sts_ValvePosA0301";
+         "SpinLat1&2_Sts" : "UDT_HMI-Sts_ValvePosA0301";
+         "SpinLat1&2_Vrt_Sts" : "UDT_HMI-Sts_ValvePosA0301";
+         "SpinLat1&2_Orz_Sts" : "UDT_HMI-Sts_ValvePosA0301";
+         Orz_AnalSens_PB_Preset : Bool;
+         Orz_AnalSens_Preset_Value : LReal;
+      END_STRUCT;
+      Sts : Struct
+         "SpinLat1&2_Alarm" : Bool;
+         "SpinLat1&2_Vrt_AlarmPresence" : Bool;
+         "SpinLat1&2_Orz_AlarmPresence" : Bool;
+         Sollevatori_AlarmPresence : Bool;
+         OP_CanMoveFreely : Bool;
+         OP_Rest_Cnd : Bool;
+         Op_Work_Cnd : Bool;
+         Beam : Struct
+            H_B : Real;
+            Len_Meas : Real;
+            P_U_PLen : Real;
+            P_L_PLen : Real;
+         END_STRUCT;
+         "En/Dis_SpinLat_2" : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         OP_Rest_Man : Bool;
+         OP_Work_Man : Bool;
+         OP_Rest_Aut : Bool;
+         OP_Work_Aut : Bool;
+         OP_Rest : Bool;
+         OP_Work : Bool;
+      END_STRUCT;
+      Vrt_1 : ValveMachine_FB;
+      Orz_1 : ValveMachine_FB;
+      Orz_1_AnalSens : Analogic_SensorManagement;
+      Vrt_2 : ValveMachine_FB;
+      Orz_2 : ValveMachine_FB;
+      Orz_2_AnalSens : Analogic_SensorManagement;
+      Sollevatori : Array[1..6] of ValveMachine_FB;
+      AUX : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+      TON_OP_REST_MissingCnd : TON_TIME;
+      TON_OP_WORK_MissingCnd : TON_TIME;
+      Finestre : Struct
+         Quota_SpinLat2_Rest : Real;
+         Quota_SpinLat1_Rest : Real;
+         RestCnd_Vrt_1 : Bool;
+         RestCnd_Vrt_2 : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         OP_Rest_PB : Bool;
+         OP_Work_PB : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR CONSTANT
+      Offset_SpinLat2_Rest : Real;
+      Offset_SpinLat1_Rest : Real;
+   END_VAR
+
+
+BEGIN
+   REGION "Reset allarmi"
+      IF AreaInterface.RstAlarms THEN
+          Alarm.Orz_1_AnalSens_Issue := FALSE;
+          Alarm.Orz_2_AnalSens_Issue := FALSE;
+      END_IF;
+
+      IF AreaInterface.RstAlarms AND Vrt_2.COut.Rest AND Orz_2.COut.Rest THEN
+          Alarm.Finestre.SpinLat2_SpinLong_Stop := 0;
+          Warning.Finestre.SpinLat2_SpinLong_Stop := 0;
+      END_IF;
+
+      IF AreaInterface.RstAlarms AND Vrt_1.COut.Rest AND Orz_1.COut.Rest THEN
+          Alarm.Finestre.SpinLat1_SpinLong_Stop := 0;
+          Warning.Finestre.SpinLat1_SpinLong_Stop := 0;
+      END_IF;
+
+
+   END_REGION
+
+   REGION "CONTROLLO - Finestre di ingombro & Controlli di posizione"
+
+      // Finestra ingombro SPINTORE LATERALE 2
+      Finestre.Quota_SpinLat2_Rest := Config.QuotaIngombro_SpinLat2 - Offset_SpinLat2_Rest;
+
+      // Se ho lo Spintore longitudinale in movimento ed entro dentro la finestra abbasso lo Spintore laterale 2 prima di arrivarci addosso
+      // //
+      IF Sts.Beam.Len_Meas <= 2700.0 THEN
+          Sts.En/Dis_SpinLat_2 := FALSE;
+          
+      ELSE
+          Sts.En/Dis_SpinLat_2 := TRUE;
+          Warning.Finestre.SpinLat2_SpinLong_Stop := FALSE;
+      END_IF;
+
+      //Se arrivo in quota ingombro spintore lat. 2 mando a riposo attivando il cmd finestra
+      IF  Finestre.Quota_SpinLat2_Rest <= CIn.P5.SpintoreLong.Ax.ActualPosition THEN
+          Finestre.RestCnd_Vrt_2 := TRUE;
+      ELSE
+          Finestre.RestCnd_Vrt_2 := FALSE;
+      END_IF;
+
+      // Se supero la quota di riposo Spintore Laterale 2 e non sono ancora a riposo con Spintore Laterale attivo warning
+      IF Finestre.Quota_SpinLat2_Rest < CIn.P5.SpintoreLong.Ax.ActualPosition AND NOT Vrt_2.COut.Rest THEN
+          Warning.Finestre.SpinLat2_SpinLong_Stop := TRUE;
+      END_IF;
+
+      //Se vado a riposo con spin. lat 2 resetto warning 
+      IF (Vrt_2.COut.Rest AND Orz_2.COut.Rest) THEN
+          Warning.Finestre.SpinLat2_SpinLong_Stop := FALSE;
+      END_IF;
+
+      // Finestra ingombro SPINTORE LATERALE 1
+      Finestre.Quota_SpinLat1_Rest := Config.QuotaIngombro_SpinLat1 - Offset_SpinLat1_Rest;
+
+      // Se ho lo Spintore longitudinale in movimento ed entro dentro la finestra abbasso lo Spintore laterale 1 prima di arrivarci addosso
+
+      //Se arrivo in quota ingombro spintore lat. 1 mando a riposo attivando il cmd finestra 
+      IF Finestre.Quota_SpinLat1_Rest <= CIn.P5.SpintoreLong.Ax.ActualPosition  THEN
+          Finestre.RestCnd_Vrt_1 := TRUE;
+      ELSE
+          Finestre.RestCnd_Vrt_1 := FALSE;
+      END_IF;
+
+      // Se supero la quota di riposo Spintore Laterale 1 e non sono ancora a riposo con Spintore Laterale attivo warning
+      IF Finestre.Quota_SpinLat1_Rest < CIn.P5.SpintoreLong.Ax.ActualPosition AND NOT Vrt_1.COut.Rest THEN
+          Warning.Finestre.SpinLat1_SpinLong_Stop := TRUE;
+      END_IF;
+
+      //Se vado a riposo con spin. lat 2 resetto warning 
+      IF (Vrt_1.COut.Rest AND Orz_1.COut.Rest) THEN
+          Warning.Finestre.SpinLat2_SpinLong_Stop := FALSE;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Operazione può muoversi liberamente perchè non sposta nessun BEAM"
+      Sts.OP_CanMoveFreely := ???;
+      Sts.OP_CanMoveFreely := (??? OR ???);
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (AUT)"
+      Ctrl.OP_Rest_Aut := (((((CIn.Manager_SpinLat_1.Control_ON AND CIn.Manager_SpinLat_1.Rest) AND Sts.En/Dis_SpinLat_2) AND CIn.Manager_SpinLat_2.Control_ON) AND CIn.Manager_SpinLat_2.Rest) OR ((CIn.Manager_SpinLat_1.Control_ON AND CIn.Manager_SpinLat_1.Rest) AND NOT (Sts.En/Dis_SpinLat_2)));
+      Ctrl.OP_Work_Aut := (((((CIn.Manager_SpinLat_1.Control_ON AND CIn.Manager_SpinLat_1.Work) AND Sts.En/Dis_SpinLat_2) AND CIn.Manager_SpinLat_2.Control_ON) AND CIn.Manager_SpinLat_2.Work) OR ((CIn.Manager_SpinLat_1.Control_ON AND CIn.Manager_SpinLat_1.Work) AND NOT (Sts.En/Dis_SpinLat_2)));
+   END_REGION
+
+   REGION "Comando Operazione Lavoro / Riposo (MAN)"
+      PE.OP_Rest_PB := PosEdge(DataIn.OP_Rest_PB);
+      PE.OP_Work_PB := PosEdge(DataIn.OP_Work_PB);
+      Ctrl.OP_Rest_Man := (((((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND PE.OP_Rest_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Ctrl.OP_Rest_Man)) AND DataIn.OP_Rest_PB) AND NOT (DataIn.OP_Work_PB));
+      Ctrl.OP_Work_Man := (((((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND PE.OP_Work_PB) OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Ctrl.OP_Work_Man)) AND DataIn.OP_Work_PB) AND NOT (DataIn.OP_Rest_PB));
+   END_REGION
+
+   REGION "Cumulativo Operazione Lavoro / Riposo (ALL)"
+      Ctrl.OP_Rest := NOT ((NOT (Ctrl.OP_Rest_Man) AND NOT (Ctrl.OP_Rest_Aut)));
+      Ctrl.OP_Work := NOT ((NOT (Ctrl.OP_Work_Man) AND NOT (Ctrl.OP_Work_Aut)));
+   END_REGION
+
+   REGION "Condizioni movimento Operazione a Lavoro / Riposo"
+      Sts.OP_Rest_Cnd := (((CIn.Manager_SpinLat_1.Rest AND Sts.En/Dis_SpinLat_2) AND CIn.Manager_SpinLat_2.Rest) OR (CIn.Manager_SpinLat_1.Rest AND NOT (Sts.En/Dis_SpinLat_2)) OR (((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sts.Op_Work_Cnd := (((CIn.Manager_SpinLat_1.Work AND Sts.En/Dis_SpinLat_2) AND CIn.Manager_SpinLat_2.Work) OR (CIn.Manager_SpinLat_1.Work AND NOT (Sts.En/Dis_SpinLat_2)) OR (((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Verticale + Orizzontale 1 -  Cin Manager (Esecuzione sequenza comandi)"
+      Vrt_1.Cin.Manager.Control_ON := Orz_1.Cin.Manager.Control_ON := CIn.Manager_SpinLat_1.Control_ON;
+
+      Vrt_1.Cin.Manager.Rest := FALSE;
+      Vrt_1.Cin.Manager.Work := FALSE;
+      Orz_1.Cin.Manager.Rest := FALSE;
+      Orz_1.Cin.Manager.Work := FALSE;
+
+
+          IF (Ctrl.OP_Rest AND Sts.OP_Rest_Cnd) OR Finestre.RestCnd_Vrt_1 THEN
+              
+              Orz_1.Cin.Manager.Rest := Vrt_1.Cin.Manager.Rest := TRUE;
+              
+          ELSIF (Ctrl.OP_Work AND Sts.Op_Work_Cnd) AND NOT Finestre.RestCnd_Vrt_1 THEN
+              
+              Orz_1.Cin.Manager.Work := Vrt_1.Cin.Manager.Work := TRUE;
+
+          END_IF;
+          
+
+   END_REGION
+
+   REGION "Verticale + Orizzontale1 - CIn Abilitazioni Stop Manager"
+      Vrt_1.Cin.Manager.EnableStopDoorOpeningReq := Orz_1.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager_SpinLat_1.EnableStopDoorOpeningReq;
+
+      Vrt_1.Cin.Manager.EnableStopInPhase := Orz_1.Cin.Manager.EnableStopInPhase := CIn.Manager_SpinLat_1.EnableStopInPhase;
+
+      Vrt_1.Cin.Manager.EnableStopProgrammed := Orz_1.Cin.Manager.EnableStopProgrammed := CIn.Manager_SpinLat_1.EnableStopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "Verticale + Orizzontale 2 -  Cin Manager (Esecuzione sequenza comandi)"
+      // Controllo della misura in lunghezza del Beam per sapere se abilitare il secondo spintore
+      //
+      Vrt_2.Cin.Manager.Control_ON := Orz_2.Cin.Manager.Control_ON := CIn.Manager_SpinLat_2.Control_ON;
+      //
+      Vrt_2.Cin.Manager.Rest := FALSE;
+      Vrt_2.Cin.Manager.Work := FALSE;
+      Orz_2.Cin.Manager.Rest := FALSE;
+      Orz_2.Cin.Manager.Work := FALSE;
+          
+
+          
+      IF (Ctrl.OP_Rest AND Sts.OP_Rest_Cnd )OR Finestre.RestCnd_Vrt_2 OR Warning.Finestre.SpinLat2_SpinLong_Stop THEN
+              
+              Orz_2.Cin.Manager.Rest := Vrt_2.Cin.Manager.Rest := TRUE;
+              
+          ELSIF (Ctrl.OP_Work AND Sts.Op_Work_Cnd) AND Sts.En/Dis_SpinLat_2 AND NOT Finestre.RestCnd_Vrt_2  THEN
+              
+              Orz_2.Cin.Manager.Work := Vrt_2.Cin.Manager.Work := TRUE;
+              
+          END_IF;
+
+   END_REGION
+
+   REGION "Verticale + Orizzontale 2 - CIn Abilitazioni Stop Manager"
+      Vrt_2.Cin.Manager.EnableStopDoorOpeningReq := Orz_2.Cin.Manager.EnableStopDoorOpeningReq := CIn.Manager_SpinLat_2.EnableStopDoorOpeningReq;
+
+      Vrt_2.Cin.Manager.EnableStopInPhase := Orz_2.Cin.Manager.EnableStopInPhase := CIn.Manager_SpinLat_2.EnableStopInPhase;
+
+      Vrt_2.Cin.Manager.EnableStopProgrammed := Orz_2.Cin.Manager.EnableStopProgrammed := CIn.Manager_SpinLat_2.EnableStopProgrammed;
+
+
+
+   END_REGION
+
+   REGION "S[1...7] Sollevatori - Cin Manager Comando arresto / lavoro"
+      //
+      Sollevatori[1].Cin.Manager.Rest := FALSE;
+      Sollevatori[2].Cin.Manager.Rest := FALSE;
+      Sollevatori[3].Cin.Manager.Rest := FALSE;
+      Sollevatori[4].Cin.Manager.Rest := FALSE;
+      Sollevatori[5].Cin.Manager.Rest := FALSE;
+      Sollevatori[6].Cin.Manager.Rest := FALSE;
+      //************************************
+      Sollevatori[1].Cin.Manager.Work := FALSE;
+      Sollevatori[2].Cin.Manager.Work := FALSE;
+      Sollevatori[3].Cin.Manager.Work := FALSE;
+      Sollevatori[4].Cin.Manager.Work := FALSE;
+      Sollevatori[5].Cin.Manager.Work := FALSE;
+      Sollevatori[6].Cin.Manager.Work := FALSE;
+      //
+      // CIn Manager  Control ON se ho un richiesta di comando attiva
+      IF AreaInterface.Aut OR CIn.SemiAut_Pb THEN
+          Sollevatori[1].Cin.Manager.Control_ON := TRUE;
+          Sollevatori[2].Cin.Manager.Control_ON := TRUE;
+          Sollevatori[3].Cin.Manager.Control_ON := TRUE;
+          Sollevatori[4].Cin.Manager.Control_ON := TRUE;
+          Sollevatori[5].Cin.Manager.Control_ON := TRUE;
+          Sollevatori[6].Cin.Manager.Control_ON := TRUE;
+      ELSE
+          Sollevatori[1].Cin.Manager.Control_ON := FALSE;
+          Sollevatori[2].Cin.Manager.Control_ON := FALSE;
+          Sollevatori[3].Cin.Manager.Control_ON := FALSE;
+          Sollevatori[4].Cin.Manager.Control_ON := FALSE;
+          Sollevatori[5].Cin.Manager.Control_ON := FALSE;
+          Sollevatori[6].Cin.Manager.Control_ON := FALSE;
+      END_IF;
+
+      // CIn Manager Rest se ho un richiesta di comando arresto attiva
+      IF CIn.Manager_Sollevatori.Rest THEN
+          
+          Sollevatori[1].Cin.Manager.Rest := TRUE;
+          Sollevatori[2].Cin.Manager.Rest := TRUE;
+          Sollevatori[3].Cin.Manager.Rest := TRUE;
+          Sollevatori[4].Cin.Manager.Rest := TRUE;
+          Sollevatori[5].Cin.Manager.Rest := TRUE;
+          Sollevatori[6].Cin.Manager.Rest := TRUE;
+          
+          // CIn Manager Work se ho un richiesta di comando lavoro attiva   
+          ELSIF CIn.Manager_Sollevatori.Work THEN
+          
+          Sollevatori[1].Cin.Manager.Work := TRUE;
+          Sollevatori[2].Cin.Manager.Work := TRUE;
+          Sollevatori[3].Cin.Manager.Work := TRUE;
+          Sollevatori[4].Cin.Manager.Work := TRUE;
+          Sollevatori[5].Cin.Manager.Work := TRUE;
+          Sollevatori[6].Cin.Manager.Work := TRUE;
+
+      END_IF;
+
+   END_REGION
+
+   REGION "S[1...7] Sollevatori - CIn Abilitazioni Stop Manager"
+      //
+      // CIn Manager Stop per richiesta apertura safety
+      IF CIn.Manager_SpinLat_1.EnableStopDoorOpeningReq THEN
+          Sollevatori[1].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Sollevatori[2].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Sollevatori[3].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Sollevatori[4].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Sollevatori[5].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+          Sollevatori[6].Cin.Manager.EnableStopDoorOpeningReq := TRUE;
+
+      ELSE
+          Sollevatori[1].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Sollevatori[2].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Sollevatori[3].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Sollevatori[4].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Sollevatori[5].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+          Sollevatori[6].Cin.Manager.EnableStopDoorOpeningReq := FALSE;
+
+      END_IF;
+      // CIn Manager Stop in fase delle macchine precedenti
+      IF CIn.Manager_SpinLat_1.EnableStopInPhase THEN
+          Sollevatori[1].Cin.Manager.EnableStopInPhase := TRUE;
+          Sollevatori[2].Cin.Manager.EnableStopInPhase := TRUE;
+          Sollevatori[3].Cin.Manager.EnableStopInPhase := TRUE;
+          Sollevatori[4].Cin.Manager.EnableStopInPhase := TRUE;
+          Sollevatori[5].Cin.Manager.EnableStopInPhase := TRUE;
+          Sollevatori[6].Cin.Manager.EnableStopInPhase := TRUE;
+
+      ELSE
+          Sollevatori[1].Cin.Manager.EnableStopInPhase := FALSE;
+          Sollevatori[2].Cin.Manager.EnableStopInPhase := FALSE;
+          Sollevatori[3].Cin.Manager.EnableStopInPhase := FALSE;
+          Sollevatori[4].Cin.Manager.EnableStopInPhase := FALSE;
+          Sollevatori[5].Cin.Manager.EnableStopInPhase := FALSE;
+          Sollevatori[6].Cin.Manager.EnableStopInPhase := FALSE;
+          
+      END_IF;
+
+      // CIn Manager Stop programmato configurabile a piacere
+      IF CIn.Manager_SpinLat_1.EnableStopProgrammed THEN
+          Sollevatori[1].Cin.Manager.EnableStopProgrammed := TRUE;
+          Sollevatori[2].Cin.Manager.EnableStopProgrammed := TRUE;
+          Sollevatori[3].Cin.Manager.EnableStopProgrammed := TRUE;
+          Sollevatori[4].Cin.Manager.EnableStopProgrammed := TRUE;
+          Sollevatori[5].Cin.Manager.EnableStopProgrammed := TRUE;
+          Sollevatori[6].Cin.Manager.EnableStopProgrammed := TRUE;
+
+      ELSE
+          Sollevatori[1].Cin.Manager.EnableStopProgrammed := FALSE;
+          Sollevatori[2].Cin.Manager.EnableStopProgrammed := FALSE;
+          Sollevatori[3].Cin.Manager.EnableStopProgrammed := FALSE;
+          Sollevatori[4].Cin.Manager.EnableStopProgrammed := FALSE;
+          Sollevatori[5].Cin.Manager.EnableStopProgrammed := FALSE;
+          Sollevatori[6].Cin.Manager.EnableStopProgrammed := FALSE;
+
+      END_IF;
+
+   END_REGION
+
+   REGION "Warning manacanza condizioni esecuzione Operazione RIPOSO / LAVORO"
+      #TON_OP_REST_MissingCnd(
+         IN := Ctrl.OP_Rest,
+         PT := Config.DelayMissingCondition
+      );
+
+      #TON_OP_WORK_MissingCnd(
+         IN := Ctrl.OP_Work,
+         PT := Config.DelayMissingCondition
+      );
+
+      IF (Sts.OP_Rest_Cnd OR Ctrl.OP_Work OR AreaInterface.RstAlarms) THEN
+         Warning.OP_REST_MissingCnd := FALSE;
+      ELSIF #TON_OP_REST_MissingCnd.Q THEN
+         Warning.OP_REST_MissingCnd := TRUE;
+      END_IF;
+      IF (Sts.Op_Work_Cnd OR Ctrl.OP_Rest OR AreaInterface.RstAlarms) THEN
+         Warning.OP_WORK_MissingCnd := FALSE;
+      ELSIF #TON_OP_WORK_MissingCnd.Q THEN
+         Warning.OP_WORK_MissingCnd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Verticale1&2 - Data In"
+      // DataIn Scritti sulla CALL dell'FB
+
+   END_REGION
+
+   REGION "Verticale_1&2 - CIn External alarm"
+      Vrt_1.Cin.ExternalAlarms := FALSE;
+      Vrt_2.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Verticale_1 - Cin Ext Enable"
+      Vrt_1.Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Vrt_1.Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Verticale_2 - Cin Ext Enable"
+      Vrt_2.Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Vrt_2.Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Verticale_1 - Valve Manager"
+      #Vrt_1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Vrt_1,
+         Alarm := Alarm.Vrt_1,
+         Warning := Warning.Vrt_1,
+         COut => COut.Vrt_1
+      );
+
+   END_REGION
+
+   REGION "Verticale_2 - Valve Manager"
+      #Vrt_2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Vrt_2,
+         Alarm := Alarm.Vrt_2,
+         Warning := Warning.Vrt_2,
+         COut => COut.Vrt_2
+      );
+
+   END_REGION
+
+   REGION "Orizzontale_1 -Scalatura sensore"
+      #Orz_1_AnalSens(
+         en := TRUE,
+         Preset_Conditions := AreaInterface.Man,
+         AnalogSensor := DataIn.Orz_1_AnalSens,
+         Standstill_Delay := T#10MS,
+         Filter_Tau := T#10MS,
+         Par := Spin_Lat_1.Par,
+         Data := Spin_Lat_1.Data.Sens,
+         HMI := Spin_Lat_1.Data.HMI,
+         Warning := Warning.Orz_1_AnalSens
+      );
+
+   END_REGION
+
+   REGION "Orizzontale_1 - Allarme problemi sul sensore analogico"
+      IF ((NOT ((NOT (Warning.Orz_1_AnalSens.PresetNeed) AND NOT (Warning.Orz_1_AnalSens.SignalError))) AND CIn.Manager_SpinLat_1.Control_ON) OR (NOT ((NOT (Warning.Orz_1_AnalSens.PresetNeed) AND NOT (Warning.Orz_1_AnalSens.SignalError))) AND AreaInterface.Aut) OR ((NOT ((NOT (Warning.Orz_1_AnalSens.PresetNeed) AND NOT (Warning.Orz_1_AnalSens.SignalError))) AND NOT (Sts.OP_CanMoveFreely)) AND Orz_1.COut.Rest_CheckNext) OR ((NOT ((NOT (Warning.Orz_1_AnalSens.PresetNeed) AND NOT (Warning.Orz_1_AnalSens.SignalError))) AND NOT (Sts.OP_CanMoveFreely)) AND Orz_1.COut.Work_CheckNext)) THEN
+         Alarm.Orz_1_AnalSens_Issue := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Orizzontale_1 - Datain / Config"
+      // DataIn Scritti sulla CALL dell'FB
+
+      Orz_1.Config := Config.Orz_1;
+
+      IF Spin_Lat_1.Par.Enable AND Sts.Beam.H_B > 0.0 THEN
+          
+          Orz_1.DataIn.Work_Ls[1] := Vrt_1.DataIn.Work_Ls[1] :=  (Orz_1_AnalSens.ScaleValue - Sts.Beam.H_B) <= Spin_Lat_1.Par_Mach.Tol_Work;
+          Orz_1.Config.V.WorkLimSwitchExist := TRUE;
+          Orz_1.Config.V.WorkTime := T#0.01s;
+          
+      ELSIF Ctrl.OP_Rest THEN
+          Orz_1.DataIn.Work_Ls[1] := FALSE;
+          Vrt_1.DataIn.Work_Ls[1] := FALSE;
+          
+          // ********************************************************************************************************************************************
+      ELSE
+          // Overide della configurazione di default della valvola
+          
+          Orz_1.Config.V.WorkLimSwitchExist := FALSE;
+          Orz_1.Config.V.WorkTime := Spin_Lat_1.Par_Mach.WorkTime_SensDisable;
+      END_IF; 
+
+   END_REGION
+
+   REGION "Orizzontale_1 - CIn External alarm"
+      Orz_1.Cin.ExternalAlarms := NOT (((NOT (Alarm.Orz_1_AnalSens_Issue) AND NOT (Warning.Orz_1_AnalSens.PresetNeed)) AND NOT (Warning.Orz_1_AnalSens.SignalError)));
+   END_REGION
+
+   REGION "Orizzontale_1 - Cin Ext Enable"
+      Orz_1.Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Orz_1.Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Orizzontale_1 - Valve Manager"
+      #Orz_1(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Orz_1,
+         Alarm := Alarm.Orz_1,
+         Warning := Warning.Orz_1,
+         COut => COut.Orz_1
+      );
+
+   END_REGION
+
+   REGION "Orizzontale_2 -Scalatura sensore"
+      #Orz_2_AnalSens(
+         en := TRUE,
+         Preset_Conditions := AreaInterface.Man,
+         AnalogSensor := DataIn.Orz_2_AnalSens,
+         Standstill_Delay := T#10MS,
+         Filter_Tau := T#10MS,
+         Par := Spin_Lat_2.Par,
+         Data := Spin_Lat_2.Data.Sens,
+         HMI := Spin_Lat_2.Data.HMI,
+         Warning := Warning.Orz_2_AnalSens
+      );
+
+   END_REGION
+
+   REGION "Orizzontale_2 - Allarme problemi sul sensore analogico"
+      IF ((NOT ((NOT (Warning.Orz_2_AnalSens.PresetNeed) AND NOT (Warning.Orz_2_AnalSens.SignalError))) AND CIn.Manager_SpinLat_2.Control_ON) OR (NOT ((NOT (Warning.Orz_2_AnalSens.PresetNeed) AND NOT (Warning.Orz_2_AnalSens.SignalError))) AND AreaInterface.Aut) OR ((NOT ((NOT (Warning.Orz_2_AnalSens.PresetNeed) AND NOT (Warning.Orz_2_AnalSens.SignalError))) AND NOT (Sts.OP_CanMoveFreely)) AND Orz_2.COut.Rest_CheckNext) OR ((NOT ((NOT (Warning.Orz_2_AnalSens.PresetNeed) AND NOT (Warning.Orz_2_AnalSens.SignalError))) AND NOT (Sts.OP_CanMoveFreely)) AND Orz_2.COut.Work_CheckNext)) THEN
+         Alarm.Orz_2_AnalSens_Issue := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Orizzontale_2 - Datain / Config"
+      // DataIn Scritti sulla CALL dell'FB
+      Orz_2.Config := Config.Orz_2;
+      Spin_Lat_2.Par.Enable := TRUE;
+
+      // Se dal controllo di misura la lunghezza del Beam supera la Quota di abilitazione Spintore 2 abilito il controllo del sensore compensatore sul cilindro ORZ
+      IF Sts.En/Dis_SpinLat_2 THEN
+          
+      // *******************************************************************************************************************
+      IF  Spin_Lat_2.Par.Enable AND Sts.Beam.H_B > 0.0 THEN
+          Spin_Lat_2.Par_Mach.Tol_Work := Spin_Lat_1.Par_Mach.Tol_Work;
+          
+          Orz_2.DataIn.Work_Ls[1] := Vrt_2.DataIn.Work_Ls[1] :=  (Orz_2_AnalSens.ScaleValue - Sts.Beam.H_B) <= Spin_Lat_2.Par_Mach.Tol_Work;
+          Orz_2.Config.V.WorkLimSwitchExist := TRUE;
+          Orz_2.Config.V.WorkTime := T#0.01s;
+          
+      ELSIF Ctrl.OP_Rest THEN
+          Orz_2.DataIn.Work_Ls[1] := FALSE;
+          Vrt_2.DataIn.Work_Ls[1] := FALSE;
+          
+          // ***************************************************************************************************************
+      ELSE
+          // Overide della configurazione di default della valvola
+          
+          Orz_2.DataIn.Work_Ls[1] := FALSE;
+          Orz_2.Config.V.WorkLimSwitchExist := FALSE;
+          Orz_2.Config.V.WorkTime := Spin_Lat_2.Par_Mach.WorkTime_SensDisable;
+      END_IF;
+      END_IF;
+
+   END_REGION
+
+   REGION "Orizzontale_2 - CIn External alarm"
+      Orz_2.Cin.ExternalAlarms := NOT (((NOT (Alarm.Orz_2_AnalSens_Issue) AND NOT (Warning.Orz_2_AnalSens.PresetNeed)) AND NOT (Warning.Orz_2_AnalSens.SignalError)));
+   END_REGION
+
+   REGION "Orizzontale_2 - Cin Ext Enable"
+      Orz_2.Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Orz_2.Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_2.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "Orizzontale 2 - Valve Manager"
+      #Orz_2(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Orz_2,
+         Alarm := Alarm.Orz_2,
+         Warning := Warning.Orz_2,
+         COut => COut.Orz_2
+      );
+
+   END_REGION
+
+   REGION "S[1...6] Sollevatori - CIn External alarm"
+      Sollevatori[1].Cin.ExternalAlarms := FALSE;
+      Sollevatori[2].Cin.ExternalAlarms := FALSE;
+      Sollevatori[3].Cin.ExternalAlarms := FALSE;
+      Sollevatori[4].Cin.ExternalAlarms := FALSE;
+      Sollevatori[5].Cin.ExternalAlarms := FALSE;
+      Sollevatori[6].Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "S[1...6]  Sollevatori - Cin REST Ext Enable"
+      Sollevatori[1].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[2].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[3].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[4].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[5].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[6].Cin.Rest_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "S[1...7]  Sollevatori - Cin WORK Ext Enable"
+      Sollevatori[1].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[2].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[3].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[4].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[5].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+      Sollevatori[6].Cin.Work_ExtEnable := (TRUE OR ((AreaInterface.Man AND NOT (CIn.Manager_SpinLat_1.Control_ON)) AND Sts.OP_CanMoveFreely));
+   END_REGION
+
+   REGION "S[1] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[1],
+         Alarm := Alarm.Sollevatori[1],
+         Warning := Warning.Sollevatori[1]
+      );
+
+   END_REGION
+
+   REGION "S[2] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[2],
+         Alarm := Alarm.Sollevatori[2],
+         Warning := Warning.Sollevatori[2]
+      );
+
+   END_REGION
+
+   REGION "S[3] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[3],
+         Alarm := Alarm.Sollevatori[3],
+         Warning := Warning.Sollevatori[3]
+      );
+
+   END_REGION
+
+   REGION "S[4] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[4],
+         Alarm := Alarm.Sollevatori[4],
+         Warning := Warning.Sollevatori[4]
+      );
+
+   END_REGION
+
+   REGION "S[5] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[5],
+         Alarm := Alarm.Sollevatori[5],
+         Warning := Warning.Sollevatori[5]
+      );
+
+   END_REGION
+
+   REGION "S[6] Valve Manager"
+      #Sollevatori(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI,
+         Config := Config.Sollevatori[6],
+         Alarm := Alarm.Sollevatori[6],
+         Warning := Warning.Sollevatori[6]
+      );
+
+   END_REGION
+
+   REGION "S[1..6]  COut Sollevatori"
+      COut.Sollevatori.Standstill := NOT ((((((NOT (Sollevatori[1].Sts.Standstill) AND NOT (Sollevatori[2].Sts.Standstill)) AND NOT (Sollevatori[3].Sts.Standstill)) AND NOT (Sollevatori[4].Sts.Standstill)) AND NOT (Sollevatori[5].Sts.Standstill)) AND NOT (Sollevatori[6].Sts.Standstill)));
+   END_REGION
+
+   REGION "S[1..6]  COut Sollevatori"
+
+
+      // Controllo uscita COut AT_REST in base allo stato di tutti i Sollevatori
+      IF  Sollevatori[1].COut.Rest AND
+          Sollevatori[2].COut.Rest AND
+          Sollevatori[3].COut.Rest AND
+          Sollevatori[4].COut.Rest AND
+          Sollevatori[5].COut.Rest AND
+          Sollevatori[6].COut.Rest THEN
+          COut.Sollevatori.Rest := 1;
+      ELSE
+          COut.Sollevatori.Rest := 0;
+      END_IF;
+
+      // Controllo uscita COut AT_WORK in base allo stato di tutti i Sollevatori
+      IF  Sollevatori[1].COut.Work AND
+          Sollevatori[2].COut.Work AND
+          Sollevatori[3].COut.Work AND
+          Sollevatori[4].COut.Work AND
+          Sollevatori[5].COut.Work AND
+          Sollevatori[6].COut.Work THEN
+          COut.Sollevatori.Work := 1;
+      ELSE
+          COut.Sollevatori.Work := 0;
+      END_IF;
+
+   END_REGION
+
+   REGION "Stazione COut"
+      COut.Spin_Lat1.Standstill := (COut.Vrt_1.Standstill AND COut.Orz_1.Standstill);
+      COut.Spin_Lat2.Standstill := (COut.Vrt_2.Standstill AND COut.Orz_2.Standstill);
+      COut.Spin_Lat1.Rest_CheckNext := Ctrl.OP_Rest;
+      COut.Spin_Lat2.Rest_CheckNext := Ctrl.OP_Rest;
+      COut.Spin_Lat1.Work_CheckNext := Ctrl.OP_Work;
+      COut.Spin_Lat2.Work_CheckNext := Ctrl.OP_Work;
+      COut.Spin_Lat1.Rest := ((Vrt_1.COut.Rest AND Orz_1.COut.Rest) OR (Vrt_1.DataIn.Rest_Ls[1] AND Orz_1.DataIn.Rest_Ls[1]));
+      COut.Spin_Lat2.Rest := ((((Sts.En/Dis_SpinLat_2 OR NOT (Sts.En/Dis_SpinLat_2)) AND COut.Vrt_2.Rest) AND COut.Orz_2.Rest) OR (((Sts.En/Dis_SpinLat_2 OR NOT (Sts.En/Dis_SpinLat_2)) AND Vrt_2.DataIn.Rest_Ls[1]) AND Orz_2.DataIn.Rest_Ls[1]));
+      COut.Spin_Lat1.Work := ((Vrt_1.COut.Work AND Orz_1.COut.Work) OR (Vrt_1.DataIn.Work_Ls[1] AND Orz_1.DataIn.Work_Ls[1]));
+      COut.Spin_Lat2.Work := ((((Sts.En/Dis_SpinLat_2 OR NOT (Sts.En/Dis_SpinLat_2)) AND COut.Vrt_2.Work) AND COut.Orz_2.Work) OR (((Sts.En/Dis_SpinLat_2 OR NOT (Sts.En/Dis_SpinLat_2)) AND Vrt_2.DataIn.Work_Ls[1]) AND Orz_2.DataIn.Work_Ls[1]));
+   END_REGION
+
+   REGION "Spintori Laterali - Accumulativo status Alarm"
+      Sts.SpinLat1&2_Vrt_AlarmPresence := NOT ((NOT (A0301_Spintore_Lat.Vrt_1.V.ValveSts.AlarmPresence) AND NOT (A0301_Spintore_Lat.Vrt_2.V.ValveSts.AlarmPresence)));
+      Sts.SpinLat1&2_Orz_AlarmPresence := NOT ((NOT (A0301_Spintore_Lat.Orz_1.V.ValveSts.AlarmPresence) AND NOT (A0301_Spintore_Lat.Orz_2.V.ValveSts.AlarmPresence)));
+      Sts.SpinLat1&2_Alarm := NOT ((NOT (Sts.SpinLat1&2_Vrt_AlarmPresence) AND NOT (Sts.SpinLat1&2_Orz_AlarmPresence)));
+      Sts.Sollevatori_AlarmPresence := NOT ((((((NOT (Sollevatori[1].V.ValveSts.AlarmPresence) AND NOT (Sollevatori[2].V.ValveSts.AlarmPresence)) AND NOT (Sollevatori[3].V.ValveSts.AlarmPresence)) AND NOT (Sollevatori[4].V.ValveSts.AlarmPresence)) AND NOT (Sollevatori[5].V.ValveSts.AlarmPresence)) AND NOT (Sollevatori[6].V.ValveSts.AlarmPresence)));
+   END_REGION
+
+   REGION "HMI STATUS - Postazione"
+      // Area dati appoggio per HMI
+      // SPINTORE LAT. 1&2 Verticale
+      HMI.SpinLat1&2_Vrt_Sts.Standstill := COut.Vrt_1.Standstill AND COut.Vrt_2.Standstill;
+      HMI.SpinLat1&2_Vrt_Sts.Rest := COut.Vrt_1.Rest AND (COut.Vrt_2.Rest OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Vrt_Sts.Work := COut.Vrt_1.Work AND (COut.Vrt_2.Work OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Vrt_Sts.AlarmPresence := Sts.SpinLat1&2_Vrt_AlarmPresence;
+
+      // SPINTORE LAT. 1&2 Orizzontale
+      HMI.SpinLat1&2_Orz_Sts.Standstill := COut.Orz_1.Standstill AND COut.Orz_2.Standstill;
+      HMI.SpinLat1&2_Orz_Sts.Rest := COut.Orz_1.Rest AND (COut.Orz_2.Rest OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Orz_Sts.Work := COut.Orz_1.Work AND (COut.Orz_2.Work OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Orz_Sts.AlarmPresence := Sts.SpinLat1&2_Orz_AlarmPresence;
+
+      // Stazione spintori laterati
+      HMI.SpinLat1&2_Sts.Standstill := COut.Spin_Lat1.Standstill AND (COut.Spin_Lat2.Standstill OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Sts.Rest := COut.Spin_Lat1.Rest AND (COut.Spin_Lat2.Rest OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Sts.Work := COut.Spin_Lat1.Work AND(COut.Spin_Lat2.Work OR NOT Sts.En/Dis_SpinLat_2);
+      HMI.SpinLat1&2_Sts.AlarmPresence := Sts.SpinLat1&2_Alarm;
+
+      // Sollevatori
+      HMI.Sollevatori_Sts.Standstill := COut.Sollevatori.Standstill;
+      HMI.Sollevatori_Sts.Rest := COut.Sollevatori.Rest;
+      HMI.Sollevatori_Sts.Work := COut.Sollevatori.Work;
+      HMI.Sollevatori_Sts.AlarmPresence := Sts.Sollevatori_AlarmPresence;
+
+
+   END_REGION
+
+   REGION "Machine interface"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

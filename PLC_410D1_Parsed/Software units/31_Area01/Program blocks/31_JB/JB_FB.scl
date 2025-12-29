@@ -1,0 +1,916 @@
+﻿// Block: JB_FB
+// Title: <<< WELDING CYCLE >>>>
+
+FUNCTION_BLOCK "JB_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< WELDING CYCLE >>>>
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+      ZSI : udt_ZoneSafetyInterface;
+      DSI : Struct
+         Torch : udt_DeviceSafetyInterface;
+         ClampEntry : udt_DeviceSafetyInterface;
+         ClampExit : udt_DeviceSafetyInterface;
+         CutHead : udt_DeviceSafetyInterface;
+         PinchRoll_Feed : udt_DeviceSafetyInterface;
+         PinchRoll_Lift : udt_DeviceSafetyInterface;
+      END_STRUCT;
+      Drive : Struct
+         Torch : TAx_DriveInterface;
+         Picnhroll_Feed : TAx_DriveInterface;
+      END_STRUCT;
+      HWID : Struct
+         Torch_TEL1 : HW_SUBMODULE;
+         TorchEnc_IO : HW_SUBMODULE;
+         Pinchroll_Feed_TEL1 : HW_SUBMODULE;
+      END_STRUCT;
+      DataIn : Struct
+         WeldingCycle_AI_Potentiometer : Int;
+         WeldingCycle_Pb_Stop : Bool;
+         WeldingCycle_Pb_Start : Bool;
+         WeldingCycle_Pb_StartStop : Bool;
+         Welder_Pb_Man : Bool;
+         CutHead_PbCycle : Bool;
+         SAFETY_DeadMan_PB : Bool;
+         Torch : Positioning_DOL_Machine_DataIn;
+         ClampEntry : ValveMachine_DataIn;
+         ClampExit : ValveMachine_DataIn;
+         CutHead : ValveMachine_DataIn;
+         PinchRoll_Feed : SpeedMachine_DataIn;
+         PinchRoll_Lift : ValveMachine_DataIn;
+      END_STRUCT;
+      CIn : Struct
+         Manager : JB_Manager;
+         PressureRunning : Bool;
+      END_STRUCT;
+      Config : Struct
+         MeasurePasslineReference : Real;
+         MaxMaterialWidth : Real;
+         Torch : Positioning_DOL_Machine_Config;
+         ClampEntry : ValveMachine_Config;
+         ClampExit : ValveMachine_Config;
+         CutHead : ValveMachine_Config;
+         Pinchroll_Feed : SpeedMachine_Config;
+         Pinchroll_Lift : ValveMachine_Config;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+      DataOut : Struct
+         LpWeldingCycle_1 : Bool;
+         LpWeldingCycle_2 : Bool;
+         WelderON : Bool;
+         AspiratoreON : Bool;
+         Torch : Positioning_DOL_Machine_DataOut;
+         ClampEntry : ValveMachine_DataOut;
+         ClampExit : ValveMachine_DataOut;
+         CutHead : ValveMachine_DataOut;
+         Pinchroll_Feed : SpeedMachine_DataOut;
+         Pinchroll_Lift : ValveMachine_DataOut;
+      END_STRUCT;
+      COut : JB_Status;
+   END_VAR
+
+   VAR_IN_OUT
+      PersistentValues : Struct
+         Data : Struct
+            WeldingSetUp : JB_WeldingSetUp;
+            ClampEntryClosed : Bool;
+            ClampExitClosed : Bool;
+         END_STRUCT;
+         Torch : Struct
+            MeasureTorchHolder : LReal;
+            InhibitWeld_Pos : LReal;
+            InhibitWeld_Window : LReal;
+            Parking_Pos : LReal;
+            WeldingUseLocalData : Bool;
+            Cycle_HighSpeed : LReal;
+            Cycle_LowSpeed : LReal;
+         END_STRUCT;
+         TorchAx : Positioning_DOL_Machine_Par;
+         TorchAx_Pers : Positioning_DOL_Machine_Pers_Data;
+         TorchEnc : PosFbk_RTN;
+         PinchRoll_Feed : SpeedMachine_Par;
+         Aspiratore_TimeOff : Time;
+      END_STRUCT;
+   END_VAR
+
+   VAR
+      Alarm : Struct
+         TorchAx : Positioning_DOL_Machine_Alr;
+         TorchEnc : PosFbk_Encoder_Alr;
+         ClampEntry : ValveAlr;
+         ClampExit : ValveAlr;
+         CutHead : ValveAlr;
+         Pinchroll_Feed : SpeedMachine_Alr;
+         Pinchroll_Lift : ValveAlr;
+      END_STRUCT;
+      Warning : Struct
+         TorchAx : Positioning_DOL_Machine_Wng;
+         ClampEntry : ValveMachine_Wng;
+         ClampExit : ValveMachine_Wng;
+         CutHead : ValveMachine_Wng;
+         Pinchroll_Feed : SpeedMachine_Wng;
+         Pinchroll_Lift : ValveMachine_Wng;
+      END_STRUCT;
+      HMI : Struct
+         Torch_B_Preset : Bool;
+         Torch_PresetValue : LReal;
+         Torch_FdbkPreset : LReal;
+      END_STRUCT;
+      Sts : Struct
+         Torch : Struct
+            InParkPosition : Bool;
+            InOutEdgeOfWeldStart : Bool;
+            InWeldStart : Bool;
+            inWeldStop : Bool;
+            InPotentimeterON : Bool;
+            InWeldON : Bool;
+            InWeldInhibit : Bool;
+         END_STRUCT;
+         WeldCycle : Struct
+            Phase : Int;
+            Cnd : Bool;
+            ON1 : Bool;
+            ON2 : Bool;
+            PercentagePotentiometer : Real;
+            PosOutStripEdgeSideWeldStart : LReal;
+            PosOutStripEdgeSideWeldStop : LReal;
+            PosStripEdgeSideWeldStart : LReal;
+            PosStripEdgeSideWeldStop : LReal;
+            PosWeldStart : LReal;
+            PosWeldStop : LReal;
+            PosMinusInhibit : LReal;
+            PosPlusInhibit : LReal;
+            TON_Pause : TON_TIME;
+         END_STRUCT;
+         CutCycle : Struct
+            ON : Bool;
+            OK_Rest : Bool;
+            OK_Work : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Ctrl : Struct
+         WeldCycle : Struct
+            Clamps_Close : Bool;
+            Clamps_Open : Bool;
+            Welder_ON : Bool;
+            Torch_MoveToPos_Park : Bool;
+            Torch_MoveToPos_Start : Bool;
+            Torch_MoveToPos_StartBack : Bool;
+            Torch_VelBwd_WeldON : Bool;
+            Torch_VelFwd_WeldON : Bool;
+         END_STRUCT;
+         Welder : Struct
+            Man_ON : Bool;
+         END_STRUCT;
+      END_STRUCT;
+      Torch : Positioning_DOL_Machine_FB;
+      TorchEnc : PosFbk_SickANM58;
+      TorchEncITF : PosFbk_ITF;
+      ClampEntry : ValveMachine_FB;
+      ClampExit : ValveMachine_FB;
+      CutHead : ValveMachine_FB;
+      PinchRoll_Feed : SpeedMachine_FB;
+      PinchRoll_Lift : ValveMachine_FB;
+      TON_LiftPbUp : TON_TIME;
+      TOF_Aspiratore : TOF_TIME;
+      AUX : Struct
+         PbStartStop : Bool;
+         PbStart2 : Bool;
+         Welder_Pb_Man : Bool;
+         UseDataPPrf : Bool;
+         Weld_PbCycle : Bool;
+         Cut_PbCycle : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      PE : Struct
+         Weld_PbStartStop : Bool;
+         Weld_PbStart1 : Bool;
+         Weld_PStop1 : Bool;
+         Weld_PbStart2 : Bool;
+         Cut_PbCycle : Bool;
+      END_STRUCT;
+      CurrentWeldingSetUp : JB_WeldingSetUp;
+      PosOK : Bool;
+      ParkPosPositiveSign : Bool;
+      CndWelderON : Bool;
+      retVal : Int;
+      MaterialWidth : LReal;
+      HalfMaterialWidth : LReal;
+      MaterialOffset : LReal;
+      HalfInhibitWindow : LReal;
+      Stop : Bool;
+      Pb_Rest : Bool;
+      Pb_Work : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      PHASE_00_IDLE : Int;
+      PHASE_01_CLAMPS_CLOSE : Int;
+      PHASE_02_MOVE_TO_WELD_START : Int;
+      PHASE_03_WAIT_START_ACK : Int;
+      PHASE_04_MOVE_TORCH_OUT_STRIP : Int;
+      PHASE_05_MOVE_VELCITY_AND_WELDING : Int;
+      PHASE_06_WIAT_2SEC_AFTER_WELDING : Int;
+      PHASE_07_MOVE_TO_PARKING : Int;
+      PHASE_08_CLAMPS_OPEN : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Welding velocity by scaling potentiometer"
+   END_REGION
+
+   REGION "Welding Positions calculations"
+      // Switch between profile data & local data
+      // 
+      IF PersistentValues.Torch.WeldingUseLocalData THEN
+          
+          IF  AUX.UseDataPPrf THEN
+              
+              PersistentValues.Data.WeldingSetUp := CIn.Manager.WeldingSetUp;
+          END_IF;
+          
+          AUX.UseDataPPrf := FALSE;
+          
+          CurrentWeldingSetUp := PersistentValues.Data.WeldingSetUp ;
+          
+          
+      ELSE
+          AUX.UseDataPPrf := TRUE;
+          CurrentWeldingSetUp := CIn.Manager.WeldingSetUp;
+          
+      END_IF;
+
+
+
+      // Material width
+      // 
+      MaterialWidth := Config.MaxMaterialWidth;
+
+      IF CurrentWeldingSetUp.MaterialWidth > 0.0
+      THEN
+          MaterialWidth := CurrentWeldingSetUp.MaterialWidth;
+      END_IF;
+
+      MaterialWidth := (IN1 := Config.MaxMaterialWidth, IN2 := MaterialWidth);
+
+      HalfMaterialWidth := MaterialWidth / 2;
+
+
+      // Material offset
+      // 
+      IF CurrentWeldingSetUp.MeasureSheetEdgeReference <= 0.0
+      THEN
+          MaterialOffset := 0.0;
+      ELSE
+          MaterialOffset := - (Config.MeasurePasslineReference - (CurrentWeldingSetUp.MeasureSheetEdgeReference) - HalfMaterialWidth);
+      END_IF;
+
+
+      // Park position is positive = The parking position is away from operator = in the motor side
+      // if is negative the parking is near the operator side
+      //
+      ParkPosPositiveSign := PersistentValues.Torch.Parking_Pos > 0.0;
+
+
+
+      // Welding cam track case Direction is from BKW=Minus (op.side) to FWD=Plus (motor side) 
+      // 
+
+
+      IF CurrentWeldingSetUp.WeldingDirection THEN
+          
+          
+          Sts.WeldCycle.PosStripEdgeSideWeldStart := - HalfMaterialWidth + MaterialOffset;
+          Sts.WeldCycle.PosStripEdgeSideWeldStop := HalfMaterialWidth + MaterialOffset;
+          
+          Sts.WeldCycle.PosWeldStart := Sts.WeldCycle.PosStripEdgeSideWeldStart +  CurrentWeldingSetUp.CorrStartWelding;
+          Sts.WeldCycle.PosWeldStop := Sts.WeldCycle.PosStripEdgeSideWeldStop - CurrentWeldingSetUp.CorrStopWelding;
+          
+          Sts.WeldCycle.PosOutStripEdgeSideWeldStart := Sts.WeldCycle.PosStripEdgeSideWeldStart - 5.0;
+          Sts.WeldCycle.PosOutStripEdgeSideWeldStop := Sts.WeldCycle.PosStripEdgeSideWeldStart + 5.0;
+          
+          
+      END_IF;
+
+
+      // Welding cam track case Direction is from FWD (motor side) to BKD (op.side)
+      // 
+      IF NOT CurrentWeldingSetUp.WeldingDirection THEN
+          
+        
+          Sts.WeldCycle.PosStripEdgeSideWeldStart := HalfMaterialWidth + MaterialOffset;
+          Sts.WeldCycle.PosStripEdgeSideWeldStop := - HalfMaterialWidth + MaterialOffset;
+          
+          Sts.WeldCycle.PosWeldStart := Sts.WeldCycle.PosStripEdgeSideWeldStart - CurrentWeldingSetUp.CorrStartWelding;
+          Sts.WeldCycle.PosWeldStop := Sts.WeldCycle.PosStripEdgeSideWeldStop + CurrentWeldingSetUp.CorrStopWelding;
+          
+          Sts.WeldCycle.PosOutStripEdgeSideWeldStart := Sts.WeldCycle.PosStripEdgeSideWeldStart + 5.0;
+          Sts.WeldCycle.PosOutStripEdgeSideWeldStop := Sts.WeldCycle.PosStripEdgeSideWeldStart - 5.0;
+          
+      END_IF;
+
+
+      // // Welding Inhibit zone
+      // 
+      HalfInhibitWindow := PersistentValues.Torch.InhibitWeld_Window / 2.0;
+      Sts.WeldCycle.PosMinusInhibit := PersistentValues.Torch.InhibitWeld_Pos - HalfInhibitWindow + MaterialOffset;
+      Sts.WeldCycle.PosPlusInhibit := PersistentValues.Torch.InhibitWeld_Pos + HalfInhibitWindow + MaterialOffset;
+          
+
+   END_REGION
+
+   REGION "Welding Positions limiting"
+   END_REGION
+
+   REGION "Welding cycle -  conditions"
+      IF (NOT (AreaInterface.Man) OR (Sts.WeldCycle.ON2 AND ZSI.Door_Opened) OR (Sts.WeldCycle.ON1 AND NOT (ZSI.Door_Opened)) OR NOT (((((Torch.Ax.AxisSts.Homed AND NOT (Torch.MachineInterface.AlarmsPresence)) AND NOT (DataIn.Torch.PB.Bwd_Minus)) AND NOT (DataIn.Torch.PB.Fwd_Plus)) AND NOT (DataIn.Torch.PB.MoveToPos))) OR NOT (((NOT (ClampEntry.MachineInterface.AlarmsPresence) AND NOT (DataIn.ClampEntry.PB.Rest)) AND NOT (DataIn.ClampEntry.PB.Work))) OR NOT (((NOT (ClampExit.MachineInterface.AlarmsPresence) AND NOT (DataIn.ClampExit.PB.Rest)) AND NOT (DataIn.ClampExit.PB.Work)))) THEN
+         Sts.WeldCycle.Cnd := FALSE;
+      ELSIF TRUE THEN
+         Sts.WeldCycle.Cnd := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Welding cycle -  Start / Stop"
+      PE.Weld_PbStartStop := (PosEdge(DataIn.WeldingCycle_Pb_StartStop) AND ZSI.Door_Opened);
+      PE.Weld_PbStart1 := (((PosEdge(DataIn.WeldingCycle_Pb_StartStop) AND ZSI.Door_Opened) AND (Sts.WeldCycle.Phase = #PHASE_00_IDLE)) OR ((PosEdge(DataIn.WeldingCycle_Pb_StartStop) AND ZSI.Door_Opened) AND (Sts.WeldCycle.Phase = #PHASE_03_WAIT_START_ACK)));
+      PE.Weld_PStop1 := (((PosEdge(DataIn.WeldingCycle_Pb_StartStop) AND ZSI.Door_Opened) AND (Sts.WeldCycle.Phase <> #PHASE_00_IDLE)) AND (Sts.WeldCycle.Phase <> #PHASE_03_WAIT_START_ACK));
+      PE.Weld_PbStart2 := (PosEdge(DataIn.WeldingCycle_Pb_Start) AND NOT (ZSI.Door_Opened));
+   END_REGION
+
+   REGION "Welding cycle - Force IDLE phase"
+      IF (NOT (Sts.WeldCycle.Cnd) OR (NOT ((NOT (PE.Weld_PStop1) AND NOT (DataIn.WeldingCycle_Pb_Stop))) AND (Sts.WeldCycle.Phase > #PHASE_00_IDLE))) THEN
+         Sts.WeldCycle.Phase := #PHASE_00_IDLE;
+      END_IF;
+   END_REGION
+
+   REGION "Welding cycle -  Sequence"
+      CASE Sts.WeldCycle.Phase OF
+              
+            
+              
+              
+          //############################################################################################
+          // PHASE 00 - IDLE
+          //############################################################################################
+          //    
+          PHASE_00_IDLE:
+              
+              Sts.WeldCycle.ON1 := FALSE;
+              Sts.WeldCycle.ON2 := FALSE;
+              
+              
+              Sts.WeldCycle.TON_Pause(IN:=FALSE,PT:=T#2s);
+              
+              Ctrl.WeldCycle.Clamps_Close := FALSE;
+              Ctrl.WeldCycle.Clamps_Open := FALSE;
+              Ctrl.WeldCycle.Welder_ON := FALSE;
+              Ctrl.WeldCycle.Torch_MoveToPos_Park := FALSE;
+              Ctrl.WeldCycle.Torch_MoveToPos_Start := FALSE;
+              Ctrl.WeldCycle.Torch_MoveToPos_StartBack := FALSE;
+              Ctrl.WeldCycle.Torch_VelBwd_WeldON := FALSE;
+              Ctrl.WeldCycle.Torch_VelFwd_WeldON := FALSE;
+              
+              
+              IF PE.Weld_PbStart1 THEN
+                  
+                  Sts.WeldCycle.ON1 := TRUE;
+                  
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+              IF PE.Weld_PbStart2 THEN
+                  
+                  Sts.WeldCycle.ON2 := TRUE;
+                  
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+             
+             
+             
+             
+             
+          //############################################################################################
+          // PHASE 01 - CLOSE CLAMPS
+          //############################################################################################
+          //
+          PHASE_01_CLAMPS_CLOSE:
+              
+              
+              Ctrl.WeldCycle.Clamps_Close := NOT ClampEntry.V.ValveSts.IsAtWork OR NOT ClampExit.V.ValveSts.IsAtWork;
+              
+              IF NOT Ctrl.WeldCycle.Clamps_Close THEN
+                  
+                  // New start or restart?
+                  // 
+                  // Se il ciclo è avviato con la torcia già nel range di saldatura non si passa per la fase di la conferma della regolazione (Verticale / Longitudinale) della torcia.
+                  // 
+                  // Questa condizione si verifica se durante la saldtaura si è interrotto il ciclo (rilascio pulsante di abilitazione + comando avanti o indietro torcia)
+                  // e successiva ripartenza del ciclo di saldatura..
+                  // 
+                  IF NOT Sts.Torch.InWeldON THEN
+                      Sts.WeldCycle.Phase +=1;
+                  ELSE
+                      Sts.WeldCycle.Phase := PHASE_05_MOVE_VELCITY_AND_WELDING;
+                  END_IF;
+              END_IF;
+              
+              
+          //############################################################################################
+          // PHASE 02 - MOVE TORCH TO WELD START
+          //############################################################################################ 
+          //
+          PHASE_02_MOVE_TO_WELD_START :
+              
+              Ctrl.WeldCycle.Torch_MoveToPos_Start := NOT Sts.Torch.InWeldStart;
+              
+              IF NOT Ctrl.WeldCycle.Torch_MoveToPos_Start THEN
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+              
+          //############################################################################################
+          // PHASE 03 - WAIT ACK TO START THE WELDNG
+          //############################################################################################   
+          //
+          PHASE_03_WAIT_START_ACK :
+              
+              // Attesa della nuova pressione del pulsante di start per confermare che la regolazione verticale e longitudinale della torcia sono state
+              // eseguite e quindi la sa
+              
+              IF PE.Weld_PbStart1 OR Sts.WeldCycle.ON2  THEN
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+              
+          //############################################################################################
+          // PHASE 04 - MOVE TORCH OUT OF THE STRIP EDGE USED AS WELDING START
+          //############################################################################################
+          //
+          PHASE_04_MOVE_TORCH_OUT_STRIP :
+              
+              Ctrl.WeldCycle.Torch_MoveToPos_StartBack := NOT Sts.Torch.InOutEdgeOfWeldStart;
+              
+              IF NOT Ctrl.WeldCycle.Torch_MoveToPos_StartBack THEN
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+              
+          //############################################################################################
+          // PHASE 05 - MOVE TORCH VELOCITY AND START WELDING 
+          //############################################################################################
+          //
+          PHASE_05_MOVE_VELCITY_AND_WELDING :
+              
+              Ctrl.WeldCycle.Torch_VelBwd_WeldON := NOT Sts.Torch.inWeldStop AND NOT CurrentWeldingSetUp.WeldingDirection;
+              Ctrl.WeldCycle.Torch_VelFwd_WeldON := NOT Sts.Torch.inWeldStop AND CurrentWeldingSetUp.WeldingDirection;
+              
+              Ctrl.WeldCycle.Welder_ON := NOT Sts.Torch.inWeldStop AND NOT Sts.Torch.InWeldInhibit;
+              
+              IF NOT Ctrl.WeldCycle.Torch_VelBwd_WeldON AND NOT Ctrl.WeldCycle.Torch_VelFwd_WeldON AND NOT Ctrl.WeldCycle.Welder_ON  THEN
+                  
+                  Sts.WeldCycle.TON_Pause(IN:=FALSE,PT:=T#2s);
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+          //############################################################################################
+          // PHASE 06 - WAIT 2 SECONDS
+          //############################################################################################   
+          //
+          
+          PHASE_06_WIAT_2SEC_AFTER_WELDING :
+              
+              Sts.WeldCycle.TON_Pause(IN:=TRUE,PT:=T#2s);
+              
+              IF Sts.WeldCycle.TON_Pause.Q THEN
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+          //############################################################################################
+          // PHASE 07 - MOVE TORCH TO PARKING POSITION
+          //############################################################################################
+          //
+          PHASE_07_MOVE_TO_PARKING:
+              
+              Ctrl.WeldCycle.Torch_MoveToPos_Park := NOT Sts.Torch.InParkPosition;
+              
+              IF NOT Ctrl.WeldCycle.Torch_MoveToPos_Park THEN
+                  Sts.WeldCycle.Phase +=1;
+              END_IF;
+              
+              
+              
+          //############################################################################################
+          // PHASE 08 - CLAMPS OPEN
+          //############################################################################################
+          //
+          PHASE_08_CLAMPS_OPEN :
+              
+              Ctrl.WeldCycle.Clamps_Open := NOT ClampEntry.V.ValveSts.IsAtRest OR NOT ClampExit.V.ValveSts.IsAtRest;
+              
+              IF NOT  Ctrl.WeldCycle.Clamps_Open THEN
+                  
+                  Sts.WeldCycle.Phase := 0;
+                  
+              END_IF;
+              
+              
+              
+              
+          ELSE
+              Sts.WeldCycle.Phase := 0;
+              
+             
+              
+          END_CASE;
+
+   END_REGION
+
+   REGION "Welding cycle -  Lamp cycle 1 = Started inside the guards"
+   END_REGION
+
+   REGION "Welding cycle -  Lamp cycle 2 = Started outside the guards"
+      DataOut.LpWeldingCycle_2 := Sts.WeldCycle.ON2;
+   END_REGION
+
+   REGION "CIn (Manager = Welding cycle)"
+      Torch.CIn.Manager.Control_ON := ((Sts.WeldCycle.ON1 AND DataIn.SAFETY_DeadMan_PB) OR Sts.WeldCycle.ON2);
+      Torch.CIn.Manager.Minus := Ctrl.WeldCycle.Torch_VelBwd_WeldON;
+      Torch.CIn.Manager.Plus := Ctrl.WeldCycle.Torch_VelFwd_WeldON;
+      Torch.CIn.Manager.MoveToPos := NOT (((NOT (Ctrl.WeldCycle.Torch_MoveToPos_Park) AND NOT (Ctrl.WeldCycle.Torch_MoveToPos_Start)) AND NOT (Ctrl.WeldCycle.Torch_MoveToPos_StartBack)));
+   END_REGION
+
+   REGION "CIn (manager Pos,Vel,Acc,Dec,Jerk)"
+      Torch.CIn.Manager.Speed := 0.0;
+
+      IF Ctrl.WeldCycle.Torch_MoveToPos_Park THEN
+          Torch.CIn.Manager.Pos := PersistentValues.Torch.Parking_Pos;
+          Torch.CIn.Manager.Speed := PersistentValues.Torch.Cycle_HighSpeed;
+          
+      ELSIF Ctrl.WeldCycle.Torch_MoveToPos_Start THEN
+          Torch.CIn.Manager.Pos := Sts.WeldCycle.PosWeldStart;
+          Torch.CIn.Manager.Speed := PersistentValues.Torch.Cycle_HighSpeed;
+          
+          
+      ELSIF Ctrl.WeldCycle.Torch_MoveToPos_StartBack THEN
+          Torch.CIn.Manager.Pos := Sts.WeldCycle.PosOutStripEdgeSideWeldStart;
+          Torch.CIn.Manager.Speed := PersistentValues.Torch.Cycle_LowSpeed;
+          
+          
+      ELSIF Ctrl.WeldCycle.Torch_VelBwd_WeldON OR Ctrl.WeldCycle.Torch_VelFwd_WeldON THEN
+          Torch.CIn.Manager.Speed := 95.0;
+         
+      END_IF;
+
+
+
+   END_REGION
+
+   REGION "CIn (Velocity override = Every time the torch traverse  the welding area in the proper dierection)"
+      IF ((((((CurrentWeldingSetUp.WeldingDirection AND Torch.COut.PlusCheckNext) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND Torch.COut.MinusCheckNext)) AND Sts.Torch.InPotentimeterON) AND NOT (Ctrl.WeldCycle.Torch_MoveToPos_Start)) AND NOT (Ctrl.WeldCycle.Torch_MoveToPos_StartBack)) AND NOT (Ctrl.WeldCycle.Torch_MoveToPos_Park)) THEN
+         Torch.CIn.Manager.Speed := REAL_TO_LREAL(Sts.WeldCycle.PercentagePotentiometer);
+      END_IF;
+   END_REGION
+
+   REGION "CIn (External enables)"
+      Torch.CIn.MinusExtEnable := (ClampEntry.V.ValveSts.IsAtWork AND ClampExit.V.ValveSts.IsAtWork);
+      Torch.CIn.PlusExtEnable := (ClampEntry.V.ValveSts.IsAtWork AND ClampExit.V.ValveSts.IsAtWork);
+      Torch.CIn.PositionLimits.PosMin := PersistentValues.Torch.Parking_Pos;
+      Torch.CIn.PositionLimits.EnableMin := PersistentValues.Torch.Parking_Pos;
+      Torch.CIn.PositionLimits.EnableMax := FALSE;
+   END_REGION
+
+   REGION "HMI preset position"
+      Torch.HMI.B_Preset := HMI.Torch_B_Preset;
+
+      Torch.HMI.PresetPosition := (HMI.Torch_PresetValue) + PersistentValues.Torch.MeasureTorchHolder - Config.MeasurePasslineReference;
+
+      HMI.Torch_FdbkPreset := Torch.COut.ActualPosition - PersistentValues.Torch.MeasureTorchHolder + Config.MeasurePasslineReference;
+
+
+
+
+   END_REGION
+
+   REGION "Encoder manager"
+      #TorchEnc(
+         en := TRUE,
+         HW_IO := HWID.TorchEnc_IO,
+         Interface := TorchEncITF,
+         Retain := PersistentValues.TorchEnc,
+         Alarm := Alarm.TorchEnc
+      );
+
+   END_REGION
+
+   REGION "Axis Machine Manager"
+      #Torch(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.Torch,
+         Drive := Drive.Torch,
+         DataIn := DataIn.Torch,
+         Config := Config.Torch,
+         HW_ID_TEL1 := HWID.Torch_TEL1,
+         PosFeedback := TorchEncITF,
+         Par := PersistentValues.TorchAx,
+         Pers_Data := PersistentValues.TorchAx_Pers,
+         Warning := Warning.TorchAx,
+         Alarm := Alarm.TorchAx,
+         DataOut => DataOut.Torch,
+         COut => COut.Torch
+      );
+
+   END_REGION
+
+   REGION "Torch positions status"
+      Sts.Torch.InParkPosition := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = PersistentValues.Torch.Parking_Pos)) OR (NOT (Torch.COut.InPosition) AND PosOK));
+      Sts.Torch.InOutEdgeOfWeldStart := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = Sts.WeldCycle.PosOutStripEdgeSideWeldStart)) OR (NOT (Torch.COut.InPosition) AND PosOK));
+      Sts.Torch.InWeldStart := ((Torch.COut.InPosition AND (Torch.COut.ActualTargetPos = Sts.WeldCycle.PosWeldStart)) OR (NOT (Torch.COut.InPosition) AND PosOK));
+      Sts.Torch.inWeldStop := ((CurrentWeldingSetUp.WeldingDirection AND (Torch.COut.ActualPosition >= Sts.WeldCycle.PosWeldStop)) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND (Torch.COut.ActualPosition <= Sts.WeldCycle.PosWeldStop)));
+      Sts.Torch.InWeldON := (((CurrentWeldingSetUp.WeldingDirection AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosWeldStart)) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosWeldStop)) OR ((NOT (CurrentWeldingSetUp.WeldingDirection) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosWeldStart)) AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosWeldStop)));
+      Sts.Torch.InWeldInhibit := (((Torch.COut.ActualPosition >= Sts.WeldCycle.PosMinusInhibit) AND (Torch.COut.ActualPosition <= Sts.WeldCycle.PosPlusInhibit)) AND (PersistentValues.Torch.InhibitWeld_Window > 0.0));
+      Sts.Torch.InPotentimeterON := (((CurrentWeldingSetUp.WeldingDirection AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosOutStripEdgeSideWeldStart)) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosOutStripEdgeSideWeldStop)) OR ((NOT (CurrentWeldingSetUp.WeldingDirection) AND (Torch.COut.ActualPosition < Sts.WeldCycle.PosOutStripEdgeSideWeldStart)) AND (Torch.COut.ActualPosition > Sts.WeldCycle.PosOutStripEdgeSideWeldStop)) OR (NOT ((NOT (Sts.WeldCycle.ON1) AND NOT (Sts.WeldCycle.ON2))) AND Sts.Torch.InWeldON));
+   END_REGION
+
+   REGION "Reset torch position status if axis is not in operation = hommed"
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.InParkPosition := FALSE;
+      END_IF;
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.InOutEdgeOfWeldStart := FALSE;
+      END_IF;
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.InWeldStart := FALSE;
+      END_IF;
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.inWeldStop := FALSE;
+      END_IF;
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.InWeldON := FALSE;
+      END_IF;
+      IF NOT (Torch.Ax.AxisSts.Homed) THEN
+         Sts.Torch.InWeldInhibit := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Conditions"
+      CndWelderON := ((((((CurrentWeldingSetUp.WeldingDirection AND Torch.COut.PlusCheckNext) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND Torch.COut.MinusCheckNext)) AND NOT (Torch.Ax.AxisSts.StandStill)) OR (((CurrentWeldingSetUp.WeldingDirection AND Torch.COut.PlusCheckNext) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND Torch.COut.MinusCheckNext)) AND Torch.COut.PlusRunning) OR (((CurrentWeldingSetUp.WeldingDirection AND Torch.COut.PlusCheckNext) OR (NOT (CurrentWeldingSetUp.WeldingDirection) AND Torch.COut.MinusCheckNext)) AND Torch.COut.MinusRunning)) AND Sts.Torch.InWeldON) AND NOT (AreaInterface.EStop));
+   END_REGION
+
+   REGION "Man"
+      Ctrl.Welder.Man_ON := (((((PosEdge(DataIn.Welder_Pb_Man) OR Ctrl.Welder.Man_ON) AND DataIn.Welder_Pb_Man) AND AreaInterface.Man) AND NOT (Sts.WeldCycle.ON1)) AND NOT (Sts.WeldCycle.ON2));
+   END_REGION
+
+   REGION "Data out"
+      #TOF_Aspiratore(
+         IN := DataOut.WelderON,
+         PT := PersistentValues.Aspiratore_TimeOff
+      );
+
+      COut.Weld_CheckNext := NOT ((NOT (Ctrl.Welder.Man_ON) AND NOT (Ctrl.WeldCycle.Welder_ON)));
+      DataOut.WelderON := (NOT ((NOT (Ctrl.Welder.Man_ON) AND NOT (Ctrl.WeldCycle.Welder_ON))) AND CndWelderON);
+      DataOut.AspiratoreON := #TOF_Aspiratore.Q;
+   END_REGION
+
+   REGION "Work Ls"
+      // Gi altri ingressi sono assegnati nel call
+
+      IF (ClampEntry.V.RestSolenoid OR ClampEntry.V.ValveSts.IsAtRest) THEN
+         PersistentValues.Data.ClampEntryClosed := FALSE;
+      ELSIF (ClampEntry.V.WorkSolenoid AND NOT (ClampEntry.V.ValveSts.IsAtRest)) THEN
+         PersistentValues.Data.ClampEntryClosed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Data in"
+      ClampEntry.DataIn := DataIn.ClampEntry;
+
+      ClampEntry.DataIn.Work_Ls[1] := PersistentValues.Data.ClampEntryClosed;
+
+   END_REGION
+
+   REGION "CIn (Manager = Welding Cycle)"
+      ClampEntry.Cin.Manager.Control_ON := (Torch.CIn.Manager.Control_ON OR CoilHandling.COut.JB.ClampEntry.Control_ON);
+      ClampEntry.Cin.Manager.Rest := ((Torch.CIn.Manager.Control_ON AND Ctrl.WeldCycle.Clamps_Open) OR (NOT (Torch.CIn.Manager.Control_ON) AND CoilHandling.COut.JB.ClampEntry.Rest));
+      ClampEntry.Cin.Manager.Work := ((Torch.CIn.Manager.Control_ON AND Ctrl.WeldCycle.Clamps_Close) OR (NOT (Torch.CIn.Manager.Control_ON) AND CoilHandling.COut.JB.ClampEntry.Work));
+   END_REGION
+
+   REGION "CIn (External conditions)"
+      ClampEntry.Cin.Rest_ExtEnable := Sts.Torch.InParkPosition;
+      ClampEntry.Cin.Work_ExtEnable := (Straightener.COut.Feed.Standstill AND PinchRoll_Feed.COut.Standstill);
+      ClampEntry.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Machine Valve Manager"
+      #ClampEntry(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.ClampEntry,
+         Config := Config.ClampEntry,
+         Alarm := Alarm.ClampEntry,
+         Warning := Warning.ClampEntry,
+         COut => COut.ClampEntry,
+         DataOut => DataOut.ClampEntry
+      );
+
+   END_REGION
+
+   REGION "Work Ls"
+      // Gi altri ingressi sono assegnati nel call
+
+      IF (ClampExit.V.RestSolenoid OR ClampExit.V.ValveSts.IsAtRest) THEN
+         PersistentValues.Data.ClampExitClosed := FALSE;
+      ELSIF (ClampExit.V.WorkSolenoid AND NOT (ClampExit.V.ValveSts.IsAtRest)) THEN
+         PersistentValues.Data.ClampExitClosed := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Data in"
+      ClampExit.DataIn := DataIn.ClampExit;
+
+      ClampExit.DataIn.Work_Ls[1] := PersistentValues.Data.ClampExitClosed;
+
+   END_REGION
+
+   REGION "CIn (Manager = Welding Cycle)"
+      ClampExit.Cin.Manager.Control_ON := (Torch.CIn.Manager.Control_ON OR CoilHandling.COut.JB.ClampExit.Control_ON);
+      ClampExit.Cin.Manager.Rest := ((Torch.CIn.Manager.Control_ON AND Ctrl.WeldCycle.Clamps_Open) OR (NOT (Torch.CIn.Manager.Control_ON) AND CoilHandling.COut.JB.ClampExit.Rest));
+      ClampExit.Cin.Manager.Work := ((Torch.CIn.Manager.Control_ON AND Ctrl.WeldCycle.Clamps_Close) OR (NOT (Torch.CIn.Manager.Control_ON) AND CoilHandling.COut.JB.ClampExit.Work));
+   END_REGION
+
+   REGION "CIn (External conditions)"
+      ClampExit.Cin.Rest_ExtEnable := Sts.Torch.InParkPosition;
+      ClampExit.Cin.Work_ExtEnable := (Straightener.COut.Feed.Standstill AND PinchRoll_Feed.COut.Standstill);
+      ClampExit.Cin.ExternalAlarms := FALSE;
+   END_REGION
+
+   REGION "Machine Valve Manager"
+      #ClampExit(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.ClampExit,
+         Config := Config.ClampExit,
+         Alarm := Alarm.ClampExit,
+         Warning := Warning.ClampExit,
+         COut => COut.ClampExit,
+         DataOut => DataOut.ClampExit
+      );
+
+   END_REGION
+
+   REGION "Sequence of a manual cut cycle"
+      Stop := NOT ((((AreaInterface.Man AND NOT (CutHead.Cin.Manager.Control_ON)) AND NOT (DataIn.CutHead.PB.Rest)) AND NOT (DataIn.CutHead.PB.Work)));
+      PE.Cut_PbCycle := PosEdge(DataIn.CutHead_PbCycle);
+      IF (NOT (DataIn.CutHead_PbCycle) OR Stop) THEN
+         Sts.CutCycle.ON := FALSE;
+      ELSIF PosEdge(DataIn.CutHead_PbCycle) THEN
+         Sts.CutCycle.ON := TRUE;
+      END_IF;
+      IF NOT (Sts.CutCycle.ON) THEN
+         Sts.CutCycle.OK_Rest := FALSE;
+      ELSIF (Sts.CutCycle.ON AND CutHead.V.ValveSts.IsAtRest) THEN
+         Sts.CutCycle.OK_Rest := TRUE;
+      END_IF;
+      IF NOT (Sts.CutCycle.ON) THEN
+         Sts.CutCycle.OK_Work := FALSE;
+      ELSIF (Sts.CutCycle.OK_Rest AND CutHead.V.ValveSts.IsAtWork) THEN
+         Sts.CutCycle.OK_Work := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Data in"
+      CutHead.DataIn := DataIn.CutHead;
+
+      IF Sts.CutCycle.ON AND
+          (NOT Sts.CutCycle.OK_Rest OR
+          (Sts.CutCycle.OK_Work AND NOT CutHead.Ctrl.Work_Man))
+      THEN
+          CutHead.DataIn.PB.Rest := NOT CutHead.Ctrl.Work_Man;
+      ELSIF Sts.CutCycle.ON AND
+          NOT Sts.CutCycle.OK_Work
+      THEN
+          CutHead.DataIn.PB.Work := TRUE;
+      END_IF;
+          
+          
+          
+
+   END_REGION
+
+   REGION "CIn (External enable)"
+      CutHead.Cin.Rest_ExtEnable := TRUE;
+      CutHead.Cin.Work_ExtEnable := (Straightener.COut.Feed.Standstill AND PinchRoll_Feed.COut.Standstill);
+      CutHead.Cin.PressureRunning := CIn.PressureRunning;
+   END_REGION
+
+   REGION "CIn (Manager)"
+      CutHead.Cin.Manager := CoilHandling.COut.JB.CutHead;
+   END_REGION
+
+   REGION "Machine Valve manager"
+      #CutHead(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.CutHead,
+         Config := Config.CutHead,
+         Alarm := Alarm.CutHead,
+         Warning := Warning.CutHead,
+         MachineInterface => MachineInterface,
+         COut => COut.CutHead,
+         DataOut => DataOut.CutHead
+      );
+
+   END_REGION
+
+   REGION "CIn (External enables)"
+      PinchRoll_Feed.CIn.Bwd_ExtEnable := ((((CutHead.V.ValveSts.IsAtRest AND ClampEntry.V.ValveSts.IsAtRest) AND ClampExit.V.ValveSts.IsAtRest) OR (CutHead.V.ValveSts.IsAtRest AND CIn.Manager.ExtraLowON)) AND Sts.Torch.InParkPosition);
+      PinchRoll_Feed.CIn.Fwd_ExtEnable := ((((CutHead.V.ValveSts.IsAtRest AND ClampEntry.V.ValveSts.IsAtRest) AND ClampExit.V.ValveSts.IsAtRest) OR (CutHead.V.ValveSts.IsAtRest AND CIn.Manager.ExtraLowON)) AND Sts.Torch.InParkPosition);
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      PinchRoll_Feed.CIn.Manager := CoilHandling.COut.JB.PinchRoll_Feed;
+   END_REGION
+
+   REGION "CIn (Velocity override) when extra low selected"
+      PinchRoll_Feed.CIn.VelocityOverride.Enable := CIn.Manager.ExtraLowON;
+      PinchRoll_Feed.CIn.VelocityOverride.Value := CIn.Manager.ExtraLowPercentage;
+   END_REGION
+
+   REGION "Feed Machine Manager"
+      #PinchRoll_Feed(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.PinchRoll_Feed,
+         Drive := Drive.Picnhroll_Feed,
+         DataIn := DataIn.PinchRoll_Feed,
+         Config := Config.Pinchroll_Feed,
+         HW_ID_TEL1 := HWID.Pinchroll_Feed_TEL1,
+         Par := PersistentValues.PinchRoll_Feed,
+         Warning := Warning.Pinchroll_Feed,
+         Alarm := Alarm.Pinchroll_Feed,
+         DataOut => DataOut.Pinchroll_Feed,
+         COut => COut.Pinchroll_Feed
+      );
+
+   END_REGION
+
+   REGION "CIn (External enables)"
+      #TON_LiftPbUp(
+         IN := ((AreaInterface.Man AND NOT (PinchRoll_Lift.Cin.Manager.Control_ON)) AND PinchRoll_Lift.DataIn.PB.Rest),
+         PT := Config.Pinchroll_Lift.DelayMissingCondition
+      );
+
+      PinchRoll_Lift.Cin.Rest_ExtEnable := ((NOT (Loop1.COut.SystemOn) OR PinchRoll_Lift.V.ValveSts.IsAtRest OR AreaInterface.Cycle OR PinchRoll_Lift.Cin.Manager.Control_ON OR #TON_LiftPbUp.Q) AND PinchRoll_Feed.S120.AxisSts.Standstill);
+      PinchRoll_Lift.Cin.Work_ExtEnable := (PinchRoll_Feed.S120.AxisSts.Standstill OR PinchRoll_Lift.V.ValveSts.IsAtWork);
+   END_REGION
+
+   REGION "CIn ( Area manager controls )"
+      PinchRoll_Lift.Cin.Manager := CoilHandling.COut.JB.Pinchroll_Lift;
+   END_REGION
+
+   REGION "Valve machine Manager"
+      #PinchRoll_Lift(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI,
+         DSI := DSI.PinchRoll_Lift,
+         DataIn := DataIn.PinchRoll_Lift,
+         Config := Config.Pinchroll_Lift,
+         Alarm := Alarm.Pinchroll_Lift,
+         Warning := Warning.Pinchroll_Lift,
+         COut => COut.Pinchroll_Lift,
+         DataOut => DataOut.Pinchroll_Lift
+      );
+
+   END_REGION
+
+   REGION "Coordination Out"
+      COut.JunctionDone := (Sts.Torch.InWeldStart AND DataOut.WelderON);
+      COut.TorchInParkPosition := Sts.Torch.InParkPosition;
+      COut.Cut_ManCycleDone := (Sts.CutCycle.OK_Work AND CutHead.V.ValveSts.IsAtRest);
+      COut.Weld_CheckNext := COut.Weld_CheckNext;
+   END_REGION
+
+   REGION "Collect machine to zone interface (internal machines OR)"
+   END_REGION
+
+
+END_FUNCTION_BLOCK

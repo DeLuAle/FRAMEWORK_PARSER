@@ -1,0 +1,569 @@
+﻿// Block: FAK_Updater_Type_HoleDistance
+// Title: NOTE FUNZIONAMENTO
+
+FUNCTION_BLOCK "FAK_Updater_Type_HoleDistance"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// NOTE FUNZIONAMENTO
+   VAR_INPUT
+      SystemEnable : Bool;
+      EnableApply : Bool;
+      MaterialCounter_Data : MatCountData;
+      RefHole : Struct
+         RTrkID : DInt;
+         Pos : LReal;
+      END_STRUCT;
+      TP : Struct
+         ID : DInt;
+         Val : LReal;
+         Diam : Real;
+      END_STRUCT;
+      Distance_Desired : LReal;
+      Par : Struct
+         Enable : Bool;
+         Apply_Enable : Bool;
+         MaxWrongQty : UInt;
+         Avg_ItemsQty : UInt;
+         Avg_ErrTol : LReal;
+         Tol_GOOD : LReal;
+      END_STRUCT;
+   END_VAR
+
+   VAR_OUTPUT
+      FAK_Apply : Bool;
+      FAK_Value : LReal;
+   END_VAR
+
+   VAR
+      HMI : Struct
+         Button_INIT : Bool;
+         Status_INIT_Done : Bool;
+         Status_Operating : Bool;
+         Status_FAK_Updater : Int;
+         FAK_Calculated : LReal;
+         Err_Avg : LReal;
+         Distance_Avg : LReal;
+         Buffer_RefHole : Struct
+            RTrkID : DInt;
+            Pos : LReal;
+            PosShift : LReal;
+            Err : LReal;
+            Status : Int;
+         END_STRUCT;
+         Buffer_TP : Struct
+            Pos : LReal;
+            Diam : Real;
+            RTrkID : DInt;
+            Result : Int;
+         END_STRUCT;
+      END_STRUCT;
+      Data : Struct
+         Status_Operating : Bool;
+         Status_EnableApply : Bool;
+         Counter_Wrong : UInt;
+         Counter_Good : UInt;
+         ErrSum : LReal;
+         Err_Avg : LReal;
+         Err_AvgAbs : LReal;
+         Distance_Measured : LReal;
+         FAK_Calculated : LReal;
+         Buffer_RefHole : Struct
+            RTrkID : DInt;
+            Pos : LReal;
+            PosShift : LReal;
+            Err : LReal;
+            Status : Int;
+         END_STRUCT;
+         Buffer_TP : Struct
+            Pos : LReal;
+            Diam : Real;
+            RTrkID : DInt;
+            Result : Int;
+         END_STRUCT;
+      END_STRUCT;
+      FAK_ChangeReq : Bool;
+      i : Int;
+      j : Int;
+      I_Exit : Int;
+      J_Exit : Int;
+      iTP : Int;
+      iRef : Int;
+      FAK_Save : LReal;
+      TP_ID_Save : DInt;
+      RefHole_ID_Save : DInt;
+      Aux : Struct
+         StatusOperating_PE : Bool;
+         StatusOperating_NE : Bool;
+         EnableApply_PE : Bool;
+         EnableApply_NE : Bool;
+         HMI_ButtonINIT : Bool;
+         CheckTP_PE : Bool;
+      END_STRUCT;
+      TON_Init : TON_TIME;
+   END_VAR
+
+   VAR_TEMP
+      FAK_IsChange : Bool;
+      Init : Bool;
+      Init_Avg : Bool;
+      CheckTP : Bool;
+      RefFound : Bool;
+      New_TP_Val : Bool;
+      New_RefHead_Val : Bool;
+      Delta : LReal;
+      PosErr : LReal;
+   END_VAR
+
+   VAR CONSTANT
+      BUFFER_ITEMS : Int;
+      STATUS_NULL : Int;
+      STATUS_LOADED : Int;
+      STATUS_GOOD : Int;
+      STATUS_WRONG : Int;
+      STATUS_FAK_UPDATER_WHITE : Int;
+      STATUS_FAK_UPDATER_GREEN : Int;
+      STATUS_FAK_UPDATER_YELLOW : Int;
+      STATUS_FAK_UPDATER_RED : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "NOTE FUNZIONAMENTO"
+      // E' calcolato il FAK per l'encoder usando la posizione di esecuzione del foro di riferimento  e la posizione di quel foro rilevato da un ingresso di misura = TP = Tastatire
+      // 
+      //
+      // FAK = Misurato / Desiderato
+      //
+      // => se il pezzo misurato è + corto il FAK deve diminuire per fare più avanzamento e allungare il pezzo.
+      //
+      // ...
+      // In questo FB :
+      // - il pezzo misurato = La posizione rilevata dal TP (= B).
+      // - il pezzo desiderato = La posizione del foro riferimento (= A ) + il dato di ingresso della distanza desiderata (SHIFT) => (A + SHIFT).
+      // 
+      // ...
+      // 
+      // Se il misurato è più corto => B > (A + SHIFT).
+      // Se il misurato è più lungo => B < (A + SHIFT).
+      // 
+      // ...
+      // 
+      // L'errore delle lunghezze è =  B - (A + SHIFT).
+      // 
+      //
+      // E' calcolato la media degli errori comme la somma degli errori diviso per il numero di valori salvato (= Err_Avg).
+      //
+      //
+      // La media dei pezzi misurati = SHIFT + Err_Avg e questo vakire è usato è il dividendo per il calcolo del FAK.
+      //
+      //
+      //
+
+   END_REGION
+
+   REGION "Operating ON"
+      Data.Status_Operating := (Par.Enable AND SystemEnable);
+   END_REGION
+
+   REGION "Network 3"
+      Data.Status_EnableApply := (Par.Apply_Enable AND EnableApply);
+   END_REGION
+
+   REGION "FAK is Changed"
+      FAK_IsChange := (MaterialCounter_Data.FAK <> FAK_Save);
+      FAK_Save := MaterialCounter_Data.FAK;
+   END_REGION
+
+   REGION "System initialize (triggering events)"
+      Init := (Sys.FirstPLCCycle OR PosEdge(Data.Status_Operating) OR NegEdge(Data.Status_Operating) OR PosEdge(Data.Status_EnableApply) OR NegEdge(Data.Status_EnableApply) OR PosEdge(HMI.Button_INIT) OR (FAK_ChangeReq AND NOT (FAK_ChangeReq)) OR (Data.Counter_Wrong > Par.MaxWrongQty));
+   END_REGION
+
+   REGION "System initialize (execution)"
+      IF Init THEN
+          HMI.Status_INIT_Done := TRUE;
+          
+          FAK_ChangeReq := FALSE;
+          
+          
+          TP_ID_Save := TP.ID;
+          RefHole_ID_Save := RefHole.RTrkID;
+          
+          
+          Data.Counter_Wrong := 0;
+          Data.Counter_Good := 0;
+          Data.ErrSum := 0.0;
+          Data.Err_Avg := 0.0;
+          Data.Err_AvgAbs := 0.0;
+          Data.Distance_Measured := Distance_Desired;
+          Data.FAK_Calculated := MaterialCounter_Data.FAK;
+          
+          
+          FOR i := 1 TO BUFFER_ITEMS DO
+              
+              
+              Data.Buffer_TP[i].RTrkID := 0;
+              Data.Buffer_TP[i].Pos := -1.0;
+              Data.Buffer_TP[i].Diam := 0;
+              Data.Buffer_TP[i].Result := STATUS_NULL;
+              
+              Data.Buffer_RefHole[i].RTrkID := 0;
+              Data.Buffer_RefHole[i].Pos := -1;
+              Data.Buffer_RefHole[i].PosShift := -1;
+              Data.Buffer_RefHole[i].Err := 0;
+              Data.Buffer_RefHole[i].Status := STATUS_NULL;
+              
+              
+          END_FOR;
+          
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "System initialize (HMI signaling)"
+      #TON_Init(
+         IN := HMI.Status_INIT_Done,
+         PT := T#2S
+      );
+
+      IF #TON_Init.Q THEN
+         HMI.Status_INIT_Done := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Buffer TP - New item to load"
+      New_TP_Val := ((((TP.ID <> TP_ID_Save) AND (TP.ID > 0)) AND (TP.Diam > 0.0)) AND Data.Status_Operating);
+      TP_ID_Save := TP.ID;
+   END_REGION
+
+   REGION "Buffer TP - Push item"
+      IF New_TP_Val THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              Data.Buffer_TP[i] := Data.Buffer_TP[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          
+          Data.Buffer_TP[1].Pos := TP.Val;
+          Data.Buffer_TP[1].Diam := TP.Diam;
+          Data.Buffer_TP[1].Result := STATUS_LOADED;
+          Data.Buffer_TP[i].RTrkID := 0;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "Reference position - New item to load"
+      New_RefHead_Val := (((RefHole.RTrkID <> RefHole_ID_Save) AND (RefHole.RTrkID > 0)) AND Data.Status_Operating);
+      RefHole_ID_Save := RefHole.RTrkID;
+   END_REGION
+
+   REGION "Reference position - Push item"
+      IF New_RefHead_Val THEN
+          
+          i := BUFFER_ITEMS;
+          
+          WHILE i >= 2 DO
+              
+              Data.Buffer_RefHole[i] := Data.Buffer_RefHole[i - 1];
+              
+              i -= 1;
+              
+          END_WHILE;
+          Data.Buffer_RefHole[1].RTrkID := RefHole.RTrkID;
+          Data.Buffer_RefHole[1].Pos := RefHole.Pos;
+          Data.Buffer_RefHole[1].PosShift := M_PosAPlusCostB(PosA := Data.Buffer_RefHole[1].Pos, CostB := Distance_Desired, MODULE := MaterialCounter_Data.COUNTER_MODULE);
+          Data.Buffer_RefHole[1].Err := 0.0;
+          Data.Buffer_RefHole[1].Status := STATUS_LOADED;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Check binding of TP and reference - Start"
+      CheckTP := ((??? OR New_TP_Val) AND Data.Status_Operating);
+   END_REGION
+
+   REGION "Check binding of TP and reference - Exe"
+
+      IF CheckTP THEN
+          
+          
+          FOR iTP := 1 TO BUFFER_ITEMS DO
+              
+              IF Data.Buffer_TP[iTP].Result = STATUS_LOADED OR Data.Buffer_TP[iTP].Result = STATUS_WRONG  THEN
+                  
+                  
+                  RefFound := FALSE;
+                  
+                  
+                  FOR iRef := 1 TO BUFFER_ITEMS DO
+                      
+                      
+                      IF Data.Buffer_RefHole[iRef].Status = STATUS_LOADED OR Data.Buffer_RefHole[iRef].Status = STATUS_WRONG THEN
+                          
+                          // Ricalcolo PosShift perchè nel frattempo può essersi spostato il PubSlideAxis o anche il parametro nel programma pezzo
+                          // e quindi è cambiata anche la Distance_Desired
+                          // 
+                          Data.Buffer_RefHole[iRef].PosShift := M_PosAPlusCostB(PosA := Data.Buffer_RefHole[iRef].Pos, CostB := Distance_Desired, MODULE := MaterialCounter_Data.COUNTER_MODULE);
+                          
+                          
+                          PosErr := M_PosAMinusPosB(PosA := Data.Buffer_TP[iTP].Pos, PosB := Data.Buffer_RefHole[iRef].PosShift , MODULE := MaterialCounter_Data.COUNTER_MODULE);
+                          
+                          
+                          
+                          IF (PosErr) < Par.Tol_GOOD THEN
+                              
+                              Data.Buffer_RefHole[iRef].Err := PosErr;
+                              Data.Buffer_RefHole[iRef].Status := STATUS_GOOD;
+                              
+                              Data.Buffer_TP[iTP].Result := STATUS_GOOD;
+                              Data.Buffer_TP[iTP].RTrkID := Data.Buffer_RefHole[iRef].RTrkID;
+                              
+                              RefFound := TRUE;
+                              
+                              Data.Counter_Good += 1;
+                              
+                              Data.ErrSum := Data.ErrSum + Data.Buffer_RefHole[iRef].Err;
+                              
+                              Data.Err_Avg := Data.ErrSum / Data.Counter_Good;
+                              
+                              Data.Err_AvgAbs := (Data.Err_Avg);
+                              
+                              
+                              Data.Distance_Measured  := Distance_Desired -  Data.Err_Avg;
+                              
+                              Data.FAK_Calculated := MaterialCounter_Data.FAK * (Data.Distance_Measured / Distance_Desired);
+                              
+                              
+                              
+                              EXIT;
+                              
+                          END_IF;
+                      END_IF;
+                      
+                  END_FOR;
+                  
+                  
+                  IF NOT RefFound THEN
+                      Data.Buffer_TP[iTP].Result := STATUS_WRONG;
+                  END_IF;
+                  
+                  
+              END_IF;
+              
+          END_FOR;
+          
+      END_IF;
+
+   END_REGION
+
+   REGION "Check Unbound References + Counters"
+      Data.Counter_Wrong := 0;
+
+      IF CheckTP THEN
+          
+          FOR iRef := 1 TO BUFFER_ITEMS DO
+              
+              IF Data.Buffer_RefHole[iRef].Status = STATUS_LOADED THEN
+                  
+                  Delta := M_PosAMinusPosB(PosA := MaterialCounter_Data.CounterValue, PosB := Data.Buffer_RefHole[iRef].Pos, MODULE := MaterialCounter_Data.COUNTER_MODULE);
+                  
+                  IF Delta > Distance_Desired + Par.Tol_GOOD + 200.0 THEN
+                      
+                      Data.Buffer_RefHole[iRef].Status := STATUS_WRONG;
+                  END_IF;
+                  
+              END_IF;
+              
+              IF Data.Buffer_RefHole[iRef].Status = STATUS_WRONG THEN
+                  Data.Counter_Wrong += 1;
+              END_IF;
+              
+          END_FOR;
+          
+      END_IF;
+
+
+   END_REGION
+
+   REGION "FAK apply command"
+      Init_Avg := ((FAK_IsChange AND FAK_ChangeReq) OR ((Data.Counter_Good > Par.Avg_ItemsQty) AND (Data.Err_AvgAbs <= Par.Avg_ErrTol)));
+      IF ((FAK_IsChange AND FAK_ChangeReq) OR ((Data.Counter_Good > Par.Avg_ItemsQty) AND (Data.Err_AvgAbs <= Par.Avg_ErrTol))) THEN
+         FAK_ChangeReq := FALSE;
+      ELSIF ((Data.Counter_Good > Par.Avg_ItemsQty) AND (Data.Err_AvgAbs > Par.Avg_ErrTol)) THEN
+         FAK_ChangeReq := TRUE;
+      END_IF;
+      IF (FAK_ChangeReq AND Data.Status_EnableApply) THEN
+         FAK_Value := Data.FAK_Calculated;
+      END_IF;
+      FAK_Apply := Data.FAK_Calculated;
+   END_REGION
+
+   REGION "Init Average"
+      IF Init_Avg THEN
+
+          Data.Counter_Wrong := 0;
+          Data.Counter_Good := 0;
+          Data.ErrSum := 0.0;
+          Data.Err_Avg := 0.0;
+          Data.Err_AvgAbs := 0.0;
+          Data.Distance_Measured := Distance_Desired;
+          Data.FAK_Calculated :=  MaterialCounter_Data.FAK;
+          
+          
+      END_IF;
+
+
+
+
+
+
+   END_REGION
+
+   REGION "HMI"
+      // System Status
+      // 
+
+      IF Data.Counter_Good = 0 THEN
+          
+          HMI.Status_FAK_Updater := STATUS_FAK_UPDATER_WHITE;
+          
+      ELSIF  Data.Err_AvgAbs < (Par.Avg_ErrTol / 2.0) THEN
+          
+          HMI.Status_FAK_Updater := STATUS_FAK_UPDATER_GREEN;
+          
+      ELSIF  Data.Err_AvgAbs > Par.Avg_ErrTol THEN
+          
+          HMI.Status_FAK_Updater:= STATUS_FAK_UPDATER_RED;
+          
+      ELSE
+          HMI.Status_FAK_Updater := STATUS_FAK_UPDATER_YELLOW;
+          
+      END_IF;
+
+      HMI.Status_Operating := Data.Status_Operating;
+      HMI.FAK_Calculated:= Data.FAK_Calculated;
+      HMI.Err_Avg := Data.Err_Avg;
+      HMI.Distance_Avg := Data.Distance_Measured;
+
+
+
+
+      // Mostra buffer su HMI
+      // 
+
+      // Buffer TP sempre uguale Data !
+      // 
+      HMI.Buffer_TP := Data.Buffer_TP;
+
+
+
+
+      // Trova il primo 
+      J_Exit := 0;
+      I_Exit := 0;
+
+      FOR i := 1 TO BUFFER_ITEMS DO
+          
+          IF HMI.Buffer_TP[i].Result = STATUS_GOOD THEN
+              
+              FOR j := 1 TO BUFFER_ITEMS DO
+                  
+                  IF Data.Buffer_RefHole[j].RTrkID = HMI.Buffer_TP[i].RTrkID THEN
+                      
+                      J_Exit := j;
+                      EXIT;
+                  END_IF;
+                  
+              END_FOR;
+          END_IF;
+          
+          IF J_Exit > 0 THEN
+              I_Exit := i;
+              EXIT;
+          END_IF;
+          
+      END_FOR;
+
+
+
+      // Cancella visualizzazione Buffer posizione riferimenti
+      // 
+      FOR i := 1 TO BUFFER_ITEMS DO
+          
+          HMI.Buffer_RefHole[i].RTrkID := 0;
+          HMI.Buffer_RefHole[i].Pos := -1;
+          HMI.Buffer_RefHole[i].PosShift := -1;
+          HMI.Buffer_RefHole[i].Err := 0;
+          HMI.Buffer_RefHole[i].Status := STATUS_NULL;
+          
+      END_FOR;
+
+      // Riepimento buffer posizione riferimenti allineando i valori di sinistra (TP) con i valori di destra (Ref)
+      // 
+      IF  I_Exit >= 1 AND I_Exit <= 10  AND  J_Exit >= 1 AND J_Exit <= BUFFER_ITEMS THEN
+          
+          
+          FOR i :=  I_Exit TO 10 DO
+              
+              IF (J_Exit + i - 1) >= 1 AND (J_Exit + i - 1) <= BUFFER_ITEMS THEN
+                  
+                  HMI.Buffer_RefHole[i] := Data.Buffer_RefHole[J_Exit + i - 1];
+                  
+              END_IF;
+              
+              
+          END_FOR;
+          
+      END_IF;
+
+
+      // Forza ultima riga del buffer di destra (Ref) con l'ultimo registrazione posizione riferimento inserita dei dati
+      // 
+      HMI.Buffer_RefHole[10] := Data.Buffer_RefHole[1]; // Sempre
+          
+
+      IF I_Exit = 0 THEN
+          HMI.Buffer_RefHole[9] := Data.Buffer_RefHole[2];
+          HMI.Buffer_RefHole[8] := Data.Buffer_RefHole[3];
+          HMI.Buffer_RefHole[7] := Data.Buffer_RefHole[4];
+          HMI.Buffer_RefHole[6] := Data.Buffer_RefHole[5];
+          HMI.Buffer_RefHole[5] := Data.Buffer_RefHole[6];
+          HMI.Buffer_RefHole[4] := Data.Buffer_RefHole[7];
+          HMI.Buffer_RefHole[3] := Data.Buffer_RefHole[8];
+          HMI.Buffer_RefHole[2] := Data.Buffer_RefHole[9];
+          HMI.Buffer_RefHole[1] := Data.Buffer_RefHole[10];
+          
+      END_IF;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

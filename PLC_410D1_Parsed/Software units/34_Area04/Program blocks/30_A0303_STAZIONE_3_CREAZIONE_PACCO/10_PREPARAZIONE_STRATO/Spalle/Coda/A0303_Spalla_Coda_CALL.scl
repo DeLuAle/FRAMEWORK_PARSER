@@ -1,0 +1,72 @@
+﻿// Block: A0303_Spalla_Coda_CALL
+// Title: Data In - Ax 
+
+FUNCTION "A0303_Spalla_Coda_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In - Ax 
+   VAR CONSTANT
+      MISSING : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In - Ax"
+      A0303_Spalla_Coda.Ax.DataIn.LS_Minus := NOT (A0303_Spalla_Ax_Coda_Posizionamento_Ls_Minimo);
+      A0303_Spalla_Coda.Ax.DataIn.LS_Plus := NOT (A0303_Spalla_Ax_Coda_Posizionamento_Ls_Massimo);
+      A0303_Spalla_Coda.DataIn.FC_Aticoll_Paregg := NOT (A0302_Ax_Pareggiatore_Coda_AntiCollisione);
+      A0303_Spalla_Coda.Ax.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_SpallaStrato_Coda;
+      A0303_Spalla_Coda.Ax.DataIn.Brake_M_Feedback := Areas_ITF.AG.CU_DI.FbkBrake_SpallaStrato_Coda;
+   END_REGION
+
+   REGION "Data In - OP"
+      A0303_Spalla_Coda.DataIn.OP_Pos := A04_HMI.MB3.Button.A0303.Spalla.Coda.OP_Pos;
+   END_REGION
+
+   REGION "CIn"
+      // Per muovere la spalla deve esserci il sostegno antiribaltamento tutto fuori per non collidere con i sollevatori
+
+      A0303_Spalla_Coda.CIn.Antiribaltamento.OutOfWorkspace := A0303_Manager.Sts.SostegnoCoda.Ax.InRestPos;
+      A0303_Spalla_Coda.CIn.Manager := A0303_Manager.COut.Spalla.Coda;
+   END_REGION
+
+   REGION "HW"
+      A0303_Spalla_Coda.HWID.Ax_TEL1 := HW_Const_Values.CU7_PN_2260A1_2_Standard_telegram_1;
+   END_REGION
+
+   REGION "Drive"
+      A0303_Spalla_Coda.Ax.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0303_Spalla_Coda.Ax.Drive.AccessPoint := HW_Const_Values.CU7_PN_610A1_ModuleAccessPoint;
+      A0303_Spalla_Coda.Ax.Drive.AxisID := CU7_ID_5_2260A1_2_2280M1;
+      A0303_Spalla_Coda.Ax.Drive.TokenChain := TOKENCHAIN_CU7;
+
+
+   END_REGION
+
+   REGION "Config"
+      A0303_Spalla_Coda.Config := PrjConfig_A04.A0303.Spalla.Coda;
+   END_REGION
+
+   REGION "Machine Call"
+      #A0303_Spalla_Coda(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone27,
+         DSI := F_DB.DSI_SpallaCoda,
+         Config := PrjConfig_A04.A0303.Spalla.Coda,
+         Par := A0303_Spalla_Pers.Par.Coda,
+         Par_Mach := A0303_Spalla_Pers.Par_Mach_Coda
+      );
+
+   END_REGION
+
+   REGION "Area ITF"
+      // Area ITF per Area 0302
+      // 
+      Areas_ITF.A04.A0303_SpallaTesta_Cout_Ax := A0303_Spalla_Testa.COut.Ax;
+      Areas_ITF.A04.A0303_SpallaCoda_Cout_Ax := A0303_Spalla_Coda.COut.Ax;
+
+   END_REGION
+
+
+END_FUNCTION

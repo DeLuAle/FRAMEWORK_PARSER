@@ -1,0 +1,78 @@
+﻿// Block: A01_Config
+
+DATA_BLOCK A01_Config
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Area01_Main : AreaConfig;
+      CoilHandlingMatCounter : Struct
+         Default_FAK : LReal;
+      END_STRUCT;
+      CoilHandling : CoilHandling_Config;
+      Coilcar : Struct
+         LsStopDelayON : Time;
+         LsStopDelayOFF : Time;
+         Move : SpeedMachine_Config;
+         Lift1 : ValveMachine_Config;
+         Lift2 : ValveMachine_Config;
+      END_STRUCT;
+      Area01_HU : Struct
+         Pump : HU_Pump_Config;
+         Tank : HU_Tank_Config;
+      END_STRUCT;
+      Decoiler_HU : Struct
+         Pump : HU_Pump_Config;
+         Tank : HU_Tank_Config;
+      END_STRUCT;
+      DecoilersHRot : Struct
+         Rotation : ValveMachine_Config;
+         Pivot : ValveMachine_Config;
+         Traslation : Positioning_DOL_Machine_Config;
+      END_STRUCT;
+      Decoiler_1_2 : Struct
+         Loop : Struct
+            Exist_S_MinHigh : Bool;
+            Exist_S_SpeedAdjust : Bool;
+         END_STRUCT;
+         Feed : SpeedMachine_Config;
+         Jaws : ValveMachine_Config;
+         Coupling : ValveMachine_Config;
+         SnubberLift : ValveMachine_Config;
+         SnubberRoll : ValveMachine_Config;
+         Enable_End_Of_Coil_Using_Loop : Bool;
+      END_STRUCT;
+      Peeler : Struct
+         Lift : ValveMachine_Config;
+         Extension : ValveMachine_Config;
+      END_STRUCT;
+      Straightener : Struct
+         Feed : PositioningMachine_Config;
+         Lift_Entry : ValveMachine_Config;
+         Lift_Exit : ValveMachine_Config;
+         Lift_Entry_Exist : Bool;
+         Lift_Exit_Exist : Bool;
+      END_STRUCT;
+      JB : Struct
+         MeasurePasslineReference : Real;
+         MaxMaterialWidth : Real;
+         Torch : Positioning_DOL_Machine_Config;
+         ClampEntry : ValveMachine_Config;
+         ClampExit : ValveMachine_Config;
+         CutHead : ValveMachine_Config;
+         Pinchroll_Feed : SpeedMachine_Config;
+         Pinchroll_Lift : ValveMachine_Config;
+      END_STRUCT;
+      Loop1 : Struct
+         PitTables_Exist : Bool;
+         Entry_PercentagePosError : LReal;
+         Exit_PercentagePosError : LReal;
+         Delay_CheckNoEntryBkwEnable : Time;
+         Delay_CheckNoEntryFwdEnable : Time;
+         Delay_CheckNoExitBkwEnable : Time;
+         Delay_CheckNoExitFwdEnable : Time;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

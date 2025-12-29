@@ -1,0 +1,68 @@
+﻿FUNCTION "Coil_Item_Check_AspoInCarico_Can_be_Write" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      Production : "Prod_Coil_Area";
+      Item_Write : "Coil_Item";
+   END_VAR
+
+
+BEGIN
+	
+	REGION INIT
+	    
+	    #Coil_Item_Check_AspoInCarico_Can_be_Write := "PROD_FUN_RESULT_OK";
+	    
+	END_REGION
+	
+	
+	REGION CHECK
+	    
+	    
+	    IF #Production.Decoiler_InLine <= 0 THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_DECOILER_NOT_IN_LOAD_POSITION";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	    IF "Production".Coil_Data.ASPO_IN_CARICO.C_ID > 0 THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_ALREADY_PRESENT";
+	        RETURN;
+	    END_IF;
+	    
+	    IF "Production".Coil_Data.ASPO_IN_CARICO.MES_CN <> '' THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_ALREADY_PRESENT";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    IF "Production".Coil_Data.ASPO_IN_CARICO.MES_HN <> '' THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_ALREADY_PRESENT";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    IF "Production".Coil_Data.ASPO_IN_CARICO.MES_CN <> '' THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_ALREADY_PRESENT";
+	        RETURN;
+	    END_IF;
+	    
+	    IF "Production".Coil_Data.ASPO_IN_CARICO.MES_HN <> '' THEN
+	        #Coil_Item_Check_AspoInCarico_Can_be_Write := "ERR_COIL_DATA_CAN_NOT_WRITE_ALREADY_PRESENT";
+	        RETURN;
+	    END_IF;
+	    
+	    
+	    
+	    
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION
+

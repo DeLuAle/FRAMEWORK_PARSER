@@ -1,0 +1,68 @@
+﻿// Block: A01_ButtonsSafe_CALL
+// Title: LB101
+
+FUNCTION "A01_ButtonsSafe_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// LB101
+
+BEGIN
+   REGION "LB101"
+      #LB101(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((((Area01.AreaInterface.Man AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+   REGION "LB111"
+      #LB111(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT ((((((NOT (LB101.Reset_OthersPBs_Activation_OUT) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+   REGION "LB112"
+      #LB112(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((((Area01.AreaInterface.Man AND NOT (LB101.Reset_OthersPBs_Activation_OUT)) AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+   REGION "LB113"
+      #LB113(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((((Area01.AreaInterface.Man AND NOT (LB101.Reset_OthersPBs_Activation_OUT)) AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+   REGION "LB113 Welder"
+      #LB113_W(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((((Area01.AreaInterface.Man AND NOT (LB101.Reset_OthersPBs_Activation_OUT)) AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+   REGION "LB114 Feed material of area 01"
+      #LB114_FeedA01(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT ((((((((Area01.AreaInterface.Man AND NOT (LB101.Reset_OthersPBs_Activation_OUT)) AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB131.Reset_OthersPBs_Activation_OUT)) AND NOT (Areas_ITF.A02.PB.LB114_Interlock_PB_FeedA01))),
+         Reset_OthersPBs_Activation_OUT => Areas_ITF.A01.PB.LB114_Interlock_PB_FeedA02
+      );
+
+   END_REGION
+
+   REGION "LB131"
+      #LB131(
+         en := TRUE,
+         Reset_OthersPBs_Activation_IN := NOT (((((((Area01.AreaInterface.Man AND NOT (LB101.Reset_OthersPBs_Activation_OUT)) AND NOT (LB111.Reset_OthersPBs_Activation_OUT)) AND NOT (LB112.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113.Reset_OthersPBs_Activation_OUT)) AND NOT (LB113_W.Reset_OthersPBs_Activation_OUT)) AND NOT (LB114_FeedA01.Reset_OthersPBs_Activation_OUT)))
+      );
+
+   END_REGION
+
+
+END_FUNCTION

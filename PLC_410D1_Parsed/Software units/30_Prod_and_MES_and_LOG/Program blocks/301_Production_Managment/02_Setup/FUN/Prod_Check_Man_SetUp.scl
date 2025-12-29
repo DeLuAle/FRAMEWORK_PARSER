@@ -1,0 +1,42 @@
+﻿FUNCTION "Prod_Check_Man_SetUp" : DInt
+{ S7_Optimized_Access := 'TRUE' ; Published := 'FALSE' }
+VERSION : 0.1
+   VAR_INPUT 
+      STS_Man_SetUp : "Prod_SetUp_Man_Feedbak";
+   END_VAR
+
+   VAR_TEMP 
+      i : Int;
+   END_VAR
+
+
+BEGIN
+	#Prod_Check_Man_SetUp := "PROD_FUN_RESULT_OK";
+	
+	
+	
+	
+	FOR #i := 1 TO "SETUP_MAN_OPERATIONS_QTY" DO
+	    
+	    IF NOT #STS_Man_SetUp.Ack_Eseguito_X[#i] THEN
+	        #Prod_Check_Man_SetUp := "ERR_SET_UP_MAN_NOT_COMPLETE";
+	        EXIT;
+	        
+	    END_IF;
+	    
+	END_FOR;
+	
+	
+	FOR #i := 1 TO "SETUP_MAN_OP_WITH_CODE_QTY" DO
+	    
+	    IF NOT #STS_Man_SetUp.Ack_Eseguito_Y[#i] THEN
+	        #Prod_Check_Man_SetUp := "ERR_SET_UP_MAN_NOT_COMPLETE";
+	        EXIT;
+	        
+	    END_IF;
+	    
+	    
+	END_FOR;
+	
+END_FUNCTION
+

@@ -1,0 +1,49 @@
+﻿FUNCTION "ByteSwap_DWORD" : DWord
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT 
+      B3 : Byte;   // MSB
+      B2 : Byte;
+      B1 : Byte;
+      B0 : Byte;   // LSB
+   END_VAR
+
+   VAR_TEMP 
+      tmpDWORD : DWord;
+   END_VAR
+
+
+BEGIN
+	// Eseguie riordino 4 byte per invertire l'endianness (es. Big-Endian ↔ Little-Endian)
+	//
+	
+	// Ricostruisci DWORD con endian swap
+	// 
+	(*
+	#tmpDWORD :=
+	
+	SHL(IN := BYTE_TO_DWORD(#B3), N := 24)
+	OR
+	SHL(IN := BYTE_TO_DWORD(#B2), N := 16)
+	OR
+	SHL(IN := BYTE_TO_DWORD(#B1), N := 8)
+	OR
+	BYTE_TO_DWORD(#B0);
+	*)
+	"Sys".ByPass := "Sys".ByPass;
+	
+	
+	
+	
+	#tmpDWORD.%B0 := #B3;
+	#tmpDWORD.%B1 := #B2;
+	#tmpDWORD.%B2 := #B1;
+	#tmpDWORD.%B3 := #B0;
+	
+	
+	
+	// Return Value 
+	// 
+	#ByteSwap_DWORD := #tmpDWORD;
+END_FUNCTION
+

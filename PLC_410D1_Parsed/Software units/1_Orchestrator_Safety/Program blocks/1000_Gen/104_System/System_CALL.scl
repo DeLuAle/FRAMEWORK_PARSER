@@ -1,0 +1,22 @@
+﻿// Block: System_CALL
+// Title: System Call
+
+FUNCTION "System_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// System Call
+
+BEGIN
+   REGION "System Call"
+      #System_IDB(
+         en := TRUE,
+         PbLampTest := HMI.AreaGen.Pb_LampTest
+      );
+
+   END_REGION
+
+   REGION "TokenChain Main"
+   END_REGION
+
+
+END_FUNCTION

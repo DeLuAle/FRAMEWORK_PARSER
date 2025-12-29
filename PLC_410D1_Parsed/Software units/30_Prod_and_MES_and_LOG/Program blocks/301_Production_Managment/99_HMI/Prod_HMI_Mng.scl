@@ -1,0 +1,376 @@
+﻿// Block: Prod_HMI_Mng
+// Title: <<<HMI >>>
+
+FUNCTION_BLOCK "Prod_HMI_Mng"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<<HMI >>>
+   VAR_INPUT
+      CTRL_LinePreraration : Bool;
+      MODE : Prod_Mode;
+      PART_PROD : Prod_Part_Area;
+      BEAM_PROD : Prod_Beam_Area;
+   END_VAR
+
+   VAR_IN_OUT
+      SET_UP : Prod_SetUp_Data;
+   END_VAR
+
+   VAR
+      i : Int;
+      indx_Detail : Int;
+      Sts : Struct
+         Enable_Pop_ACT_to_TODO : Bool;
+         Sel_TODO_CanBeExecuted : Bool;
+      END_STRUCT;
+      Ctrl : Struct
+         Pop_ACT_to_TODO : Bool;
+         "Pop_O_ACT_&_Push_O_ENDING" : Bool;
+         "Pop_O_TODO_&_Push_O_ACT" : Bool;
+         Push_HMI_Order_Push_O_TODO : Bool;
+         Move_O_TODO_UP : Bool;
+         Move_O_TODO_DW : Bool;
+         "Pop_O_TODO_&_Push_O_ENDING" : Bool;
+      END_STRUCT;
+      TON_HMI_Pop_ACT_To_TODO : TON_TIME;
+      TON_HMI_Clear_Index_TODO : TON_TIME;
+      TON_HMI_Pop_ACT_To_ENDING : TON_TIME;
+      TON_HMI_Pop_TODO_To_ACT : TON_TIME;
+      TON_HMI_Pop_TODO_To_ENDING : TON_TIME;
+      O_TODO_Push_ManualOrder_HMI : Prod_O_TODO_Push_ManualOrder;
+      O_TODO_Swap_Positions_HMI : Prod_O_TODO_Swap_Positions;
+      SetUp_Man_Mng : Prod_SetUp_Man;
+      AUX : Struct
+         Button_Pop_ACT_To_ENDING : Bool;
+         Button_Pop_ACT_To_TODO : Bool;
+         Button_Pop_TODO_To_ACT : Bool;
+         Button_Push_ManualOrder_To_TODO : Bool;
+         Button_ChangeOrder_TODO_UP : Bool;
+         Button_ChangeOrder_TODO_DW : Bool;
+         Button_Pop_TODO_To_ENDING : Bool;
+         Button_ShowDetatails : Bool;
+      END_STRUCT;
+   END_VAR
+
+   VAR_TEMP
+      RETVAL : DInt;
+      OK : Bool;
+      P_Total : DInt;
+      P_Reached_EVEN_Qty : Bool;
+      PE : Struct
+         Button_Pop_ACT_To_ENDING : Bool;
+         Button_Pop_ACT_To_TODO : Bool;
+         Button_Pop_TODO_To_ACT : Bool;
+         Button_Push_ManualOrder_To_TODO : Bool;
+         Button_ChangeOrder_TODO_UP : Bool;
+         Button_ChangeOrder_TODO_DW : Bool;
+         Button_Pop_TODO_To_ENDING : Bool;
+         Button_ShowDetatails : Bool;
+      END_STRUCT;
+   END_VAR
+
+
+BEGIN
+   REGION "<<<HMI >>>"
+
+      //
+
+      # Da HMI si possono fare queste operazioni:
+
+      **Mettere in pausa un ordine in lavoro che era in produzione
+
+      - Se cambio produzione automatico è OFF
+      - Se Area (2) è in manuale
+      - Se il numero di SemiGusci è pari oppure produzione di pezzi non accoppiati
+
+      **Interrompere un ordine in lavoro spostandolo negli ordini in via di completamente
+
+      - Solo se la macchina è in set up per cancellare eventuali ordini non conclusi
+
+      **Mettere in lavoro un ordine della lista
+
+      - Solo se è impostato che il cambio ordine automatico è OFF
+      - Se Area (2) è in manuale
+      - Si deve selezionare la riga che si vuole caricare ("Production_HMI".TODO_Index > 1)
+
+
+      ** Aggiungere un ordine di lavoro che non arriva dal MES (manuale)
+
+      - Se parametro funzionamento MES è messo a OFF
+      - Se nella lista non ci sono ordini arrivati dal MES presenti
+
+
+
+      ** Cambiare sequenza di esecuzione degli ordini lavoro che non sono arrivati dal MES (manuale)
+
+      - Se parametro funzionamento MES è messo a OFF
+      - Se cambio produzione automatico è OFF
+      - Se nella lista non ci sono ordini arrivati dal MES presenti
+
+
+
+
+
+   END_REGION
+
+   REGION "Fronte di salita pulsanti"
+      PE.Button_Pop_ACT_To_ENDING := PosEdge(Production_HMI.Button_Pop_ACT_To_ENDING.Pressed);
+      PE.Button_Pop_ACT_To_TODO := PosEdge(Production_HMI.Button_Pop_ACT_To_TODO.Pressed);
+      PE.Button_Pop_TODO_To_ACT := PosEdge(Production_HMI.Button_Pop_TODO_To_ACT.Pressed);
+      PE.Button_Push_ManualOrder_To_TODO := PosEdge(Production_HMI.Button_Push_ManualOrder_To_TODO.Pressed);
+      PE.Button_ChangeOrder_TODO_UP := PosEdge(Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP);
+      PE.Button_ChangeOrder_TODO_DW := PosEdge(Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW);
+      PE.Button_Pop_TODO_To_ENDING := PosEdge(Production_HMI.Button_Pop_TODO_To_ENDING.Pressed);
+      PE.Button_ShowDetatails := PosEdge(Production_HMI.Button_ShowDetatails.Pressed);
+   END_REGION
+
+   REGION "HMI - Cancellazione indice di selezione per inattività"
+      // L'indice di selezione su lista ordini da fare (TODO) si popola premendo su pulsante nascoto sopra ogni riga visualizzata
+
+      #TON_HMI_Clear_Index_TODO(
+         IN := (((((((Production_HMI.Sel_Index > 0) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Pressed)) AND NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Pressed)) AND NOT (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP)) AND NOT (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW)) AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Pressed)) AND NOT (Production_HMI.Button_ShowDetatails.Pressed)),
+         PT := T#1m
+      );
+
+      IF (#TON_HMI_Clear_Index_TODO.Q OR MODE.MES_ON) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Ordine in lavoro ha eseguito un numero di parti dispari = Abilitazione a PAUSA ORDINE"
+      P_Total := Production.O_ACT.Parts_GOOD + Production.O_ACT.Parts_GOOD_R;
+
+
+      P_Reached_EVEN_Qty := NOT( (P_Total MOD 2) <> 0);
+
+
+
+
+
+
+
+   END_REGION
+
+   REGION "HMI - Spostamente MANUALE ordine da lavoro a lista ordini da fare (ACT -> TODO) = PAUSA ORDINE INIZIATO"
+      #TON_HMI_Pop_ACT_To_TODO(
+         IN := -1,
+         PT := T#2s
+      );
+
+      Production_HMI.Button_Pop_ACT_To_TODO.AllowControl := ((((((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND PART_PROD.Man) AND PART_PROD.MaterialFeedingStandstill) AND (Production.O_ACT.O_ID > 0)) AND NOT (Production_HMI.Button_Pop_ACT_To_TODO.Done)) AND NOT (Production_HMI.Button_Pop_ACT_To_TODO.Error));
+      Production_HMI.Button_Pop_ACT_To_TODO.Show := (Production_HMI.Button_Pop_ACT_To_TODO.AllowControl OR NOT ((NOT (Production_HMI.Button_Pop_ACT_To_TODO.Done) AND NOT (Production_HMI.Button_Pop_ACT_To_TODO.Error))));
+      Ctrl.Pop_ACT_to_TODO := (PE.Button_Pop_ACT_To_TODO AND Production_HMI.Button_Pop_ACT_To_TODO.AllowControl);
+      IF (Ctrl.Pop_ACT_to_TODO AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         Production_HMI.Button_Pop_ACT_To_TODO.Error := TRUE;
+      END_IF;
+      IF (Ctrl.Pop_ACT_to_TODO AND NOT (Production_HMI.Button_Pop_ACT_To_TODO.Error)) THEN
+         Production_HMI.Button_Pop_ACT_To_TODO.Done := TRUE;
+      END_IF;
+      IF NOT ((NOT (Production_HMI.Button_Pop_ACT_To_TODO.Error) AND NOT (Production_HMI.Button_Pop_ACT_To_TODO.Done))) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+      IF #TON_HMI_Pop_ACT_To_TODO.Q THEN
+         Production_HMI.Button_Pop_ACT_To_TODO.Error := FALSE;
+      END_IF;
+      IF #TON_HMI_Pop_ACT_To_TODO.Q THEN
+         Production_HMI.Button_Pop_ACT_To_TODO.Done := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Spostamente MANUALE ordine da lavoro a ordini in via di completamento (ACT -> ENDING)"
+      #TON_HMI_Pop_ACT_To_ENDING(
+         IN := -1,
+         PT := T#2s
+      );
+
+      Production_HMI.Button_Pop_ACT_To_ENDING.AllowControl := ((((((((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND P_Reached_EVEN_Qty) OR ((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND (Production.O_ACT.Beam_Code = 0)) OR (((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND true) AND NOT (Sys.ByPass))) AND PART_PROD.Man) AND PART_PROD.MaterialFeedingStandstill) AND (Production.O_ACT.O_ID > 0)) AND NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Error)) AND NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Done));
+      Production_HMI.Button_Pop_ACT_To_ENDING.Show := (Production_HMI.Button_Pop_ACT_To_ENDING.AllowControl OR NOT ((NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Error) AND NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Done))));
+      Ctrl.Pop_O_ACT_&_Push_O_ENDING := (PE.Button_Pop_ACT_To_ENDING AND Production_HMI.Button_Pop_ACT_To_ENDING.AllowControl);
+      IF (Ctrl.Pop_O_ACT_&_Push_O_ENDING AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         Production_HMI.Button_Pop_ACT_To_ENDING.Error := TRUE;
+      END_IF;
+      IF (Ctrl.Pop_O_ACT_&_Push_O_ENDING AND NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Error)) THEN
+         Production_HMI.Button_Pop_ACT_To_ENDING.Done := TRUE;
+      END_IF;
+      IF NOT ((NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Error) AND NOT (Production_HMI.Button_Pop_ACT_To_ENDING.Done))) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+      IF #TON_HMI_Pop_ACT_To_ENDING.Q THEN
+         Production_HMI.Button_Pop_ACT_To_ENDING.Error := FALSE;
+      END_IF;
+      IF #TON_HMI_Pop_ACT_To_ENDING.Q THEN
+         Production_HMI.Button_Pop_ACT_To_ENDING.Done := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Verifica se ordine selezionato è dello stesso PPrf con cui la linea è stata preparata"
+      Sts.Sel_TODO_CanBeExecuted := FALSE;
+
+
+      IF Production_HMI.Sel_Index >= 1 AND Production_HMI.Sel_Index <= PROD_TODO_ITEMS THEN
+          
+          RETVAL := Prod_Item_Check_CanGoinProduction(Production.O_TODO[Production_HMI.Sel_Index]);
+          
+          Sts.Sel_TODO_CanBeExecuted := RETVAL >= PROD_FUN_RESULT_OK;
+          
+      END_IF;
+
+      RETVAL := Prod_Item_Check_CanGoinProduction(Production.O_TODO[1]);
+
+   END_REGION
+
+   REGION "HMI - Spostamente MANUALE ordine da lista ordini da fare a ordine in Lavoro  (TODO -> ACT)"
+      #TON_HMI_Pop_TODO_To_ACT(
+         IN := -1,
+         PT := T#2s
+      );
+
+      Production_HMI.Button_Pop_TODO_To_ACT.AllowControl := (((((((((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND PART_PROD.Man) AND PART_PROD.MaterialFeedingStandstill) AND (Production.O_ACT.O_ID <= 0)) AND (Production_HMI.Sel_Index >= 1)) AND (Production_HMI.Sel_Index <= #PROD_TODO_ITEMS)) AND Sts.Sel_TODO_CanBeExecuted) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Error)) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Done));
+      Production_HMI.Button_Pop_TODO_To_ACT.Show := (Production_HMI.Button_Pop_TODO_To_ACT.AllowControl OR NOT ((NOT (Production_HMI.Button_Pop_TODO_To_ACT.Error) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Done))));
+      Ctrl.Pop_O_TODO_&_Push_O_ACT := (PE.Button_Pop_TODO_To_ACT AND Production_HMI.Button_Pop_TODO_To_ACT.AllowControl);
+      IF (Ctrl.Pop_O_TODO_&_Push_O_ACT AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         Production_HMI.Button_Pop_TODO_To_ACT.Error := TRUE;
+      END_IF;
+      IF (Ctrl.Pop_O_TODO_&_Push_O_ACT AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Error)) THEN
+         Production_HMI.Button_Pop_TODO_To_ACT.Done := TRUE;
+      END_IF;
+      IF NOT ((NOT (Production_HMI.Button_Pop_TODO_To_ACT.Error) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Done))) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+      IF #TON_HMI_Pop_TODO_To_ACT.Q THEN
+         Production_HMI.Button_Pop_TODO_To_ACT.Error := FALSE;
+      END_IF;
+      IF #TON_HMI_Pop_TODO_To_ACT.Q THEN
+         Production_HMI.Button_Pop_TODO_To_ACT.Done := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Caricamento MANUALE ordine di lavoro su TODO"
+      #O_TODO_Push_ManualOrder_HMI(
+         en := TRUE,
+         Execute := Ctrl.Push_HMI_Order_Push_O_TODO,
+         Enable := NOT (MODE.MES_ON),
+         Done => Production_HMI.Button_Push_ManualOrder_To_TODO.Done,
+         Error => Production_HMI.Button_Push_ManualOrder_To_TODO.Error
+      );
+
+      Ctrl.Push_HMI_Order_Push_O_TODO := ((((PE.Button_Push_ManualOrder_To_TODO OR (Production_HMI.Button_Push_ManualOrder_To_TODO.Pressed AND Ctrl.Push_HMI_Order_Push_O_TODO)) AND NOT (MODE.MES_ON)) AND NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Done)) AND NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Error));
+      IF NOT ((NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Done) AND NOT (Production_HMI.Button_Pop_TODO_To_ACT.Error))) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+      Production_HMI.Button_Push_ManualOrder_To_TODO.Show := (O_TODO_Push_ManualOrder_HMI.Ready OR NOT ((NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Done) AND NOT (Production_HMI.Button_Push_ManualOrder_To_TODO.Error))));
+      Production_HMI.Button_Push_ManualOrder_To_TODO.AllowControl := NOT (O_TODO_Push_ManualOrder_HMI.Busy);
+   END_REGION
+
+   REGION "HMI - Cambio ordine di esecuzione degli ordini su TODO"
+      #O_TODO_Swap_Positions_HMI(
+         en := TRUE,
+         UP := Ctrl.Move_O_TODO_UP,
+         DW := Ctrl.Move_O_TODO_DW,
+         Index := Production_HMI.Sel_Index
+      );
+
+      Production_HMI.Buttons_ChangeOrder_TODO.Show := (((PART_PROD.Man AND NOT (MODE.Cambio_Ordine_Automatico)) AND (Production_HMI.Sel_Index >= 1)) AND (Production_HMI.Sel_Index <= #PROD_TODO_ITEMS));
+      Production_HMI.Buttons_ChangeOrder_TODO.AllowControl := (((PART_PROD.Man AND NOT (MODE.Cambio_Ordine_Automatico)) AND (Production_HMI.Sel_Index >= 1)) AND (Production_HMI.Sel_Index <= #PROD_TODO_ITEMS));
+      Ctrl.Move_O_TODO_UP := (((Production_HMI.Buttons_ChangeOrder_TODO.Show AND Production_HMI.Buttons_ChangeOrder_TODO.AllowControl) AND PE.Button_ChangeOrder_TODO_UP) AND NOT (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW));
+      Ctrl.Move_O_TODO_DW := (((Production_HMI.Buttons_ChangeOrder_TODO.Show AND Production_HMI.Buttons_ChangeOrder_TODO.AllowControl) AND PE.Button_ChangeOrder_TODO_DW) AND NOT (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP));
+      IF (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP AND Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW) THEN
+         Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP := FALSE;
+      END_IF;
+      IF (Production_HMI.Buttons_ChangeOrder_TODO.Pressed_UP AND Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW) THEN
+         Production_HMI.Buttons_ChangeOrder_TODO.Pressed_DW := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Pop ordine da lista ordine da fare a ordini in via di completamento (TODO -> ENDING)"
+      #TON_HMI_Pop_TODO_To_ENDING(
+         IN := -1,
+         PT := T#2s
+      );
+
+      OK := ((((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND PART_PROD.Man) AND (Production_HMI.Sel_Index >= 1)) AND (Production_HMI.Sel_Index <= #PROD_TODO_ITEMS));
+      Production_HMI.Button_Pop_TODO_To_ENDING.Show := (((((NOT (MODE.MES_ON) AND NOT (MODE.Cambio_Ordine_Automatico)) AND PART_PROD.Man) AND (Production_HMI.Sel_Index >= 1)) AND (Production_HMI.Sel_Index <= #PROD_TODO_ITEMS)) OR NOT ((NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Error) AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Done))));
+      Production_HMI.Button_Pop_TODO_To_ENDING.AllowControl := ((((PART_PROD.Man OR NOT (MODE.Cambio_Ordine_Automatico)) AND OK) AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Error)) AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Done));
+      Ctrl.Pop_O_TODO_&_Push_O_ENDING := (PE.Button_Pop_TODO_To_ENDING AND Production_HMI.Button_Pop_TODO_To_ENDING.AllowControl);
+      IF (Ctrl.Pop_O_TODO_&_Push_O_ENDING AND (RETVAL < #PROD_FUN_RESULT_OK)) THEN
+         Production_HMI.Button_Pop_TODO_To_ENDING.Error := TRUE;
+      END_IF;
+      IF (Ctrl.Pop_O_TODO_&_Push_O_ENDING AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Error)) THEN
+         Production_HMI.Button_Pop_TODO_To_ENDING.Done := TRUE;
+      END_IF;
+      IF NOT ((NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Error) AND NOT (Production_HMI.Button_Pop_TODO_To_ENDING.Done))) THEN
+         Production_HMI.Sel_Index := -1;
+      END_IF;
+      IF #TON_HMI_Pop_TODO_To_ENDING.Q THEN
+         Production_HMI.Button_Pop_TODO_To_ENDING.Error := FALSE;
+      END_IF;
+      IF #TON_HMI_Pop_TODO_To_ENDING.Q THEN
+         Production_HMI.Button_Pop_TODO_To_ENDING.Done := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "HMI - Mostra dettagli com"
+      Production_HMI.Button_ShowDetatails.Show := FALSE;
+
+      IF Production_HMI.Sel_Index >= 301 THEN
+          indx_Detail := Production_HMI.Sel_Index - 300;
+          
+      ELSIF Production_HMI.Sel_Index >= 201 THEN
+          indx_Detail := Production_HMI.Sel_Index - 200;
+          
+      ELSIF Production_HMI.Sel_Index >= 101 THEN
+          indx_Detail := Production_HMI.Sel_Index - 100;
+          
+      ELSIF Production_HMI.Sel_Index >= 1 THEN
+          indx_Detail := Production_HMI.Sel_Index;
+      END_IF;
+
+
+      IF indx_Detail >= 1 AND indx_Detail <= PROD_TODO_ITEMS THEN
+          
+          Production_HMI.Button_ShowDetatails.Show := TRUE;
+          
+          IF Production_HMI.Button_ShowDetatails.Pressed THEN
+              
+              Production_HMI.Button_ShowDetatails.Pressed := FALSE;
+              Production_HMI.Button_ShowDetatails.Show := FALSE;
+              
+              IF Production_HMI.Sel_Index >= 301 THEN
+                  Production_HMI.Button_ShowDetatails.Data := Production.O_OUT[indx_Detail];
+                  
+              ELSIF Production_HMI.Sel_Index >= 201 THEN
+                  Production_HMI.Button_ShowDetatails.Data := Production.O_ENDING[indx_Detail];
+                  
+              ELSIF Production_HMI.Sel_Index >= 101 THEN
+                  Production_HMI.Button_ShowDetatails.Data := Production.O_ACT;
+              
+              ELSE
+                  Production_HMI.Button_ShowDetatails.Data := Production.O_TODO[indx_Detail];
+              END_IF;
+              
+              indx_Detail := -1;
+              
+          END_IF;
+          
+      ELSE
+          indx_Detail := -1;
+      END_IF;
+          
+          
+          
+          
+
+   END_REGION
+
+   REGION "GESTIONE ACK PER OPERAZIONE DI SETUP MANUALE ESEGUITE"
+      #SetUp_Man_Mng(
+         en := TRUE,
+         PART_PROD := PART_PROD,
+         BEAM_PROD := BEAM_PROD,
+         SET_UP := SET_UP
+      );
+
+   END_REGION
+
+
+END_FUNCTION_BLOCK

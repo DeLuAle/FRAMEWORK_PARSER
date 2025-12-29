@@ -1,0 +1,76 @@
+﻿// Block: Door_FB
+// Title: Rearm Door (Normal Or LockDoor)
+
+FUNCTION_BLOCK "Door_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Rearm Door (Normal Or LockDoor)
+   VAR_INPUT
+      LS : Bool;
+      EntryReq : Bool;
+      EntryEnable : Bool;
+      Reset : Bool;
+      LockEnable : Bool;
+      Existing : Bool;
+   END_VAR
+
+   VAR_OUTPUT
+      Unlock : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      Sts : udt_DoorSts;
+   END_VAR
+
+   VAR
+      xRE_Reset : Bool;
+      Rearm : Bool;
+      TON_Unlock : TON;
+   END_VAR
+
+
+BEGIN
+   REGION "Rearm Door (Normal Or LockDoor)"
+      Rearm := (((PosEdge(Reset) OR (Rearm AND Reset)) AND LockEnable) OR ((PosEdge(Reset) OR (Rearm AND Reset)) AND LS));
+   END_REGION
+
+   REGION "Door OK = Closed & Reset"
+      IF (NOT (LS) AND Existing) THEN
+         Sts.OK := FALSE;
+      ELSIF (Rearm OR NOT (Existing)) THEN
+         Sts.OK := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door Entry request / Normal stop"
+      IF (Rearm AND Sts.OK) THEN
+         Sts.NormalStop := FALSE;
+      ELSIF ((EntryReq AND Sts.OK) AND Existing) THEN
+         Sts.NormalStop := TRUE;
+      END_IF;
+   END_REGION
+
+   REGION "Door - Safe stop control"
+      Sts.SafeStop := ((Sts.NormalStop AND EntryEnable) OR (Sts.NormalStop AND Sts.SafeStop) OR NOT (Sts.OK));
+      Sts.EntryEnable := EntryEnable;
+   END_REGION
+
+   REGION "Door - Unlock"
+      #TON_Unlock(
+         IN := (Sts.NormalStop AND EntryEnable),
+         PT := T#100ms
+      );
+
+      Unlock := (((TON_Unlock.Q OR NOT (Sts.OK)) AND NOT (Rearm)) OR NOT (LockEnable) OR NOT (Existing));
+   END_REGION
+
+   REGION "Warning: Door Open"
+      Sts.Warning_DoorOpened := NOT (Sts.OK);
+   END_REGION
+
+   REGION "Warning: Door Open Request"
+      Sts.Warning_DoorOpenRequest := (Sts.NormalStop AND Sts.OK);
+   END_REGION
+
+
+END_FUNCTION_BLOCK

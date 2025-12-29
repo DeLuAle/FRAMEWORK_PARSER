@@ -1,0 +1,34 @@
+﻿// Block: PTrkMng_FB
+// Title: HMI - Gestione ricondizionamento
+
+FUNCTION_BLOCK "PTrkMng_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// HMI - Gestione ricondizionamento
+   VAR_INPUT
+      Area : AreaInterface;
+      A0202_MotionStandstill : Bool;
+   END_VAR
+
+   VAR CONSTANT
+      HMI_COLOR_LIGHT_GREY : Int;
+      HMI_COLOR_DARK_GREY : Int;
+      HMI_COLOR_RED : Int;
+      HMI_COLOR_GREEN : Int;
+   END_VAR
+
+
+BEGIN
+   REGION "HMI - Gestione ricondizionamento"
+      PTrk_HMI.Button_Part_Recondition_Good.Show := FALSE;
+      PTrk_HMI.Button_Part_Recondition_Good.AllowControl := FALSE;
+      IF ((PTrk_HMI.Button_Part_Recondition_Good.Show AND PTrk_HMI.Button_Part_Recondition_Good.AllowControl) AND PTrk_HMI.Button_Part_Recondition_Good.Pressed) THEN
+         PTrk_HMI.Button_Part_Recondition_Good.Pressed := FALSE;
+      END_IF;
+      IF ((PTrk_HMI.Button_Part_Recondition_Good.Show AND PTrk_HMI.Button_Part_Recondition_Good.AllowControl) AND PTrk_HMI.Button_Part_Recondition_Good.Pressed) THEN
+         PTrk.A0202.P.Quality := #RECOND_GOOD;
+      END_IF;
+   END_REGION
+
+
+END_FUNCTION_BLOCK

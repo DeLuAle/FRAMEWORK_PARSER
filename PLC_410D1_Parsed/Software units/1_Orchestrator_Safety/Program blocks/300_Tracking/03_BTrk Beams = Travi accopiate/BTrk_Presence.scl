@@ -1,0 +1,18 @@
+﻿// Block: BTrk_Presence
+
+FUNCTION "BTrk_Presence" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      Item : BTrk_item;
+   END_VAR
+
+
+BEGIN
+   REGION "Network 1"
+      ENO := Item.B_ID <> 0;
+
+   END_REGION
+
+
+END_FUNCTION

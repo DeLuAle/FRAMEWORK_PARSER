@@ -1,0 +1,579 @@
+﻿FUNCTION_BLOCK "SpeedAxis"
+{ S7_Optimized_Access := 'TRUE' ; Published := 'TRUE' }
+AUTHOR : PM
+FAMILY : Motion
+VERSION : 1.0
+   VAR_INPUT 
+      AxisCtrl : "TAx_Speed_Ctrl";
+      Drive : "TAx_DriveInterface";
+      PowerEnable : Bool;
+      PowerOffDelay : Time := T#10s;
+      StandtillVelocity : LReal := 0.0;   // Standstill theshold
+      StandstillDelay : Time := T#0s;   // Stanstille delay
+      Simulation : Bool;
+   END_VAR
+
+   VAR_OUTPUT 
+      AxisSts : "TAx_Speed_Sts";
+      Infeed_REQ_ON : Bool;   // Request to infeed 
+   END_VAR
+
+   VAR_IN_OUT 
+      Axis {InstructionName := 'TO_SpeedAxis'; LibVersion := '8.0'} : TO_SpeedAxis;
+      Alarm : "TAx_Speed_Alarms";
+      Warning : "TAx_Warnings";
+      Diag : "TO_Diagnostic";
+   END_VAR
+
+   VAR 
+      ReadAlarm { S7_SetPoint := 'False'} : "RW_SINAMICS_Par";
+      ReadWarning { S7_SetPoint := 'False'} : "RW_SINAMICS_Par";
+      POWER {InstructionName := 'MC_POWER'; LibVersion := '8.0'; S7_SetPoint := 'False'} : MC_POWER;
+      MOVE_VELOCITY {InstructionName := 'MC_MOVEVELOCITY'; LibVersion := '8.0'; S7_SetPoint := 'False'} : MC_MOVEVELOCITY;
+      RESET {InstructionName := 'MC_RESET'; LibVersion := '8.0'; S7_SetPoint := 'False'} : MC_RESET;
+      HALT {InstructionName := 'MC_HALT'; LibVersion := '8.0'; S7_SetPoint := 'False'} : MC_HALT;
+      STOP {InstructionName := 'MC_STOP'; LibVersion := '8.0'; S7_SetPoint := 'False'} : MC_STOP;
+      Ctrl : Struct
+         InfeedPower : Bool;
+         PowerEnable : Bool;
+         PowerOn : Bool;
+         MovePlus : Bool;
+         MoveMinus : Bool;
+         Halt : Bool;
+         Stop : Bool;
+         MoveDirection : Int;
+      END_STRUCT;
+      Sts : Struct
+         AxisSts { S7_SetPoint := 'False'} : "TAx_Speed_STATUSWORD";
+         AxisFault { S7_SetPoint := 'False'} : "TAx_Speed_ERRORWORD";
+         AxisWarning { S7_SetPoint := 'False'} : "TAx_Speed_WARNINGWORD";
+         Standstill : Bool;
+         GeneralConditions : Bool;
+         RestartConditions : Bool;
+         PowerPermit : Bool;
+         MoveVelPlusPermitted : Bool;
+         MoveVelMinusPermitted : Bool;
+         AxisEnabled : Bool;
+      END_STRUCT;
+      Simulate : Struct
+         Active : Bool;
+         Mode : UDInt;
+         WriteReq : Bool;
+      END_STRUCT;
+      Local : Struct
+         ErrorMC_Reset : Bool;
+         ErrorMC_Power : Bool;
+         ErrorMC_MoveVel : Bool;
+         ErrorMC_Halt : Bool;
+         ErrorMC_Stop : Bool;
+      END_STRUCT;
+      tonPowerOFF {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tofInfeedPowerRequest {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonStandstill {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tonHaltTimeOut {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      tofRestartActive {InstructionName := 'IEC_TIMER'; LibVersion := '1.0'; S7_SetPoint := 'False'} : IEC_TIMER;
+      MoveVelOldVelocity : LReal;
+      MoveVelVelocityChanged : Bool;
+   END_VAR
+
+   VAR_TEMP 
+      AxDw : DWord;
+      RetBool : Bool;
+      RetInt : Int;
+   END_VAR
+
+   VAR CONSTANT 
+      HALT_TIMEOUT : Time := T#10S;
+   END_VAR
+
+
+BEGIN
+	
+	REGION Info
+	    //=============================================================================
+	    //PM FORMING
+	    //-----------------------------------------------------------------------------
+	    // Library: StandardBlocks
+	    // Tested with: S7-1518TF
+	    // Engineering: TIA Portal V18
+	    // Restrictions: -
+	    // Requirements: S7-1500
+	    // Functionality: Velocity Axis
+	    //
+	    // v0.0.1  10/05/2022
+	    // v0.0.2  20/05/2022 MC_Stop Added, General improvment
+	    // v0.0.3  24/05/2022 General Fixes, added Peek_bool for drive warning
+	    // v0.0.4  05/06/2022 Diagnostic implement
+	    // v0.0.5  29/07/2022 General Fixes, add alarms limit plus/minus
+	    // v0.0.6  23/08/2022 MC_Halt command modified, general fixes
+	    // v0.0.7  13/09/2022 RW Sinamics par modified
+	    // v0.0.8  20/10/2022 External Control added
+	    // v0.0.9  15/11/2022 Restart TO Management added, TO Diagnostic modified, Alarm-warning-Diag moved in INOUT
+	    // v1.0.0  28/12/2022 New version TIA V18
+	    // v1.1.0  14/02/2022 Simulation added
+	    // v1.1.1  24/07/2023 Added AxisSts.Done and status kinemtic bit
+	    //=============================================================================
+	END_REGION
+	
+	REGION Axis Status
+	    //=============================================================
+	    // Get TAxis faults 
+	    //=============================================================
+	    #AxDw := #Axis.ErrorWord;
+	    SCATTER(IN := #AxDw.%W0,
+	            OUT => #Sts.AxisFault);
+	    
+	    //=============================================================
+	    // Get TAxis warnings
+	    //=============================================================
+	    #AxDw := #Axis.WarningWord;
+	    SCATTER(IN := #AxDw.%W0,
+	            OUT => #Sts.AxisWarning);
+	    //Overwrite Drive warning bit from telegram
+	    IF #Axis.Actor.Interface.AddressIn.AREA = 16#0081 THEN
+	        #Sts.AxisWarning.DriveWarning := PEEK_BOOL(area := #Axis.Actor.Interface.AddressIn.AREA,
+	                                         dbNumber := #Axis.Actor.Interface.AddressIn.DB_NUMBER,
+	                                         byteOffset := UDINT_TO_INT(#Axis.Actor.Interface.AddressIn.OFFSET / 8) + 1,
+	                                         bitOffset := 7);
+	    END_IF;
+	    
+	    //=============================================================
+	    // Build status of TAxis Object
+	    //=============================================================
+	    #AxDw := #Axis.StatusWord;
+	    SCATTER(IN := #AxDw,
+	            OUT => #Sts.AxisSts);
+	    
+	    //Standstill
+	    #tonStandstill.TON(IN := #Axis.Velocity = 0.0 AND ABS(#Axis.ActualSpeed) < #StandtillVelocity,
+	                       PT := #StandstillDelay);
+	    #Sts.Standstill := #tonStandstill.Q;
+	
+	END_REGION
+	
+	
+	REGION Alarms & Warnings
+	    //=============================================================
+	    // Reset
+	    //=============================================================
+	    IF #AxisCtrl.Rst OR #RESET.Done THEN
+	        
+	        #Local.ErrorMC_Reset := FALSE;
+	        #Local.ErrorMC_Power := FALSE;
+	        #Local.ErrorMC_MoveVel := FALSE;
+	        #Local.ErrorMC_Halt := FALSE;
+	        #Local.ErrorMC_Stop := FALSE;
+	        
+	    END_IF;
+	    
+	    //=============================================================
+	    // TO Axis alarm presence
+	    //=============================================================
+	    IF #Sts.AxisSts.Error THEN
+	        #Alarm.TOAxis := #Axis.ErrorDetail.Reaction > 0;
+	        #Diag.TO_Message := #Axis.ErrorDetail.Number;
+	    ELSE
+	        #Alarm.TOAxis := FALSE;
+	        #Diag.TO_Message := 0;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Drive Alarm presence
+	    //=============================================================
+	    #Alarm.Drive := #Sts.AxisFault.DriveFault;
+	    
+	    //=============================================================
+	    // MC Errors
+	    //=============================================================
+	    IF #RESET.Error THEN
+	        #Local.ErrorMC_Reset := TRUE;
+	        #Diag.#MC_Message := #RESET.ErrorId;
+	    END_IF;
+	    IF #POWER.Error THEN
+	        #Local.ErrorMC_Power := TRUE;
+	        #Diag.#MC_Message := #POWER.ErrorId;
+	    END_IF;
+	    IF #MOVE_VELOCITY.Error THEN
+	        #Local.ErrorMC_MoveVel := TRUE;
+	        #Diag.#MC_Message := #MOVE_VELOCITY.ErrorId;
+	    END_IF;
+	    IF #HALT.Error THEN
+	        #Local.ErrorMC_Halt := TRUE;
+	        #Diag.#MC_Message := #HALT.ErrorId;
+	    END_IF;
+	    IF #STOP.Error THEN
+	        #Local.ErrorMC_Stop := TRUE;
+	        #Diag.#MC_Message := #STOP.ErrorId;
+	    END_IF;
+	    
+	    #Alarm.MCFunction := #Local.ErrorMC_Reset
+	                    OR #Local.ErrorMC_Power
+	                    OR #Local.ErrorMC_MoveVel
+	                    OR #Local.ErrorMC_Halt
+	                    OR #Local.ErrorMC_Stop;
+	    
+	    IF NOT #Alarm.MCFunction THEN
+	        #Diag.MC_Message := 0;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Warning
+	    //=============================================================
+	    #Warning.Drive := #Sts.AxisWarning.DriveWarning;
+	    
+	    #Warning.TOAxis := (#Sts.AxisSts.Error AND #Axis.ErrorDetail.Reaction = 0)
+	                    OR #Axis.WarningWord <> 0
+	                    OR #Diag.TO_RestartNeeded
+	                    OR #Diag.TO_RestartActive
+	                    OR #Diag.TO_SimulationActive;
+	    
+	END_REGION
+	                
+	                
+	REGION Diagnostic
+	    
+	    #Diag.DeviceType := 11;
+	    
+	    //=============================================================
+	    // Diagnostic bit
+	    //=============================================================
+	    #Diag.ErrorMC_Reset := #Local.ErrorMC_Reset;
+	    #Diag.ErrorMC_Power := #Local.ErrorMC_Power;
+	    #Diag.ErrorMC_MoveVel := #Local.ErrorMC_MoveVel;
+	    #Diag.ErrorMC_Halt := #Local.ErrorMC_Halt;
+	    #Diag.ErrorMC_Stop := #Local.ErrorMC_Stop;
+	    
+	    #Diag.MC_ErrorPresence := #Alarm.MCFunction;
+	    #Diag.TO_ErrorPresence := #Alarm.TOAxis;
+	    #Diag.Drive_ErrorPresence := #Alarm.Drive;
+	    
+	    #Diag.TO_RestartNeeded := #Sts.AxisSts.OnlineStartValuesChanged;
+	    #Diag.TO_RestartEnable := #Sts.RestartConditions;
+	    #Diag.TO_RestartActive := #tofRestartActive.Q;
+	    #Diag.TO_SimulationActive := #Simulate.Active;
+	    
+	    //=============================================================
+	    // Drive Diagnostic
+	    //=============================================================
+	    IF #Drive.AccessPoint > 0 AND #Drive.TokenChain > 0 AND  NOT #Simulation THEN
+	        
+	        #ReadAlarm(Enable := #Sts.AxisFault.DriveFault,
+	                   ReadWrite := 0,
+	                   ParNo := 2131,
+	                   Index := 0,
+	                   AxisNo := #Drive.AxisID,
+	                   HW_ID := #Drive.AccessPoint,
+	                   "TokenChain" := #Drive.TokenChain);
+	        
+	        #ReadWarning(Enable := #Sts.AxisWarning.DriveWarning AND NOT #Sts.AxisFault.DriveFault,
+	                   ReadWrite := 0,
+	                   ParNo := 2132,
+	                   Index := 0,
+	                   AxisNo := #Drive.AxisID,
+	                   HW_ID := #Drive.AccessPoint,
+	                   "TokenChain" := #Drive.TokenChain);
+	        
+	        
+	        IF #Sts.AxisFault.DriveFault THEN
+	            IF #ReadAlarm.Done THEN
+	                #Diag.Drive_Message := REAL_TO_UINT(#ReadAlarm.ValueReadReal);
+	            END_IF;
+	        ELSIF #Sts.AxisWarning.DriveWarning THEN
+	            IF #ReadWarning.Done THEN
+	                #Diag.Drive_Message := REAL_TO_UINT(#ReadWarning.ValueReadReal);
+	            END_IF;
+	        ELSE
+	            #Diag.Drive_Message := 0;
+	        END_IF;
+	    ELSE
+	        #Diag.Drive_Message := 0;
+	    END_IF;
+	    
+	    //=============================================================
+	    // Diagnotic message type
+	    //=============================================================
+	    IF #Alarm.TOAxis
+	        OR #Alarm.MCFunction
+	        OR #Alarm.Drive
+	    THEN
+	        #Diag.MessageType := 2;
+	    ELSIF #Warning.TOAxis
+	        OR #Warning.Drive
+	    THEN
+	        #Diag.MessageType := 1;
+	    ELSE
+	        #Diag.MessageType := 0;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION Conditions
+	    //=============================================================
+	    // General condition to execute MC operation
+	    //=============================================================
+	    #Sts.GeneralConditions := NOT #AxisCtrl.SafeStop
+	                            AND NOT #Alarm.TOAxis
+	                            AND NOT #Alarm.MCFunction;
+	END_REGION
+	
+	
+	REGION Simulation
+	    #Simulate.Active := #Sts.AxisSts.AxisSimulation AND #Axis.VirtualAxis.Mode = 0;
+	    
+	    IF #Axis.VirtualAxis.Mode = 0 THEN
+	        
+	        IF #Simulation <> #Simulate.Active AND NOT #Diag.TO_RestartActive THEN
+	            IF #Simulation = TRUE THEN
+	                #Simulate.Mode := 1;
+	            ELSE
+	                #Simulate.Mode := 0;
+	            END_IF;
+	            #Simulate.WriteReq := TRUE;
+	        END_IF;
+	        
+	        #RetInt := WRIT_DBL(REQ := #Simulate.WriteReq, SRCBLK := #Simulate.Mode, BUSY => #RetBool, DSTBLK => #Axis.Simulation.Mode);
+	        
+	        IF #RetInt = 16#7002 AND #Simulate.WriteReq THEN
+	            #Simulate.WriteReq := FALSE;
+	            #Diag.TO_RestartCmd := TRUE;
+	        END_IF;
+	        
+	    END_IF;
+	END_REGION
+	
+	
+	REGION Reset
+	    //=============================================================
+	    // Axis restart active
+	    //=============================================================
+	    #tofRestartActive.TOF(IN := #Sts.AxisSts.RestartActive,
+	    PT := T#1S);
+	    
+	    //=============================================================
+	    // Axis restart conditions
+	    //=============================================================
+	    #Sts.RestartConditions := NOT (#AxisCtrl.Power
+	                                OR #AxisCtrl.MovePlus
+	                                OR #AxisCtrl.MoveMinus
+	                                OR #AxisCtrl.ExtControl
+	                                OR #MOVE_VELOCITY.Busy
+	                                OR #HALT.Busy
+	                                OR #STOP.Busy)
+	                                AND #Sts.Standstill
+	                                AND NOT #AxisCtrl.Rst
+	                                AND NOT #tofRestartActive.Q;
+	    
+	    //=============================================================
+	    // Axis reset
+	    //=============================================================
+	    #RESET(Axis := #Axis,
+	           Execute := #AxisCtrl.Rst OR ((#AxisCtrl.RstHW OR #Diag.TO_RestartCmd) AND #Sts.RestartConditions),
+	           Restart := (#AxisCtrl.RstHW OR #Diag.TO_RestartCmd) AND #Sts.RestartConditions);
+	    
+	    IF NOT #RESET.Busy THEN
+	        #Diag.TO_RestartCmd := FALSE;
+	    END_IF;
+	    
+	END_REGION
+	
+	
+	REGION Power
+	    //=============================================================
+	    // Power permit
+	    //=============================================================
+	    #Sts.PowerPermit := NOT #AxisCtrl.SafeStop
+	                        AND #Drive.Infeed_ON
+	                        AND NOT #Alarm.TOAxis
+	                        AND NOT #Local.ErrorMC_Power;
+	    //=============================================================
+	    // Power command
+	    //=============================================================
+	    #Ctrl.PowerEnable := (#AxisCtrl.Power
+	                        OR #AxisCtrl.MovePlus 
+	                        OR #AxisCtrl.MoveMinus
+	                        OR #AxisCtrl.ExtControl
+	                        OR #MOVE_VELOCITY.Busy
+	                        OR #HALT.Busy
+	                        OR #STOP.Busy)
+	                        AND #Sts.PowerPermit ;    
+	    //=============================================================
+	    // Delay OFF Power
+	    //=============================================================
+	    
+	    #tonPowerOFF.TON(IN := NOT #Ctrl.PowerEnable AND #Ctrl.PowerOn,
+	             PT := #PowerOffDelay);
+	    
+	    IF #tonPowerOFF.Q OR (NOT #Sts.PowerPermit AND #Sts.Standstill) OR NOT #PowerEnable  THEN
+	        #Ctrl.PowerOn := FALSE;
+	    ELSIF #Ctrl.PowerEnable THEN
+	        #Ctrl.PowerOn := TRUE;
+	    END_IF;
+	
+	    //=============================================================
+	    // MC Power
+	    //=============================================================
+	    #POWER(Axis := #Axis,
+	           Enable := #Ctrl.PowerOn,
+	           StartMode := 1,
+	           StopMode := 2);
+	    
+	    #Sts.AxisEnabled := #POWER.Status AND #Sts.AxisSts.Enable;
+	    
+	    //=============================================================
+	    // Power request to INFEED
+	    //=============================================================
+	     #Ctrl.InfeedPower := #AxisCtrl.Power
+	                         OR #AxisCtrl.MovePlus
+	                         OR #AxisCtrl.MoveMinus
+	                         OR #AxisCtrl.ExtControl
+	                         OR #Ctrl.PowerOn;
+	          
+	    
+	    #tofInfeedPowerRequest.TOF(IN := #Ctrl.InfeedPower,
+	                      PT := T#300MS,
+	                      Q => #Infeed_REQ_ON );
+	END_REGION
+	
+	
+	REGION Move Velocity
+	    //=============================================================
+	    // Speed change
+	    //=============================================================
+	    #MoveVelVelocityChanged := ABS(#AxisCtrl.Velocity - #MoveVelOldVelocity) > #StandtillVelocity;
+	    IF #MoveVelVelocityChanged THEN
+	        #MoveVelOldVelocity := #AxisCtrl.Velocity;
+	    END_IF;
+	
+	    //=============================================================
+	    // Move Minus permitted
+	    //=============================================================
+	    #Sts.MoveVelMinusPermitted := NOT #Ctrl.MovePlus
+	                                AND #Sts.GeneralConditions;
+	
+	    //=============================================================
+	    // Move Minus Command
+	    //=============================================================
+	    #Ctrl.MoveMinus := #AxisCtrl.MoveMinus
+	                    AND #Sts.MoveVelMinusPermitted
+	                    AND #Sts.AxisEnabled;
+	    //=============================================================
+	    // Move Plus permitted
+	    //=============================================================
+	    #Sts.MoveVelPlusPermitted := NOT #Ctrl.MoveMinus
+	                                AND #Sts.GeneralConditions;
+	
+	    //=============================================================
+	    // Move Plus Command
+	    //=============================================================
+	    #Ctrl.MovePlus := #AxisCtrl.MovePlus
+	                AND #Sts.MoveVelPlusPermitted
+	                AND #Sts.AxisEnabled;
+	    //=============================================================
+	    // Move direction
+	    //=============================================================
+	    IF #Ctrl.MovePlus THEN
+	        #Ctrl.MoveDirection := 1;
+	    END_IF;
+	    
+	    IF #Ctrl.MoveMinus THEN
+	        #Ctrl.MoveDirection := 2;
+	    END_IF;
+	    //=============================================================
+	    // Main
+	    //=============================================================
+	    #MOVE_VELOCITY(Axis := #Axis,
+	                   Execute := (#Ctrl.MovePlus OR #Ctrl.MoveMinus) AND NOT #MoveVelVelocityChanged,
+	                   Velocity := #AxisCtrl.Velocity,
+	                   Acceleration := #AxisCtrl.Acceleration,
+	                   Deceleration := #AxisCtrl.Deceleration,
+	                   Jerk:= #AxisCtrl.Jerk,
+	                   PositionControlled:= FALSE,
+	                   Direction := #Ctrl.MoveDirection,
+	                   Current:= FALSE);
+	END_REGION
+	
+	
+	REGION Halt
+	   
+	    //=============================================================
+	    // Halt command
+	    //=============================================================
+	    #Ctrl.Halt :=   NOT (#Ctrl.MovePlus
+	                    OR #Ctrl.MoveMinus
+	                    OR #AxisCtrl.ExtControl)
+	                    AND NOT #Sts.AxisSts.Done
+	                    AND NOT #HALT.Error 
+	                    AND NOT #HALT.CommandAborted
+	                    AND NOT (#STOP.Execute OR #STOP.Busy)
+	                    AND #Sts.AxisEnabled;
+	    //=============================================================
+	    // MC Halt
+	    //============================================================= 
+	    #HALT(Axis := #Axis,
+	          Execute := #Ctrl.Halt,
+	          Deceleration := #AxisCtrl.Deceleration,
+	          Jerk := #AxisCtrl.Jerk,
+	          AbortAcceleration := TRUE);
+	    
+	    #tonHaltTimeOut.TON(IN := #Ctrl.Halt AND NOT #Sts.Standstill, PT := #HALT_TIMEOUT);
+	    
+	END_REGION
+	
+	
+	REGION Stop
+	    
+	    //=============================================================
+	    // Stop command
+	    //=============================================================
+	    
+	    #Ctrl.Stop := (#HALT.Error OR #tonHaltTimeOut.Q)
+	                AND NOT #Sts.Standstill
+	                AND NOT #STOP.CommandAborted
+	                AND NOT #STOP.Error
+	                AND #Sts.AxisEnabled;
+	    
+	    //=============================================================
+	    // MC Stop
+	    //=============================================================                    
+	    #STOP(Axis := #Axis,
+	          Execute := #Ctrl.Stop,
+	          Mode := 2,
+	          Deceleration := #AxisCtrl.Deceleration,
+	          Jerk := #AxisCtrl.Jerk,
+	          AbortAcceleration := TRUE);
+	    
+	END_REGION
+	
+	
+	REGION Coordination Out
+	    //=============================================================
+	    // Coordination Out
+	    //=============================================================  
+	
+	    #AxisSts.AlarmPresence := #Alarm.TOAxis OR #Alarm.MCFunction OR #Alarm.Drive;
+	    #AxisSts.WarningPresence := #Warning.TOAxis OR #Warning.Drive;
+	    #AxisSts.Enabled := #Sts.AxisEnabled;
+	    #AxisSts.Done := #Sts.AxisSts.Done;
+	    #AxisSts.Standstill := #Sts.Standstill;
+	    #AxisSts.RstHWDone := #AxisCtrl.RstHW AND #RESET.Done;
+	    #AxisSts.AtProgrammedSpeed := #Sts.AxisSts.CostantVelocity;
+	    #AxisSts.MoveMinusPermitted := #Sts.MoveVelMinusPermitted;
+	    #AxisSts.MovePlusPermitted := #Sts.MoveVelPlusPermitted;
+	    #AxisSts.ActualSpeed := #Axis.ActualSpeed;
+	    
+	
+	END_REGION
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+END_FUNCTION_BLOCK
+

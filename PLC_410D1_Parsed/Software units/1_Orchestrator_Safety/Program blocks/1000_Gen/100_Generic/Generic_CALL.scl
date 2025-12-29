@@ -1,0 +1,20 @@
+﻿// Block: Generic_CALL
+
+FUNCTION "Generic_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Network 2"
+      #Generic(
+         en := TRUE,
+         AreaInterface1 := Areas_ITF.A01.AreaInterface,
+         AreaInterface2 := Areas_ITF.A02.AreaInterface,
+         AreaInterface3 := Areas_ITF.A03.AreaInterface,
+         AreaInterface4 := Areas_ITF.A04.AreaInterface
+      );
+
+   END_REGION
+
+
+END_FUNCTION

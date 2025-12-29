@@ -1,0 +1,62 @@
+﻿// Block: A02_DEBUG
+
+DATA_BLOCK A02_DEBUG
+VERSION : 0.1
+   NON_RETAIN
+   VAR
+      Force_Sinamics_CtrlSafe : Bool;
+      Forse_Contactors_CtrlSafe : Bool;
+      MatPresence_Entry : Bool;
+      MatPresence_BeforeMW : Bool;
+      MatPresence_AfterMW : Bool;
+      MatPresence_AfterFAK : Bool;
+      CutEnableDebug : Bool;
+      CutToDO : Int;
+      CutDone : Int;
+      MetersDone : LReal;
+      MoveTrk : Bool;
+      WeldDone : Bool;
+      SetWrongCut : Bool;
+      MwFakCalc : Struct
+         GripperPosRel : LReal;
+      END_STRUCT;
+      MAchineAborting : Struct
+         RollformingMng : Bool;
+         FakCalc : Bool;
+         Weldreg : Bool;
+         A02_HU : Bool;
+         RegolazioneFormato : Bool;
+         PitTable : Bool;
+         Rollformer : Bool;
+         RollformerLubr : Bool;
+         FlyingCarriage : Bool;
+         CarriageLubr : Bool;
+         FinalCut : Bool;
+         FinalCutLubr : Bool;
+         Accroll : Bool;
+         AreaGen : Bool;
+         Loop1 : Bool;
+      END_STRUCT;
+      MachineAlarm : Int;
+      PosAxToPosMat : Struct
+         PosAx : LReal;
+         PosMatCalculated : LReal;
+      END_STRUCT;
+      PosMatToPosAx : Struct
+         PosMat : LReal;
+         PosAxCalculated : LReal;
+      END_STRUCT;
+      StopDaMes : Struct
+         STOP_Part_Recondition : Bool;
+         STOP_Order_Complete : Bool;
+         STOP_O_ACT_Empty : Bool;
+         STOP_End_Of_Proroduction : Bool;
+         STOP_FineTurno : Bool;
+         STOP_ControlloQualita : Bool;
+         Stop_Matrice_Colata_Coil : Bool;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+   // No initialization required
+END_DATA_BLOCK

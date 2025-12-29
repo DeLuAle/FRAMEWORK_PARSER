@@ -1,0 +1,129 @@
+﻿// Block: FDevice_Valve_FB
+// Title: Safety Enable
+
+FUNCTION_BLOCK "FDevice_Valve_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Safety Enable
+   VAR_INPUT
+      C_FEEDBACK : Bool;
+      V_FEEDBACK_CHA : Bool;
+      V_FEEDBACK_CHB : Bool;
+      DEGAS_FEEDBACK : Bool;
+      QBAD_FIO : Bool;
+      Estop : Bool;
+      Two_Hand_CMD : Bool;
+      Door_SafeStop : Bool;
+      CtrlSafe : Bool;
+      Reset : Bool;
+      StoppingTime : Time;
+      EvDegasExist : Bool;
+      EvDegasTime : Time;
+      SafeStateTime : Time;
+   END_VAR
+
+   VAR_OUTPUT
+      EV_SAFETY : Bool;
+      EV_DEGAS : Bool;
+      FDO_FBK_ERROR : Bool;
+      EV_SAFETY_FBK_WARNING : Bool;
+      EV_DEGAS_FBK_WARNING : Bool;
+   END_VAR
+
+   VAR_IN_OUT
+      DSI : udt_DeviceSafetyInterface;
+   END_VAR
+
+   VAR
+      EV_FDBACK : FDBACK;
+      T_StopDelay : TOF;
+      T_SafeState : TON;
+      T_EvSafetyFbk : TON;
+      T_EvDegas : TON;
+      T_EvDegasFbk : TON;
+   END_VAR
+
+   VAR_TEMP
+      S_ON : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Safety Enable"
+      #T_StopDelay(
+         IN := (((NOT (Door_SafeStop) OR Two_Hand_CMD) AND Estop) AND CtrlSafe),
+         PT := StoppingTime
+      );
+
+      S_ON := (((NOT (Door_SafeStop) OR Two_Hand_CMD) AND Estop) AND CtrlSafe);
+   END_REGION
+
+   REGION "Ctrl EV  Safety"
+      #EV_FDBACK(
+         en := TRUE,
+         ON := T_StopDelay.Q,
+         FEEDBACK := C_FEEDBACK,
+         QBAD_FIO := QBAD_FIO,
+         ACK_NEC := TRUE,
+         ACK := Reset,
+         FDB_TIME := T#200ms,
+         Q => EV_SAFETY,
+         ERROR => FDO_FBK_ERROR
+      );
+
+   END_REGION
+
+   REGION "Ev Safety Warning"
+      #T_EvSafetyFbk(
+         IN := ((NOT (EV_SAFETY) AND NOT (V_FEEDBACK_CHA)) OR (NOT (EV_SAFETY) AND V_FEEDBACK_CHB) OR (EV_SAFETY AND V_FEEDBACK_CHA) OR (EV_SAFETY AND NOT (V_FEEDBACK_CHB))),
+         PT := T#5S
+      );
+
+      IF T_EvSafetyFbk.Q THEN
+         EV_SAFETY_FBK_WARNING := TRUE;
+      ELSIF Reset THEN
+         EV_SAFETY_FBK_WARNING := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Ctrl Ev Degas"
+      #T_EvDegas(
+         IN := (EvDegasExist AND EV_SAFETY),
+         PT := EvDegasTime
+      );
+
+      EV_DEGAS := #T_EvDegas.Q;
+   END_REGION
+
+   REGION "Ev Degas Warning"
+      #T_EvDegasFbk(
+         IN := ((NOT (EV_DEGAS) AND NOT (DEGAS_FEEDBACK)) OR (EV_DEGAS AND DEGAS_FEEDBACK)),
+         PT := T#5S
+      );
+
+      IF (T_EvDegasFbk.Q AND EvDegasExist) THEN
+         EV_DEGAS_FBK_WARNING := TRUE;
+      ELSIF Reset THEN
+         EV_DEGAS_FBK_WARNING := FALSE;
+      END_IF;
+   END_REGION
+
+   REGION "Enable Power"
+      DSI.PowerEnable := T_StopDelay.Q;
+   END_REGION
+
+   REGION "Safe Stop"
+      DSI.SafeStop := NOT (S_ON);
+   END_REGION
+
+   REGION "Safe State"
+      #T_SafeState(
+         IN := NOT (EV_FDBACK.Q),
+         PT := SafeStateTime
+      );
+
+      DSI.DevicesInSafeState := (T_SafeState.Q OR (V_FEEDBACK_CHA AND NOT (V_FEEDBACK_CHB)));
+   END_REGION
+
+
+END_FUNCTION_BLOCK

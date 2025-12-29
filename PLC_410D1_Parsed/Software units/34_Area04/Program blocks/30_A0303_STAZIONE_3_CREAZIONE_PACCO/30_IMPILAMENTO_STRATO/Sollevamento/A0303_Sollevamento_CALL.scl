@@ -1,0 +1,74 @@
+﻿// Block: A0303_Sollevamento_CALL
+// Title: <<< LATO TESTA >>>
+
+FUNCTION "A0303_Sollevamento_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// <<< LATO TESTA >>>
+
+BEGIN
+   REGION "Data In - Ax"
+      A0303_Sollevamento.Ax_Testa.DataIn.LS_Minus := NOT (A0303_Sollevamento_Pacco_Ax_Testa_Ls_Minimo);
+      A0303_Sollevamento.Ax_Testa.DataIn.LS_Plus := NOT (A0303_Sollevamento_Pacco_Ax_Testa_Ls_Massimo);
+      A0303_Sollevamento.Ax_Testa.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_Sollevamento_Testa;
+      A0303_Sollevamento.Ax_Testa.DataIn.Brake_M_Feedback := Areas_ITF.AG.CU_DI.FbkBrake_Sollevamento_Testa;
+   END_REGION
+
+   REGION "Data In - Ax"
+      A0303_Sollevamento.Ax_Coda.DataIn.LS_Minus := NOT (A0303_Sollevamento_Pacco_Ax_Coda_Ls_Minimo);
+      A0303_Sollevamento.Ax_Coda.DataIn.LS_Plus := NOT (A0303_Sollevamento_Pacco_Ax_Coda_Ls_Massimo);
+      A0303_Sollevamento.Ax_Coda.DataIn.Brake_M_Q := Areas_ITF.AG.CU_DIDO.FbkBrake_Sollevamento_Coda;
+      A0303_Sollevamento.Ax_Coda.DataIn.Brake_M_Feedback := Areas_ITF.AG.CU_DI.FbkBrake_Sollevamento_Coda;
+   END_REGION
+
+   REGION "DataIn - OP"
+      A0303_Sollevamento.DataIn.OP_Vai_A_Prelievo := A04_HMI.MB3.Button.A0303.SollevamentoStrato.OP_Prelievo;
+      A0303_Sollevamento.DataIn.OP_Vai_A_Deposito := A04_HMI.MB3.Button.A0303.SollevamentoStrato.OP_Deposito;
+   END_REGION
+
+   REGION "CIn"
+      A0303_Sollevamento.CIn.Manager := A0303_Manager.COut.Sollevatore;
+   END_REGION
+
+   REGION "CIn Trasporto"
+      A0303_Sollevamento.CIn.Trasporto.IsMeasuring := (A0303_TraslazioneStrato.ControlloStrato_Coda.Enable OR A0303_TraslazioneStrato.ControlloStrato_Testa.Enable);
+   END_REGION
+
+   REGION "Drive"
+      A0303_Sollevamento.Ax_Testa.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0303_Sollevamento.Ax_Testa.Drive.AccessPoint := HW_Const_Values.CU8_PN_615A1_ModuleAccessPoint;
+      A0303_Sollevamento.Ax_Testa.Drive.AxisID := CU8_ID_2_2390A1_1_2390M1;
+      A0303_Sollevamento.Ax_Testa.Drive.TokenChain := TOKENCHAIN_CU8;
+
+      A0303_Sollevamento.Ax_Coda.Drive.Infeed_ON := Areas_ITF.AG.Infeed_Running;
+      A0303_Sollevamento.Ax_Coda.Drive.AccessPoint := HW_Const_Values.CU8_PN_615A1_ModuleAccessPoint;
+      A0303_Sollevamento.Ax_Coda.Drive.AxisID := CU8_ID_3_2390A1_2_2400M1;
+      A0303_Sollevamento.Ax_Coda.Drive.TokenChain :=  TOKENCHAIN_CU8;
+
+
+   END_REGION
+
+   REGION "HW ID"
+      A0303_Sollevamento.Ax_Testa.HW_ID_TEL1 := HW_Const_Values.CU8_PN_2390A1_1_Standard_telegram_1;
+      A0303_Sollevamento.Enc_Testa.HW_IO := HW_Const_Values.HW_2394P1_Telegram_81_DI_DO;
+
+      A0303_Sollevamento.Ax_Coda.HW_ID_TEL1 := HW_Const_Values.CU8_PN_2390A1_2_Standard_telegram_1;
+      A0303_Sollevamento.Enc_Coda.HW_IO := HW_Const_Values.HW_2404P1_Telegram_81_DI_DO;
+
+   END_REGION
+
+   REGION "Machine Call"
+      #A0303_Sollevamento(
+         en := TRUE,
+         AreaInterface := Area04.AreaInterface,
+         ZSI := F_DB.ZSI_Zone27,
+         DSI_Feed_Testa := F_DB.DSI_SollevamentoTesta,
+         DSI_Feed_Coda := F_DB.DSI_SollevamentoCoda,
+         Par := A0303_Sollevamento_PERS.Par,
+         Par_Mach := A0303_Sollevamento_PERS.Par_Mach
+      );
+
+   END_REGION
+
+
+END_FUNCTION
