@@ -1,0 +1,1317 @@
+{
+  "meta": {
+    "analysis_scope": "L1_SpeedAxis + L1_Motor + L2_FeedMachine",
+    "version": "2.0",
+    "analysis_date": "2025-01-06",
+    "purpose": "Knowledge base for Claude Code SCL generation",
+    "changes_v2": [
+      "Corretta semantica Gen_Cnd: pattern graceful degradation con auto-sostentamento",
+      "Corretta semantica CtrlSafe: feedback verso Safety PLC, non decisione",
+      "Aggiunto pattern Infeed: shared resource bottom-up",
+      "Chiarita gerarchia Simulation: Sys → Input → TO",
+      "Documentato VelocityOverride: controllo di processo (loop/profili)",
+      "Chiarito Brake: watchdog su CU per motori induzione",
+      "Documentato Fan: prerequisito con graceful degradation",
+      "Chiarito Aborting: escalation bottom-up per StopInPhase",
+      "Aggiunto GeneralConditions di SpeedAxis",
+      "Documentate variabili globali Sys.*"
+    ],
+    "source_files": [
+      "FeedMachine_FB.scl (450 lines)",
+      "SpeedAxis.scl (578 lines)",
+      "Motor.scl (107 lines)",
+      "FeedMachine_CIn.udt",
+      "FeedMachine_COut.udt",
+      "FeedMachine_Config.udt",
+      "FeedMachine_DataIn.udt",
+      "FeedMachine_DataOut.udt",
+      "FeedMachine_Par.udt",
+      "FeedMachine_Alr.udt",
+      "FeedMachine_Wng.udt",
+      "FeedMachine_Manager.udt"
+    ]
+  },
+
+  "global_variables": {
+    "description": "Variabili globali di sistema usate dai FB",
+    
+    "Sys.FirstPLCCycle": {
+      "type": "Bool",
+      "meaning": "TRUE solo al primo ciclo PLC dopo avvio/restart",
+      "use_case": "Inizializzazioni, reset array messaggi, skip logiche transitorie"
+    },
+    
+    "Sys.SimulationDevice": {
+      "type": "Bool",
+      "meaning": "Flag globale modalità simulazione dispositivi",
+      "impact": "Bypassa feedback fisici, simula TO, disabilita uscite"
+    }
+  },
+
+  "L1_SpeedAxis": {
+    "purpose": "Device driver per asse controllato in velocità (MC_MoveVelocity)",
+    "physical_model": "Motore brushless con drive Sinamics, encoder integrato, movimento bidirezionale continuo",
+    "family": "Motion",
+
+    "technology_object": {
+      "type": "TO_SpeedAxis",
+      "description": "Technology Object Siemens - struttura definita da TIA Portal",
+      "key_fields": {
+        "ActualSpeed": "Velocità attuale encoder",
+        "Velocity": "Velocità comandata",
+        "Override.Velocity": "Percentuale override (1-100%)",
+        "StatusWord": "Stato TO (Enable, Done, Error, etc.)",
+        "ErrorWord": "Codice errore",
+        "WarningWord": "Codice warning",
+        "ErrorDetail.Number": "Numero errore dettagliato",
+        "ErrorDetail.Reaction": "Tipo reazione (0=warning, >0=fault)",
+        "DynamicLimits.MaxVelocity": "Limite velocità configurato",
+        "DynamicLimits.MaxAcceleration": "Limite accelerazione",
+        "DynamicLimits.MaxDeceleration": "Limite decelerazione",
+        "DynamicLimits.MaxJerk": "Limite jerk",
+        "Simulation.Mode": "0=reale, 1=simulato",
+        "VirtualAxis.Mode": "Modalità asse virtuale"
+      }
+    },
+
+    "AxisCtrl": {
+      "description": "Comandi da L2 verso L1 SpeedAxis",
+
+      "SafeStop": {
+        "type": "Bool",
+        "meaning": "Blocco di sicurezza - impedisce tutti i movimenti",
+        "source": "DSI.SafeStop passato da L2",
+        "impact": "SafeStop=TRUE → PowerPermit=FALSE, movimento bloccato"
+      },
+
+      "Rst": {
+        "type": "Bool",
+        "meaning": "Reset allarmi TO e MC_*",
+        "source": "AreaInterface.RstAlarms",
+        "impact": "Azzera errori MC_Power, MC_MoveVelocity, MC_Halt, MC_Stop"
+      },
+
+      "RstHW": {
+        "type": "Bool",
+        "meaning": "Reset hardware con restart TO",
+        "use_case": "Recupero da errori gravi TO (es. errore encoder)",
+        "condition": "Eseguito solo se RestartConditions=TRUE"
+      },
+
+      "Power": {
+        "type": "Bool",
+        "meaning": "Richiesta abilitazione potenza asse",
+        "condition": "Eseguito se PowerPermit=TRUE"
+      },
+
+      "MovePlus": {
+        "type": "Bool",
+        "meaning": "Comando movimento direzione positiva (Forward)",
+        "condition": "Eseguito se MoveVelPlusPermitted AND AxisEnabled"
+      },
+
+      "MoveMinus": {
+        "type": "Bool",
+        "meaning": "Comando movimento direzione negativa (Backward)",
+        "condition": "Eseguito se MoveVelMinusPermitted AND AxisEnabled"
+      },
+
+      "ExtControl": {
+        "type": "Bool",
+        "meaning": "Controllo esterno attivo (bypass comandi interni)",
+        "use_case": "Gearing, camming, o controllo da altro FB"
+      },
+
+      "Velocity": {
+        "type": "LReal",
+        "meaning": "Velocità target in unità ingegneristiche del TO",
+        "note": "L2 converte da unità applicazione (mm/min) a unità TO via ReductionRatio"
+      },
+
+      "Acceleration": {
+        "type": "LReal",
+        "meaning": "Accelerazione in unità TO"
+      },
+
+      "Deceleration": {
+        "type": "LReal",
+        "meaning": "Decelerazione in unità TO"
+      },
+
+      "Jerk": {
+        "type": "LReal",
+        "meaning": "Jerk (derivata accelerazione), 0 = rampa lineare"
+      }
+    },
+
+    "AxisSts": {
+      "description": "Stati da L1 verso L2",
+
+      "AlarmPresence": {
+        "type": "Bool",
+        "formula": "Alarm.TOAxis OR Alarm.MCFunction OR Alarm.Drive",
+        "meaning": "Almeno un allarme L1 attivo"
+      },
+
+      "WarningPresence": {
+        "type": "Bool",
+        "formula": "Warning.TOAxis OR Warning.Drive",
+        "meaning": "Almeno un warning L1 attivo"
+      },
+
+      "Enabled": {
+        "type": "Bool",
+        "formula": "MC_POWER.Status AND StatusWord.Enable",
+        "meaning": "Asse abilitato e pronto per movimento"
+      },
+
+      "Done": {
+        "type": "Bool",
+        "meaning": "Comando completato (da StatusWord TO)"
+      },
+
+      "Standstill": {
+        "type": "Bool",
+        "formula": "(ABS(ActualSpeed) < StandstillVelocity) per StandstillDelay",
+        "meaning": "Asse completamente fermo"
+      },
+
+      "RstHWDone": {
+        "type": "Bool",
+        "meaning": "Reset hardware completato"
+      },
+
+      "AtProgrammedSpeed": {
+        "type": "Bool",
+        "meaning": "Velocità target raggiunta (StatusWord.CostantVelocity)"
+      },
+
+      "MoveMinusPermitted": {
+        "type": "Bool",
+        "formula": "NOT MovePlus AND GeneralConditions",
+        "meaning": "Movimento negativo permesso"
+      },
+
+      "MovePlusPermitted": {
+        "type": "Bool",
+        "formula": "NOT MoveMinus AND GeneralConditions",
+        "meaning": "Movimento positivo permesso"
+      },
+
+      "ActualSpeed": {
+        "type": "LReal",
+        "meaning": "Velocità attuale in unità TO"
+      }
+    },
+
+    "GeneralConditions": {
+      "description": "Condizioni generali per eseguire operazioni MC",
+      "formula": "NOT AxisCtrl.SafeStop AND NOT Alarm.TOAxis AND NOT Alarm.MCFunction",
+      "meaning": "Nessun blocco safety E nessun errore TO E nessun errore MC",
+      "used_by": ["MoveVelPlusPermitted", "MoveVelMinusPermitted"]
+    },
+
+    "Alarms": {
+      "TOAxis": {
+        "trigger": "ErrorDetail.Reaction > 0 in stato Error",
+        "meaning": "Errore Technology Object (TO)",
+        "typical_cause": "Errore encoder, limite SW, errore seguimento"
+      },
+      "MCFunction": {
+        "trigger": "Errore da MC_Power, MC_MoveVelocity, MC_Halt, MC_Stop",
+        "meaning": "Errore funzione Motion Control"
+      },
+      "Drive": {
+        "trigger": "ErrorWord.DriveFault dal telegramma",
+        "meaning": "Fault dal drive Sinamics"
+      }
+    },
+
+    "Warnings": {
+      "TOAxis": {
+        "trigger": "(Error AND Reaction=0) OR WarningWord<>0 OR RestartNeeded OR RestartActive OR SimulationActive",
+        "meaning": "Warning TO o condizioni anomale non bloccanti"
+      },
+      "Drive": {
+        "trigger": "WarningWord.DriveWarning dal telegramma",
+        "meaning": "Warning dal drive Sinamics"
+      }
+    },
+
+    "MC_Blocks_Used": {
+      "MC_POWER": "Abilitazione potenza asse",
+      "MC_MOVEVELOCITY": "Movimento continuo a velocità",
+      "MC_HALT": "Arresto con decelerazione controllata",
+      "MC_STOP": "Arresto emergenza (fallback se Halt fallisce dopo HALT_TIMEOUT)",
+      "MC_RESET": "Reset errori TO (con opzione Restart per errori gravi)"
+    },
+
+    "Simulation_Logic": {
+      "description": "Gestione modalità simulazione TO",
+      "hierarchy": [
+        "1. Sys.SimulationDevice - flag globale sistema",
+        "2. Simulation input FB - tipicamente := Sys.SimulationDevice",
+        "3. Simulate.Active - stato reale TO (AxisSimulation AND VirtualAxis.Mode=0)"
+      ],
+      "sync_logic": {
+        "description": "Sincronizza input con stato TO",
+        "scl": [
+          "IF Simulation <> Simulate.Active THEN",
+          "    Simulate.Mode := SEL(Simulation, 0, 1);",
+          "    WRIT_DBL → TO.Simulation.Mode",
+          "    TO_RestartCmd := TRUE;  // Restart TO per applicare",
+          "END_IF"
+        ]
+      }
+    },
+
+    "Power_Flow": {
+      "description": "Flusso abilitazione potenza",
+      "steps": [
+        {
+          "step": 1,
+          "condition": "PowerPermit := NOT SafeStop AND Drive.Infeed_ON AND NOT Alarm.TOAxis AND NOT ErrorMC_Power",
+          "meaning": "Verifica condizioni base per potenza"
+        },
+        {
+          "step": 2,
+          "condition": "PowerEnable := (Power OR MovePlus OR MoveMinus OR ExtControl OR MC_Busy) AND PowerPermit",
+          "meaning": "Richiesta effettiva potenza"
+        },
+        {
+          "step": 3,
+          "action": "PowerOn con delay OFF (PowerOffDelay) per evitare ON/OFF ripetuti",
+          "meaning": "Abilitazione con isteresi temporale"
+        },
+        {
+          "step": 4,
+          "action": "MC_POWER(Enable := PowerOn)",
+          "meaning": "Comando effettivo al TO"
+        },
+        {
+          "step": 5,
+          "output": "Infeed_REQ_ON := PowerOn OR pending commands (con delay OFF 300ms)",
+          "meaning": "Segnala a Infeed che serve potenza DC bus"
+        }
+      ]
+    },
+
+    "Infeed_Pattern": {
+      "description": "Pattern shared resource per DC bus comune",
+      "type": "Bottom-up aggregation",
+      "independence": "Gestito indipendentemente da L3/L4 - è gestione risorse elettriche",
+      "flow": [
+        "1. SpeedAxis.Infeed_REQ_ON = TRUE quando serve potenza",
+        "2. Aggregatore esterno fa OR di tutte le richieste",
+        "3. Infeed FB accende DC bus S120",
+        "4. Infeed FB setta Drive.Infeed_ON = TRUE (broadcast)",
+        "5. SpeedAxis vede Infeed_ON → può fare MC_POWER",
+        "6. Tutte richieste FALSE → dopo timeout → Infeed spegne"
+      ],
+      "note": "L2 produce COut.Infeed_ReqON, riceve Drive.Infeed_ON - non gestisce logica Infeed"
+    }
+  },
+
+  "L1_Motor": {
+    "purpose": "Device driver per motore semplice ON/OFF con contattore",
+    "physical_model": "Motore asincrono con contattore, protezione termica, feedback running",
+    "family": "Electric",
+
+    "MotorCtrl": {
+      "description": "Comandi da L2 verso L1 Motor",
+
+      "SafeStop": {
+        "type": "Bool",
+        "meaning": "Blocco di sicurezza - ferma motore",
+        "source": "AreaInterface.EStop nel caso di FeedMachine (Fan)",
+        "impact": "SafeStop=TRUE → RunPermitted=FALSE"
+      },
+
+      "Rst": {
+        "type": "Bool",
+        "meaning": "Reset allarmi",
+        "source": "AreaInterface.RstAlarms",
+        "impact": "Azzera ThermalProtection, Feedback"
+      },
+
+      "Run": {
+        "type": "Bool",
+        "meaning": "Comando marcia",
+        "condition": "Eseguito solo se RunPermitted=TRUE"
+      }
+    },
+
+    "MotorSts": {
+      "description": "Stati da L1 verso L2",
+
+      "AlarmPresence": {
+        "type": "Bool",
+        "formula": "Alarm.ThermalProtection OR Alarm.Feedback",
+        "meaning": "Almeno un allarme L1 attivo"
+      },
+
+      "RunPermitted": {
+        "type": "Bool",
+        "formula": "NOT AlarmPresence AND NOT SafeStop",
+        "meaning": "Marcia permessa"
+      },
+
+      "Running": {
+        "type": "Bool",
+        "formula": "(Ctrl_RunContactor AND FdbkRunning) OR (Ctrl_RunContactor AND Simulation)",
+        "meaning": "Motore effettivamente in marcia (confermato da feedback o simulato)"
+      }
+    },
+
+    "Alarms": {
+      "ThermalProtection": {
+        "trigger": "ThermalProtection input TRUE (AND NOT Simulation)",
+        "meaning": "Protezione termica scattata",
+        "typical_cause": "Sovraccarico, temperatura ambiente, ventilazione insufficiente"
+      },
+      "Feedback": {
+        "trigger": "Mismatch contattore/feedback per FeedbackTimeout",
+        "meaning": "Contattore comandato ma feedback non confermato (o viceversa)",
+        "typical_cause": "Contattore guasto, cablaggio feedback, fusibile"
+      }
+    }
+  },
+
+  "L2_FeedMachine": {
+    "purpose": "Aggregatore per alimentatore lineare (feeder) con controllo velocità bidirezionale",
+    "physical_model": "Rulli motorizzati per alimentazione materiale, movimento Fwd/Bwd, ventilatore opzionale, freno opzionale",
+
+    "wrapped_L1": {
+      "Ax": {
+        "type": "SpeedAxis",
+        "purpose": "Controllo movimento principale",
+        "mandatory": true
+      },
+      "Fan_M": {
+        "type": "Motor",
+        "purpose": "Ventilatore raffreddamento motore/drive",
+        "mandatory": false,
+        "controlled_by": "Config.Fan.Exist"
+      }
+    },
+
+    "Config": {
+      "description": "Parametri configurazione macchina - impostati in commissioning",
+
+      "SLS_VEL": {
+        "type": "LReal",
+        "meaning": "Velocità limite sicurezza (Safe Limited Speed)",
+        "unit": "mm/min (unità applicazione)",
+        "impact": "Quando ZSI.Door_Opened, velocità limitata a questo valore",
+        "safety_function": "SLS secondo EN ISO 13849"
+      },
+
+      "DelayMissingCondition": {
+        "type": "Time",
+        "meaning": "Tempo attesa prima di segnalare warning MissingCnd",
+        "typical_value": "T#3s",
+        "purpose": "Evita warning transienti durante coordinamento L3"
+      },
+
+      "Ax": {
+        "LeadScrewPitchVal": {
+          "type": "LReal",
+          "meaning": "Passo vite/avanzamento per giro (mm)",
+          "use": "Calcolo ReductionRatio per conversione unità"
+        },
+        "MotorRevolution": {
+          "type": "LReal",
+          "meaning": "Giri motore per rapporto riduzione"
+        },
+        "LoadRevolution": {
+          "type": "LReal",
+          "meaning": "Giri carico per rapporto riduzione"
+        },
+        "PowerOffDelay": {
+          "type": "Time",
+          "meaning": "Ritardo spegnimento potenza dopo stop comandi"
+        },
+        "StandstillVelocity": {
+          "type": "Real",
+          "meaning": "Soglia velocità per considerare asse fermo"
+        },
+        "StandstillDelay": {
+          "type": "Time",
+          "meaning": "Ritardo conferma standstill"
+        }
+      },
+
+      "Fan": {
+        "Exist": {
+          "type": "Bool",
+          "meaning": "Ventilatore presente?",
+          "impact": {
+            "TRUE": "Fan_M gestito, Running richiesto per INIZIARE movimento",
+            "FALSE": "Fan_M bypassato, Running forzato TRUE"
+          }
+        },
+        "DelayOff": {
+          "type": "Time",
+          "meaning": "Ritardo spegnimento ventilatore dopo stop asse (raffreddamento post-movimento)"
+        }
+      },
+
+      "Brake_Presence": {
+        "type": "Bool",
+        "meaning": "Freno meccanico esterno presente?",
+        "impact": "Se TRUE, monitora mismatch comando/feedback freno",
+        "note": "Solo per motori a induzione con freno esterno gestito da CU Sinamics"
+      }
+    },
+
+    "Brake_Management": {
+      "description": "Gestione freno stazionamento per motori a induzione",
+      
+      "motor_types": {
+        "induction_motor": {
+          "brake_type": "Esterno 400V",
+          "control": "Sinamics CU comanda uscita digitale → contattore freno",
+          "feedback": "CU legge ingresso digitale ← feedback freno",
+          "plc_role": "WATCHDOG - legge segnali CU, verifica coerenza, genera allarme",
+          "DataIn.Brake_M_Q": "Lettura comando freno DA CU (non uscita PLC!)",
+          "DataIn.Brake_M_Feedback": "Lettura feedback fisico freno"
+        },
+        "brushless_motor": {
+          "brake_type": "Integrato 24V nel motore",
+          "control": "Interno Sinamics via cavo potenza",
+          "plc_role": "NESSUNO - Config.Brake_Presence = FALSE"
+        }
+      },
+      
+      "alarm_logic": {
+        "trigger": "(Brake_M_Q XOR Brake_M_Feedback) per 1s",
+        "meaning": "Freno comandato aperto ma feedback chiuso (o viceversa)",
+        "risk": "Motore gira con freno inserito → danneggia freno",
+        "scl": "TON_Brake_TimeOut.IN := Brake_Presence AND (Brake_M_Q XOR Brake_M_Feedback)"
+      }
+    },
+
+    "CIn": {
+      "description": "Coordination Input - comandi da L3 verso L2",
+
+      "Manager": {
+        "EnableStopDoorOpeningReq": {
+          "type": "Bool",
+          "meaning": "Abilita arresto per richiesta apertura porta",
+          "l3_responsibility": "L3 decide quali istanze partecipano a questo stop"
+        },
+        "EnableStopInPhase": {
+          "type": "Bool",
+          "meaning": "Abilita arresto in fase (sincronizzato)",
+          "l3_responsibility": "L3 coordina stop multipli device"
+        },
+        "EnableStopProgrammed": {
+          "type": "Bool",
+          "meaning": "Abilita arresto programmato"
+        },
+        "Control_ON": {
+          "type": "Bool",
+          "meaning": "Modalità automatica attiva",
+          "impact": "TRUE → comandi Bwd/Fwd automatici, FALSE → manuale abilitato"
+        },
+        "Bwd": {
+          "type": "Bool",
+          "meaning": "Comando movimento backward (automatico)"
+        },
+        "Fwd": {
+          "type": "Bool",
+          "meaning": "Comando movimento forward (automatico)"
+        },
+        "Vel": {
+          "type": "LReal",
+          "meaning": "Velocità target automatico (unità applicazione)"
+        },
+        "Acc": {
+          "type": "LReal",
+          "meaning": "Accelerazione automatico"
+        },
+        "Dec": {
+          "type": "LReal",
+          "meaning": "Decelerazione automatico"
+        },
+        "Jerk": {
+          "type": "LReal",
+          "meaning": "Jerk automatico (0 = rampa lineare)"
+        }
+      },
+
+      "Bwd_ExtEnable": {
+        "type": "Bool",
+        "meaning": "Abilitazione esterna movimento backward",
+        "source": "L3 - condizioni inter-device",
+        "pattern": "Interblocco con altri device (es. rullo chiuso)"
+      },
+
+      "Fwd_ExtEnable": {
+        "type": "Bool",
+        "meaning": "Abilitazione esterna movimento forward",
+        "source": "L3 - condizioni inter-device"
+      },
+
+      "EnableManChangeVel": {
+        "type": "Bool",
+        "meaning": "Abilita cambio velocità manuale (Low→High)",
+        "use_case": "Dopo DelayChangeVel, passa a VelFwdHigh"
+      },
+
+      "ExternalAlarms": {
+        "type": "Bool",
+        "meaning": "Allarmi esterni aggregati da L3",
+        "impact": "Contribuisce a Sts.AlarmPresence",
+        "use_case": "Allarmi da altri device che devono bloccare questo"
+      },
+
+      "VelocityOverride": {
+        "description": "Controllo di processo per modulazione velocità",
+        "Enable": {
+          "type": "Bool",
+          "meaning": "Attiva override velocità"
+        },
+        "Value": {
+          "type": "LReal",
+          "meaning": "Percentuale override (1-100%)",
+          "impact": "TO_Ax.Override.Velocity := LIMIT(1, Value, 100)"
+        },
+        "use_cases": {
+          "loop_control": "Ansa/buffer regola velocità in base a quantità materiale",
+          "work_profile": "Ricetta prodotto richiede velocità ridotta",
+          "sync_feeders": "Sincronizzazione velocità tra più feeder"
+        },
+        "source": "L3 - Loop Controller o Profilo Lavoro",
+        "note": "NON è per debug - è controllo di processo closed-loop"
+      }
+    },
+
+    "COut": {
+      "description": "Coordination Output - stati da L2 verso L3",
+
+      "Infeed_ReqON": {
+        "type": "Bool",
+        "meaning": "Richiesta accensione Infeed (alimentatore DC bus comune)",
+        "source": "SpeedAxis.Infeed_REQ_ON",
+        "pattern": "Shared resource bottom-up - aggregato con OR esterno"
+      },
+
+      "CtrlSafe": {
+        "type": "Bool",
+        "meaning": "FEEDBACK verso Safety PLC sullo stato device",
+        "semantics": {
+          "TRUE": "Posso stare senza coppia - Safety può fare STO se serve",
+          "FALSE": "Ho bisogno di coppia - Safety deve mantenere STO attivo"
+        },
+        "formula": "NOT TON_NoPendingCmd.IN OR (CtrlSafe AND Ax.Enabled) OR (Control_ON AND NOT StopDoorOpeningReq)",
+        "formula_explanation": {
+          "term1": "NOT TON_NoPendingCmd.IN - nessun comando pendente",
+          "term2": "CtrlSafe AND Ax.Enabled - mantiene TRUE finché asse abilitato (evita MC error)",
+          "term3": "Control_ON AND NOT StopDoorOpeningReq - in automatico senza richiesta porte"
+        },
+        "important": "È un FEEDBACK, non una DECISIONE. Safety PLC aggrega tutti i CtrlSafe della zona e decide.",
+        "door_opening_flow": [
+          "1. Operatore chiede apertura porta",
+          "2. Manager smette di dare comandi (Control_ON o comandi manuali)",
+          "3. Feed si ferma naturalmente",
+          "4. Asse si disabilita → CtrlSafe va FALSE",
+          "5. Safety PLC vede AllCtrlSafe=FALSE → può permettere apertura",
+          "6. Con SOS attivo: asse può restare abilitato (coppia per tenere posizione)"
+        ]
+      },
+
+      "Standstill": {
+        "type": "Bool",
+        "meaning": "Asse completamente fermo",
+        "formula": "Ax.AxisSts.Standstill OR DSI.DevicesInSafeState"
+      },
+
+      "Bwd_CheckNext": {
+        "type": "Bool",
+        "meaning": "Richiesta movimento backward (trigger per L3)",
+        "formula": "Ctrl.Bwd_Man OR Ctrl.Bwd_Aut",
+        "pattern": "L3 usa per coordinare prerequisiti inter-device"
+      },
+
+      "Fwd_CheckNext": {
+        "type": "Bool",
+        "meaning": "Richiesta movimento forward (trigger per L3)",
+        "formula": "Ctrl.Fwd_Man OR Ctrl.Fwd_Aut"
+      },
+
+      "Bwd_VelZero": {
+        "type": "Bool",
+        "meaning": "In movimento backward con velocità target zero",
+        "formula": "MOVE_VELOCITY.Busy AND Direction=2 AND TargetVel=0 AND InVelocity"
+      },
+
+      "Bwd_Running": {
+        "type": "Bool",
+        "meaning": "In movimento backward con velocità > 0",
+        "formula": "MOVE_VELOCITY.Busy AND Direction=2 AND TargetVel>0"
+      },
+
+      "Fwd_VelZero": {
+        "type": "Bool",
+        "meaning": "In movimento forward con velocità target zero"
+      },
+
+      "Fwd_Running": {
+        "type": "Bool",
+        "meaning": "In movimento forward con velocità > 0"
+      },
+
+      "ActualVelocity": {
+        "type": "LReal",
+        "meaning": "Velocità attuale in unità applicazione",
+        "formula": "TO_Ax.ActualSpeed * ReductionRatio"
+      },
+
+      "TargetVelocity": {
+        "type": "LReal",
+        "meaning": "Velocità target effettiva (dopo override)",
+        "formula": "(MOVE_VELOCITY.Velocity * Override / 100) * ReductionRatio"
+      },
+
+      "MaxVelocity": {
+        "type": "LReal",
+        "meaning": "Velocità massima configurata in unità applicazione"
+      }
+    },
+
+    "DataIn": {
+      "description": "Input da campo",
+
+      "PB": {
+        "Bwd_Minus": {
+          "type": "Bool",
+          "meaning": "Pulsante jog backward"
+        },
+        "Fwd_Plus": {
+          "type": "Bool",
+          "meaning": "Pulsante jog forward"
+        },
+        "MoveToPos": {
+          "type": "Bool",
+          "meaning": "Pulsante move to position (non usato in FeedMachine)"
+        }
+      },
+
+      "Fan_M_ThermalProtection": {
+        "type": "Bool",
+        "meaning": "Protezione termica ventilatore scattata"
+      },
+
+      "Fan_M_Feedback": {
+        "type": "Bool",
+        "meaning": "Feedback running ventilatore"
+      },
+
+      "Brake_M_Q": {
+        "type": "Bool",
+        "meaning": "LETTURA comando freno da Sinamics CU (non uscita PLC!)",
+        "note": "Solo per motori induzione con freno esterno"
+      },
+
+      "Brake_M_Feedback": {
+        "type": "Bool",
+        "meaning": "LETTURA feedback stato freno fisico"
+      }
+    },
+
+    "DataOut": {
+      "description": "Output verso campo",
+
+      "Fan_M_Contactor": {
+        "type": "Bool",
+        "meaning": "Comando contattore ventilatore"
+      }
+    },
+
+    "Par": {
+      "description": "Parametri operativi - modificabili a runtime da HMI",
+
+      "Man": {
+        "VelBwd": {
+          "type": "LReal",
+          "meaning": "Velocità manuale backward"
+        },
+        "VelFwdLow": {
+          "type": "LReal",
+          "meaning": "Velocità manuale forward bassa (default all'avvio)"
+        },
+        "VelFwdHigh": {
+          "type": "LReal",
+          "meaning": "Velocità manuale forward alta (dopo delay)"
+        },
+        "Acc": {
+          "type": "LReal",
+          "meaning": "Accelerazione manuale"
+        },
+        "Dec": {
+          "type": "LReal",
+          "meaning": "Decelerazione manuale"
+        },
+        "Jerk": {
+          "type": "LReal",
+          "meaning": "Jerk manuale"
+        },
+        "DelayChangeVel": {
+          "type": "Time",
+          "meaning": "Ritardo per passaggio Low→High in manuale",
+          "note": "T#0s = no cambio velocità"
+        }
+      }
+    },
+
+    "Alarms": {
+      "BrakeTimeOut": {
+        "trigger": "Mismatch comando/feedback freno per 1s",
+        "condition": "Brake_Presence AND ((Brake_M_Q AND NOT Feedback) OR (NOT Brake_M_Q AND Feedback))",
+        "impact": "Gen_Cnd=FALSE, movimento bloccato",
+        "applies_to": "Solo motori induzione con freno esterno"
+      },
+      "Ax": {
+        "type": "TAx_Speed_Alarms",
+        "meaning": "Allarmi delegati a SpeedAxis L1"
+      },
+      "Fan_M": {
+        "type": "MotorAlr",
+        "meaning": "Allarmi delegati a Motor L1 (se Fan.Exist)"
+      }
+    },
+
+    "Warnings": {
+      "NotAutReady": {
+        "trigger": "AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady",
+        "meaning": "Macchina non pronta per automatico"
+      },
+      "MissingCnd_Bkw": {
+        "trigger": "Standstill AND Bwd_CheckNext AND NOT Bwd_Cnd per DelayMissingCondition",
+        "meaning": "Condizioni mancanti per movimento backward"
+      },
+      "MissingCnd_Fwd": {
+        "trigger": "Standstill AND Fwd_CheckNext AND NOT Fwd_Cnd per DelayMissingCondition",
+        "meaning": "Condizioni mancanti per movimento forward"
+      },
+      "Ax": {
+        "type": "TAx_Warnings",
+        "meaning": "Warning delegati a SpeedAxis L1"
+      }
+    },
+
+    "Conditions_Logic": {
+      "description": "Logica condizioni movimento (cuore del L2)",
+
+      "Gen_Cnd": {
+        "description": "Condizioni generali per qualsiasi movimento",
+        "pattern": "GRACEFUL DEGRADATION con auto-sostentamento",
+        "formula": "(BaseCond AND Fan_M.Running) OR (BaseCond AND (Bwd_Cnd OR Fwd_Cnd) AND NOT TON_NoPendingCmd.Q)",
+        "BaseCond_components": [
+          "NOT StopDueDoorOpeningRequest",
+          "NOT StopInPhase",
+          "NOT StopProgrammed",
+          "NOT StopAborting",
+          "NOT DSI.SafeStop",
+          "NOT DSI.DevicesInSafeState",
+          "NOT Alarm.BrakeTimeOut"
+        ],
+        "semantics": {
+          "start_movement": "Per INIZIARE movimento → Fan DEVE essere Running",
+          "continue_movement": "Per CONTINUARE movimento già avviato → basta che Cnd sia già TRUE",
+          "rationale": "Se Fan si ferma durante movimento, feeder continua fino a stop naturale invece di fermarsi bruscamente (danni meccanici)",
+          "alarm_cascade": "Fan KO → Allarme → Aborting → StopInPhase → arresto graduale di tutta l'area"
+        }
+      },
+
+      "Bwd_Cnd": {
+        "description": "Condizioni complete per movimento backward",
+        "formula": "Gen_Cnd AND Ax.AxisSts.MoveMinusPermitted AND CIn.Bwd_ExtEnable",
+        "meaning": "Base OK + L1 pronto + L3 ha dato via libera"
+      },
+
+      "Fwd_Cnd": {
+        "description": "Condizioni complete per movimento forward",
+        "formula": "Gen_Cnd AND Ax.AxisSts.MovePlusPermitted AND CIn.Fwd_ExtEnable",
+        "meaning": "Base OK + L1 pronto + L3 ha dato via libera"
+      },
+
+      "evaluation_order": [
+        "1. Stops (Door, Phase, Programmed, Aborting)",
+        "2. Safety (DSI.SafeStop, DSI.DevicesInSafeState)",
+        "3. Alarms (BrakeTimeOut)",
+        "4. Prerequisites (Fan_M.Running) - SOLO per iniziare",
+        "5. L1 Permit (Ax.MovePermitted)",
+        "6. L3 ExtEnable (condizioni inter-device)",
+        "7. Comando (Man/Aut) → trigger movimento"
+      ]
+    },
+
+    "Fan_Management": {
+      "description": "Gestione ventilatore con graceful degradation",
+      
+      "prerequisite_behavior": {
+        "start": "Fan.Running BLOCCANTE per iniziare movimento",
+        "during": "Fan KO durante movimento → movimento CONTINUA fino a stop naturale",
+        "rationale": "Fermare bruscamente feeder con materiale può causare danni"
+      },
+      
+      "delay_off": {
+        "trigger": "Asse fermo E nessun comando pendente",
+        "delay": "Config.Fan.DelayOff",
+        "purpose": "Raffreddamento post-movimento"
+      },
+      
+      "bypass_when_not_exist": {
+        "condition": "Config.Fan.Exist = FALSE",
+        "effect": [
+          "DataOut.Fan_M_Contactor := FALSE",
+          "Fan_M.MotorSts.Running := TRUE (forzato)",
+          "Fan_M.MotorSts.RunPermitted := FALSE",
+          "Allarmi Fan azzerati"
+        ]
+      }
+    },
+
+    "Manual_Mode": {
+      "description": "Logica movimento manuale",
+
+      "activation": {
+        "condition": "AreaInterface.Man AND NOT CIn.Manager.Control_ON",
+        "trigger": "Positive edge su pulsante PB",
+        "hold": "Movimento continua finché pulsante premuto"
+      },
+
+      "velocity_change": {
+        "description": "Cambio velocità Low→High in manuale forward",
+        "condition": "Fwd_Man AND NOT Standstill AND EnableManChangeVel AND DelayChangeVel > 0",
+        "delay": "Par.Man.DelayChangeVel",
+        "effect": "Passa da VelFwdLow a VelFwdHigh"
+      },
+
+      "exclusion": {
+        "note": "Bwd_Minus esclude Fwd_Plus e viceversa (meccanica)"
+      }
+    },
+
+    "Automatic_Mode": {
+      "description": "Logica movimento automatico",
+
+      "activation": {
+        "condition": "CIn.Manager.Control_ON = TRUE"
+      },
+
+      "commands": {
+        "Bwd_Aut": "Control_ON AND CIn.Manager.Bwd AND NOT CIn.Manager.Fwd",
+        "Fwd_Aut": "Control_ON AND NOT CIn.Manager.Bwd AND CIn.Manager.Fwd"
+      },
+
+      "dynamics_source": "CIn.Manager.Vel/Acc/Dec/Jerk"
+    },
+
+    "StopDueDoorOpeningRequest": {
+      "description": "Gestione richiesta apertura porta",
+      
+      "latch_formula": "((NoPendingCmd AND Standstill) OR StopDueDoorOpeningRequest) AND EnableStopDoorOpeningReq AND ZSI.Door_NormalStop AND NOT ZSI.Door_Opened",
+      
+      "flow_automatic": [
+        "1. Operatore chiede apertura porta → ZSI.Door_NormalStop = TRUE",
+        "2. Manager smette di dare comandi",
+        "3. Feed si ferma",
+        "4. Latch attivo → blocca nuovi movimenti",
+        "5. Safety verifica condizioni → apre porta",
+        "6. ZSI.Door_Opened = TRUE → reset latch",
+        "7. Movimento con bimanuali safe + SLS"
+      ],
+      
+      "flow_manual": [
+        "1. Operatore chiede apertura porta",
+        "2. Se comando manuale in corso → aspetta rilascio pulsante",
+        "3. Appena fermo → latch attivo",
+        "4. Blocca nuovi comandi manuali da pulsanti normali",
+        "5. Porta aperta → movimento solo con bimanuali safe + SLS"
+      ],
+      
+      "sls_protection": {
+        "trigger": "ZSI.Door_Opened = TRUE",
+        "action": "IF Vel > Config.SLS_VEL THEN Vel := Config.SLS_VEL",
+        "standard": "EN ISO 13849 - Safe Limited Speed"
+      }
+    },
+
+    "Aborting_Pattern": {
+      "description": "Pattern escalation allarmi bottom-up",
+      
+      "trigger": "((Cycle AND Standstill) OR (Cycle AND StopAborting) OR Aut OR Control_ON) AND AlarmPresence",
+      
+      "meaning": "Se c'è allarme in ciclo automatico (o in Aut pronto) → richiedi arresto in fase di tutta l'area",
+      
+      "flow": [
+        "1. L2: Allarme attivo + (Cycle OR Aut) → Aborting = TRUE",
+        "2. L2: MachineInterface.Aborting = TRUE",
+        "3. L4: Aggrega OR → ZoneStatus.AtLeastOneMachineIsAborting",
+        "4. L5: Aggrega OR → MachinesStatus.AtLeastOneMachineIsAborting",
+        "5. L5: Trigger StopInPhase",
+        "6. L5: AreaInterface.StopInPhase := TRUE (broadcast)",
+        "7. L4: Sequenzia EnableStopInPhase per ogni macchina della zona",
+        "8. L2: Latch stop → Standstill → AckStopInPhase",
+        "9. L5: Quando tutti ACK → Cycle := FALSE"
+      ],
+      
+      "exit_condition": "Reset allarme + nuovo avvio ciclo"
+    },
+
+    "Unit_Conversion": {
+      "description": "Conversione unità applicazione ↔ unità TO",
+
+      "ReductionRatio": {
+        "formula": "Calc_ReductionRatio(LoadRevolution, MotorRevolution, LeadScrewPitchVal)",
+        "meaning": "Rapporto tra unità applicazione (mm) e unità TO (giri motore)"
+      },
+
+      "to_TO": {
+        "velocity": "Vel_TO := Vel_App / ReductionRatio",
+        "acceleration": "Acc_TO := Acc_App / ReductionRatio"
+      },
+
+      "from_TO": {
+        "velocity": "Vel_App := Vel_TO * ReductionRatio"
+      },
+
+      "limits_check": {
+        "description": "Dinamiche limitate a DynamicLimits del TO",
+        "scl": [
+          "Vel := MIN(Vel, TO.DynamicLimits.MaxVelocity * ReductionRatio)",
+          "Acc := MIN(Acc, TO.DynamicLimits.MaxAcceleration * ReductionRatio)"
+        ]
+      }
+    },
+
+    "DSI_integration": {
+      "description": "Come L2 usa Device Safety Interface",
+
+      "SafeStop_flow": [
+        "DSI.SafeStop passato direttamente a Ax.AxisCtrl.SafeStop",
+        "Gen_Cnd include NOT DSI.SafeStop",
+        "Gen_Cnd include NOT DSI.DevicesInSafeState"
+      ],
+
+      "PowerEnable_flow": [
+        "SpeedAxis riceve PowerEnable := DSI.PowerEnable OR Sys.SimulationDevice",
+        "PowerPermit in L1 richiede Drive.Infeed_ON"
+      ]
+    },
+
+    "MachineInterface": {
+      "description": "Interfaccia verso Zone Manager (L4) e Area Manager (L5)",
+
+      "AutReady": {
+        "formula": "AreaInterface.Aut AND NOT Sts.AlarmPresence",
+        "meaning": "Pronto per ciclo automatico"
+      },
+
+      "Aborting": {
+        "formula": "((Cycle AND Standstill) OR (Cycle AND Aborting) OR Aut OR Control_ON) AND AlarmPresence",
+        "meaning": "In stato di abort per allarme → causa StopInPhase area"
+      },
+
+      "MotionsStandStill": {
+        "formula": "TON_NoPendingCmd.Q AND Sts.Standstill",
+        "meaning": "Tutti i movimenti fermi e nessun comando pendente"
+      },
+
+      "AckStopInPhase": {
+        "formula": "StopInPhase AND MotionsStandStill",
+        "meaning": "Conferma stop in fase completato"
+      },
+
+      "AckStopProgrammed": {
+        "formula": "StopProgrammed AND MotionsStandStill",
+        "meaning": "Conferma stop programmato completato"
+      },
+
+      "AlarmsPresence": {
+        "formula": "Sts.AlarmPresence",
+        "meaning": "Presenza allarmi aggregati (BrakeTimeOut OR Ax.Alarms OR Fan_M.Alarms OR ExternalAlarms)"
+      },
+
+      "WarningPresence": {
+        "formula": "Sts.WarningPresence",
+        "meaning": "Presenza warning aggregati"
+      }
+    }
+  },
+
+  "Config_Combinations": {
+    "description": "Configurazioni tipiche per diversi tipi di feeder",
+
+    "feeder_standard_with_fan": {
+      "name": "Alimentatore standard con ventilatore",
+      "physical": "Rulli motorizzati, motore brushless, ventilatore raffreddamento",
+      "config": {
+        "Fan.Exist": true,
+        "Brake_Presence": false,
+        "SLS_VEL": 1000.0
+      },
+      "behavior": "Fan deve essere Running prima di muovere, graceful degradation se Fan KO durante movimento"
+    },
+
+    "feeder_no_fan": {
+      "name": "Alimentatore senza ventilatore",
+      "physical": "Rulli motorizzati, motore autoventilato",
+      "config": {
+        "Fan.Exist": false,
+        "Brake_Presence": false,
+        "SLS_VEL": 1000.0
+      },
+      "behavior": "Fan.Running forzato TRUE, movimento immediato"
+    },
+
+    "feeder_with_brake_induction": {
+      "name": "Alimentatore con freno (motore induzione)",
+      "physical": "Rulli motorizzati, motore asincrono con freno esterno 400V",
+      "config": {
+        "Fan.Exist": true,
+        "Brake_Presence": true,
+        "SLS_VEL": 500.0
+      },
+      "behavior": "Monitora feedback freno da CU Sinamics, allarme su mismatch"
+    },
+
+    "feeder_brushless_no_brake_monitoring": {
+      "name": "Alimentatore brushless",
+      "physical": "Rulli motorizzati, motore brushless con freno 24V integrato",
+      "config": {
+        "Fan.Exist": true,
+        "Brake_Presence": false,
+        "SLS_VEL": 1000.0
+      },
+      "behavior": "Freno gestito internamente da Sinamics, PLC non monitora"
+    },
+
+    "high_speed_feeder": {
+      "name": "Alimentatore alta velocità",
+      "physical": "Rulli ad alta velocità, curve S",
+      "config": {
+        "Fan.Exist": true,
+        "Brake_Presence": false,
+        "SLS_VEL": 2000.0,
+        "Par.Man.DelayChangeVel": "T#2s"
+      },
+      "behavior": "Cambio velocità manuale Low→High dopo 2s"
+    }
+  },
+
+  "L3_integration_patterns": {
+    "description": "Pattern di integrazione per generazione L3",
+
+    "passthrough_direct": {
+      "description": "L3 passa senza modifiche",
+      "fields": [
+        "Manager.EnableStopDoorOpeningReq",
+        "Manager.EnableStopInPhase",
+        "Manager.EnableStopProgrammed",
+        "Config.*",
+        "Alarm.*",
+        "Warning.*"
+      ],
+      "scl_pattern": "t_CIn_{Instance}.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;"
+    },
+
+    "broadcast_shared": {
+      "description": "Stesso valore a tutte le istanze",
+      "fields": [
+        "AreaInterface",
+        "ZSI"
+      ],
+      "scl_pattern": "// Broadcast - assegnati nella chiamata FB"
+    },
+
+    "per_instance_commands": {
+      "description": "Comandi movimento specifici per istanza",
+      "fields": [
+        "Manager.Bwd",
+        "Manager.Fwd",
+        "Manager.Vel",
+        "Manager.Acc",
+        "Manager.Dec",
+        "Manager.Jerk"
+      ],
+      "scl_pattern": "t_CIn_{Instance}.Manager.Fwd := CIn.{Instance}.Fwd;"
+    },
+
+    "ext_enable_inter_device": {
+      "description": "Condizioni ExtEnable basate su stati altri device",
+      "fields": [
+        "Bwd_ExtEnable",
+        "Fwd_ExtEnable"
+      ],
+      "patterns": {
+        "independent": "t_CIn_{Instance}.Fwd_ExtEnable := TRUE;",
+        "sequential": "t_CIn_{Instance}.Fwd_ExtEnable := {OtherInstance}.COut.IsAtWork;",
+        "from_l3_cin": "t_CIn_{Instance}.Bwd_ExtEnable := CIn.ExtCnd.{Instance}_CanMoveBackward;"
+      }
+    },
+
+    "control_on_extended": {
+      "description": "Control_ON esteso con comandi device-specific",
+      "scl_pattern": "t_CIn_{Instance}.Manager.Control_ON := CIn.Manager.Control_ON OR CIn.{Instance}.Bwd OR CIn.{Instance}.Fwd;"
+    },
+
+    "aggregation_rules": {
+      "description": "Come L3 aggrega COut da tutte le istanze",
+
+      "AND_aggregation": {
+        "fields": ["AllStandstill", "AllCtrlSafe"],
+        "pattern": "COut.AllStandstill := {Inst1}.COut.Standstill AND {Inst2}.COut.Standstill;"
+      },
+
+      "OR_aggregation": {
+        "fields": ["AnyInfeed_ReqON", "AnyAlarmsPresence"],
+        "pattern": "COut.AnyInfeed_ReqON := {Inst1}.COut.Infeed_ReqON OR {Inst2}.COut.Infeed_ReqON;"
+      }
+    },
+
+    "velocity_sync_pattern": {
+      "description": "Pattern per sincronizzare velocità tra feeder",
+      "example": {
+        "scenario": "Due feeder che devono andare alla stessa velocità",
+        "scl": [
+          "// Master fornisce velocità",
+          "t_CIn_Feed2.Manager.Vel := Feed1.COut.ActualVelocity;",
+          "// Oppure da parametro comune",
+          "t_CIn_Feed1.Manager.Vel := CIn.CommonVelocity;",
+          "t_CIn_Feed2.Manager.Vel := CIn.CommonVelocity;"
+        ]
+      }
+    },
+
+    "velocity_override_from_loop": {
+      "description": "Pattern per controllo velocità da loop/ansa",
+      "example": {
+        "scenario": "Loop controller modula velocità feeder ingresso",
+        "scl": [
+          "// Loop calcola percentuale in base a quantità materiale",
+          "t_CIn_FeedIn.VelocityOverride.Enable := LoopControl.Active;",
+          "t_CIn_FeedIn.VelocityOverride.Value := LoopControl.CalcPercent;  // 1-100%"
+        ]
+      }
+    },
+
+    "check_next_coordination": {
+      "description": "Pattern per coordinamento con CheckNext",
+      "example": {
+        "scenario": "Feeder + Rullo pinch: rullo deve chiudersi prima di avanzare",
+        "scl": [
+          "// Feeder vuole avanzare → CheckNext come trigger",
+          "IF Feed.COut.Fwd_CheckNext THEN",
+          "    // Comanda chiusura rullo",
+          "    t_CIn_Rullo.Manager.Work := TRUE;",
+          "END_IF;",
+          "",
+          "// Rullo chiuso → abilita avanzamento feeder",
+          "t_CIn_Feed.Fwd_ExtEnable := Rullo.COut.Work;"
+        ]
+      }
+    },
+
+    "infeed_aggregation": {
+      "description": "Pattern aggregazione richieste Infeed",
+      "note": "Gestito ESTERNO a L3 - tipicamente a livello Area o dedicato",
+      "example_scl": [
+        "// Aggregatore Infeed (NON in L3 machine)",
+        "InfeedRequest := Feed1.COut.Infeed_ReqON OR Feed2.COut.Infeed_ReqON OR Axis1.Infeed_ReqON;",
+        "",
+        "// Infeed FB",
+        "Infeed(Request := InfeedRequest, ...);",
+        "",
+        "// Broadcast a tutti i drive",
+        "Drive1.Infeed_ON := Infeed.Running;",
+        "Drive2.Infeed_ON := Infeed.Running;"
+      ]
+    }
+  },
+
+  "handshake_summary": {
+    "description": "Riassunto degli handshake critici",
+
+    "CheckNext_handshake": {
+      "purpose": "Coordinamento inter-device per movimento",
+      "direction": "Device → L3 → Altri Device → Device",
+      "flow": [
+        "Feed riceve comando Fwd → Fwd_CheckNext = TRUE",
+        "L3 vede Fwd_CheckNext → comanda prerequisiti (es. Rullo.Work)",
+        "Rullo raggiunge Work → Rullo.COut.Work = TRUE",
+        "L3 collega: Feed.Fwd_ExtEnable := Rullo.COut.Work",
+        "Feed esegue movimento forward",
+        "Movimento completato → Fwd_CheckNext = FALSE"
+      ]
+    },
+
+    "CtrlSafe_handshake": {
+      "purpose": "Feedback verso Safety PLC per gestione potenza",
+      "direction": "Device → L3 aggregation → Safety PLC",
+      "semantics": "CtrlSafe è FEEDBACK non DECISIONE",
+      "flow": [
+        "Feed in movimento → CtrlSafe = TRUE (ho bisogno di coppia)",
+        "L3 aggrega: AllCtrlSafe = TRUE",
+        "Safety PLC mantiene potenza",
+        "Feed fermo + nessun comando → CtrlSafe = FALSE",
+        "L3: AllCtrlSafe = FALSE",
+        "Safety PLC può fare STO se richiesto (es. apertura porta)"
+      ]
+    },
+
+    "Infeed_handshake": {
+      "purpose": "Gestione DC bus comune (shared resource)",
+      "direction": "Devices → OR aggregation → Infeed FB → Broadcast",
+      "independence": "Gestito indipendentemente da L3/L4",
+      "flow": [
+        "Feed richiede movimento → Infeed_ReqON = TRUE",
+        "Aggregatore esterno fa OR di tutte le richieste",
+        "Infeed FB accende DC bus S120",
+        "Infeed.Running → Drive.Infeed_ON = TRUE (broadcast)",
+        "SpeedAxis vede Infeed_ON → può fare MC_POWER",
+        "Tutte richieste FALSE → dopo timeout → Infeed spegne"
+      ]
+    },
+
+    "Aborting_handshake": {
+      "purpose": "Escalation allarmi per arresto coordinato area",
+      "direction": "L2 → L4 → L5 (bottom-up) → L5 → L4 → L2 (top-down)",
+      "flow": [
+        "L2: Allarme + Ciclo → Aborting = TRUE",
+        "L4: OR aggregation → AtLeastOneMachineIsAborting",
+        "L5: Trigger StopInPhase",
+        "L5: AreaInterface.StopInPhase broadcast",
+        "L4: Sequenzia EnableStopInPhase (Feed prima, poi Pinch, poi Decoiler...)",
+        "L2: Latch → Standstill → AckStopInPhase",
+        "L5: Tutti ACK → Cycle := FALSE"
+      ]
+    },
+
+    "DoorOpening_handshake": {
+      "purpose": "Apertura porte sicurezza con arresto graceful",
+      "direction": "Safety → L2 → Safety",
+      "flow_automatic": [
+        "Operatore chiede apertura → ZSI.Door_NormalStop = TRUE",
+        "Manager (L3/L4) smette di dare comandi",
+        "L2 setta EnableStopDoorOpeningReq",
+        "Feed si ferma naturalmente",
+        "L2: StopDueDoorOpeningRequest latch attivo",
+        "L2: CtrlSafe → FALSE",
+        "Safety: AllCtrlSafe = FALSE → può aprire porta",
+        "ZSI.Door_Opened = TRUE → reset latch",
+        "Movimento solo con bimanuali safe + SLS"
+      ],
+      "flow_manual": [
+        "Operatore chiede apertura",
+        "Se pulsante premuto → aspetta rilascio",
+        "Appena fermo → latch attivo",
+        "Blocca pulsanti normali",
+        "Porta aperta → solo bimanuali safe + SLS"
+      ]
+    }
+  }
+}

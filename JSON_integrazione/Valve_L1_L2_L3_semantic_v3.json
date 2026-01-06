@@ -1,0 +1,906 @@
+{
+  "meta": {
+    "analysis_scope": "L1_Valve + L2_ValveMachine",
+    "version": "3.0",
+    "analysis_date": "2026-01-06",
+    "changes_v2": [
+      "Corretta semantica CheckNext: handshake per coordinamento inter-device",
+      "Corretta semantica CtrlSafe: handshake con Safety PLC per potenza",
+      "Aggiunto flusso completo sicurezza DSI",
+      "Aggiunti pattern di coordinamento L3"
+    ],
+    "source_files": [
+      "Valve.scl (206 lines)",
+      "ValveMachine_FB.scl (327 lines)",
+      "ValveConfig.udt",
+      "ValveCtrl.udt",
+      "ValveSts.udt",
+      "ValveAlr.udt"
+    ],
+    "changes_v3": [
+      "Espanso Sys.* global variables con OB100 e debug details",
+      "Aggiunto ValveMachine_Manager_UDT completo",
+      "Aggiunto ValveMachine_Config_Extensions (LsQty, DelayPressureRunningTimeout)",
+      "Aggiunto AreaInterface_UDT completo",
+      "Aggiunto ZoneSafetyInterface_UDT completo",
+      "Aggiunto MachineInterface_UDT completo",
+      "Aggiunto L3_UDT_Templates per generazione aggregatori",
+      "Aggiunto Responsibility_Matrix (Infeed, HU, Safety)",
+      "Aggiunto L3_Timeout_Handling patterns",
+      "Aggiunto L3_Common_Mistakes (7 errori tipici)",
+      "Aggiunto L3_Validation_Checklist (14 regole)"
+    ]
+  },
+  "L1_Valve": {
+    "purpose": "Device driver per valvola pneumatica/idraulica a 2 posizioni",
+    "physical_model": "Cilindro con 0-2 finecorsa per posizione, 1-2 solenoidi, opzionale pressione olio",
+    "Config": {
+      "description": "Parametri che definiscono TIPO FISICO della valvola - impostati in commissioning, NON modificati a runtime",
+      "RestLimSwitchExist": {
+        "type": "Bool",
+        "meaning": "Esiste finecorsa fisico per posizione Rest?",
+        "impact": {
+          "TRUE": "IsAtRest richiede RestLimitSwitch=TRUE + tempo RestTime",
+          "FALSE": "IsAtRest basato SOLO su tempo RestTime (nessun sensore verificato)"
+        },
+        "typical_use": {
+          "TRUE": "Cilindri con finecorsa standard",
+          "FALSE": "Cilindri semplici, elettrovalvole senza feedback"
+        }
+      },
+      "WorkLimSwitchExist": {
+        "type": "Bool",
+        "meaning": "Esiste finecorsa fisico per posizione Work?",
+        "impact": {
+          "TRUE": "IsAtWork richiede WorkLimitSwitch=TRUE + tempo WorkTime",
+          "FALSE": "IsAtWork basato SOLO su tempo WorkTime"
+        }
+      },
+      "CheckOilInPressure": {
+        "type": "Bool",
+        "meaning": "Valvola richiede pressione idraulica per muoversi?",
+        "impact": {
+          "TRUE": "Solenoide si attiva SOLO se OilInPressure=TRUE. ReqOilPressure segnala necessità a L3.",
+          "FALSE": "Solenoide si attiva indipendentemente da OilInPressure. Per valvole pneumatiche o spring-return."
+        },
+        "l3_implication": {
+          "when_TRUE": "L3 deve: 1) Aggregare ReqOilPressure, 2) Attivare HU, 3) Broadcast PressureRunning",
+          "when_FALSE": "L3 non deve gestire pressione per questa istanza"
+        }
+      },
+      "CutRestWhenIsAtRest": {
+        "type": "Bool",
+        "meaning": "Disattivare solenoide Rest quando raggiunta posizione?",
+        "impact": {
+          "TRUE": "Solenoide OFF quando IsAtRest=TRUE. Valvola MONOSTABILE (spring-return o centro chiuso).",
+          "FALSE": "Solenoide rimane ON finché comando attivo. Valvola BISTABILE."
+        },
+        "physical_meaning": {
+          "TRUE": "Cilindro torna automaticamente o valvola 5/3 centro chiuso",
+          "FALSE": "Cilindro mantiene posizione, valvola 5/2 bistabile"
+        }
+      },
+      "CutWorkWhenIsAtWork": {
+        "type": "Bool",
+        "meaning": "Disattivare solenoide Work quando raggiunta posizione?",
+        "impact": {
+          "TRUE": "Solenoide OFF quando IsAtWork=TRUE",
+          "FALSE": "Solenoide rimane ON"
+        }
+      },
+      "RestTime": {
+        "type": "Time",
+        "meaning": "Tempo di stabilizzazione dopo cui confermare IsAtRest",
+        "typical_values": "T#200ms - T#2s",
+        "note": "Evita falsi positivi da rimbalzi sensore"
+      },
+      "WorkTime": {
+        "type": "Time",
+        "meaning": "Tempo di stabilizzazione per IsAtWork"
+      },
+      "RestTimeOut": {
+        "type": "Time",
+        "meaning": "Tempo massimo per raggiungere Rest, poi allarme TimeOutRest",
+        "typical_values": "T#3s - T#10s",
+        "impact": "TimeOutRest blocca RestPermit fino a reset"
+      },
+      "WorkTimeOut": {
+        "type": "Time",
+        "meaning": "Tempo massimo per raggiungere Work"
+      }
+    },
+    "ValveCtrl": {
+      "description": "Comandi da L2 verso L1",
+      "SafeStop": {
+        "type": "Bool",
+        "meaning": "Blocco di sicurezza - ferma tutti i movimenti",
+        "source": "Calcolato da L2 basato su DSI",
+        "impact": "SafeStop=TRUE → RestPermit=FALSE, WorkPermit=FALSE",
+        "formula_in_L2": "SafeStop := NOT((NOT(DSI.SafeStop) AND DSI.PowerEnable) AND NOT(DSI.DevicesInSafeState))"
+      },
+      "Rst": {
+        "type": "Bool",
+        "meaning": "Reset allarmi",
+        "source": "AreaInterface.RstAlarms",
+        "impact": "Azzera TimeOutRest, TimeOutWork, LimitSwitches"
+      },
+      "MoveRest": {
+        "type": "Bool",
+        "meaning": "Comando movimento verso Rest",
+        "condition": "Eseguito solo se RestPermit=TRUE AND OilInPressure (se richiesto)"
+      },
+      "MoveWork": {
+        "type": "Bool",
+        "meaning": "Comando movimento verso Work"
+      }
+    },
+    "ValveSts": {
+      "description": "Stati da L1 verso L2",
+      "IsAtRest": {
+        "type": "Bool",
+        "meaning": "Valvola fisicamente in posizione Rest (confermata)",
+        "condition": "(RestLimitSwitch OR NOT RestLimSwitchExist) AND timer RestTime scaduto"
+      },
+      "IsAtWork": {
+        "type": "Bool",
+        "meaning": "Valvola fisicamente in posizione Work (confermata)"
+      },
+      "RestPermit": {
+        "type": "Bool",
+        "meaning": "Movimento verso Rest PERMESSO da L1",
+        "formula": "NOT(TimeOutRest) AND NOT(SafeStop) AND NOT(MoveWork)",
+        "note": "L1 verifica solo condizioni INTERNE. L2 aggiunge ExtEnable e Stops."
+      },
+      "WorkPermit": {
+        "type": "Bool",
+        "meaning": "Movimento verso Work PERMESSO da L1",
+        "formula": "NOT(TimeOutWork) AND NOT(SafeStop) AND NOT(MoveRest)"
+      },
+      "RestInProgress": {
+        "type": "Bool",
+        "meaning": "Movimento verso Rest in esecuzione",
+        "formula": "RestSolenoid AND NOT(IsAtRest)"
+      },
+      "WorkInProgress": {
+        "type": "Bool",
+        "meaning": "Movimento verso Work in esecuzione"
+      },
+      "StandStill": {
+        "type": "Bool",
+        "meaning": "Valvola completamente ferma (nessun movimento)",
+        "formula": "(NOT RestSolenoid OR IsAtRest) AND (NOT WorkSolenoid OR IsAtWork)"
+      },
+      "AlarmPresence": {
+        "type": "Bool",
+        "meaning": "Almeno un allarme L1 attivo"
+      }
+    },
+    "Alarms": {
+      "TimeOutRest": {
+        "trigger": "Comando Rest attivo ma IsAtRest non raggiunto entro RestTimeOut",
+        "impact": "RestPermit=FALSE fino a reset",
+        "typical_cause": "Sensore guasto, ostacolo meccanico, mancanza pressione"
+      },
+      "TimeOutWork": {
+        "trigger": "Comando Work attivo ma IsAtWork non raggiunto entro WorkTimeOut",
+        "impact": "WorkPermit=FALSE fino a reset"
+      },
+      "LimitSwitches": {
+        "trigger": "Entrambi finecorsa Rest E Work attivi contemporaneamente",
+        "meaning": "Errore cablaggio, sensore guasto, o configurazione errata",
+        "impact": "RestPermit=FALSE, WorkPermit=FALSE"
+      }
+    },
+    "OilPressure_Flow": {
+      "description": "Flusso completo gestione pressione idraulica",
+      "steps": [
+        {
+          "step": 1,
+          "actor": "L1",
+          "action": "Calcola ReqOilPressure := (RestReq OR WorkReq) AND CheckOilInPressure",
+          "meaning": "Segnala che ha bisogno di pressione per muoversi"
+        },
+        {
+          "step": 2,
+          "actor": "L2",
+          "action": "Espone COut.ReqOilPressure := V.ReqOilPressure",
+          "meaning": "Passa richiesta a L3"
+        },
+        {
+          "step": 3,
+          "actor": "L3",
+          "action": "Aggrega AnyReqOilPressure := OR di tutte le istanze",
+          "meaning": "Determina se qualcuno ha bisogno di HU"
+        },
+        {
+          "step": 4,
+          "actor": "L3",
+          "action": "Attiva HU se AnyReqOilPressure",
+          "meaning": "Accende centrale idraulica"
+        },
+        {
+          "step": 5,
+          "actor": "L3",
+          "action": "Broadcast CIn.PressureRunning := HU.Running",
+          "meaning": "Comunica a tutti che pressione disponibile"
+        },
+        {
+          "step": 6,
+          "actor": "L2",
+          "action": "Passa V.OilInPressure := CIn.PressureRunning",
+          "meaning": "Informa L1"
+        },
+        {
+          "step": 7,
+          "actor": "L1",
+          "action": "Se CheckOilInPressure AND OilInPressure → attiva solenoide",
+          "meaning": "Ora può muoversi"
+        }
+      ],
+      "key_insight": "L1 NON genera allarme se manca pressione. Semplicemente non attiva solenoide. Warning generato da L2 dopo timeout."
+    }
+  },
+  "L2_ValveMachine": {
+    "purpose": "Layer di coordinamento sopra L1: gestisce Man/Aut, Stop, ExtEnable, interfaccia verso L3",
+    "what_L2_adds": {
+      "manual_mode": "Pulsanti PB con positive edge, toggle StartStop, retain comando",
+      "automatic_mode": "Comandi da CIn.Manager quando Control_ON=TRUE",
+      "stop_management": "4 tipi di stop: DoorOpening, InPhase, Programmed, Aborting",
+      "external_enable": "ExtEnable per coordinamento L3 inter-device",
+      "external_alarms": "Punto di iniezione allarmi da L3",
+      "machine_interface": "Aggregazione stato per L4/L5",
+      "safety_integration": "Interfaccia con DSI per SafeStop"
+    },
+    "CIn": {
+      "description": "Comandi e condizioni da L3/L4",
+      "Manager": {
+        "Control_ON": {
+          "type": "Bool",
+          "semantic": "mode_selector",
+          "meaning": "Selettore modalità: TRUE=Automatico, FALSE=Manuale",
+          "behavior": {
+            "TRUE": "Comandi da Manager.Rest/Work, PB ignorati",
+            "FALSE": "Comandi da PB (DataIn.PB.*)"
+          },
+          "l3_usage": "L3 imposta TRUE quando vuole controllare automaticamente"
+        },
+        "Rest": {
+          "type": "Bool",
+          "semantic": "auto_command",
+          "meaning": "Comando automatico: muovi verso Rest",
+          "condition": "Attivo solo se Control_ON=TRUE"
+        },
+        "Work": {
+          "type": "Bool",
+          "semantic": "auto_command",
+          "meaning": "Comando automatico: muovi verso Work"
+        },
+        "EnableStopDoorOpeningReq": {
+          "type": "Bool",
+          "semantic": "stop_enable_passthrough",
+          "meaning": "Questa macchina può fermarsi per apertura porta",
+          "l3_usage": "L3 passa direttamente da L4 Zone Manager"
+        },
+        "EnableStopInPhase": {
+          "type": "Bool",
+          "semantic": "stop_enable_passthrough",
+          "meaning": "Questa macchina può fermarsi in fase"
+        },
+        "EnableStopProgrammed": {
+          "type": "Bool",
+          "semantic": "stop_enable_passthrough",
+          "meaning": "Questa macchina può fermarsi programmato"
+        }
+      },
+      "Rest_ExtEnable": {
+        "type": "Bool",
+        "semantic": "external_condition_from_L3",
+        "meaning": "Condizione ESTERNA da L3 per permettere movimento Rest",
+        "critical_note": "È UNA delle condizioni, NON l'unica. Formula completa include anche Stops e L1.Permit.",
+        "l3_usage": {
+          "purpose": "L3 usa per coordinamento inter-device",
+          "pattern": "Oriz.Rest_ExtEnable := Vert.COut.Work (Oriz può tornare Rest solo se Vert è Work)",
+          "default": "TRUE se nessun vincolo inter-device"
+        }
+      },
+      "Work_ExtEnable": {
+        "type": "Bool",
+        "semantic": "external_condition_from_L3",
+        "meaning": "Condizione ESTERNA da L3 per movimento Work"
+      },
+      "PressureRunning": {
+        "type": "Bool",
+        "semantic": "resource_broadcast",
+        "meaning": "Pressione idraulica disponibile (da HU via L3)",
+        "behavior": "Passato a L1 come OilInPressure",
+        "l3_responsibility": "L3 raccoglie ReqOilPressure, attiva HU, broadcast questo segnale"
+      },
+      "ExternalAlarms": {
+        "type": "Bool",
+        "semantic": "alarm_injection_point",
+        "meaning": "Punto di iniezione allarmi da L3",
+        "behavior": "Se TRUE → L2 va in AlarmsPresence → StopAborting → blocca movimenti",
+        "l3_usage": {
+          "purpose": "L3 inietta allarmi da logica inter-device",
+          "examples": [
+            "Timeout sequenza L3",
+            "Collisione rilevata",
+            "Errore coordinamento"
+          ]
+        }
+      }
+    },
+    "COut": {
+      "description": "Stati per coordinamento L3 e Safety",
+      "Rest": {
+        "type": "Bool",
+        "semantic": "physical_position_state",
+        "meaning": "Valvola fisicamente in posizione Rest (confermata da L1)",
+        "source": "V.ValveSts.IsAtRest",
+        "l3_usage": "Usato come condizione per ExtEnable di altri device"
+      },
+      "Work": {
+        "type": "Bool",
+        "semantic": "physical_position_state",
+        "meaning": "Valvola fisicamente in posizione Work",
+        "source": "V.ValveSts.IsAtWork"
+      },
+      "Rest_CheckNext": {
+        "type": "Bool",
+        "semantic": "coordination_handshake_request",
+        "meaning": "RICHIESTA COORDINAMENTO: Ho comando Rest, altre macchine preparatevi!",
+        "formula": "(Rest_Man AND NOT Control_ON) OR Rest_Aut",
+        "critical_behavior": {
+          "TRUE_means": "Comando attivo, INDIPENDENTEMENTE se condizioni OK",
+          "purpose": "Segnale TRIGGER per L3 per comandare altre macchine"
+        },
+        "l3_usage": {
+          "as_trigger": "L3 vede CheckNext=TRUE → comanda altre macchine per creare condizioni",
+          "handshake_example": {
+            "step1": "Feed.Fwd_CheckNext=TRUE (feed vuole avanzare)",
+            "step2": "L3 vede → comanda Rullo.Work (chiudi rullo)",
+            "step3": "Rullo.COut.Work=TRUE (rullo chiuso)",
+            "step4": "L3: Feed.Fwd_ExtEnable := Rullo.COut.Work",
+            "step5": "Feed esegue avanzamento",
+            "step6": "Feed.Fwd_CheckNext=FALSE (comando completato)"
+          }
+        },
+        "NOT_for": "Monitoraggio passivo timeout - è un segnale ATTIVO"
+      },
+      "Work_CheckNext": {
+        "type": "Bool",
+        "semantic": "coordination_handshake_request",
+        "meaning": "RICHIESTA COORDINAMENTO: Ho comando Work, preparatevi!"
+      },
+      "Standstill": {
+        "type": "Bool",
+        "semantic": "motion_state",
+        "meaning": "Valvola completamente ferma",
+        "source": "V.ValveSts.StandStill"
+      },
+      "CtrlSafe": {
+        "type": "Bool",
+        "semantic": "safety_handshake_with_safety_plc",
+        "meaning": "HANDSHAKE SICUREZZA: FALSE=Ho bisogno potenza, TRUE=Potete mettere in safe",
+        "formula": "NOT(TON_NoPendingCmd.IN) OR (Control_ON AND NOT StopDueDoorOpeningRequest)",
+        "critical_behavior": {
+          "FALSE_means": "Comando pending → RICHIEDO POTENZA al Safety PLC",
+          "TRUE_means": "Nessun comando pending → Safety PLC può mettere in Safe State"
+        },
+        "safety_plc_handshake": {
+          "step1": "Device riceve comando → CtrlSafe=FALSE",
+          "step2": "Safety PLC vede CtrlSafe=FALSE da almeno un device",
+          "step3": "Safety PLC verifica: barriere OK? E-Stop OK? Bimanuale? Modo operativo?",
+          "step4": "Se tutto OK → Safety PLC: DSI.SafeStop=FALSE, DSI.PowerEnable=TRUE",
+          "step5": "L2 calcola: V.SafeStop := NOT(...DSI...) → FALSE → movimento permesso",
+          "step6": "Device muove",
+          "step7": "Movimento completato, no pending → CtrlSafe=TRUE",
+          "step8": "Safety PLC può rimettere in Safe State (STO, potenza off)"
+        },
+        "l3_usage": {
+          "aggregation": "L3 fa AND di tutti: AllCtrlSafe := Oriz.CtrlSafe AND Vert.CtrlSafe",
+          "to_safety_plc": "Safety PLC usa AllCtrlSafe per decidere su zona/macchina",
+          "note": "L3 NON decide sulla sicurezza, solo aggrega e passa"
+        }
+      },
+      "ReqOilPressure": {
+        "type": "Bool",
+        "semantic": "resource_request",
+        "meaning": "Richiesta pressione idraulica per movimento",
+        "source": "V.ReqOilPressure",
+        "l3_usage": {
+          "aggregation": "L3 fa OR: AnyReqOilPressure := Oriz.ReqOilPressure OR Vert.ReqOilPressure",
+          "action": "Se AnyReqOilPressure → L3 attiva HU"
+        }
+      }
+    },
+    "condition_hierarchy": {
+      "description": "Come si combinano TUTTE le condizioni per permettere movimento",
+      "complete_formula_Rest": {
+        "scl": "V.ValveCtrl.MoveRest := ((Rest_Man AND NOT Control_ON) OR Rest_Aut) AND Rest_Cnd",
+        "where_Rest_Cnd": "NOT(Stop*) AND Rest_ExtEnable AND V.RestPermit",
+        "expanded": "(Comando) AND NOT(Stops) AND ExtEnable AND L1.Permit"
+      },
+      "layers": {
+        "L1_internal": {
+          "RestPermit": "NOT(TimeOutRest) AND NOT(SafeStop) AND NOT(MoveWork)",
+          "managed_by": "L1 Valve internamente",
+          "L2_cannot_bypass": true
+        },
+        "L2_stops": {
+          "formula": "NOT(StopDueDoorOpeningReq) AND NOT(StopInPhase) AND NOT(StopProgrammed) AND NOT(StopAborting)",
+          "source": "AreaInterface, ZSI, Alarms",
+          "managed_by": "L2 ValveMachine"
+        },
+        "L3_external": {
+          "ExtEnable": "Condizione inter-device da L3",
+          "source": "Stati COut di altri device",
+          "managed_by": "L3 Aggregator"
+        },
+        "Safety": {
+          "via_DSI": "SafeStop, PowerEnable, DevicesInSafeState",
+          "source": "Safety PLC",
+          "impacts": "L1.SafeStop via formula L2"
+        }
+      },
+      "evaluation_order": [
+        "1. Safety (DSI) → L1.SafeStop",
+        "2. L1 Alarms → L1.Permit",
+        "3. L2 Stops → Stop*",
+        "4. L3 ExtEnable → condizione finale",
+        "5. Comando (Man/Aut) → trigger movimento"
+      ]
+    },
+    "DSI_integration": {
+      "description": "Come L2 usa Device Safety Interface",
+      "formula": {
+        "scl": "V.ValveCtrl.SafeStop := NOT((NOT(DSI.SafeStop) AND DSI.PowerEnable) AND NOT(DSI.DevicesInSafeState))",
+        "meaning": {
+          "SafeStop_FALSE_when": "DSI.SafeStop=FALSE AND DSI.PowerEnable=TRUE AND DSI.DevicesInSafeState=FALSE",
+          "translation": "Movimento permesso quando Safety PLC ha abilitato e non siamo in safe state"
+        }
+      },
+      "DSI_fields": {
+        "SafeStop": "Safety PLC ordina stop (TRUE=stop, FALSE=movimento ok)",
+        "PowerEnable": "Potenza abilitata da Safety PLC",
+        "DevicesInSafeState": "Device forzato in stato sicuro (STO attivo)"
+      }
+    }
+  },
+  "Config_Combinations": {
+    "description": "Configurazioni tipiche per diversi tipi fisici di valvole",
+    "pneumatic_bistable_5_2": {
+      "name": "Valvola pneumatica bistabile 5/2",
+      "physical": "Mantiene posizione senza aria, 2 solenoidi",
+      "config": {
+        "RestLimSwitchExist": true,
+        "WorkLimSwitchExist": true,
+        "CheckOilInPressure": false,
+        "CutRestWhenIsAtRest": false,
+        "CutWorkWhenIsAtWork": false
+      },
+      "behavior": "Solenoide ON finché comando attivo. Posizione stabile."
+    },
+    "pneumatic_monostable_5_3": {
+      "name": "Valvola pneumatica monostabile 5/3 centro chiuso",
+      "physical": "Torna a centro quando solenoidi OFF, molla di ritorno",
+      "config": {
+        "RestLimSwitchExist": true,
+        "WorkLimSwitchExist": true,
+        "CheckOilInPressure": false,
+        "CutRestWhenIsAtRest": true,
+        "CutWorkWhenIsAtWork": true
+      },
+      "behavior": "Solenoide solo durante movimento, poi OFF."
+    },
+    "hydraulic_cylinder_standard": {
+      "name": "Cilindro idraulico standard",
+      "physical": "Richiede pressione HU, finecorsa entrambi i lati",
+      "config": {
+        "RestLimSwitchExist": true,
+        "WorkLimSwitchExist": true,
+        "CheckOilInPressure": true,
+        "CutRestWhenIsAtRest": false,
+        "CutWorkWhenIsAtWork": false
+      },
+      "behavior": "Movimento solo con pressione. L3 deve gestire HU.",
+      "l3_requirement": "DEVE aggregare ReqOilPressure e gestire broadcast PressureRunning"
+    },
+    "hydraulic_cylinder_no_sensors": {
+      "name": "Cilindro idraulico senza finecorsa",
+      "physical": "Movimento a tempo, nessun feedback posizione",
+      "config": {
+        "RestLimSwitchExist": false,
+        "WorkLimSwitchExist": false,
+        "CheckOilInPressure": true,
+        "CutRestWhenIsAtRest": false,
+        "CutWorkWhenIsAtWork": false
+      },
+      "behavior": "Posizione basata solo su tempo. Per cilindri semplici.",
+      "warning": "Nessuna conferma fisica posizione!"
+    },
+    "spring_return_cylinder": {
+      "name": "Cilindro con ritorno a molla",
+      "physical": "Una sola direzione comandata, ritorno automatico",
+      "config": {
+        "RestLimSwitchExist": true,
+        "WorkLimSwitchExist": true,
+        "CheckOilInPressure": false,
+        "CutRestWhenIsAtRest": true,
+        "CutWorkWhenIsAtWork": false
+      },
+      "behavior": "Work comandato, Rest automatico quando rilasciato."
+    }
+  },
+  "L3_integration_patterns": {
+    "description": "Pattern di integrazione per generazione L3",
+    "passthrough_direct": {
+      "description": "L3 passa senza modifiche",
+      "fields": [
+        "Manager.EnableStopDoorOpeningReq",
+        "Manager.EnableStopInPhase",
+        "Manager.EnableStopProgrammed",
+        "DataIn.*",
+        "Config.*",
+        "Alarm.*",
+        "Warning.*"
+      ],
+      "scl_pattern": "t_CIn_{Instance}.Manager.EnableStopInPhase := CIn.Manager.EnableStopInPhase;"
+    },
+    "broadcast_shared": {
+      "description": "Stesso valore a tutte le istanze",
+      "fields": [
+        "AreaInterface",
+        "ZSI",
+        "PressureRunning"
+      ],
+      "scl_pattern": "t_CIn_{Instance}.PressureRunning := CIn.PressureRunning;"
+    },
+    "per_instance_from_wrapper": {
+      "description": "Valore specifico da struct wrapper L3",
+      "fields": [
+        "DSI",
+        "DataIn",
+        "Config"
+      ],
+      "scl_pattern": "{Instance}.DSI := DSI.{Instance};"
+    },
+    "per_instance_commands": {
+      "description": "Comandi movimento specifici per istanza",
+      "fields": [
+        "Manager.Rest",
+        "Manager.Work"
+      ],
+      "scl_pattern": "t_CIn_{Instance}.Manager.Rest := CIn.{Instance}.Rest;"
+    },
+    "ext_enable_inter_device": {
+      "description": "Condizioni ExtEnable basate su stati altri device",
+      "fields": [
+        "Rest_ExtEnable",
+        "Work_ExtEnable"
+      ],
+      "pattern": {
+        "independent": "t_CIn_{Instance}.Rest_ExtEnable := TRUE;",
+        "sequential": "t_CIn_{Instance}.Work_ExtEnable := {OtherInstance}.COut.{RequiredState};",
+        "from_l3_cin": "t_CIn_{Instance}.Rest_ExtEnable := CIn.ExtCnd.{Instance}_CanMoveToRest;"
+      }
+    },
+    "control_on_extended": {
+      "description": "Control_ON esteso con comandi device-specific",
+      "scl_pattern": "t_CIn_{Instance}.Manager.Control_ON := CIn.Manager.Control_ON OR CIn.{Instance}.Rest OR CIn.{Instance}.Work;"
+    },
+    "aggregation_rules": {
+      "description": "Come L3 aggrega COut da tutte le istanze",
+      "AND_aggregation": {
+        "fields": [
+          "AllRest",
+          "AllWork",
+          "AllStandstill",
+          "AllCtrlSafe"
+        ],
+        "pattern": "COut.AllRest := {Instance1}.COut.Rest AND {Instance2}.COut.Rest;"
+      },
+      "OR_aggregation": {
+        "fields": [
+          "AnyReqOilPressure",
+          "AnyAlarmsPresence"
+        ],
+        "pattern": "COut.AnyReqOilPressure := {Instance1}.COut.ReqOilPressure OR {Instance2}.COut.ReqOilPressure;"
+      }
+    },
+    "check_next_as_trigger": {
+      "description": "Pattern per usare CheckNext come trigger coordinamento",
+      "example": {
+        "scenario": "Feeder con rullo + avanzamento",
+        "logic": [
+          "// Feed vuole avanzare → CheckNext come trigger",
+          "IF Feed.COut.Fwd_CheckNext THEN",
+          "    // Comanda chiusura rullo",
+          "    t_CIn_Rullo.Manager.Work := TRUE;",
+          "END_IF;",
+          "",
+          "// Rullo chiuso → abilita avanzamento",
+          "t_CIn_Feed.Fwd_ExtEnable := Rullo.COut.Work;"
+        ]
+      }
+    },
+    "ctrl_safe_aggregation": {
+      "description": "Pattern per aggregare CtrlSafe verso Safety PLC",
+      "scl": "COut.AllCtrlSafe := {Instance1}.COut.CtrlSafe AND {Instance2}.COut.CtrlSafe;",
+      "note": "Safety PLC usa questo per decidere se può mettere zona in safe state"
+    }
+  },
+  "handshake_summary": {
+    "description": "Riassunto dei due handshake critici",
+    "CheckNext_handshake": {
+      "purpose": "Coordinamento inter-device",
+      "direction": "Device → L3 → Altri Device",
+      "flow": [
+        "Device A riceve comando → A.CheckNext = TRUE",
+        "L3 vede A.CheckNext → comanda Device B",
+        "B raggiunge stato richiesto → B.COut.Stato = TRUE",
+        "L3 collega: A.ExtEnable := B.COut.Stato",
+        "A esegue movimento",
+        "A.CheckNext = FALSE"
+      ]
+    },
+    "CtrlSafe_handshake": {
+      "purpose": "Coordinamento con Safety PLC per potenza",
+      "direction": "Device → L3 → Safety PLC → DSI → Device",
+      "flow": [
+        "Device riceve comando → CtrlSafe = FALSE (richiedo potenza)",
+        "L3 aggrega: AllCtrlSafe = FALSE",
+        "Safety PLC vede richiesta potenza",
+        "Safety PLC verifica condizioni sicurezza",
+        "Se OK: DSI.SafeStop=FALSE, PowerEnable=TRUE",
+        "Device vede DSI OK → toglie blocco → muove",
+        "Movimento completato → CtrlSafe = TRUE",
+        "Safety PLC può rimettere in safe"
+      ]
+    }
+  },
+  "global_variables": {
+    "description": "Variabili globali di sistema usate dai FB",
+    "Sys": {
+      "description": "DB globale con variabili di sistema PLC",
+      "note": "Potrebbe non essere incluso nell'export progetto - gestito da OB startup",
+      "Sys.FirstPLCCycle": {
+        "type": "Bool",
+        "meaning": "TRUE solo al primo ciclo PLC dopo power-on o Stop→Run",
+        "set_by": "OB100 (Startup)",
+        "use_case": "Inizializzazioni, reset array messaggi, skip logiche transitorie",
+        "example_usage": [
+          "TON_NoPendingCmd.IN skip su primo ciclo per evitare false 'no commands'",
+          "Inizializzazione stati macchina"
+        ],
+        "implementation": "Settato a TRUE in OB100, automaticamente FALSE da ciclo 2 in poi"
+      },
+      "Sys.SimulationDevice": {
+        "type": "Bool",
+        "meaning": "Flag globale modalità simulazione dispositivi",
+        "set_by": "Forzamento manuale durante debug",
+        "impact": "Bypassa feedback fisici, simula TO, disabilita uscite fisiche",
+        "typical_use": [
+          "Test logica senza hardware fisico collegato",
+          "Commissioning software in laboratorio"
+        ],
+        "propagation": [
+          "ValveMachine: V.Simulation := Sys.SimulationDevice",
+          "Valve L1: Bypassa sensori, solenoidi"
+        ]
+      }
+    }
+  },
+  "ValveMachine_Manager_UDT": {
+    "description": "Comandi automatici da L3/L4 verso ValveMachine",
+    "path": "CIn.Manager",
+    "fields": {
+      "EnableStopDoorOpeningReq": {
+        "type": "Bool",
+        "semantic": "stop_enable_passthrough",
+        "meaning": "Abilita arresto per richiesta apertura porta",
+        "source": "L4 Zone Manager → L3 → L2"
+      },
+      "EnableStopInPhase": {
+        "type": "Bool",
+        "semantic": "stop_enable_passthrough",
+        "meaning": "Abilita arresto in fase (sincronizzato)",
+        "source": "L5 Area Manager → L4 → L3 → L2"
+      },
+      "EnableStopProgrammed": {
+        "type": "Bool",
+        "semantic": "stop_enable_passthrough",
+        "meaning": "Abilita arresto programmato"
+      },
+      "Control_ON": {
+        "type": "Bool",
+        "semantic": "mode_selector",
+        "meaning": "Selettore Aut/Man: TRUE=Automatico, FALSE=Manuale",
+        "behavior": {
+          "TRUE": "Comandi da Manager.Rest/Work, pulsanti ignorati",
+          "FALSE": "Comandi da PB (DataIn.PB.*), Manager ignorato"
+        }
+      },
+      "Rest": {
+        "type": "Bool",
+        "semantic": "auto_command",
+        "meaning": "Comando automatico: muovi verso Rest",
+        "condition": "Attivo solo se Control_ON=TRUE"
+      },
+      "Work": {
+        "type": "Bool",
+        "semantic": "auto_command",
+        "meaning": "Comando automatico: muovi verso Work",
+        "condition": "Attivo solo se Control_ON=TRUE"
+      }
+    }
+  },
+  "ValveMachine_Config_Extensions": {
+    "DelayPressureRunningTimeout": {
+      "type": "Time",
+      "meaning": "Timeout attesa pressione idraulica disponibile",
+      "trigger": "Warning se ReqOilPressure=TRUE ma PressureRunning=FALSE per questo tempo",
+      "typical_value": "T#5s - T#15s"
+    },
+    "DelayMissingCondition": {
+      "type": "Time",
+      "meaning": "Timeout per warning condizioni mancanti",
+      "trigger": "Warning.Rest_MissingExtEnable se CheckNext=TRUE ma ExtEnable=FALSE",
+      "typical_value": "T#3s"
+    },
+    "Rest_LsQty": {
+      "type": "Int",
+      "meaning": "Numero di limit switch attivi per posizione Rest (1-8)",
+      "impact": "Aggregazione AND dei primi N sensori",
+      "diagnostic": "Warning.Missing_Rest_Ls_ON[1..8] identifica sensore guasto"
+    },
+    "Work_LsQty": {
+      "type": "Int",
+      "meaning": "Numero di limit switch attivi per posizione Work (1-8)",
+      "impact": "Aggregazione AND dei primi N sensori"
+    }
+  },
+  "AreaInterface_UDT": {
+    "description": "Interfaccia broadcast da L5 Area Manager",
+    "fields": {
+      "EStop": {
+        "type": "Bool",
+        "meaning": "Emergenza area attiva"
+      },
+      "Man": {
+        "type": "Bool",
+        "meaning": "Modalità manuale area"
+      },
+      "Aut": {
+        "type": "Bool",
+        "meaning": "Modalità automatica area pronta"
+      },
+      "Cycle": {
+        "type": "Bool",
+        "meaning": "Ciclo automatico in esecuzione"
+      },
+      "StopInPhase": {
+        "type": "Bool",
+        "meaning": "Stop in fase broadcast"
+      },
+      "StopProgrammed": {
+        "type": "Bool",
+        "meaning": "Stop programmato broadcast"
+      },
+      "RstAlarms": {
+        "type": "Bool",
+        "meaning": "Reset allarmi area"
+      },
+      "CheckAutReady": {
+        "type": "Bool",
+        "meaning": "Verifica AutReady"
+      }
+    }
+  },
+  "ZoneSafetyInterface_UDT": {
+    "description": "Interfaccia da Safety PLC per porte zona",
+    "fields": {
+      "Door_NormalStop": {
+        "type": "Bool",
+        "meaning": "Richiesta apertura porta normale"
+      },
+      "Door_SafeStop": {
+        "type": "Bool",
+        "meaning": "Porta aperta senza autorizzazione"
+      },
+      "Door_Opened": {
+        "type": "Bool",
+        "meaning": "Porta fisicamente aperta"
+      },
+      "Door_EntryEnable": {
+        "type": "Bool",
+        "meaning": "Ingresso zona abilitato"
+      }
+    }
+  },
+  "MachineInterface_UDT": {
+    "description": "Interfaccia da L2 verso L4/L5",
+    "fields": {
+      "AutReady": {
+        "type": "Bool"
+      },
+      "Aborting": {
+        "type": "Bool"
+      },
+      "AckStopInPhase": {
+        "type": "Bool"
+      },
+      "AckStopProgrammed": {
+        "type": "Bool"
+      },
+      "MotionsStandStill": {
+        "type": "Bool"
+      },
+      "AlarmsPresence": {
+        "type": "Bool"
+      },
+      "WarningPresence": {
+        "type": "Bool"
+      }
+    }
+  },
+  "L3_UDT_Templates": {
+    "description": "Strutture dati per L3 aggregatori",
+    "L3_CIn_Template": {
+      "Manager": "Passthrough da L4",
+      "AreaInterface": "Broadcast area",
+      "ZSI": "Broadcast zona sicurezza",
+      "ExtCnd": "Condizioni L3 per ExtEnable",
+      "PressureRunning": "Broadcast HU status"
+    },
+    "L3_COut_Template": {
+      "AllRest": {
+        "aggregation": "AND"
+      },
+      "AllWork": {
+        "aggregation": "AND"
+      },
+      "AllStandstill": {
+        "aggregation": "AND"
+      },
+      "AllCtrlSafe": {
+        "aggregation": "AND"
+      },
+      "AnyReqOilPressure": {
+        "aggregation": "OR"
+      }
+    }
+  },
+  "Responsibility_Matrix": {
+    "HU_Hydraulic_Unit": {
+      "aggregation_level": "DIPENDE - L3 se macchina singola, L4 se multi-macchina",
+      "L3_minimum": "Sempre esporre COut.ReqOilPressure"
+    },
+    "Safety_Aggregation": {
+      "L3_responsibility": "Aggregare CtrlSafe con AND, non decidere"
+    }
+  },
+  "L3_Timeout_Handling": {
+    "CheckNext_Timeout": {
+      "problem": "CheckNext=TRUE ma condizioni mai verificate",
+      "solution": "Timeout + ExternalAlarms injection"
+    },
+    "HU_Pressure_Timeout": {
+      "problem": "ReqOilPressure=TRUE ma PressureRunning=FALSE",
+      "L2_warning": "Warning.PressureRunning_Timeout"
+    }
+  },
+  "L3_Common_Mistakes": {
+    "mistake_1": "Dimenticare ExternalAlarms aggregation",
+    "mistake_2": "ExtEnable sempre TRUE quando condizionato",
+    "mistake_3": "Confondere CheckNext (richiesta) con State (fisico)",
+    "mistake_4": "CtrlSafe con OR invece di AND"
+  },
+  "L3_Validation_Checklist": {
+    "structure": "Ogni COut aggregato deve avere logica L3",
+    "timing": "CheckNext timeout gestito",
+    "safety": "CtrlSafe aggregato con AND",
+    "resources": "ReqOilPressure aggregato con OR",
+    "dependencies": "ExtEnable basato su stati fisici"
+  }
+}

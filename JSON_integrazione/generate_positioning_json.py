@@ -1,0 +1,404 @@
+#!/usr/bin/env python3
+"""
+Generate PositioningMachine JSON v3 knowledge base
+Based on analysis of PositioningMachine_FB.scl
+"""
+import json
+
+positioning_machine_json = {
+    "meta": {
+        "analysis_scope": "L1_PositioningAxis + L1_Motor + L2_PositioningMachine",
+        "version": "3.0",
+        "analysis_date": "2026-01-06",
+        "purpose": "Knowledge base for Claude Code SCL generation - Positioning Machine",
+        "changes_v3": [
+            "Creato nuovo JSON per PositioningMachine",
+            "Documentato L1 PositioningAxis (dual mode: velocity + positioning)",
+            "Documentato Manager UDT con MoveToPos e UsePositionControl",
+            "Documentato Position Limits (SW + Dynamic)",
+            "Documentato Optional Features (EncoderSelection, ParameterChange, AutoReload, ManPreset)",
+            "Documentato Torque Limiting",
+            "Documentato OL_CL_Space (Open Loop / Closed Loop transition)",
+            "Integrato Sys globals, AreaInterface, ZSI, MachineInterface",
+            "Aggiunte L3 patterns, Responsibility Matrix, Common Mistakes"
+        ],
+        "source_files": [
+            "PositioningMachine_FB.scl (925 lines)",
+            "PositioningAxis.scl (765 lines)",
+            "Motor.scl (107 lines - Fan)",
+            "PositioningMachine_CIn.udt",
+            "PositioningMachine_COut.udt",
+            "PositioningMachine_Config.udt",
+            "PositioningMachine_Manager.udt"
+        ]
+    },
+    
+    "global_variables": {
+        "description": "Variabili globali di sistema",
+        "Sys": {
+            "description": "DB globale con variabili di sistema PLC",
+            "Sys.FirstPLCCycle": {
+                "type": "Bool",
+                "meaning": "TRUE solo al primo ciclo PLC dopo power-on o Stop→Run",
+                "set_by": "OB100 (Startup)",
+                "use_case": "Skip NoPendingCmd.IN per evitare false 'no commands'"
+            },
+            "Sys.SimulationDevice": {
+                "type": "Bool",
+                "meaning": "Flag globale modalità simulazione dispositivi",
+                "set_by": "Forzamento manuale durante debug",
+                "impact": "Bypassa feedback fisici, simula TO"
+            }
+        }
+    },
+    
+    "L1_PositioningAxis": {
+        "description": "Blocco L1 per controllo assi posizionamento (TO_PositioningAxis wrapper)",
+        "dual_mode": {
+            "velocity_mode": "MovePlus/Mo veMinus - controllo velocità open loop",
+            "positioning_mode": "MoveAbsolute - controllo posizione closed loop"
+        },
+        "MC_blocks_used": ["MC_POWER", "MC_RESET", "MC_HOME", "MC_HALT", "MC_STOP", "MC_MOVEVELOCITY", "MC_MOVEABSOLUTE"],
+        "key_features": {
+            "Power_Management": "Simile a SpeedAxis con Infeed_ReqON",
+            "Homing": "MC_HOME per referenziazione asse",
+            "Position_Limits": "Software limits da TO + Dynamic limits da CIn",
+            "Modulo_Axis": "Supporto assi modulari (es. asse rotativo 0-360°)"
+        }
+    },
+    
+    "L2_PositioningMachine": {
+        "description": "Wrapper L2 per PositioningAxis con funzionalità opzionali e doppia modalità",
+        
+        "Optional_Features": {
+            "EncoderSelection": {
+                "description": "Cambio encoder motore/misura (Option)",
+                "trigger": "Manager.SelectMotorEncoder",
+                "persistence": "Pers_Data.AxisEncoderSelection_OK",
+                "note": "Forza AutoReloadPosition se cambia encoder"
+            },
+            "ParameterChange": {
+                "description": "Cambio parametri TO runtime (Option)",
+                "inputs": "CIn.TOParameters.Data",
+                "persistence": "Pers_Data.AxisParameters_OK",
+                "note": "Forza AutoReloadPosition se cambia parametro"
+            },
+            "AutoReloadPosition": {
+                "description": "Ricarica posizione da persistent @ startup (Option)",
+                "persistence": "Pers_Data.ActualPosition",
+                "trigger_conditions": [
+                    "Startup PLC",
+                    "Dopo EncoderSelection",
+                    "Dopo ParameterChange"
+                ]
+            },
+            "ManPreset": {
+                "description": "Set posizione manuale (HMI Preset) (Option)",
+                "trigger": "HMI.B_Preset positive edge",
+                "note": "Setta Pers_Data.AxisReloadPostion_OK = TRUE"
+            }
+        },
+        
+        "AxisInOperation": {
+            "formula": "((Ax.Homed OR NOT Options) AND EncoderOK AND ParametersOK AND ReloadOK) AND NOT Procedures_Running",
+            "meaning": "Asse pronto per comandi movimento",
+            "alarm_trigger": "(NOT AxisInOperation) AND (Aut OR Control_ON)"
+        },
+        
+        "Dual_Mode_Commands": {
+            "Manual_Velocity": {
+                "Bwd_Man": "Comando jog backward (velocità)",
+                "Fwd_Man": "Comando jog forward (ve locità)",
+                "HighSpeed": "Attivato dopo DelayManChangeSpeed",
+                "velocities": ["VelBwd", "VelFwdLow", "VelFwdHigh"]
+            },
+            "Manual_Position": {
+                "MoveToPos_Man": "Comando posizionamento manuale",
+                "target": "HMI.TargetPosition",
+                "condition": "Par.Man.UsePositionControl AND Homed"
+            },
+            "Auto_Velocity": {
+                "Bwd_Aut": "Comando backward automatico (CIn.Manager.Bwd)",
+                "Fwd_Aut": "Comando forward automatico (CIn.Manager.Fwd)",
+                "condition": "Control_ON AND NOT MoveToPos"
+            },
+            "Auto_Position": {
+                "MoveToPos_Aut": "Comando posizionamento automatico",
+                "target": "CIn.Manager.Pos",
+                "condition": "Control_ON AND Manager.MoveToPos AND Manager.UsePositionControl AND Homed"
+            }
+        },
+        
+        "Position_Limits": {
+            "description": "Gestione limiti posizione multi-livello",
+            "software_limits": {
+                "source": "TO_Ax.PositionLimits_SW (configured in TO)",
+                "Min": "TO_Ax.PositionLimits_SW.MinPosition",
+                "Max": "TO_Ax.PositionLimits_SW.MaxPosition",
+                "check": "COut.BwdMinusLsSwReached, COut.FwdPlusLsSwReached"
+            },
+            "dynamic_limits": {
+                "source": "CIn.PositionLimits (runtime da L3/L4)",
+                "EnableMin": "Abilita limite dinamico minimo",
+                "PosMin": "Valore limite minimo",
+                "EnableMax": "Abilita limite dinamico massimo",
+                "PosMax": "Valore limite massimo",
+                "check": "COut.BwdMinusLimitReached, COut.FwdPlusLimitReached"
+            },
+            "final_limits": {
+                "COut.MinPosition": "MAX tra SW limit e Dynamic limit",
+                "COut.MaxPosition": "MIN tra SW limit e Dynamic limit",
+                "note": "Target position clampato entro [MinPosition, MaxPosition]"
+            },
+            "modulo_axis_logic": {
+                "condition": "TO_Ax.Modulo.Enable = TRUE",
+                "AxisModulo": "TO_Ax.Modulo.Length - TO_Ax.Modulo.StartValue",
+                "MinPosition": "AxisModulo × 5 (circular)",
+                "MaxPosition": "AxisModulo × 5 (circular)"
+            }
+        },
+        
+        "OL_CL_Space": {
+            "description": "Spazio transizione Open Loop ↔ Closed Loop positioning",
+            "meaning": "Distanza target oltre cui passa da position control a velocity control",
+            "use_case": "Se MissingToTarget > OL_CL_Space → usa velocity (open loop rapido)",
+            "use_case_2": "Se MissingToTarget < OL_CL_Space → usa positioning (closed loop preciso)", "formula": "IF (Bwd_CheckPos AND MissingToTarget_ABS >= OL_CL_Space) AND OL_CL_Space > 0 THEN Bwd_CheckVel := TRUE"
+        },
+        
+        "InTargetPosition": {
+            "formula": "TON_InTargetPosition(MissingToTarget <= Par.PosTolerance, PT:=Par.DelayInPosition)",
+            "final": "TON.Q AND Ax.Homed AND (Ax.Positioned OR NOT MoveAbsolute)",
+            "tolerance": "Par.PosTolerance (unità applicazione)",
+            "delay": "Par.DelayInPosition (filtro vibrazioni)"
+        },
+        
+        "Gen_Cnd": {
+            "description": "Condizione generale abilitazione movimento",
+            "formula_base": "NOT Stop_All AND NOT DSI.SafeStop AND NOT DSI.DevicesInSafeState AND AxisInOperation AND NOT Alarm.BrakeTimeOut",
+            "fan_logic": "(Fan_M.Running OR NOT Config.Fan.Presence) OR (Bwd_Cnd OR Fwd_Cnd) AND NOT TON_NoPendingCmd.Q",
+            "note": "Graceful degradation: se Fan fermo durante movimento, continua finché in movimento"
+        },
+        
+        "Bwd_Cnd": {
+            "velocity_mode": "Gen_Cnd AND Bwd_CheckVel AND Bwd_ExtEnable AND Ax.MoveMinusPermitted",
+            "position_mode": "Gen_Cnd AND Bwd_CheckPos AND (Bwd_ExtEnable OR InTargetPosition) AND Ax.MoveAbsPermitted AND Vel>0"
+        },
+        
+        "Fwd_Cnd": {
+            "velocity_mode": "Gen_Cnd AND Fwd_CheckVel AND Fwd_ExtEnable AND Ax.MovePlusPermitted",
+            "position_mode": "Gen_Cnd AND Fwd_CheckPos AND (Fwd_ExtEnable OR InTargetPosition) AND Ax.MoveAbsPermitted AND Vel>0"
+        },
+        
+        "Bwd_CheckNext": {
+            "formula": "Bwd_CheckPos OR Bwd_CheckVel",
+            "meaning": "Richiesta movimento backward (velocity o position)"
+        },
+        
+        "Fwd_CheckNext": {
+            "formula": "Fwd_CheckPos OR Fwd_CheckVel",
+            "meaning": "Richiesta movimento forward (velocity o position)"
+        },
+        
+        "CtrlSafe": {
+            "formula": "NOT TON_NoPendingCmd.IN OR (CtrlSafe AND Ax.Enabled) OR (Cycle AND NOT StopDoorOpeningRequest)",
+            "meaning": "Self-holding con Ax.Enabled, reset quando no commands"
+        },
+        
+        "Torque_Limiting": {
+            "description": "Limitazione coppia MC_TORQUELIMITING",
+            "inputs": {
+                "Enable": "CIn.TorqueLimits.Enable",
+                "Value": "CIn.TorqueLimits.Value (Engineering unit: Nm)"
+            },
+            "normalization": "TorqueLimit_EngUnit := LIMIT(0, Value, ReferenceTorque/2)",
+            "percentage": "TorqueLimit_EngUnit / (ReferenceTorque/2) × 100",
+            "drive_unit": "30720 / 100 × Percentage",
+            "note": "ReferenceTorque da TO_Ax.Actor.DriveParameter"
+        },
+        
+        "SOS_Enable": {
+            "description": "Safe Operational Stop - power con DevicesInSafeState",
+            "formula": "AxisCtrl.Power := (Control_ON AND Fan.Presence AND NOT StopDoorOpening) OR ((CheckNext OR Power) AND SOS_Enable) AND NOT SafeStop",
+            "use_case": "Porta aperta ma coppia limitata per movimenti safe"
+        }
+    },
+    
+    "PositioningMachine_Manager_UDT": {
+        "description": "Comandi automatici da L3/L4 verso PositioningMachine",
+        "path": "CIn.Manager",
+        "fields": {
+            "EnableStopDoorOpeningReq": {"type": "Bool", "semantic": "stop_enable_passthrough"},
+            "EnableStopInPhase": {"type": "Bool", "semantic": "stop_enable_passthrough"},
+            "EnableStopProgrammed": {"type": "Bool", "semantic": "stop_enable_passthrough"},
+            "Control_ON": {"type": "Bool", "semantic": "mode_selector"},
+            "SelectMotorEncoder": {"type": "Bool", "semantic": "optional_feature", "meaning": "Seleziona encoder motore (vs misura)"},
+            "Bwd": {"type": "Bool", "semantic": "auto_command_velocity_direction"},
+            "Fwd": {"type": "Bool", "semantic": "auto_command_velocity_direction"},
+            "MoveToPos": {"type": "Bool", "semantic": "auto_command_positioning", "meaning": "Movimento posizionamento vs Pos"},
+            "UsePositionControl": {"type": "Bool", "semantic": "mode_switch", "meaning": "TRUE=positioning, FALSE=velocity"},
+            "Pos": {"type": "LReal", "semantic": "auto_setpoint_position", "unit": "Unità applicazione"},
+            "Vel": {"type": "LReal", "semantic": "auto_setpoint_velocity"},
+            "Acc": {"type": "LReal", "semantic": "auto_setpoint_acceleration"},
+            "Dec": {"type": "LReal", "semantic": "auto_setpoint_deceleration"},
+            "Jerk": {"type": "LReal", "semantic": "auto_setpoint_jerk"}
+        }
+    },
+    
+    "PositioningMachine_COut": {
+        "description": "Interfaccia output L2 verso L3/L4",
+        "fields": {
+            "Infeed_ReqON": {"aggregation": "OR", "meaning": "Richiesta DC bus"},
+            "CtrlSafe": {"aggregation": "AND", "meaning": "Feedback Safe PLC"},
+            "AxisInOperation": {"aggregation": "AND", "meaning": "Asse referenziato e pronto"},
+            "Standstill": {"aggregation": "AND"},
+            "InPosition": {"meaning": "In target position con tolleranza"},
+            "Bwd_CheckNext": {"meaning": "Richiesta movimento backward"},
+            "Fwd_CheckNext": {"meaning": "Richiesta movimento forward"},
+            "VelFwd_VelZero": {"meaning": "MC_MOVEVELOCITY fwd attivo con vel=0"},
+            "VelFwd_Running": {"meaning": "MC_MOVEVELOCITY fwd con vel>0"},
+            "VelBwd_VelZero": {"meaning": "MC_MOVEVELOCITY bwd attivo con vel=0"},
+            "VelBwd_Running": {"meaning": "MC_MOVEVELOCITY bwd con vel>0"},
+            "PosBwd_Running": {"meaning": "MC_MOVEABSOLUTE bwd (MissingToTarget < -Tolerance)"},
+            "PosFwd_Running": {"meaning": "MC_MOVEABSOLUTE fwd (MissingToTarget >= Tolerance)"},
+            "BwdMinusLsSwReached": {"meaning": "Limite SW minimo raggiunto"},
+            "FwdPlusLsSwReached": {"meaning": "Limite SW massimo raggiunto"},
+            "BwdMinusLimitReached": {"meaning": "Limite dinamico minimo raggiunto"},
+            "FwdPlusLimitReached": {"meaning": "Limite dinamico massimo raggiunto"},
+            "ActualPosition": {"type": "LReal"},
+            "MinPosition": {"type": "LReal", "meaning": "Limite minimo finale (SW + Dynamic)"},
+            "MaxPosition": {"type": "LReal", "meaning": "Limite massimo finale"}
+        }
+    },
+    
+    "AreaInterface_UDT": {
+        "description": "Interfaccia broadcast da L5 Area Manager",
+        "fields": {
+            "EStop": {"type": "Bool", "meaning": "Emergenza area"},
+            "Man": {"type": "Bool"},
+            "Aut": {"type": "Bool"},
+            "Cycle": {"type": "Bool"},
+            "StopInPhase": {"type": "Bool"},
+            "StopProgrammed": {"type": "Bool"},
+            "RstAlarms": {"type": "Bool"},
+            "CheckAutReady": {"type": "Bool"}
+        }
+    },
+    
+    "ZoneSafetyInterface_UDT": {
+        "description": "Interfaccia da Safety PLC",
+        "fields": {
+            "Door_NormalStop": {"type": "Bool"},
+            "Door_SafeStop": {"type": "Bool"},
+            "Door_Opened": {"type": "Bool"},
+            "Door_EntryEnable": {"type": "Bool"}
+        }
+    },
+    
+    "MachineInterface_UDT": {
+        "description": "Interfaccia da L2 verso L4/L5",
+        "fields": {
+            "AutReady": {"formula": "AreaInterface.Aut AND NOT AlarmPresence"},
+            "Aborting": {"formula": "((Cycle AND Standstill) OR (Cycle AND Aborting) OR Aut OR Control_ON) AND AlarmPresence"},
+            "AckStopInPhase": {"formula": "StopInPhase AND MotionsStandStill"},
+            "AckStopProgrammed": {"formula": "StopProgrammed AND MotionsStandStill"},
+            "MotionsStandStill": {"formula": "TON_NoPendingCmd.Q AND Standstill"},
+            "AlarmsPresence": {"type": "Bool"},
+            "WarningPresence": {"type": "Bool"}
+        }
+    },
+    
+    "L3_Integration_Patterns": {
+        "use_position_control_pattern": {
+            "description": "L3 abilita positioning per ricette/sequenze",
+            "scl_example": [
+                "// L3 calcola se usare positioning o velocity",
+                "t_CIn_Pos1.Manager.UsePositionControl := Recipe.UsePositioning;",
+                "IF Recipe.UsePositioning THEN",
+                "    t_CIn_Pos1.Manager.MoveToPos := Recipe.Target_Reached;",
+                "    t_CIn_Pos1.Manager.Pos := Recipe.TargetPos;",
+                "ELSE",
+                "    t_CIn_Pos1.Manager.Fwd := Recipe.Fwd_Enable;",
+                "END_IF;"
+            ]
+        },
+        
+        "position_limits_dynamic": {
+            "description": "L3 setta limiti posizione runtime",
+            "scl_example": [
+                "// Limita range materiale caricato",
+                "t_CIn_Pos1.PositionLimits.EnableMin := Material.Loaded;",
+                "t_CIn_Pos1.PositionLimits.PosMin := Material.Sheet_Start_Position;",
+                "t_CIn_Pos1.PositionLimits.EnableMax := Material.Loaded;",
+                "t_CIn_Pos1.PositionLimits.PosMax := Material.Sheet_End_Position;"
+            ]
+        },
+        
+        "in_position_wait": {
+            "description": "L3 aspetta InPosition per prossimo step",
+            "scl_example": [
+                "CASE Step OF",
+                "    10: // Move to position",
+                "        t_CIn_Pos1.Manager.MoveToPos := TRUE;",
+                "        t_CIn_Pos1.Manager.Pos := 1500.0;",
+                "        IF Pos1.COut.InPosition THEN",
+                "            Step := 20;",
+                "        END_IF;",
+                "    20: // Next operation...",
+                "END_CASE;"
+            ]
+        },
+        
+        "modulo_axis_handling": {
+            "description": "Gestione assi modulari (rotativi)",
+            "note": "Usa M_CmpLT/GT, M_PosAMinusPosB con MODULE parameter",
+            "scl_example": [
+                "// Calcolo distanza su asse modulo",
+                "Distance := M_PosAMinusPosB(",
+                "    PosA := Target,",
+                "    PosB := Actual,",
+                "    MODULE := AxisModulo  // 360° rotary",
+                ");"
+            ]
+        }
+    },
+    
+    "Responsibility_Matrix": {
+        "Infeed_DC_Bus": {
+            "level": "ESTERNO - Area aggregator",
+            "L3_role": "Esporre COut.Infeed_ReqON"
+        },
+        "Position_Limits": {
+            "SW_Limits": "Configured in TO, L3 non modifica",
+            "Dynamic_Limits": "L3 setta CIn.PositionLimits runtime",
+            "Final_Limits": "L2 calcola, L3 usa COut.MinPosition/MaxPosition"
+        },
+        "Encoder_Selection": {
+            "level": "L4 Zone Manager (procedura startup)",
+            "L3_role": "Passthrough Manager.SelectMotorEncoder"
+        }
+    },
+    
+    "L3_Common_Mistakes": {
+        "mistake_1": "Dimenticare UsePositionControl quando serve MoveToPos",
+        "mistake_2": "Non gestire AxisInOperation=FALSE (asse non referenziato)",
+        "mistake_3": "Confondere CheckNext (richiesta) con InPosition (raggiunto)",
+        "mistake_4": "Non clampare Pos target entro MinPosition/MaxPosition",
+        "mistake_5": "Non aspettare InPosition prima step successivo"
+    },
+    
+    "L3_Validation_Checklist": {
+        "positioning": "Se MoveToPos=TRUE → UsePositionControl=TRUE",
+        "limits": "Dynamic limits validati prima SetPoint",
+        "infeed": "Infeed_ReqON aggregato con OR",
+        "axis_status": "AxisInOperation controllato prima comandi",
+        "in_position": "Step sequencer aspetta COut.InPosition"
+    }
+}
+
+# Write JSON
+output_path = r"c:\Projects\FRAMEWORK_PARSER\JSON_integrazione\PositioningMachine_L1_L2_L3_semantic_v3.json"
+with open(output_path, 'w', encoding='utf-8') as f:
+    json.dump(positioning_machine_json, f, indent=2, ensure_ascii=False)
+
+print(f"Created {output_path}")
+print(f"Size: {len(json.dumps(positioning_machine_json, indent=2))} bytes")

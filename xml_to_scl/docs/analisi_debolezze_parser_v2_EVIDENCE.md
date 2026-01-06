@@ -28,7 +28,7 @@ L'analisi del codice sorgente ha rivelato che:
 | W6 | Formattazione SCL non standard | ⚠️ PARZIALE | Base OK, edge cases problematici |
 | W7 | FB standard incompleti | ⚠️ PARZIALE | TON/CTU generici, mancano default |
 | **N1** | Expression builder DISABILITATO | ❌ **NUOVO** | Line 15: `EXPRESSION_BUILDER_AVAILABLE = False` |
-| **N2** | Fallback "???" per logica non risolta | ⚠️ **NUOVO** | Multiple occorrenze in lad_parser.py |
+| **N2** | Fallback "???" per logica non risolta | ❌ **CRITICO NUOVO** | Esecuzione incondizionata di logica irrisolvibile |
 
 ---
 
@@ -238,13 +238,18 @@ if in_expr is None:
 # Generator checks for ??? but still generates code
 if en and en != 'TRUE' and en != '???':
     self._add_line(f"IF {en} THEN")
-# Se en == '???' viene trattato come TRUE (skip IF)
+    # If condition is VALID: wrap in IF statement
+else:
+    # If en == '???' OR en is falsy: ESEGUE INCONDIZIONATAMENTE
+    self._add_line(f"{op['dest']} := {op['source']};")
 ```
 
-**Impatto:**
+**Impatto CRITICO:**
 - Logica non risolta genera `???` nel codice SCL
-- Alcune occorrenze saltate silenziosamente (trattate come TRUE)
-- Compilazione TIA Portal fallisce con errore criptico
+- Quando logica è irrisolvibile (`en == '???'`): **ESEGUE SENZA PROTEZIONE CONDIZIONALE**
+- Non viene "saltato" - viene eseguito **incondizionatamente**
+- Questo è **peggiore** di una semplice omissione: produce comportamento non previsto
+- Compilazione TIA Portal fallisce con errore di logica criptico
 
 ---
 
@@ -315,12 +320,22 @@ def _generate_struct_members(self, members, include_values=True):
    }
    ```
 
-3. **Sostituire "???" con errore esplicito** (N2)
+3. **Sostituire "???" con errore esplicito o protezione** (N2) - **CRITICO**
    ```python
-   # Invece di return "???"
+   # OPZIONE A: Fail fast (raccomandato per sviluppo)
    raise LogicResolutionError(f"Cannot resolve {part_type} at UID {part_uid}")
-   # O almeno: return f"/* UNRESOLVED: {part_type} */"
+
+   # OPZIONE B: Commento esplicito nel codice generato
+   return f"/* UNRESOLVED: {part_type} */ TRUE"
+
+   # OPZIONE C: Proteggere in fbfc_generator.py
+   if en == '???':
+       logger.error(f"UNRESOLVED LOGIC at {uid}: generating safe FALSE default")
+       en = 'FALSE'  # Default safer instead of executing unconditioned
    ```
+   **IMPORTANTE:** Il problema è sia in lad_parser.py (genera ???) che in fbfc_generator.py (non la protegge correttamente).
+
+---
 
 ### Priorità ALTA
 
