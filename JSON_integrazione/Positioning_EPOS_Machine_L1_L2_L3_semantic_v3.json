@@ -1,0 +1,96 @@
+{
+    "meta": {
+        "analysis_scope": "L1_SinaPos + L2_Positioning_EPOS_Machine",
+        "version": "3.0",
+        "analysis_date": "2026-01-07",
+        "physical_model": "Positioning system using Sinamics S120 internal Basic Positioner (EPOS). The PLC acts as a commander/sequencer, not a trajectory generator.",
+        "key_features": [
+            "Drive Intelligence - Trajectory generation happens inside the S120 Drive",
+            "Standard Interface - Uses Siemens SinaPos (FB284) for control",
+            "Direct Homing - Supports direct writing of position to drive parameters (P2599/P2507) for calibrating Absolute Encoders",
+            "Modulo support - Handles rotary axis limits via modulo arithmetic",
+            "Mechanical Abstraction - Calculates Reduction Ratio to convert RPM/LU to Engineering Units",
+            "Configuration Alignment - Uses PLC-side Config constants (P2571/P2580 etc) to scale Telegram commands, assuming alignment with Drive Parameterization"
+        ]
+    },
+    "Parameter_Management": {
+        "description": "Specific handling of S120 Acyclic Parameters (Read/Write) within the FB logic.",
+        "Acyclic_Writes": {
+            "Purpose": "Used exclusively for 'Direct Homing' / 'Preset' sequence, to permanently set the mechanical position of Absolute Encoders.",
+            "Sequence": [
+                "1. Write P2599 (Reference Point Coordinate) := Target Position",
+                "2. Write P2507 (Absolute Encoder Adjustment) := 2 (Calibrate)",
+                "3. Read P2507 until value is 3 (Adjusted)",
+                "4. Write P0971 (Save Parameters) := 1 (Save to ROM)",
+                "5. Read P0971 until value is 0 (Finished)"
+            ]
+        },
+        "Cyclic_Control": {
+            "description": "Dynamics and Limits are NOT written acyclically but controlled via Telegram 111 (SinaPos Inputs).",
+            "Mappings": {
+                "Velocity": "Scaled relative to Config.MaxVel_S120_P2571",
+                "OverAcc": "Scaled relative to Config.MaxAcc_S120_P2572 (Sent as % override)",
+                "OverDec": "Scaled relative to Config.MaxDec_S120_P2573 (Sent as % override)"
+            }
+        }
+    },
+    "L1_SinaPos": {
+        "description": "Standard Siemens Block (FB284) for controlling S120 Basic Positioner via Telegram 111.",
+        "Modes_Used": {
+            "Mode_1": "Relative Positioning",
+            "Mode_2": "Absolute Positioning",
+            "Mode_4": "Homing (Active/Passive)",
+            "Mode_5": "Set Home Position",
+            "Mode_7": "Jog"
+        },
+        "Inputs": {
+            "ModePos": "Operating Mode",
+            "Position": "Target Position (LU)",
+            "Velocity": "Target Velocity (Overrides P2571)",
+            "EnableAxis": "Power On"
+        },
+        "Outputs": {
+            "ActMode": "Current active mode",
+            "ActPosition": "Actual Position (LU)",
+            "ActVelocity": "Actual Velocity (Normalized 40000000h = 100%)",
+            "AxisRef": "Homed Status"
+        }
+    },
+    "L2_Positioning_EPOS_Machine": {
+        "description": "Aggregator L2 for EPOS Positioning. Orchestrates SinaPos, Safety, and optional components.",
+        "structure": {
+            "S120_SinaPos": "L1_SinaPos instance (Drive Interface)",
+            "Fan_M": "Optional Motor Fan control",
+            "RW_SINAMICS_Par": "Helpers to read/write specific drive parameters (P2507, P0971, Limits)"
+        },
+        "Mechanical_Calculation": "Calc_RedutionRatio function derives 'ReductionRatio' from Load/Motor revolutions and LeadScrew pitch. Used to convert standard Drive Units (LU/RPM) into Application Units (mm, degrees).",
+        "Homing_Strategy": {
+            "Standard": "Via SinaPos Mode 4 or 5",
+            "Direct_Preset": "Writes P2507/RefPos directly if 'Encoder_Inc_AutoReloadPosition' or 'Encoder_is_Absolute' is configured. Complex state machine ('Reload Position') handles persistent position restoration."
+        },
+        "Position_Limits": {
+            "Source": "Reads Software Limits from Drive P2580/P2581.",
+            "Logic": "Also supports PLC-side check against External Limits (CIn.PositionLimits) and updates general Min/Max allowable targets dynamically."
+        },
+        "Config": {
+            "Ax": {
+                "LeadScrewPitchVal": "Distance per revolution",
+                "MotorRevolution/LoadRevolution": "Gearbox ratio",
+                "MaxRPM_S120_P2000": "Reference Speed (100%)",
+                "SwLimMinus/Plus_S120_P2580/1": "Software Limits to sync with Drive"
+            },
+            "Brake_Presence": "If true, enforces 0 velocity when brake is engaged"
+        },
+        "Alarms": {
+            "S120_Fault": "Drive Fault (Active Fault in SinaPos)",
+            "S120_ComErr": "Communication Error with Drive",
+            "BrakeTimeOut": "Brake feedback mismatch",
+            "Ax_NotHomed": "Move requested but AxisRef is FALSE",
+            "S120_WriteParErr": "Failure in Writing parameters to drive"
+        }
+    },
+    "Helpers": {
+        "RW_SINAMICS_Par": "Custom wrapper around SinaParaS (System Block) to read/write Drive Parameters acyclically.",
+        "Calc_RedutionRatio": "Computes gear ratio and screw pitch factor."
+    }
+}

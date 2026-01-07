@@ -1,0 +1,219 @@
+{
+    "meta": {
+        "description": "Integration patterns for linking L3/L4 Machines to L5 Area Logic. Generalized for Code Generation.",
+        "version": "2.0",
+        "reference_implementation": [
+            "Area01_CALL.scl",
+            "Area02_CALL.scl"
+        ]
+    },
+    "Project_Structure": {
+        "Directory_Layout": {
+            "Root_Folder": "[Software Unit Root]",
+            "Area_Subfolder": "Program blocks/01_AREA",
+            "Manager_Subfolder": "Program blocks/10_MANAGER"
+        },
+        "Naming_Convention": {
+            "Area_Block": "[AreaName]_CALL (e.g. Area01_CALL)",
+            "Area_Instance": "[AreaName] (e.g. Area01)",
+            "Messages_DB": "[AreaName]_Messages (e.g. Area01_Messages)",
+            "Config_DB": "A[xx]_Config (e.g. A01_Config)",
+            "HMI_UDT": "A[xx]_HMI (e.g. A01_HMI)"
+        }
+    },
+    "Scaffolding_Rules": {
+        "Area_System": {
+            "Step_1": "Create directory '01_AREA'.",
+            "Step_2": "Create '[AreaName]_CALL' (Function) as the main entry point.",
+            "Step_3": "Create '[AreaName]_Messages' (Global DB) for centralized alarm handling.",
+            "Step_4": "Instantiate 'MsgManager' (Standard FB) inside the Manager layer if not present.",
+            "Step_5": "Reference 'MsgManager' or implement custom message logic in '[AreaName]_CALL'."
+        },
+        "Machine_Linking": {
+            "Rule": "Every L3/L4 Machine used in the project must be explicitly called within '[AreaName]_CALL'.",
+            "Pattern": "REGION MachineName -> Call FB -> Map Interface -> End Region"
+        },
+        "Call_Order": {
+            "Rule": "Call HMI_CALL and ButtonsSafe_CALL first, then all machine CALLs, then Area_ITF.",
+            "Example": "A01_HMI_CALL() -> A01_ButtonsSafe_CALL() -> <Machine_CALLs...> -> Area01_ITF()"
+        }
+    },
+    "Area_Folder_Output": {
+        "Goal": "Produce a complete 01_AREA folder with all required blocks and DBs.",
+        "Contents": [
+            "[AreaName]_CALL (FC)",
+            "[AreaName]_Messages (Global DB)",
+            "Area_ITF call logic",
+            "Optional Area debug DB/region (if defined)"
+        ],
+        "Dependencies": [
+            "HMI_CALL FC",
+            "ButtonsSafe_CALL FC",
+            "All L3/L4 Machine CALL FCs"
+        ]
+    },
+    "Preconditions": {
+        "Required_Inputs": {
+            "Area_Machines": "List of L3/L4 machines assigned to the area and their MachineInterface paths.",
+            "External_Area_ITF": "List of Areas_ITF sources to include in aggregation (e.g. Areas_ITF.AG.AreaXX.* or Areas_ITF.A01.Loop1_MachineInterface).",
+            "PB_Inputs": "List of physical MB/LB buttons and external area PBs used for Start/Stop/Reset.",
+            "HMI_SuperUser": "HMI SuperUser tags (Priority, SelManAut, PbStart/PbStop/PbReset)."
+        },
+        "Question_Gate": {
+            "If_Missing": [
+                "Stop and ask for the missing inputs before generating Area CALL logic."
+            ],
+            "Minimum_Questions": [
+                "Which machines belong to this area and what are their MachineInterface paths?",
+                "Which external Area ITF signals must be included in status aggregation?",
+                "Which MB/LB/other area PBs drive Start/Stop/Reset?",
+                "Which HMI SuperUser tags are used for manual/auto selection and reset?"
+            ]
+        }
+    },
+    "Integration_Strategy": {
+        "Role": "L5 Area acts as the Supervisor and Aggregator.",
+        "Mechanism": "Cyclic polling of 'MachineInterface' UDT from all subordinate instances.",
+        "Interface_Standard": "MachineInterface"
+    },
+    "MachineInterface_Definition": {
+        "Signals": {
+            "AutReady": "Boolean - Machine ready for Automatic Cycle",
+            "Aborting": "Boolean - Machine is referenced stopping/aborting",
+            "AckStopInPhase": "Boolean - Machine confirmed stop in phase",
+            "AckStopProgrammed": "Boolean - Machine confirmed programmed stop",
+            "AlarmsPresence": "Boolean - Active Alarm summary",
+            "WarningPresence": "Boolean - Active Warning summary"
+        }
+    },
+    "Aggregation_Rules": {
+        "AutoReady": {
+            "Logic": "AND",
+            "Description": "Area is Ready only if ALL machines are Ready.",
+            "SCL_Pattern": "Area.AllAutReady := M1.AutReady AND M2.AutReady ..."
+        },
+        "Aborting": {
+            "Logic": "OR",
+            "Implementation_Style": "DeMorgan (NOT All_Healthy)",
+            "SCL_Pattern": "Area.AtLeastOneAborting := NOT ( (NOT M1.Aborting) AND (NOT M2.Aborting) ... )"
+        },
+        "AckStopInPhase": {
+            "Logic": "AND",
+            "Description": "Area Stop In Phase confirmed when ALL machines confirm.",
+            "SCL_Pattern": "Area.AllAckStopInPhase := M1.AckStopInPhase AND M2.AckStopInPhase ..."
+        },
+        "AckStopProgrammed": {
+            "Logic": "AND",
+            "Description": "Area Stop Programmed confirmed when ALL machines confirm.",
+            "SCL_Pattern": "Area.AllAckStopProgrammed := M1.AckStopProgrammed AND M2.AckStopProgrammed ..."
+        },
+        "AlarmPresence": {
+            "Logic": "OR",
+            "Implementation_Style": "DeMorgan (NOT All_Healthy)",
+            "SCL_Pattern": "Area.AtLeastOneAlr := NOT ( (NOT M1.Alr) AND (NOT M2.Alr) ... )"
+        },
+        "WarningPresence": {
+            "Logic": "OR",
+            "Implementation_Style": "DeMorgan (NOT All_Healthy)",
+            "SCL_Pattern": "Area.AtLeastOneWng := NOT ( (NOT M1.Wng) AND (NOT M2.Wng) ... )"
+        },
+        "Aggregation_Network_Steps": {
+            "Rule": "Build cumulative status in multiple assignments (seed + progressive AND/OR).",
+            "Example": [
+                "AllAutReady := M1.AutReady AND M2.AutReady;",
+                "AllAutReady := AllAutReady AND M3.AutReady;",
+                "AtLeastOneAborting := NOT ( (NOT M1.Aborting) AND (NOT M2.Aborting) ... );"
+            ]
+        }
+    },
+    "DataIn_Mapping_Rules": {
+        "SelMan_SelAut": "If SuperUser.Priority is TRUE, SelManAut from HMI overrides physical selector inputs; otherwise physical MB input is used.",
+        "PbStart_PbStop": "Aggregate Start/Stop from MB + HMI SuperUser + other area PBs using OR (often via DeMorgan form).",
+        "PbAckRst": "Aggregate Reset from HMI SuperUser + MB reset + other area reset + LB reset PBs. Use OR/DeMorgan with all available sources."
+    },
+    "Standard_Functions": {
+        "Machine_Calls": {
+            "Description": "The Area Block explicitly calls all Machine FBs (L3/L4) assigned to it.",
+            "Pattern": "Call MachineFB -> Collect Status -> Aggregate"
+        },
+        "SuperUser_Override": {
+            "Description": "Allows HMI override of physical selectors (Manual/Auto/Start/Stop/Reset).",
+            "Logic": "Priority to SuperUser if Active, otherwise physical inputs (Safe/Key switches)."
+        },
+        "Global_Reset": {
+            "Description": "Centralized Reset logic aggregating multiple sources (HMI, Main Board, Local Boxes/Bimanual Consoles).",
+            "Logic": "OR Logic (DeMorgan). Often linked to Bimanual Consoles when no other command is active.",
+            "SCL_Pattern": "DataIn.PbAckRst := SuperUser.Reset OR MB.Reset OR LB.Reset..."
+        }
+    },
+    "Machine_Status_Aggregation": {
+        "Allow_NonMachine_Sources": "Include AreaGen or cross-area machine interfaces in the aggregation list when required (e.g. Areas_ITF.AG.AreaXX.*, Areas_ITF.A01.Loop1_MachineInterface).",
+        "Implementation": "Treat these sources exactly like MachineInterface entries in the AND/OR chains."
+    },
+    "Message_Collection_Strategy": {
+        "Concept": "Centralized Message DBs (AreaXX_Messages) with flat boolean arrays for Alarms (.A.Msg) and Warnings (.W.Msg).",
+        "Manager_Block": "MsgManager (FB) - Standard block using 'Array[*]' (Variant) inputs for flexible sizing.",
+        "Logic": [
+            "Auto-detects array size (Upper Bound).",
+            "Packs 16 Boolean Messages into 1 Word for HMI optimization (Messages -> MessagesHMI).",
+            "Handles Acknowledgement masks (MessagesACK) internally."
+        ],
+        "DB_Creation_Rules": {
+            "Rule": "Create one Global DB '[AreaName]_Messages' with nested A/W structures containing Msg/Hmi/Ack arrays.",
+            "Sizing_Input": "Total alarms/warnings count derived from the list of machines and their alarm/warning signals.",
+            "Sizing_Procedure": [
+                "Enumerate machines included in Area CALL.",
+                "For each machine, count its alarm and warning signals used in the area mapping.",
+                "Sum totals, add 10% safety margin, round up to nearest multiple of 16.",
+                "Set Msg array to that size, Hmi/Ack arrays to size/16."
+            ]
+        },
+        "Sizing_Rule": {
+            "Formula": "Count total messages per type (A/W) -> Add 10% Safety Margin -> Round UP to nearest multiple of 16.",
+            "Example": "If 300 Alarms -> +10% = 330 -> Round to 16 = 336 (Array[1..336])."
+        },
+        "Indexing_Rule": "Consecutive blocks with spaces/gaps. Order follows Machine sequence in the architecture.",
+        "Reset_And_Padding": {
+            "Reset_Condition": "On first PLC cycle or SuperUser reset, clear the full message arrays to FALSE.",
+            "Padding": "Fill unused indices in each block with FALSE to keep fixed ranges."
+        },
+        "Structure_GlobalDB": {
+            "A": {
+                "Msg": "Array[1..N] of Bool",
+                "Hmi": "Array[1..N/16] of Word",
+                "Ack": "Array[1..N/16] of Word"
+            },
+            "W": {
+                "Msg": "Array[1..M] of Bool",
+                "Hmi": "Array[1..M/16] of Word",
+                "Ack": "Array[1..M/16] of Word"
+            }
+        }
+    },
+    "Message_Manager_Calls": {
+        "Warnings_Manager": "Call AreaXX_Msg_Warnings with Ack, Messages, MessagesHMI, MessagesACK, MessageCount.",
+        "Alarms_Manager": "Call AreaXX_Msg_Alarms with Ack, Messages, MessagesHMI, MessagesACK, MessageCount."
+    },
+    "Machine_List_Derivation": {
+        "Rule": "The Area CALL machine list is mandatory and drives: MachineInterface aggregation, message sizing, and call order.",
+        "Input": "List of L3/L4 machines and their CALL blocks.",
+        "Output": [
+            "Machine CALL list (ordered)",
+            "MachineInterface list for aggregation",
+            "Alarm/Warning counts for DB sizing"
+        ],
+        "Question_Gate": "If the L3/L4 machine list is missing, stop and request it before generating the Area CALL or Messages DB."
+    },
+    "Lamp_Logic_Pattern": {
+        "MB_Lamps": "Map Area DataOut (lampReady/lampCycle/LampAlarmPresence/LampWarningPresence) to MB indicators with optional blinking.",
+        "Tower_Lamps": "Use Lamp FB (or direct assignment) for tower lamps and horn; keep pattern consistent across areas."
+    },
+    "Area_ITF_Call": {
+        "Rule": "Call AreaXX_ITF once with en := TRUE. If the project uses a second call without parameters, keep it for consistency.",
+        "Example": "Area01_ITF(en := TRUE); Area01_ITF();"
+    },
+    "Debug_Optional": {
+        "Rule": "Optional debug region can map MachineInterface.Aborting and first active alarm index to a debug DB.",
+        "Trigger": "Only generate if a debug DB is defined for the area."
+    }
+}

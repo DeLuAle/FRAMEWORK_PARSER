@@ -1,0 +1,1194 @@
+{
+    "meta": {
+        "analysis_scope": "L1_SpeedAxis + L1_Motor + L2_SpeedMachine",
+        "version": "3.0",
+        "analysis_date": "2026-01-07",
+        "purpose": "Knowledge base for Claude Code SCL generation - Speed Machine",
+        "changes_v3": [
+            "Creato nuovo JSON per SpeedMachine",
+            "Documentato L1 SpeedAxis (velocity-only, no positioning)",
+            "Documentato Manager UDT con comandi Bwd/Fwd",
+            "Documentato SLS (Safe Limited Speed) con ZSI.Door_Opened",
+            "Documentato Brake management per motori induzione",
+            "Documentato VelocityOverride per controllo processo",
+            "Integrato Sys globals, AreaInterface, ZSI, MachineInterface",
+            "Aggiunte L3 patterns, Responsibility Matrix, Common Mistakes",
+            "Documentato SpeedMotor (wrapper SpeedAxis con features aggiuntive)"
+        ],
+        "source_files": [
+            "SpeedMachine_FB.scl (477 lines)",
+            "SpeedAxis.scl (578 lines)",
+            "Motor.scl (107 lines - Fan)",
+            "SpeedMachine_CIn.udt",
+            "SpeedMachine_COut.udt",
+            "SpeedMachine_Config.udt",
+            "SpeedMachine_CIn_Manager.udt",
+            "SpeedMachine_Alr.udt",
+            "SpeedMachine_Wng.udt"
+        ],
+        "key_difference_from_FeedMachine": "SpeedMachine è velocity-only (SpeedMotor wrapper), FeedMachine usa SpeedAxis completo con TO. SpeedMachine più semplice per applicazioni pure velocità."
+    },
+    "global_variables": {
+        "description": "Variabili globali di sistema",
+        "Sys": {
+            "description": "DB globale con variabili di sistema PLC",
+            "Sys.FirstPLCCycle": {
+                "type": "Bool",
+                "meaning": "TRUE solo al primo ciclo PLC dopo power-on o Stop→Run",
+                "set_by": "OB100 (Startup)",
+                "use_case": "Skip NoPendingCmd.IN per evitare false 'no commands'",
+                "usage_in_SpeedMachine": "Line 423: TON_NoPendingCmd.IN := NOT Sys.FirstPLCCycle AND..."
+            },
+            "Sys.SimulationDevice": {
+                "type": "Bool",
+                "meaning": "Flag globale modalità simulazione dispositivi",
+                "set_by": "Forzamento manuale durante debug",
+                "impact": "Bypassa feedback fisici, simula drive response"
+            }
+        }
+    },
+    "L1_SpeedMotor": {
+        "description": "Device driver L1 per controllo velocità Sinamics senza Technology Object",
+        "source_file": "SpeedMotor.scl (357 lines)",
+        "version": "1.0.0 (28/12/2022 - TIA V18)",
+        "family": "Motion",
+        "physical_model": "Motore brushless/asincrono con drive Sinamics S120, controllo velocità diretto via telegramma, no positioning",
+        "key_difference_from_SpeedAxis": "NO Technology Object - comunicazione diretta con telegramma TEL1, più semplice ma meno features (no homing, no MC blocks)",
+        "typical_use": "Rulli trasporto, nastri, ventilatori speed-controlled dove non serve posizionamento",
+        "telegram_used": {
+            "TEL1_IN": {
+                "type": "PD_TEL1_IN",
+                "description": "Telegramma standard IN da Sinamics CU320",
+                "key_fields": {
+                    "ZSW1": {
+                        "description": "Status Word 1 (16 bit)",
+                        "bits": {
+                            "ReadyToSwitchOn": "Bit 0 - Drive pronto per switch on",
+                            "ReadyToOperate": "Bit 1 - Drive abilitato e pronto",
+                            "FaultPresent": "Bit 3 - Fault attivo",
+                            "AlarmPresent": "Bit 7 - Warning attivo"
+                        }
+                    },
+                    "NIST_A": {
+                        "description": "Actual velocity normalized (Word)",
+                        "format": "16384 = 100% = ReferenceVelocity (p2000)",
+                        "formula": "ActualVelocity_RPM = (WORD_TO_INT(NIST_A) / 16384.0) * ReferenceVelocity"
+                    }
+                },
+                "code_line": "Line 21-22, 89-90"
+            },
+            "TEL1_OUT": {
+                "type": "PD_TEL1_OUT",
+                "description": "Telegramma standard OUT verso Sinamics CU320",
+                "key_fields": {
+                    "STW1": {
+                        "description": "Control Word 1 (16 bit)",
+                        "bits": {
+                            "On": "Bit 0 - Switch on drive",
+                            "EnableOperation": "Bit 3 - Enable operation (sempre TRUE)",
+                            "FaultAcknowledge": "Bit 7 - Reset fault",
+                            "NoCoastStop": "Bit 8 - Disabilita coast stop (sempre TRUE)",
+                            "NoQuickStop": "Bit 10 - NOT SafeStop",
+                            "ControlByPlc": "Bit 11 - PLC controlla (sempre TRUE)",
+                            "EnableRampGenerator": "Bit 13 - Abilita generatore rampe (sempre TRUE)",
+                            "UnfreezeRampGenerator": "Bit 14 - Unfreeze rampe (sempre TRUE)",
+                            "EnableSetpoint": "Bit 15 - Abilita setpoint (MovePlus OR MoveMinus)",
+                            "SetpointInversion": "Bit 16? - Inversione direzione"
+                        },
+                        "code_line": "Line 342-350"
+                    },
+                    "NSOLL_A": {
+                        "description": "Target velocity normalized (Word)",
+                        "format": "16384 = 100% = ReferenceVelocity (p2000)",
+                        "formula": "NSOLL_A := INT_TO_WORD(LREAL_TO_INT((Velocity / ReferenceVelocity) * 16384))",
+                        "code_line": "Line 266-267"
+                    }
+                },
+                "direction_control": {
+                    "logic": "SetpointInversion := (MoveMinus AND NOT InvertDirection) OR (MovePlus AND InvertDirection)",
+                    "code_line": "Line 264",
+                    "note": "Inversione direzione tramite bit telegramma, non segno velocità"
+                }
+            }
+        },
+        "AxisCtrl": {
+            "description": "Comandi da L2 verso L1 SpeedMotor",
+            "SafeStop": {
+                "type": "Bool",
+                "meaning": "Blocco sicurezza - quick stop drive",
+                "impact": "STW1.NoQuickStop := NOT SafeStop",
+                "source": "DSI.SafeStop",
+                "code_line": "Line 346"
+            },
+            "Rst": {
+                "type": "Bool",
+                "meaning": "Reset fault drive",
+                "impact": "STW1.FaultAcknowledge := Rst",
+                "code_line": "Line 344"
+            },
+            "Power": {
+                "type": "Bool",
+                "meaning": "Richiesta abilitazione potenza drive",
+                "condition": "Eseguito se PowerPermit è TRUE"
+            },
+            "MoveMinus": {
+                "type": "Bool",
+                "meaning": "Comando movimento direzione negativa",
+                "condition": "MoveMinusPermitted AND AxisEnabled",
+                "code_line": "Line 243-245"
+            },
+            "MovePlus": {
+                "type": "Bool",
+                "meaning": "Comando movimento direzione positiva",
+                "condition": "MovePlusPermitted AND AxisEnabled",
+                "code_line": "Line 257-259"
+            },
+            "Velocity": {
+                "type": "LReal",
+                "meaning": "Velocità target in RPM (unità drive)",
+                "normalization": "NSOLL_A := INT_TO_WORD((Velocity / ReferenceVelocity) * 16384)",
+                "code_line": "Line 266-267"
+            },
+            "Acceleration": {
+                "type": "LReal",
+                "meaning": "Accelerazione target in RPM/s",
+                "impact": "Scritto in Sinamics p1120 via RW_SINAMICS_Par",
+                "conversion": "ReferenceVelocity / 60.0 / Acceleration (in secondi)",
+                "code_line": "Line 278-296"
+            },
+            "Deceleration": {
+                "type": "LReal",
+                "meaning": "Decelerazione target in RPM/s",
+                "impact": "Scritto in Sinamics p1121 via RW_SINAMICS_Par",
+                "code_line": "Line 302-320"
+            }
+        },
+        "AxisConfig": {
+            "description": "Configurazione SpeedMotor",
+            "ReferenceVelocity": {
+                "type": "Real",
+                "meaning": "Velocità di riferimento 100% (Sinamics p2000)",
+                "unit": "RPM",
+                "use": "Conversione normalizzazione telegramma"
+            },
+            "InvertDirection": {
+                "type": "Bool",
+                "meaning": "Inverti direzione movimento",
+                "impact": "SetpointInversion logic inverted",
+                "code_line": "Line 264"
+            }
+        },
+        "AxisSts": {
+            "description": "Stati da L1 verso L2",
+            "AlarmPresence": {
+                "type": "Bool",
+                "source": "Alarm.Drive",
+                "code_line": "Line 332"
+            },
+            "WarningPresence": {
+                "type": "Bool",
+                "source": "Warning.Drive",
+                "code_line": "Line 333"
+            },
+            "Enabled": {
+                "type": "Bool",
+                "source": "TEL1_IN.ZSW1.ReadyToOperate",
+                "meaning": "Drive abilitato e pronto per movimento",
+                "code_line": "Line 213, 334"
+            },
+            "Standstill": {
+                "type": "Bool",
+                "detection": "TON_TIME(ABS(ActualVelocity) < StandtillVelocity, PT:=StandstillDelay)",
+                "meaning": "Motore fermo stabilmente",
+                "code_line": "Line 94-96, 335"
+            },
+            "AtProgrammedSpeed": {
+                "type": "Bool",
+                "formula": "TEL1_OUT.NSOLL_A = TEL1_IN.NIST_A",
+                "meaning": "Velocità setpoint == velocità attuale (normalizzate)",
+                "code_line": "Line 336"
+            },
+            "MoveMinusPermitted": {
+                "type": "Bool",
+                "formula": "NOT MovePlus AND GeneralConditions",
+                "meaning": "Può muovere in negativo",
+                "code_line": "Line 236-237, 337"
+            },
+            "MovePlusPermitted": {
+                "type": "Bool",
+                "formula": "NOT MoveMinus AND GeneralConditions",
+                "meaning": "Può muovere in positivo",
+                "code_line": "Line 251-252, 338"
+            },
+            "ActualVelocity": {
+                "type": "LReal",
+                "formula": "(WORD_TO_INT(TEL1_IN.NIST_A) / 16384.0) * ReferenceVelocity",
+                "unit": "RPM",
+                "code_line": "Line 89-90, 339"
+            }
+        },
+        "GeneralConditions": {
+            "description": "Condizioni generali per eseguire movimenti",
+            "formula": "NOT SafeStop AND NOT TEL1_IN.ZSW1.FaultPresent",
+            "code_line": "Line 177-178",
+            "used_by": [
+                "MoveMinusPermitted",
+                "MovePlusPermitted"
+            ]
+        },
+        "Power_Flow": {
+            "description": "Flusso abilitazione potenza (semplificato rispetto a PositioningAxis)",
+            "PowerPermit": {
+                "formula": "TEL1_IN.ZSW1.ReadyToSwitchOn AND Drive.Infeed_ON AND GeneralConditions",
+                "code_line": "Line 187-189"
+            },
+            "PowerEnable": {
+                "formula": "(Power OR MovePlus OR MoveMinus) AND PowerPermit",
+                "code_line": "Line 194-197"
+            },
+            "PowerOn": {
+                "logic": "PowerEnable → PowerOn=TRUE con delay OFF (PowerOffDelay)",
+                "delay_off_condition": "NOT PowerEnable AND PowerOn AND Standstill → TON(PowerOffDelay)",
+                "force_off": "NOT PowerPermit AND Standstill → immediate PowerOn=FALSE",
+                "code_line": "Line 203-210"
+            },
+            "STW1.On": {
+                "formula": "PowerOn",
+                "code_line": "Line 342",
+                "note": "Direttamente scritto in telegramma OUT"
+            },
+            "Infeed_REQ_ON": {
+                "formula": "(Power OR MovePlus OR MoveMinus OR PowerOn) TOF 300ms",
+                "meaning": "Richiesta DC bus con delay OFF 300ms",
+                "code_line": "Line 218-226"
+            }
+        },
+        "Velocity_Control": {
+            "description": "Controllo velocità diretto senza MC blocks",
+            "MoveMinus": {
+                "condition": "AxisCtrl.MoveMinus AND MoveMinusPermitted AND AxisEnabled",
+                "telegram_action": "STW1.SetpointInversion := (TRUE AND NOT InvertDirection) OR (FALSE AND InvertDirection)",
+                "code_line": "Line 243-245, 264"
+            },
+            "MovePlus": {
+                "condition": "AxisCtrl.MovePlus AND MovePlusPermitted AND AxisEnabled",
+                "telegram_action": "STW1.SetpointInversion := (FALSE AND NOT InvertDirection) OR (TRUE AND InvertDirection)",
+                "code_line": "Line 257-259, 264"
+            },
+            "EnableSetpoint": {
+                "formula": "MovePlus OR MoveMinus",
+                "impact": "STW1.EnableSetpoint := ...",
+                "code_line": "Line 350",
+                "note": "Abilita invio velocità setpoint a drive"
+            },
+            "velocity_normalization": {
+                "formula": "NormX := Velocity / ReferenceVelocity",
+                "telegram": "NSOLL_A := INT_TO_WORD(LREAL_TO_INT(NormX * 16384))",
+                "code_line": "Line 266-267",
+                "example": "Se ReferenceVelocity=1500 RPM e Velocity=750 RPM → NormX=0.5 → NSOLL_A=8192"
+            }
+        },
+        "Dynamic_Acc_Dec_Change": {
+            "description": "Cambio dinamico accelerazione/decelerazione via parametri Sinamics",
+            "trigger": "OldAcc <> Acceleration OR OldDec <> Deceleration",
+            "mechanism": "RW_SINAMICS_Par per scrittura p1120 (Acc) e p1121 (Dec)",
+            "Acceleration_write": {
+                "parameter": "p1120 - Ramp-up time",
+                "conversion": "ReferenceVelocity / 60.0 / Acceleration (sec)",
+                "example": "Se ReferenceVelocity=1500 RPM, Acc=5s → p1120 = 1500/60/5 = 5.0 s",
+                "code_line": "Line 278-296"
+            },
+            "Deceleration_write": {
+                "parameter": "p1121 - Ramp-down time",
+                "conversion": "ReferenceVelocity / 60.0 / Deceleration (sec)",
+                "code_line": "Line 302-320"
+            },
+            "RW_SINAMICS_Par_call": {
+                "Enable": "Ctrl.ChangeAcc OR Ctrl.ChangeDec",
+                "ReadWrite": "1 (Write)",
+                "ParNo": "1120 per Acc, 1121 per Dec",
+                "Index": "0",
+                "AxisNo": "Drive.AxisID",
+                "HW_ID": "Drive.AccessPoint",
+                "TokenChain": "Drive.TokenChain",
+                "ValueWriteReal": "LREAL_TO_REAL(Ctrl.Acceleration/Deceleration)"
+            },
+            "completion": {
+                "reset_trigger": "WriteAcc.Done OR WriteAcc.Error",
+                "action": "Ctrl.ChangeAcc := FALSE",
+                "code_line": "Line 294-296, 318-320"
+            },
+            "note": "Permette cambio dinamiche senza restart drive, utile per profili velocità variabili"
+        },
+        "Alarms": {
+            "Drive": {
+                "trigger": "TEL1_IN.ZSW1.FaultPresent",
+                "diagnostic": "Lettura Sinamics r2131 (fault code) via RW_SINAMICS_Par",
+                "code_line": "Line 112, 130-150"
+            }
+        },
+        "Warnings": {
+            "Drive": {
+                "trigger": "TEL1_IN.ZSW1.AlarmPresent",
+                "diagnostic": "Lettura Sinamics r2132 (warning code) via RW_SINAMICS_Par",
+                "code_line": "Line 117, 138-154"
+            }
+        },
+        "Diagnostic_System": {
+            "DeviceType": "6 (Drive)",
+            "MessageType": {
+                "0": "No error/warning",
+                "1": "Warning attivo",
+                "2": "Alarm attivo"
+            },
+            "Drive_Diagnostic": {
+                "Drive_Message": "r2131 (fault) o r2132 (warning) letto da Sinamics",
+                "Drive_ErrorPresence": "Alarm.Drive",
+                "condition": "Solo se Drive.AccessPoint > 0 AND Drive.TokenChain > 0",
+                "read_logic": [
+                    "Se Fault → Read r2131",
+                    "Se Warning AND NOT Fault → Read r2132",
+                    "Else → Drive_Message = 0"
+                ],
+                "code_line": "Line 128-169"
+            }
+        },
+        "Advantages_vs_SpeedAxis": [
+            "Più semplice - no Technology Object overhead",
+            "Più veloce - comunicazione diretta telegramma",
+            "Meno memoria - no TO structure",
+            "Commissioning più rapido - meno parametri TO"
+        ],
+        "Limitations_vs_SpeedAxis": [
+            "NO homing / posizionamento assoluto",
+            "NO MC blocks standard PLCopen",
+            "NO simulazione integrata TO",
+            "NO restart management automatico",
+            "Meno diagnostic dettagliato (solo via r2131/r2132)"
+        ],
+        "typical_applications": [
+            "Rulli trasporto materiale (solo velocità)",
+            "Nastri trasportatori semplici",
+            "Ventilatori speed-controlled",
+            "Pompe a velocità variabile",
+            "Sistemi dove non serve tracciare posizione"
+        ]
+    },
+    "L2_SpeedMachine": {
+        "description": "Aggregatore per macchina controllo velocità bidirezionale (velocity-only, no positioning)",
+        "physical_model": "Rullo motorizzato, nastro trasportatore, o simili con movimento continuo bidirezionale",
+        "wrapped_L1": {
+            "S120": {
+                "type": "SpeedMotor",
+                "purpose": "Controllo movimento principale velocità",
+                "mandatory": true
+            },
+            "Fan_M": {
+                "type": "Motor",
+                "purpose": "Ventilatore raffreddamento motore/drive",
+                "mandatory": false,
+                "controlled_by": "Config.Fan.Presence"
+            }
+        },
+        "Config": {
+            "description": "Parametri configurazione - impostati in commissioning",
+            "SLS_VEL": {
+                "type": "LReal",
+                "meaning": "Velocità limite sicurezza (Safe Limited Speed)",
+                "unit": "mm/min (unità applicazione)",
+                "impact": "Quando ZSI.Door_Opened, velocità limitata a questo valore",
+                "safety_function": "SLS secondo EN ISO 13849",
+                "code_line": "Line 242-244: IF ZSI.Door_Opened AND Ctrl.Vel > Config.SLS_VEL THEN Ctrl.Vel := Config.SLS_VEL"
+            },
+            "DelayMissingCondition": {
+                "type": "Time",
+                "meaning": "Tempo attesa prima di segnalare warning MissingCnd",
+                "typical_value": "T#3s"
+            },
+            "Ax": {
+                "SINA_Drive": {
+                    "ReferenceVelocity": {
+                        "type": "Real",
+                        "meaning": "Velocità di riferimento drive (RPM max)",
+                        "use": "Calcolo VelMax e dinamiche"
+                    },
+                    "MinAccTime": {
+                        "type": "Real",
+                        "meaning": "Tempo minimo accelerazione (s)",
+                        "use": "Calcolo AccMax = ReferenceVelocity / 60 / MinAccTime"
+                    },
+                    "MinDecTime": {
+                        "type": "Real",
+                        "meaning": "Tempo minimo decelerazione (s)"
+                    }
+                },
+                "PowerOffDelay": {
+                    "type": "Time",
+                    "meaning": "Ritardo spegnimento potenza dopo stop comandi"
+                },
+                "StandstillVelocity": {
+                    "type": "Real",
+                    "meaning": "Soglia velocità per considerare fermo"
+                },
+                "StandstillDelay": {
+                    "type": "Time",
+                    "meaning": "Ritardo conferma standstill"
+                }
+            },
+            "Fan": {
+                "Presence": {
+                    "type": "Bool",
+                    "meaning": "Ventilatore presente?",
+                    "impact": {
+                        "TRUE": "Fan_M gestito, Running richiesto per INIZIARE movimento",
+                        "FALSE": "Fan_M bypassato, Running forzato TRUE"
+                    }
+                },
+                "DelayOff": {
+                    "type": "Time",
+                    "meaning": "Ritardo spegnimento ventilatore dopo stop (raffreddamento post-movimento)"
+                }
+            },
+            "Brake_Presence": {
+                "type": "Bool",
+                "meaning": "Freno meccanico esterno presente?",
+                "impact": "Se TRUE, monitora mismatch comando/feedback freno",
+                "note": "Solo per motori a induzione con freno esterno gestito da CU Sinamics"
+            }
+        },
+        "Brake_Management": {
+            "description": "Gestione freno stazionamento per motori a induzione",
+            "control": "Sinamics CU comanda uscita digitale → contattore freno",
+            "plc_role": "WATCHDOG - legge segnali CU, verifica coerenza, genera allarme",
+            "DataIn.Brake_M_Q": "Lettura comando freno DA CU (non uscita PLC!)",
+            "DataIn.Brake_M_Feedback": "Lettura feedback fisico freno",
+            "alarm_logic": {
+                "trigger": "(Brake_M_Q XOR Brake_M_Feedback) per 1s",
+                "meaning": "Freno comandato aperto ma feedback chiuso (o viceversa)",
+                "risk": "Motore gira con freno inserito → danneggia freno",
+                "code_line": "Line 108-115: TON_Brake_TimeOut.IN := (Config.Brake_Presence AND (Q XOR Feedback))",
+                "impact": "Gen_Cnd=FALSE, movimento bloccato"
+            },
+            "velocity_interlock": {
+                "description": "Velocità = 0 se freno chiuso",
+                "code_line": "Line 249-251: IF Brake_Presence AND NOT Brake_M_Feedback THEN Velocity := 0.0",
+                "purpose": "Impedisce movimento se freno non aperto"
+            }
+        },
+        "CIn": {
+            "description": "Coordination Input - comandi da L3 verso L2",
+            "Manager": {
+                "EnableStopDoorOpeningReq": {
+                    "type": "Bool",
+                    "meaning": "Abilita arresto per richiesta apertura porta"
+                },
+                "EnableStopInPhase": {
+                    "type": "Bool",
+                    "meaning": "Abilita arresto in fase (sincronizzato)"
+                },
+                "EnableStopProgrammed": {
+                    "type": "Bool",
+                    "meaning": "Abilita arresto programmato"
+                },
+                "Control_ON": {
+                    "type": "Bool",
+                    "meaning": "Modalità automatica attiva",
+                    "impact": "TRUE → comandi Bwd/Fwd automatici, FALSE → manuale abilitato"
+                },
+                "Bwd": {
+                    "type": "Bool",
+                    "meaning": "Comando movimento backward (automatico)"
+                },
+                "Fwd": {
+                    "type": "Bool",
+                    "meaning": "Comando movimento forward (automatico)"
+                },
+                "Vel": {
+                    "type": "LReal",
+                    "meaning": "Velocità target automatico (unità applicazione mm/min)"
+                },
+                "Acc": {
+                    "type": "LReal",
+                    "meaning": "Accelerazione automatico (unità applicazione mm/s²)"
+                },
+                "Dec": {
+                    "type": "LReal",
+                    "meaning": "Decelerazione automatico (unità applicazione mm/s²)"
+                }
+            },
+            "Bwd_ExtEnable": {
+                "type": "Bool",
+                "meaning": "Abilitazione esterna movimento backward",
+                "source": "L3 - condizioni inter-device"
+            },
+            "Fwd_ExtEnable": {
+                "type": "Bool",
+                "meaning": "Abilitazione esterna movimento forward",
+                "source": "L3 - condizioni inter-device"
+            },
+            "EnableManChangeVel": {
+                "type": "Bool",
+                "meaning": "Abilita cambio velocità manuale (Low→High)",
+                "use_case": "Dopo DelayChangeSpeed, passa a VelFwdHigh"
+            },
+            "ExternalAlarms": {
+                "type": "Bool",
+                "meaning": "Allarmi esterni aggregati da L3",
+                "impact": "Contribuisce a AlarmsPresence"
+            },
+            "ExternalPowerOn": {
+                "type": "Bool",
+                "meaning": "Richiesta power esterno (bypass Control_ON)",
+                "use_case": "Mantenere power per procedure speciali",
+                "code_line": "Line 316: Power := (Control_ON AND Fan.Presence) OR ExternalPowerOn"
+            },
+            "VelocityOverride": {
+                "description": "Controllo di processo per modulazione velocità",
+                "Enable": {
+                    "type": "Bool",
+                    "meaning": "Attiva override velocità"
+                },
+                "Value": {
+                    "type": "LReal",
+                    "meaning": "Percentuale override (1-200%)",
+                    "impact": "Velocity := Velocity * LIMIT(1, Value, 200) / 100",
+                    "code_line": "Line 261-264"
+                },
+                "use_cases": {
+                    "loop_control": "Ansa/buffer regola velocità in base a quantità materiale",
+                    "work_profile": "Ricetta prodotto richiede velocità ridotta/aumentata",
+                    "sync_machines": "Sincronizzazione velocità tra più macchine"
+                },
+                "note": "Range esteso 1-200% per permettere override UP (es. recupero ritardo)"
+            }
+        },
+        "COut": {
+            "description": "Coordination Output - stati da L2 verso L3",
+            "Infeed_ReqON": {
+                "type": "Bool",
+                "meaning": "Richiesta accensione Infeed (alimentatore DC bus comune)",
+                "source": "S120.Infeed_REQ_ON",
+                "pattern": "Shared resource bottom-up - aggregato con OR esterno"
+            },
+            "CtrlSafe": {
+                "type": "Bool",
+                "meaning": "FEEDBACK verso Safety PLC sullo stato device",
+                "formula": "NOT TON_NoPendingCmd.IN OR (CtrlSafe AND S120.Enabled) OR (Control_ON AND NOT StopDoorOpeningRequest)",
+                "code_line": "Line 358",
+                "semantics": {
+                    "TRUE": "Posso stare senza coppia - Safety può fare STO se serve",
+                    "FALSE": "Ho bisogno di coppia - Safety deve mantenere potenza"
+                }
+            },
+            "Standstill": {
+                "type": "Bool",
+                "meaning": "Motore completamente fermo",
+                "formula": "S120.AxisSts.Standstill OR DSI.DevicesInSafeState"
+            },
+            "Bwd_CheckNext": {
+                "type": "Bool",
+                "meaning": "Richiesta movimento backward (trigger per L3)",
+                "formula": "Ctrl.Bwd_Man OR Ctrl.Bwd_Aut",
+                "code_line": "Line 277"
+            },
+            "Fwd_CheckNext": {
+                "type": "Bool",
+                "meaning": "Richiesta movimento forward (trigger per L3)",
+                "formula": "Ctrl.Fwd_Man OR Ctrl.Fwd_Aut"
+            },
+            "Bwd_VelZero": {
+                "type": "Bool",
+                "meaning": "In movimento backward con velocità target zero",
+                "formula": "Enabled AND MoveMinus AND ActualVelocity=0 AND AtProgrammedSpeed",
+                "code_line": "Line 363"
+            },
+            "Bwd_Running": {
+                "type": "Bool",
+                "meaning": "In movimento backward con velocità < 0",
+                "formula": "Enabled AND MoveMinus AND ActualVelocity < 0",
+                "code_line": "Line 364"
+            },
+            "Fwd_VelZero": {
+                "type": "Bool",
+                "meaning": "In movimento forward con velocità target zero",
+                "code_line": "Line 361"
+            },
+            "Fwd_Running": {
+                "type": "Bool",
+                "meaning": "In movimento forward con velocità > 0",
+                "code_line": "Line 362"
+            },
+            "ActualVelocity": {
+                "type": "LReal",
+                "meaning": "Velocità attuale in unità applicazione",
+                "formula": "S120.ActualVelocity * ReductionRatio",
+                "code_line": "Line 366"
+            },
+            "TargetVelocity": {
+                "type": "LReal",
+                "meaning": "Velocità target in unità applicazione",
+                "formula": "S120.AxisCtrl.Velocity * ReductionRatio",
+                "code_line": "Line 365"
+            },
+            "MaxVelocity": {
+                "type": "LReal",
+                "meaning": "Velocità massima configurata in unità applicazione",
+                "formula": "Config.Ax.SINA_Drive.ReferenceVelocity * ReductionRatio",
+                "code_line": "Line 175"
+            }
+        },
+        "DataIn": {
+            "description": "Input da campo",
+            "PB": {
+                "Bwd_Minus": {
+                    "type": "Bool",
+                    "meaning": "Pulsante jog backward"
+                },
+                "Fwd_Plus": {
+                    "type": "Bool",
+                    "meaning": "Pulsante jog forward"
+                }
+            },
+            "Fan_M_ThermalProtection": {
+                "type": "Bool",
+                "meaning": "Protezione termica ventilatore scattata"
+            },
+            "Fan_M_Feedback": {
+                "type": "Bool",
+                "meaning": "Feedback running ventilatore"
+            },
+            "Brake_M_Q": {
+                "type": "Bool",
+                "meaning": "LETTURA comando freno da Sinamics CU (non uscita PLC!)"
+            },
+            "Brake_M_Feedback": {
+                "type": "Bool",
+                "meaning": "LETTURA feedback stato freno fisico"
+            }
+        },
+        "DataOut": {
+            "description": "Output verso campo",
+            "Fan_M_Contactor": {
+                "type": "Bool",
+                "meaning": "Comando contattore ventilatore"
+            }
+        },
+        "Par": {
+            "description": "Parametri operativi - modificabili a runtime da HMI",
+            "Man": {
+                "VelBwd": {
+                    "type": "LReal",
+                    "meaning": "Velocità manuale backward"
+                },
+                "VelFwdLow": {
+                    "type": "LReal",
+                    "meaning": "Velocità manuale forward bassa (default all'avvio)"
+                },
+                "VelFwdHigh": {
+                    "type": "LReal",
+                    "meaning": "Velocità manuale forward alta (dopo delay)"
+                },
+                "Acc": {
+                    "type": "LReal",
+                    "meaning": "Accelerazione manuale"
+                },
+                "Dec": {
+                    "type": "LReal",
+                    "meaning": "Decelerazione manuale"
+                },
+                "DelayChangeVel": {
+                    "type": "Time",
+                    "meaning": "Ritardo per passaggio VelFwdLow→VelFwdHigh in manuale",
+                    "note": "T#0s = no cambio velocità",
+                    "code_line": "Line 156-163"
+                }
+            }
+        },
+        "Alarms": {
+            "BrakeTimeOut": {
+                "trigger": "Mismatch comando/feedback freno per 1s",
+                "condition": "Brake_Presence AND ((Q AND NOT Feedback) OR (NOT Q AND Feedback))",
+                "impact": "Gen_Cnd=FALSE, movimento bloccato"
+            },
+            "S120_ComErr": {
+                "trigger": "Errore comunicazione telegramma S120",
+                "source": "GETIO/SETIO STATUS <> 0",
+                "code_line": "Line 125-127, 352-354",
+                "impact": "Gen_Cnd=FALSE"
+            },
+            "Ax": {
+                "type": "TAx_Speed_Alarms",
+                "meaning": "Allarmi delegati a SpeedMotor L1"
+            },
+            "Fan_M": {
+                "type": "MotorAlr",
+                "meaning": "Allarmi delegati a Motor L1 (se Fan.Presence)"
+            }
+        },
+        "Warnings": {
+            "NotAutReady": {
+                "trigger": "AreaInterface.CheckAutReady AND NOT MachineInterface.AutReady",
+                "meaning": "Macchina non pronta per automatico"
+            },
+            "MissingCnd_Bkw": {
+                "trigger": "Standstill AND Bwd_CheckNext AND NOT Bwd_Cnd per DelayMissingCondition",
+                "meaning": "Condizioni mancanti per movimento backward",
+                "code_line": "Line 289-310"
+            },
+            "MissingCnd_Fwd": {
+                "trigger": "Standstill AND Fwd_CheckNext AND NOT Fwd_Cnd per DelayMissingCondition",
+                "meaning": "Condizioni mancanti per movimento forward"
+            },
+            "Ax": {
+                "type": "TAx_Warnings",
+                "meaning": "Warning delegati a SpeedMotor L1",
+                "note": "Warning 1699 'Test stop STO required' viene maskato (Line 340-342)"
+            }
+        },
+        "Conditions_Logic": {
+            "description": "Logica condizioni movimento (cuore del L2)",
+            "Gen_Cnd": {
+                "description": "Condizioni generali per qualsiasi movimento",
+                "pattern": "GRACEFUL DEGRADATION con auto-sostentamento",
+                "formula": "BaseCond AND (Fan.Running OR NOT Fan.Presence OR (Bwd_Cnd OR Fwd_Cnd) AND NOT TON_NoPendingCmd.Q)",
+                "BaseCond_components": [
+                    "NOT StopDueDoorOpeningRequest",
+                    "NOT StopInPhase",
+                    "NOT StopProgrammed",
+                    "NOT StopAborting",
+                    "NOT DSI.SafeStop",
+                    "NOT DSI.DevicesInSafeState",
+                    "NOT Alarm.BrakeTimeOut",
+                    "NOT Alarm.S120_ComErr"
+                ],
+                "code_line": "Line 282-283",
+                "semantics": {
+                    "start_movement": "Per INIZIARE movimento → Fan DEVE essere Running (se presente)",
+                    "continue_movement": "Per CONTINUARE movimento già avviato → basta che Cnd sia già TRUE",
+                    "rationale": "Se Fan si ferma durante movimento, continua fino a stop naturale"
+                }
+            },
+            "Bwd_Cnd": {
+                "formula": "Gen_Cnd AND S120.MoveMinusPermitted AND CIn.Bwd_ExtEnable",
+                "code_line": "Line 284"
+            },
+            "Fwd_Cnd": {
+                "formula": "Gen_Cnd AND S120.MovePlusPermitted AND CIn.Fwd_ExtEnable",
+                "code_line": "Line 285"
+            }
+        },
+        "Manual_Mode_Logic": {
+            "description": "Logica modalità manuale con pulsanti",
+            "StartStop_Toggle": {
+                "description": "Pulsante toggle con ritenuta",
+                "Bwd_Man": "PE(PB.Bwd) → SET, rilascio PB → mantiene, press PB.Fwd → RESET",
+                "Fwd_Man": "PE(PB.Fwd) → SET, rilascio PB → mantiene, press PB.Bwd → RESET",
+                "code_line": "Line 161-162",
+                "interlock": "Bwd e Fwd si escludono a vicenda"
+            },
+            "HighSpeed_Logic": {
+                "description": "Passaggio automatico Low→High velocità",
+                "trigger": "Movimento attivo per DelayChangeVel E DelayChangeVel > T#0s",
+                "velocities": {
+                    "initial": "VelFwdLow (o VelBwd)",
+                    "after_delay": "VelFwdHigh (o VelBwd rimane uguale)"
+                },
+                "code_line": "Line 156-163, 192-208",
+                "disable": "Se VelocityOverride.Enable, delay non parte (Line 157)"
+            }
+        },
+        "Power_Control": {
+            "description": "Controllo abilitazione potenza drive",
+            "formula": "(Control_ON AND Fan.Presence) OR ExternalPowerOn) AND NOT StopDoorOpeningRequest",
+            "code_line": "Line 316",
+            "components": {
+                "Control_ON AND Fan.Presence": "Automatico con ventilatore configurato",
+                "ExternalPowerOn": "Bypass per procedure speciali",
+                "NOT StopDoorOpening": "Disabilita se richiesta apertura porta"
+            },
+            "note": "Power gestito da SpeedMotor L1 con PowerOffDelay"
+        },
+        "Fan_Control": {
+            "description": "Controllo ventilatore raffreddamento",
+            "request_logic": {
+                "formula": "S120.Enabled OR Bwd_CheckNext OR Fwd_CheckNext",
+                "code_line": "Line 375-376",
+                "meaning": "Fan richiesto se drive abilitato o comandi pendenti"
+            },
+            "delay_off": {
+                "formula": "TON_Fan_DelayOff(NOT Request AND Fan_Running, PT:=Config.Fan.DelayOff)",
+                "code_line": "Line 370-379",
+                "purpose": "Raffreddamento post-movimento prima di spegnere"
+            },
+            "graceful_degradation": {
+                "description": "Se Fan si ferma durante movimento, non alarma subito",
+                "behavior": "Gen_Cnd rimane TRUE finché (Bwd_Cnd OR Fwd_Cnd) attivo",
+                "alarm_trigger": "Fan KO → Alarm → StopAborting → arresto graduale area"
+            }
+        },
+        "Velocity_Dynamics_Calculation": {
+            "description": "Calcolo velocità e dinamiche con limiti",
+            "code_block": "Line 178-274",
+            "steps": [
+                {
+                    "step": 1,
+                    "action": "Calcolo limiti drive",
+                    "formulas": {
+                        "VelMax_EngUnit": "ReferenceVelocity * ReductionRatio",
+                        "AccMax_EngUnit": "(ReferenceVelocity / 60 / MinAccTime) * ReductionRatio",
+                        "DecMax_EngUnit": "(ReferenceVelocity / 60 / MinDecTime) * ReductionRatio"
+                    }
+                },
+                {
+                    "step": 2,
+                    "action": "Selezione velocità comando",
+                    "logic": "IF Bwd_Man THEN VelBwd/VelFwdLow ELSIF Fwd_Man THEN VelFwdLow/High ELSIF Aut THEN CIn.Manager.Vel"
+                },
+                {
+                    "step": 3,
+                    "action": "Limitazione dinamiche",
+                    "formulas": {
+                        "Ctrl.Vel": "MIN(Ctrl.Vel, VelMax_EngUnit)",
+                        "Ctrl.Acc": "MIN(Ctrl.Acc, AccMax_EngUnit), se <= 0 → Par.Man.Acc",
+                        "Ctrl.Dec": "MIN(Ctrl.Dec, DecMax_EngUnit), se <= 0 → Par.Man.Dec"
+                    }
+                },
+                {
+                    "step": 4,
+                    "action": "Applicazione SLS (Safe Limited Speed)",
+                    "formula": "IF ZSI.Door_Opened AND Ctrl.Vel > Config.SLS_VEL THEN Ctrl.Vel := Config.SLS_VEL",
+                    "code_line": "Line 242-244"
+                },
+                {
+                    "step": 5,
+                    "action": "Interlock freno",
+                    "formula": "IF Brake_Presence AND NOT Brake_M_Feedback THEN S120.Velocity := 0.0",
+                    "code_line": "Line 249-251"
+                },
+                {
+                    "step": 6,
+                    "action": "Conversione unità applicazione → drive",
+                    "formula": "S120.AxisCtrl.Velocity := Ctrl.Vel / ReductionRatio",
+                    "code_line": "Line 257"
+                },
+                {
+                    "step": 7,
+                    "action": "Applicazione VelocityOverride",
+                    "formula": "IF VelocityOverride.Enable THEN Velocity := Velocity * LIMIT(1, Value, 200) / 100",
+                    "code_line": "Line 261-264"
+                },
+                {
+                    "step": 8,
+                    "action": "Conversione Acc/Dec",
+                    "formulas": {
+                        "S120.Acceleration": "Ctrl.Acc / ReductionRatio",
+                        "S120.Deceleration": "Ctrl.Dec / ReductionRatio"
+                    },
+                    "code_line": "Line 268-269"
+                }
+            ]
+        },
+        "ReductionRatio_Calculation": {
+            "description": "Calcolo rapporto riduzione per conversione unità",
+            "note": "Network 13 vuoto nel codice - probabilmente calcolato in Config o altrove",
+            "typical_formula": "ReductionRatio = LeadScrewPitch / (MotorRevolution / LoadRevolution)",
+            "unit": "mm/giro (millimetri per giro motore)",
+            "use": "Conversione mm/min ↔ RPM"
+        }
+    },
+    "SpeedMachine_Manager_UDT": {
+        "description": "Comandi automatici da L3/L4 verso SpeedMachine",
+        "path": "CIn.Manager",
+        "fields": {
+            "EnableStopDoorOpeningReq": {
+                "type": "Bool",
+                "semantic": "stop_enable_passthrough"
+            },
+            "EnableStopInPhase": {
+                "type": "Bool",
+                "semantic": "stop_enable_passthrough"
+            },
+            "EnableStopProgrammed": {
+                "type": "Bool",
+                "semantic": "stop_enable_passthrough"
+            },
+            "Control_ON": {
+                "type": "Bool",
+                "semantic": "mode_selector",
+                "meaning": "TRUE=Automatico, FALSE=Manuale"
+            },
+            "Bwd": {
+                "type": "Bool",
+                "semantic": "auto_command_velocity_direction",
+                "meaning": "Comando automatico backward"
+            },
+            "Fwd": {
+                "type": "Bool",
+                "semantic": "auto_command_velocity_direction",
+                "meaning": "Comando automatico forward"
+            },
+            "Vel": {
+                "type": "LReal",
+                "semantic": "auto_setpoint_velocity",
+                "unit": "mm/min (unità applicazione)"
+            },
+            "Acc": {
+                "type": "LReal",
+                "semantic": "auto_setpoint_acceleration",
+                "unit": "mm/s² (unità applicazione)"
+            },
+            "Dec": {
+                "type": "LReal",
+                "semantic": "auto_setpoint_deceleration",
+                "unit": "mm/s²"
+            }
+        }
+    },
+    "AreaInterface_UDT": {
+        "description": "Interfaccia broadcast da L5 Area Manager",
+        "fields": {
+            "EStop": {
+                "type": "Bool",
+                "meaning": "Emergenza area"
+            },
+            "Man": {
+                "type": "Bool",
+                "meaning": "Modalità manuale area"
+            },
+            "Aut": {
+                "type": "Bool",
+                "meaning": "Modalità automatica area pronta"
+            },
+            "Cycle": {
+                "type": "Bool",
+                "meaning": "Ciclo automatico in esecuzione"
+            },
+            "StopInPhase": {
+                "type": "Bool",
+                "meaning": "Stop in fase broadcast"
+            },
+            "StopProgrammed": {
+                "type": "Bool",
+                "meaning": "Stop programmato broadcast"
+            },
+            "RstAlarms": {
+                "type": "Bool",
+                "meaning": "Reset allarmi area"
+            },
+            "CheckAutReady": {
+                "type": "Bool",
+                "meaning": "Verifica AutReady"
+            }
+        }
+    },
+    "ZoneSafetyInterface_UDT": {
+        "description": "Interfaccia da Safety PLC",
+        "fields": {
+            "Door_NormalStop": {
+                "type": "Bool",
+                "meaning": "Richiesta stop normale per apertura porta"
+            },
+            "Door_SafeStop": {
+                "type": "Bool",
+                "meaning": "Stop sicurezza porta (forzato)"
+            },
+            "Door_Opened": {
+                "type": "Bool",
+                "meaning": "Porta aperta - limita velocità a SLS_VEL",
+                "impact": "IF Door_Opened THEN Vel := MIN(Vel, Config.SLS_VEL)"
+            },
+            "Door_EntryEnable": {
+                "type": "Bool",
+                "meaning": "Abilitazione ingresso zona"
+            }
+        }
+    },
+    "DeviceSafetyInterface_UDT": {
+        "description": "Interfaccia sicurezza device-specific",
+        "fields": {
+            "SafeStop": {
+                "type": "Bool",
+                "meaning": "Blocco sicurezza device",
+                "impact": "SafeStop=TRUE → movimento bloccato"
+            },
+            "DevicesInSafeState": {
+                "type": "Bool",
+                "meaning": "Device in stato sicuro (STO attivo)"
+            }
+        }
+    },
+    "MachineInterface_UDT": {
+        "description": "Interfaccia da L2 verso L4/L5",
+        "fields": {
+            "AutReady": {
+                "formula": "AreaInterface.Aut AND NOT AlarmsPresence",
+                "code_line": "Line 442"
+            },
+            "Aborting": {
+                "formula": "StopAborting",
+                "code_line": "Line 443"
+            },
+            "MotionsStandStill": {
+                "formula": "TON_NoPendingCmd.Q AND Standstill",
+                "code_line": "Line 444"
+            },
+            "AckStopInPhase": {
+                "formula": "StopInPhase AND MotionsStandStill",
+                "code_line": "Line 445"
+            },
+            "AckStopProgrammed": {
+                "formula": "StopProgrammed AND MotionsStandStill",
+                "code_line": "Line 446"
+            },
+            "AlarmsPresence": {
+                "type": "Bool",
+                "code_line": "Line 447"
+            },
+            "WarningPresence": {
+                "type": "Bool",
+                "code_line": "Line 448"
+            }
+        }
+    },
+    "L3_Integration_Patterns": {
+        "velocity_control_pattern": {
+            "description": "L3 controlla velocità per sequenze/ricette",
+            "scl_example": [
+                "// L3 calcola velocità target basata su ricetta",
+                "t_CIn_Speed1.Manager.Control_ON := Recipe.AutoMode;",
+                "IF Recipe.AutoMode THEN",
+                "    t_CIn_Speed1.Manager.Fwd := Recipe.Direction = Forward;",
+                "    t_CIn_Speed1.Manager.Bwd := Recipe.Direction = Backward;",
+                "    t_CIn_Speed1.Manager.Vel := Recipe.TargetSpeed;",
+                "    t_CIn_Speed1.Manager.Acc := Recipe.Acceleration;",
+                "    t_CIn_Speed1.Manager.Dec := Recipe.Deceleration;",
+                "END_IF;"
+            ]
+        },
+        "velocity_override_pattern": {
+            "description": "L3 modula velocità con override per loop control",
+            "scl_example": [
+                "// L3 calcola override da loop controller (es. ansa)",
+                "t_CIn_Speed1.VelocityOverride.Enable := Loop.ControlActive;",
+                "// PID controller: più materiale in ansa → rallenta",
+                "Loop_PID(",
+                "    Setpoint := Loop.TargetQuantity,",
+                "    Actual := Loop.ActualQuantity,",
+                "    Output => Override_Percentage  // 50-150%",
+                ");",
+                "t_CIn_Speed1.VelocityOverride.Value := Override_Percentage;"
+            ]
+        },
+        "sls_safety_pattern": {
+            "description": "SLS (Safe Limited Speed) con porta aperta",
+            "scl_example": [
+                "// ZSI da Safety PLC broadcast a tutti i device",
+                "ZSI.Door_Opened := Safety_PLC.Zone1_Door_Open;",
+                "",
+                "// L2 applica automaticamente SLS:",
+                "// IF Door_Opened AND Vel > Config.SLS_VEL THEN Vel := SLS_VEL",
+                "",
+                "// L3 non deve fare nulla - gestito da L2"
+            ]
+        },
+        "ext_enable_pattern": {
+            "description": "ExtEnable per coordinamento inter-device",
+            "scl_example": [
+                "// Esempio: Speed1 può andare Fwd solo se Speed2 è già Fwd",
+                "t_CIn_Speed1.Fwd_ExtEnable := Speed2.COut.Fwd_Running;",
+                "",
+                "// Esempio: interlock con pressostato",
+                "t_CIn_Speed1.Fwd_ExtEnable := Pressure_OK;",
+                "",
+                "// Default se nessun vincolo",
+                "t_CIn_Speed1.Bwd_ExtEnable := TRUE;",
+                "t_CIn_Speed1.Fwd_ExtEnable := TRUE;"
+            ]
+        },
+        "check_next_handshake": {
+            "description": "Uso CheckNext come trigger coordinamento",
+            "scl_example": [
+                "// L3 monitora CheckNext per preparare altri device",
+                "IF Speed1.COut.Fwd_CheckNext THEN",
+                "    // Speed1 vuole avanzare → prepara prerequisiti",
+                "    t_CIn_Valve_Input.Manager.Work := TRUE;  // Apri valvola ingresso",
+                "END_IF;",
+                "",
+                "// Abilita Speed1 quando valvola pronta",
+                "t_CIn_Speed1.Fwd_ExtEnable := Valve_Input.COut.Work;"
+            ]
+        },
+        "external_power_pattern": {
+            "description": "Uso ExternalPowerOn per procedure speciali",
+            "scl_example": [
+                "// Mantieni power anche in manuale per homing o calibrazione",
+                "t_CIn_Speed1.ExternalPowerOn := Procedure.Homing_Active OR Procedure.Calibration_Active;"
+            ]
+        }
+    },
+    "Responsibility_Matrix": {
+        "Infeed_DC_Bus": {
+            "level": "ESTERNO - Area aggregator",
+            "L3_role": "Esporre COut.Infeed_ReqON, aggregare con OR"
+        },
+        "SLS_Enforcement": {
+            "level": "L2 SpeedMachine",
+            "L3_role": "Broadcast ZSI.Door_Opened, L2 applica limite automaticamente"
+        },
+        "VelocityOverride": {
+            "level": "L3 Process Control",
+            "L3_role": "Calcolare Override da loop controller, settare CIn.VelocityOverride"
+        },
+        "Brake_Management": {
+            "level": "L1 SpeedMotor + L2 watchdog",
+            "L3_role": "Nessuna - gestito da Sinamics CU e L2 alarm"
+        },
+        "Fan_Control": {
+            "level": "L2 SpeedMachine",
+            "L3_role": "Nessuna - L2 gestisce automaticamente con DelayOff"
+        }
+    },
+    "L3_Common_Mistakes": {
+        "mistake_1": "Settare VelocityOverride senza Enable=TRUE",
+        "mistake_2": "Non aggregare Infeed_ReqON con OR (ogni istanza deve contribuire)",
+        "mistake_3": "Duplicare logica SLS in L3 (già fatta da L2)",
+        "mistake_4": "Settare Vel/Acc/Dec = 0 invece di non dare comando",
+        "mistake_5": "Non rispettare ExtEnable semantica: TRUE se nessun vincolo",
+        "mistake_6": "Confondere CheckNext (richiesta) con Running (stato movimento)",
+        "mistake_7": "Non gestire graceful transition Control_ON TRUE→FALSE (comandi pendenti)"
+    },
+    "L3_Validation_Checklist": {
+        "infeed": "Infeed_ReqON aggregato con OR di tutte istanze",
+        "control_on": "Control_ON non flickering, transizioni stabili",
+        "ext_enable": "ExtEnable default TRUE se nessun vincolo inter-device",
+        "velocity_override": "Se VelocityOverride.Enable=TRUE, Value in range 1-200%",
+        "sls": "Non duplicare logica SLS - delegata a L2",
+        "commands": "Manager.Bwd e Manager.Fwd mutuamente esclusivi",
+        "vel_zero": "Non settare Vel=0, togliere comando invece",
+        "check_next": "Usare CheckNext come trigger, non per timeout monitoring"
+    },
+    "Comparison_FeedMachine_vs_SpeedMachine": {
+        "description": "Differenze chiave tra FeedMachine e SpeedMachine",
+        "L1_Block": {
+            "FeedMachine": "SpeedAxis (full TO_SpeedAxis wrapper con tutte features)",
+            "SpeedMachine": "SpeedMotor (simplified wrapper, velocity-only)"
+        },
+        "Positioning": {
+            "FeedMachine": "No positioning (velocity-only, come SpeedMachine)",
+            "SpeedMachine": "No positioning (velocity-only)"
+        },
+        "Complexity": {
+            "FeedMachine": "Più complesso, più features (ReductionRatio calculation esposto)",
+            "SpeedMachine": "Più semplice, essenziale"
+        },
+        "Use_Case": {
+            "FeedMachine": "Alimentatori lineari materiale (feeder, infeed, outfeed)",
+            "SpeedMachine": "Rulli trasporto, nastri, macchine semplici velocità"
+        },
+        "ReductionRatio": {
+            "FeedMachine": "Calcolato e documentato (LeadScrewPitch formula)",
+            "SpeedMachine": "Presente ma network 13 vuoto (probabilmente in Config o assunto)"
+        },
+        "Note": "Entrambi velocity-only, ma FeedMachine ha documentazione più ricca. SpeedMachine più leggero per applicazioni semplici."
+    }
+}

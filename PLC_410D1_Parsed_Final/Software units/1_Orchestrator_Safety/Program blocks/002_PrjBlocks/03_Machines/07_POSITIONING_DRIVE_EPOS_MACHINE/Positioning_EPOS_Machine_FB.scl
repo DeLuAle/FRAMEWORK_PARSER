@@ -1,7 +1,7 @@
-﻿// Block: Positioning_EPOS_Machine_FB
+﻿// Block: Positioning_EPOS_Machine_FB_NEW
 // Title: Init
 
-FUNCTION_BLOCK "Positioning_EPOS_Machine_FB"
+FUNCTION_BLOCK "Positioning_EPOS_Machine_FB_NEW"
 { S7_Optimized_Access := 'TRUE' }
 VERSION : 0.1
 // Init
@@ -12,7 +12,7 @@ VERSION : 0.1
       Drive : TAx_DriveInterface;
       DataIn : Positioning_EPOS_Machine_DataIn;
       CIn : Positioning_EPOS_Machine_CIn;
-      Config : Positioning_EPOS_Machine_Config;
+      Config : Positioning_EPOS_Machine_Config_NEW;
       HW_ID_TEL111 : HW_SUBMODULE;
    END_VAR
 
@@ -24,6 +24,10 @@ VERSION : 0.1
 
    VAR_IN_OUT
       Par : Positioning_EPOS_Machine_Par;
+      Pers_Data : Struct
+         EncoderAbsolute_Preset_OK : Bool;
+         Persistent_ActualPosition : LReal;
+      END_STRUCT;
       Warning : Positioning_EPOS_Machine_Wng;
       Alarm : Positioning_EPOS_Machine_Alr;
    END_VAR
@@ -31,6 +35,7 @@ VERSION : 0.1
    VAR
       InitDone : Bool;
       Status : Int;
+      Status_Home : Int;
       Diag : Struct
          S120 : TO_Diagnostic;
       END_STRUCT;
@@ -58,6 +63,7 @@ VERSION : 0.1
          ActualVelocityRPM : LReal;
          ReductionRatio : LReal;
          ActualVelocity : LReal;
+         EncIncremental_Preset_OK : Bool;
          S120 : Struct
             FaultActive : Bool;
             AlarmPresence : Bool;
@@ -78,6 +84,7 @@ VERSION : 0.1
          StopInPhase : Bool;
          StopProgrammed : Bool;
          Preset : Bool;
+         ReloadPosition : Bool;
          Minus_Man : Bool;
          Plus_Man : Bool;
          MoveToPos_Man : Bool;
@@ -103,6 +110,10 @@ VERSION : 0.1
       S120_SinaPos : SinaPos;
       Fan_M : Motor;
       WriteRefPos : RW_SINAMICS_Par;
+      Write_P2507 : RW_SINAMICS_Par;
+      Read_P2507 : RW_SINAMICS_Par;
+      Write_P0971 : RW_SINAMICS_Par;
+      Read_P0971 : RW_SINAMICS_Par;
       TON_DelayOFF : TON_TIME;
       TON_ModeTimeOut : TON_TIME;
       TON_NoPendingCmd : TON_TIME;
@@ -111,6 +122,7 @@ VERSION : 0.1
       TON_Fan_DelayOff : TON_TIME;
       TON_Brake_TimeOut : TON_TIME;
       TON_InTargetPosition : TON_TIME;
+      TON_TimeOutInit : TON_TIME;
       AUX : Struct
          PB_Minus : Bool;
          PB_Plus : Bool;
@@ -132,6 +144,7 @@ VERSION : 0.1
       LimitExceeds : Bool;
       UsePositionLimits : Bool;
       DriveSwitchOnInhibit : Bool;
+      ReferencePosition : LReal;
    END_VAR
 
    VAR CONSTANT
@@ -145,6 +158,11 @@ VERSION : 0.1
       MODE_8_JOG_INCREMENTAL : Int;
       STS_0_IDLE : Int;
       STS_DIRECT_HOME : Int;
+      STS_DIRECT_HOME_Write_P2507 : Int;
+      STS_DIRECT_HOME_Read_P2507 : Int;
+      STS_DIRECT_HOME_Write_P0971 : Int;
+      STS_DIRECT_HOME_Read_P0971 : Int;
+      STS_DIRECT_HOME_END : Int;
       STS_MOVE_VEL : Int;
       STS_POSITIONING_START : Int;
       STS_STOP : Int;
@@ -157,7 +175,7 @@ BEGIN
       IF NOT InitDone THEN
           
           InitDone := TRUE;
-       
+          Sts.EncIncremental_Preset_OK := FALSE;
       END_IF;
 
 
@@ -171,12 +189,15 @@ BEGIN
           Alarm.Ax_NotHomed := FALSE;
           Alarm.HwLimitMinus := FALSE;
           Alarm.HwLimitPlus := FALSE;
+          Alarm.BrakeTimeOut := FALSE;
           
           
           Warning.NotAutReady := FALSE;
           Warning.Minus_CndMissing := FALSE;
           Warning.Plus_CndMissing := FALSE;
           
+          
+          Alarm.S120_WriteParErr := FALSE;
           
           
       END_IF;
@@ -290,7 +311,21 @@ BEGIN
    REGION "Drive / Axis Alarms"
       Alarm.S120_Fault := (Sts.S120.FaultActive OR (S120_SinaPos.AxisError AND (S120_SinaPos.Status = 16#8401)));
       Alarm.S120_ComErr := ((S120_SinaPos.AxisError AND (S120_SinaPos.Status = 16#8600)) OR (S120_SinaPos.AxisError AND (S120_SinaPos.Status = 16#8601)));
-      Alarm.S120_WriteParErr := WriteRefPos.Error;
+      IF NOT ((((((NOT (WriteRefPos.Error) AND NOT (Write_P2507.Error)) OR (NOT (WriteRefPos.Error) AND Write_P2507.Error) OR (NOT (WriteRefPos.Error) AND Sys.ByPass)) AND NOT (Read_P2507.Error)) AND NOT (Write_P0971.Error)) AND NOT (Read_P0971.Error))) THEN
+         Alarm.S120_WriteParErr := TRUE;
+      END_IF;
+      IF ((Alarm.S120_WriteParErr AND NOT (Sys.ByPass)) AND Write_P2507.Error) THEN
+         DEBUG.Alr[1] := TRUE;
+      END_IF;
+      IF ((Alarm.S120_WriteParErr AND NOT (Sys.ByPass)) AND Read_P2507.Error) THEN
+         DEBUG.Alr[2] := TRUE;
+      END_IF;
+      IF ((Alarm.S120_WriteParErr AND NOT (Sys.ByPass)) AND Write_P0971.Error) THEN
+         DEBUG.Alr[3] := TRUE;
+      END_IF;
+      IF ((Alarm.S120_WriteParErr AND NOT (Sys.ByPass)) AND Read_P0971.Error) THEN
+         DEBUG.Alr[4] := TRUE;
+      END_IF;
    END_REGION
 
    REGION "Alarm Hardware Limit - / + Exceedes"
@@ -308,11 +343,11 @@ BEGIN
    END_REGION
 
    REGION "Alarm / Warning axis not homed"
-      Warning.Ax_NotHomed := NOT (S120_SinaPos.AxisRef);
-      IF (((NOT (S120_SinaPos.AxisRef) AND AreaInterface.Aut) OR (NOT (S120_SinaPos.AxisRef) AND Ctrl.MoveToPos_Aut) OR (NOT (S120_SinaPos.AxisRef) AND Ctrl.MoveToPos_Man)) AND NOT (S120_SinaPos.AxisRef)) THEN
+      Warning.Ax_NotHomed := (NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK)));
+      IF ((((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND AreaInterface.Aut) OR ((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND Ctrl.MoveToPos_Aut) OR ((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND Ctrl.MoveToPos_Man)) AND NOT (S120_SinaPos.AxisRef)) THEN
          Alarm.Ax_NotHomed := TRUE;
       END_IF;
-      IF (((NOT (S120_SinaPos.AxisRef) AND AreaInterface.Aut) OR (NOT (S120_SinaPos.AxisRef) AND Ctrl.MoveToPos_Aut) OR (NOT (S120_SinaPos.AxisRef) AND Ctrl.MoveToPos_Man)) AND NOT (S120_SinaPos.AxisRef)) THEN
+      IF ((((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND AreaInterface.Aut) OR ((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND Ctrl.MoveToPos_Aut) OR ((NOT (S120_SinaPos.AxisRef) OR (Config.Ax.Encoder_Inc_AutoReloadPosition AND NOT (Sts.EncIncremental_Preset_OK)) OR (Config.Ax.Encoder_is_Absolute AND NOT (Pers_Data.EncoderAbsolute_Preset_OK))) AND Ctrl.MoveToPos_Man)) AND NOT (S120_SinaPos.AxisRef)) THEN
          Warning.Ax_NotHomed := FALSE;
       END_IF;
    END_REGION
@@ -336,9 +371,72 @@ BEGIN
       PE.B_Preset := PosEdge(HMI.B_Preset);
    END_REGION
 
-   REGION "Preset"
-      Sts.Preset_Cnd := (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND (Status = #STS_0_IDLE)) OR ((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND (Status = #STS_DIRECT_HOME)));
-      Ctrl.Preset := (((PE.B_Preset AND NOT (Ctrl.Preset)) OR (HMI.B_Preset AND Ctrl.Preset)) AND Sts.Preset_Cnd);
+   REGION "Preset condition"
+      Sts.Preset_Cnd := ((((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND (Status = #STS_0_IDLE)) OR (((AreaInterface.Man AND NOT (CIn.Manager.Control_ON)) AND (Status >= #STS_DIRECT_HOME)) AND (Status < #STS_DIRECT_HOME_END))) AND NOT (Alarm.S120_WriteParErr));
+   END_REGION
+
+   REGION "Reload position"
+      IF NOT Config.Ax.Encoder_Inc_AutoReloadPosition THEN
+          Status_Home := 0;
+      END_IF;
+          
+
+
+      CASE Status_Home OF
+          0:
+              IF NOT S120_SinaPos.AxisRef THEN
+                  Sts.EncIncremental_Preset_OK := FALSE;
+              END_IF;
+              
+              TON_TimeOutInit(IN := FALSE,
+                               PT := T#10s);
+             
+             
+              Ctrl.ReloadPosition := FALSE;
+              
+              IF AreaInterface.RstAlarms
+                  AND
+                  Sts.Preset_Cnd
+                  AND
+                  NOT Sts.EncIncremental_Preset_OK
+                  AND
+                  Config.Ax.Encoder_Inc_AutoReloadPosition
+              THEN
+                  Status_Home += 1;
+              END_IF;
+              
+          1:
+              TON_TimeOutInit(IN := NOT S120_SinaPos.AxisRef,
+                               PT := T#10s);
+              
+              Ctrl.ReloadPosition := TRUE;
+              
+              
+              IF S120_SinaPos.AxisRef
+                  AND
+                  Sts.EncIncremental_Preset_OK
+              THEN
+                  Status_Home += 1;
+                  
+              ELSIF TON_TimeOutInit.Q THEN
+                  
+                  Status_Home := 0;
+                  
+              END_IF;
+              
+          2:
+              Ctrl.ReloadPosition := FALSE;
+              Status_Home := 0;
+              
+          ELSE
+              Status_Home := 0;
+              
+      END_CASE;
+
+   END_REGION
+
+   REGION "Manual preset"
+      Ctrl.Preset := ((((PE.B_Preset AND NOT (Ctrl.Preset)) OR (HMI.B_Preset AND Ctrl.Preset)) AND Sts.Preset_Cnd) AND NOT (Ctrl.ReloadPosition));
    END_REGION
 
    REGION "Man"
@@ -589,8 +687,8 @@ BEGIN
    REGION "Conditions"
       Sts.Gen_Cnd := (((((NOT (Ctrl.StopDueDoorOpeningRequest) AND NOT (DSI.SafeStop)) AND NOT (DSI.DevicesInSafeState)) AND NOT (Ctrl.StopAborting)) AND NOT (Ctrl.StopInPhase)) AND NOT (Ctrl.StopProgrammed));
       Sts.Gen_Cnd := ((((Sts.Gen_Cnd AND NOT (Alarm.BrakeTimeOut)) AND Drive.Infeed_ON) AND NOT (Alarm.S120_Fault)) AND NOT (S120_SinaPos.Lockout));
-      Sts.Minus_Cnd := ((((Sts.Gen_Cnd AND CIn.Minus_ExtEnable) AND NOT (Warning.Ax_SwLimitMinus)) AND NOT (Alarm.HwLimitMinus)) AND NOT (COut.MinusLimitReached));
-      Sts.Plus_Cnd := ((((Sts.Gen_Cnd AND CIn.Plus_ExtEnable) AND NOT (Warning.Ax_SwLimitPlus)) AND NOT (Alarm.HwLimitPlus)) AND NOT (COut.PlusLimitReached));
+      Sts.Minus_Cnd := ((((((((Sts.Gen_Cnd AND Sts.EncIncremental_Preset_OK) OR (Sts.Gen_Cnd AND NOT (Config.Ax.Encoder_Inc_AutoReloadPosition))) AND Pers_Data.EncoderAbsolute_Preset_OK) OR (((Sts.Gen_Cnd AND Sts.EncIncremental_Preset_OK) OR (Sts.Gen_Cnd AND NOT (Config.Ax.Encoder_Inc_AutoReloadPosition))) AND NOT (Config.Ax.Encoder_is_Absolute))) AND CIn.Minus_ExtEnable) AND NOT (Warning.Ax_SwLimitMinus)) AND NOT (Alarm.HwLimitMinus)) AND NOT (COut.MinusLimitReached));
+      Sts.Plus_Cnd := ((((((((Sts.Gen_Cnd AND Sts.EncIncremental_Preset_OK) OR (Sts.Gen_Cnd AND NOT (Config.Ax.Encoder_Inc_AutoReloadPosition))) AND Pers_Data.EncoderAbsolute_Preset_OK) OR (((Sts.Gen_Cnd AND Sts.EncIncremental_Preset_OK) OR (Sts.Gen_Cnd AND NOT (Config.Ax.Encoder_Inc_AutoReloadPosition))) AND NOT (Config.Ax.Encoder_is_Absolute))) AND CIn.Plus_ExtEnable) AND NOT (Warning.Ax_SwLimitPlus)) AND NOT (Alarm.HwLimitPlus)) AND NOT (COut.PlusLimitReached));
       Sts.Pos_Cnd := ((((Sts.MissingToTarget < 0.0) AND Sts.Minus_Cnd) OR ((Sts.MissingToTarget >= 0.0) AND Sts.Plus_Cnd)) AND S120_SinaPos.AxisRef);
    END_REGION
 
@@ -601,7 +699,7 @@ BEGIN
       Ctrl.S120.Jog_Plus := ((((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active)) AND Ctrl.Plus_Man) OR ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active)) AND Ctrl.Plus_Aut)) AND Sts.Plus_Cnd);
       Ctrl.MoveToPos := ((NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Minus_Man) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Minus_Aut) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Plus_Man) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Plus_Aut) OR NOT ((NOT (Ctrl.MoveToPos_Aut) AND NOT (Ctrl.MoveToPos_Man))));
       Ctrl.S120.Positioining := (((NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Minus_Man) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Minus_Aut) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Plus_Man) OR (NOT ((NOT (Sts.Limits_SW_Active) AND NOT (Sts.Limits_EXT_Active))) AND Ctrl.Plus_Aut) OR NOT ((NOT (Ctrl.MoveToPos_Aut) AND NOT (Ctrl.MoveToPos_Man)))) AND Sts.Pos_Cnd);
-      Ctrl.S120.Preset := (Ctrl.Preset AND NOT (Alarm.S120_WriteParErr));
+      Ctrl.S120.Preset := NOT ((NOT (Ctrl.Preset) AND NOT (Ctrl.ReloadPosition)));
    END_REGION
 
    REGION "S120 EPOS - Force STATUS = STOP (End of movemet)"
@@ -611,14 +709,14 @@ BEGIN
       );
 
       #TON_DelayOFF.Q;
-      IF (((Status = #STS_DIRECT_HOME) AND NOT (Ctrl.S120.Preset)) OR #TON_DelayOFF.Q) THEN
+      IF ((((Status >= #STS_DIRECT_HOME) AND (Status <= #STS_DIRECT_HOME_END)) AND NOT (Ctrl.S120.Preset)) OR #TON_DelayOFF.Q) THEN
          Status := #STS_STOP;
       END_IF;
    END_REGION
 
    REGION "S120 EPOS - Force STATUS = STOP (Timeout SinaPos Mode not reached)"
       #TON_ModeTimeOut(
-         IN := (((S120_SinaPos.ActMode <> #MODE_5_SET_HOME_POSITION) AND (Status = #STS_DIRECT_HOME)) OR ((S120_SinaPos.ActMode <> #MODE_7_JOG) AND (Status = #STS_MOVE_VEL)) OR ((S120_SinaPos.ActMode <> #MODE_2_ABSOLUTE_POSITIONING) AND (Status = #STS_POSITIONING_START))),
+         IN := ((((S120_SinaPos.ActMode <> #MODE_5_SET_HOME_POSITION) AND (Status >= #STS_DIRECT_HOME)) AND (Status <= #STS_DIRECT_HOME_END)) OR ((S120_SinaPos.ActMode <> #MODE_7_JOG) AND (Status = #STS_MOVE_VEL)) OR ((S120_SinaPos.ActMode <> #MODE_2_ABSOLUTE_POSITIONING) AND (Status = #STS_POSITIONING_START))),
          PT := t#1500ms
       );
 
@@ -642,7 +740,16 @@ BEGIN
               S120_SinaPos.Jog2 := FALSE;
               S120_SinaPos.AxisRef := FALSE;
               S120_SinaPos.ExecuteMode := FALSE;
+              S120_SinaPos.CancelTraversing := TRUE;
               S120_SinaPos.IntermediateStop := FALSE;
+              
+              WriteRefPos.Enable := FALSE;
+              Write_P2507.Enable := FALSE;
+              Read_P2507.Enable := FALSE;
+              Write_P0971.Enable := FALSE;
+              Read_P0971.Enable := FALSE;
+             
+              
               
               
               IF NOT S120_SinaPos.AxisEnabled AND NOT S120_SinaPos.AxisError
@@ -662,9 +769,17 @@ BEGIN
               S120_SinaPos.Jog2 := FALSE;
               S120_SinaPos.AxisRef := FALSE;
               S120_SinaPos.ExecuteMode := FALSE;
+              S120_SinaPos.CancelTraversing := TRUE;
               S120_SinaPos.IntermediateStop := FALSE;
               
               WriteRefPos.Enable := FALSE;
+              Write_P2507.Enable := FALSE;
+              Read_P2507.Enable := FALSE;
+              Write_P0971.Enable := FALSE;
+              Read_P0971.Enable := FALSE;
+             
+              
+              
               Sts.S120.TargetApply := FALSE;
               
               
@@ -676,7 +791,7 @@ BEGIN
               THEN
                   Status := STS_MOVE_VEL;
                   
-              ELSIF Ctrl.S120.Positioining OR CIn.Manager.Control_ON
+              ELSIF (Ctrl.S120.Positioining OR CIn.Manager.Control_ON) 
               THEN
                   
                   Status := STS_POSITIONING_START;
@@ -700,8 +815,10 @@ BEGIN
           STS_DIRECT_HOME:
               
               S120_SinaPos.ModePos := MODE_5_SET_HOME_POSITION;
-              //#S120_SinaPos.EnableAxis := TRUE;
+              S120_SinaPos.EnableAxis := TRUE;
+              
               WriteRefPos.Enable := TRUE;
+              
               
               S120_SinaPos.ExecuteMode := FALSE;
               
@@ -712,9 +829,71 @@ BEGIN
                   Sts.Standstill
               THEN
                   WriteRefPos.Enable := FALSE;
-                  S120_SinaPos.AxisRef := TRUE;
+                  
+                  //#S120_SinaPos.AxisRef := TRUE;
+                  
                   S120_SinaPos.ExecuteMode := TRUE;
+                  
+                  IF S120_SinaPos.AxisRef THEN
+                      
+                      IF Config.Ax.Encoder_is_Absolute
+                      THEN
+                          Status += 1;
+                        
+                      ELSE
+                          Sts.EncIncremental_Preset_OK := TRUE;
+                      END_IF;
+                  END_IF;
+                  
               END_IF;
+              
+              
+          STS_DIRECT_HOME_Write_P2507:
+              
+              Write_P2507.Enable := TRUE;;
+              
+              IF Write_P2507.Done  THEN
+                  Write_P2507.Enable := FALSE;
+                  Status += 1;
+              END_IF;
+              
+          STS_DIRECT_HOME_Read_P2507:
+              
+              Read_P2507.Enable := TRUE;
+              
+              IF Read_P2507.Done THEN
+                  Read_P2507.Enable := FALSE;
+                  IF Read_P2507.ValueReadReal = 3.0 OR Read_P2507.ValueReadDint = 3  THEN
+                      Status += 1;
+                  END_IF;
+                  
+              END_IF;
+              
+          STS_DIRECT_HOME_Write_P0971:
+              
+              Write_P0971.Enable := TRUE;
+              
+              IF Write_P0971.Done THEN
+                  Write_P0971.Enable := FALSE;
+                  Status += 1;
+              END_IF;
+              
+          STS_DIRECT_HOME_Read_P0971:
+              
+              Read_P0971.Enable := TRUE;
+              
+              IF Read_P0971.Done THEN
+                  Read_P0971.Enable := FALSE;
+                  IF Read_P0971.ValueReadDint = 0 AND Read_P0971.ValueReadReal = 0.0  THEN
+                      Status += 1;
+                  END_IF;
+              END_IF;
+              
+          STS_DIRECT_HOME_END:
+              
+              Pers_Data.EncoderAbsolute_Preset_OK := TRUE;
+              
+              
               
               
               //    
@@ -741,6 +920,8 @@ BEGIN
               END_IF;
               
               
+              
+              
               //    
               //  ###############################################################################################
               //  STATUS = MOVE TO POSIITION
@@ -759,31 +940,55 @@ BEGIN
               // 
               Ctrl.S120.TargetPos := (Ctrl.Pos * 1000);
               
-              
-              IF (Ctrl.S120.TargetPos <> S120_SinaPos.Position)
-                  OR
-                  NOT S120_SinaPos.AxisEnabled
-                  OR
-                  (S120_SinaPos.ActMode <> MODE_2_ABSOLUTE_POSITIONING)
+              //
+              IF #S120_SinaPos.ExecuteMode AND NOT #S120_SinaPos.EPosZSW2.%X15
               THEN
-                  Sts.S120.TargetApply := FALSE;
+                  #S120_SinaPos.ExecuteMode := FALSE;
               END_IF;
               
               
-              S120_SinaPos.ExecuteMode := FALSE;
               
-              IF NOT Sts.S120.TargetApply
+              IF NOT #Sts.S120.TargetApply
                   AND
-                  S120_SinaPos.AxisEnabled
+                  #S120_SinaPos.AxisEnabled
                   AND
-                  (S120_SinaPos.ActMode = MODE_2_ABSOLUTE_POSITIONING)
+                  (#S120_SinaPos.ActMode = #MODE_2_ABSOLUTE_POSITIONING)
+                  AND #Ctrl.S120.Positioining
               THEN
                   
-                  S120_SinaPos.ExecuteMode := TRUE;
-                  S120_SinaPos.Position := Ctrl.S120.TargetPos;
-                  Sts.S120.TargetApply := TRUE;
+                  #S120_SinaPos.ExecuteMode := TRUE;
+                  #S120_SinaPos.Position := #Ctrl.S120.TargetPos;
+                  #Sts.S120.TargetApply := TRUE;
                   
               END_IF;
+              
+              
+              
+              IF (#Ctrl.S120.TargetPos <> #S120_SinaPos.Position)
+                  OR
+                  NOT #S120_SinaPos.AxisEnabled
+                  OR
+                  (#S120_SinaPos.ActMode <> #MODE_2_ABSOLUTE_POSITIONING)
+                 // OR
+                 // (#Sts.S120.TargetApply AND #S120_SinaPos.AxisPosOk AND NOT #Sts.InTargetPosition)
+                  OR
+                  NOT #Ctrl.S120.Positioining
+                
+              THEN
+                  #Sts.S120.TargetApply := FALSE;
+                  #S120_SinaPos.ExecuteMode := FALSE;
+              END_IF;
+              
+              IF #Sts.S120.TargetApply AND NOT #S120_SinaPos.EPosZSW2.%X15
+              THEN
+                  #Sts.S120.TargetApply := FALSE;
+              END_IF;
+             
+              
+              S120_SinaPos.ExecuteMode := Sys.Clock_250MS AND  S120_SinaPos.AxisEnabled
+              AND
+              (S120_SinaPos.ActMode = MODE_2_ABSOLUTE_POSITIONING);
+             
               
               
           ELSE
@@ -796,10 +1001,18 @@ BEGIN
 
 
 
+
+
+
+
+
+
+
+
    END_REGION
 
    REGION "Reset enable Drive"
-      IF (NOT (DSI.PowerEnable) OR NOT (Drive.Infeed_ON) OR S120_SinaPos.AxisError OR (((Status = #STS_STOP) OR (Status = #STS_0_IDLE)) AND Sts.Standstill)) THEN
+      IF (NOT (DSI.PowerEnable) OR NOT (Drive.Infeed_ON) OR S120_SinaPos.Lockout OR S120_SinaPos.AxisError OR (((Status = #STS_STOP) OR (Status = #STS_0_IDLE)) AND Sts.Standstill)) THEN
          S120_SinaPos.EnableAxis := FALSE;
       END_IF;
    END_REGION
@@ -831,17 +1044,73 @@ BEGIN
       END_IF;
 
 
-      //Reference position
+      // Reference position P2599
+      //
+      IF Ctrl.ReloadPosition THEN
+          ReferencePosition := Pers_Data.Persistent_ActualPosition;
+          
+      END_IF;
 
+      IF Ctrl.Preset THEN
+          ReferencePosition := HMI.PresetPosition;
+      END_IF;
+
+
+      // P2599 = EPOS reference point coordinate value
+      //
       WriteRefPos(ReadWrite := 1,
-                    ParNo := 2599,
+                      ParNo := 2599,
                     Index := 0,
                     AxisNo := Drive.AxisID,
                     HW_ID := Drive.AccessPoint,
                     TokenChain := Drive.TokenChain,
-                    ValueWriteDint := (HMI.PresetPosition * 1000.0));
+                    ValueWriteDint := (ReferencePosition * 1000.0));
 
 
+      // P2507 = LR absolute encoder adjustment status = 2
+      // 
+       Write_P2507(ReadWrite      := 1,
+                    ParNo          := 2507,
+                    Index          := 0,
+                    AxisNo         := Drive.AxisID,
+                    HW_ID          := Drive.AccessPoint,
+                    TokenChain     := Drive.TokenChain,
+                    ValueWriteReal := 2.0,
+                    ValueWriteDint := 2);
+       
+       // P2507 = LR absolute encoder adjustment status = 3 = Endcoder  
+       //
+       Read_P2507(ReadWrite      := 0,
+                    ParNo          := 2507,
+                    Index          := 0,
+                    AxisNo         := Drive.AxisID,
+                    HW_ID          := Drive.AccessPoint,
+                    TokenChain     := Drive.TokenChain);
+
+      // P971 = Save drive object parameters = 1 = Exe
+      // 
+        Write_P0971(ReadWrite := 1,
+                     ParNo := 971,
+                     Index := 0,
+                     AxisNo := Drive.AxisID,
+                     HW_ID := Drive.AccessPoint,
+                     TokenChain := Drive.TokenChain,
+                     ValueWriteDint := 1,
+                     ValueWriteReal := 1.0
+        );
+
+
+        // P971 = Save drive object parameters = 0 = Done
+        // 
+        Read_P0971(ReadWrite  := 0,
+                    ParNo      := 971,
+                    Index      := 0,
+                    AxisNo     := Drive.AxisID,
+                    HW_ID      := Drive.AccessPoint,
+                    TokenChain := Drive.TokenChain);
+        
+       
+        
 
    END_REGION
 
@@ -857,6 +1126,13 @@ BEGIN
       );
 
       #S120_SinaPos.Q;
+   END_REGION
+
+   REGION "Save actual position for reloading pourpose"
+      IF S120_SinaPos.AxisRef THEN
+          Pers_Data.Persistent_ActualPosition := (S120_SinaPos.ActPosition) / 1000.0;
+      END_IF;
+
    END_REGION
 
    REGION "Run"
@@ -907,7 +1183,7 @@ BEGIN
       COut.Enabled := S120_SinaPos.AxisEnabled;
       COut.InPosition := Sts.InTargetPosition;
       COut.MinusCheckNext := (Ctrl.Minus_Vel OR (Ctrl.MoveToPos AND (Sts.MissingToTarget < 0.0)));
-      COut.PlusCheckNext := (Ctrl.Plus_Vel OR (Ctrl.MoveToPos AND (Sts.MissingToTarget > 0.0)));
+      COut.PlusCheckNext := (Ctrl.Plus_Vel OR (Ctrl.MoveToPos AND (Sts.MissingToTarget = 0.0)));
       COut.MinusRunning := (NOT (Sts.S120.Standstill) AND Sts.S120.IsRunningNegative);
       COut.PlusRunning := (NOT (Sts.S120.Standstill) AND Sts.S120.IsRunningPositive);
       COut.ActualPosition := Sts.ActualPosition;
@@ -944,7 +1220,7 @@ BEGIN
 
    REGION "No pending commands"
       #TON_NoPendingCmd(
-         IN := (((NOT (Sys.FirstPLCCycle) AND NOT (Ctrl.Minus_Vel)) AND NOT (Ctrl.Plus_Vel)) AND NOT (Ctrl.MoveToPos)),
+         IN := ((((NOT (Sys.FirstPLCCycle) AND NOT (Ctrl.Preset)) AND NOT (Ctrl.Minus_Vel)) AND NOT (Ctrl.Plus_Vel)) AND NOT (Ctrl.MoveToPos)),
          PT := t#1s
       );
 

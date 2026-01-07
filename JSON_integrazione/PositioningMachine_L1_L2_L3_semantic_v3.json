@@ -44,25 +44,518 @@
     }
   },
   "L1_PositioningAxis": {
-    "description": "Blocco L1 per controllo assi posizionamento (TO_PositioningAxis wrapper)",
+    "description": "Device driver L1 per TO_PositioningAxis - dual mode velocity + positioning",
+    "source_file": "PositioningAxis.scl (765 lines)",
+    "version": "2.0.1 (TIA V19 - 03/01/2024)",
+    "physical_model": "Motore brushless con drive Sinamics, encoder integrato, movimento bidirezionale con posizionamento assoluto",
+    "family": "Motion",
     "dual_mode": {
-      "velocity_mode": "MovePlus/Mo veMinus - controllo velocità open loop",
-      "positioning_mode": "MoveAbsolute - controllo posizione closed loop"
+      "velocity_mode": "MC_MOVEVELOCITY - movimento continuo +/- con velocità controllata",
+      "positioning_mode": "MC_MOVEABSOLUTE - posizionamento assoluto con traiettoria"
     },
-    "MC_blocks_used": [
-      "MC_POWER",
-      "MC_RESET",
-      "MC_HOME",
-      "MC_HALT",
-      "MC_STOP",
-      "MC_MOVEVELOCITY",
-      "MC_MOVEABSOLUTE"
-    ],
-    "key_features": {
-      "Power_Management": "Simile a SpeedAxis con Infeed_ReqON",
-      "Homing": "MC_HOME per referenziazione asse",
-      "Position_Limits": "Software limits da TO + Dynamic limits da CIn",
-      "Modulo_Axis": "Supporto assi modulari (es. asse rotativo 0-360°)"
+    "technology_object": {
+      "type": "TO_PositioningAxis",
+      "description": "Technology Object Siemens TIA Portal - struttura completa definita da sistema",
+      "key_fields": {
+        "ActualPosition": "Posizione attuale encoder (unità ingegneristiche TO)",
+        "ActualVelocity": "Velocità attuale",
+        "StatusWord": "32-bit stato TO (Enable, Done, Error, HomingDone, etc.)",
+        "ErrorWord": "32-bit fault word",
+        "WarningWord": "32-bit warning word",
+        "ErrorDetail.Number": "Numero errore dettagliato",
+        "ErrorDetail.Reaction": "Tipo reazione (0=warning, >0=fault)",
+        "PositionLimits_SW.MinPosition": "Limite SW minimo configurato",
+        "PositionLimits_SW.MaxPosition": "Limite SW massimo",
+        "StandstillSignal.VelocityThreshold": "Soglia velocità per considerare fermo",
+        "PositioningMonitoring.Window": "Finestra tolleranza posizione",
+        "Simulation.Mode": "0=reale, 1=simulato",
+        "VirtualAxis.Mode": "Modalità asse virtuale"
+      }
+    },
+    "MC_Blocks_Used": {
+      "MC_POWER": {
+        "purpose": "Abilitazione potenza asse",
+        "inputs": {
+          "Enable": "PowerOn - con delay OFF (PowerOffDelay)",
+          "StartMode": "Config.PowerStartMode",
+          "StopMode": "Config.PowerStopMode"
+        },
+        "outputs": {
+          "Status": "Asse abilitato e pronto"
+        },
+        "code_line": "Line 488-493"
+      },
+      "MC_HOME": {
+        "purpose": "Referenziazione asse (homing)",
+        "inputs": {
+          "Execute": "Ctrl.Home - con condizioni HomingPermitted",
+          "Position": "AxisCtrl.HomePosition - posizione da settare dopo homing",
+          "Mode": "AxisCtrl.HomeMode (0=direct set, 3/5=active/passive search)"
+        },
+        "modes": {
+          "0": "Direct Home - setta posizione direttamente senza movimento",
+          "3": "Active Homing - movimento attivo verso finecorsa riferimento",
+          "5": "Passive Homing - referenziazione passiva"
+        },
+        "note": "Mode 3 e 5 richiedono PowerOn=TRUE, Mode 0 no",
+        "code_line": "Line 546-549"
+      },
+      "MC_MOVEVELOCITY": {
+        "purpose": "Movimento continuo a velocità (jog)",
+        "inputs": {
+          "Execute": "(MovePlus OR MoveMinus) AND NOT VelocityChanged",
+          "Velocity": "AxisCtrl.Velocity",
+          "Acceleration": "AxisCtrl.Acceleration",
+          "Deceleration": "AxisCtrl.Deceleration",
+          "Jerk": "AxisCtrl.Jerk",
+          "PositionControlled": "AxisCtrl.VelocityPositionControlled",
+          "Direction": "1=Plus, 2=Minus"
+        },
+        "velocity_change_handling": {
+          "trigger": "ABS(Velocity - OldVelocity) > VelocityThreshold",
+          "action": "Execute=FALSE per un ciclo, poi riattiva con nuova velocità",
+          "purpose": "Smooth velocity change senza stop"
+        },
+        "code_line": "Line 606-614"
+      },
+      "MC_MOVEABSOLUTE": {
+        "purpose": "Posizionamento assoluto",
+        "inputs": {
+          "Execute": "MoveAbs AND NOT (TargetChanged OR VelocityChanged)",
+          "Position": "AxisCtrl.MoveAbsTarget",
+          "Velocity": "AxisCtrl.Velocity",
+          "Acceleration": "AxisCtrl.Acceleration",
+          "Deceleration": "AxisCtrl.Deceleration",
+          "Jerk": "AxisCtrl.Jerk",
+          "Direction": "AxisCtrl.MoveAbsDirection (0=shortest, 1=positive, 2=negative)"
+        },
+        "target_change_handling": {
+          "trigger": "ABS(Target - OldTarget) > PositioningWindow",
+          "action": "Execute=FALSE per un ciclo, poi riattiva con nuovo target",
+          "purpose": "Permette cambio target on-the-fly"
+        },
+        "requirements": "Homed=TRUE AND NOT HomingCommand",
+        "code_line": "Line 649-656"
+      },
+      "MC_HALT": {
+        "purpose": "Arresto controllato con decelerazione",
+        "trigger": "Nessun comando attivo AND asse in movimento AND NOT Done",
+        "inputs": {
+          "Deceleration": "AxisCtrl.Deceleration",
+          "Jerk": "AxisCtrl.Jerk",
+          "AbortAcceleration": "TRUE - interrompe accelerazione"
+        },
+        "timeout": "10s - se HALT non completa, fallback a MC_STOP",
+        "fallback": "Se HALT.Error OR Timeout → MC_STOP Mode=2",
+        "code_line": "Line 681-688"
+      },
+      "MC_STOP": {
+        "purpose": "Arresto emergenza (fallback se HALT fallisce)",
+        "trigger": "HALT.Error OR HaltTimeout=10s",
+        "inputs": {
+          "Mode": "2 - Emergency stop",
+          "Deceleration": "AxisCtrl.Deceleration",
+          "Jerk": "AxisCtrl.Jerk"
+        },
+        "note": "Usato solo come fallback, non comando normale",
+        "code_line": "Line 707-712"
+      },
+      "MC_RESET": {
+        "purpose": "Reset errori TO e MC blocks",
+        "inputs": {
+          "Execute": "AxisCtrl.Rst OR (RstHW AND RestartConditions)",
+          "Restart": "TRUE se RstHW - restart completo TO"
+        },
+        "restart_mode": {
+          "when": "RstHW=TRUE AND RestartConditions=TRUE",
+          "action": "Restart completo Technology Object",
+          "purpose": "Recupero errori gravi TO o cambio configurazione"
+        },
+        "code_line": "Line 431-437"
+      }
+    },
+    "AxisCtrl": {
+      "description": "Comandi da L2 verso L1 PositioningAxis",
+      "SafeStop": {
+        "type": "Bool",
+        "meaning": "Blocco di sicurezza - impedisce movimenti",
+        "source": "DSI.SafeStop",
+        "impact": "PowerPermit=FALSE, HomingPermitted limitato"
+      },
+      "Rst": {
+        "type": "Bool",
+        "meaning": "Reset allarmi TO e MC",
+        "source": "AreaInterface.RstAlarms"
+      },
+      "RstHW": {
+        "type": "Bool",
+        "meaning": "Reset hardware con restart TO completo",
+        "condition": "Eseguito solo se RestartConditions=TRUE",
+        "use_case": "Errori gravi TO, cambio configurazione online"
+      },
+      "Power": {
+        "type": "Bool",
+        "meaning": "Richiesta abilitazione potenza",
+        "condition": "Eseguito se PowerPermit=TRUE"
+      },
+      "Homing": {
+        "type": "Bool",
+        "meaning": "Comando homing",
+        "condition": "Eseguito se HomingPermitted=TRUE"
+      },
+      "HomeMode": {
+        "type": "USInt",
+        "values": {
+          "0": "Direct set position (no power needed)",
+          "3": "Active homing (power needed)",
+          "5": "Passive homing (power needed)"
+        },
+        "simulation_override": "Forzato a 0 se Simulate.Active=TRUE"
+      },
+      "HomePosition": {
+        "type": "LReal",
+        "meaning": "Posizione da settare dopo homing completato"
+      },
+      "MovePlus": {
+        "type": "Bool",
+        "meaning": "Movimento velocità direzione positiva",
+        "condition": "MoveVelPlusPermitted AND AxisEnabled"
+      },
+      "MoveMinus": {
+        "type": "Bool",
+        "meaning": "Movimento velocità direzione negativa",
+        "condition": "MoveVelMinusPermitted AND AxisEnabled"
+      },
+      "MoveAbsolute": {
+        "type": "Bool",
+        "meaning": "Comando posizionamento assoluto",
+        "condition": "MoveAbsPermitted AND AxisEnabled AND Homed"
+      },
+      "MoveAbsTarget": {
+        "type": "LReal",
+        "meaning": "Posizione target in unità ingegneristiche TO"
+      },
+      "MoveAbsDirection": {
+        "type": "Int",
+        "values": {
+          "0": "Shortest path (per assi modulari)",
+          "1": "Positive direction",
+          "2": "Negative direction"
+        }
+      },
+      "Velocity": {
+        "type": "LReal",
+        "meaning": "Velocità in unità ingegneristiche TO"
+      },
+      "Acceleration": {
+        "type": "LReal",
+        "meaning": "Accelerazione in unità TO"
+      },
+      "Deceleration": {
+        "type": "LReal",
+        "meaning": "Decelerazione in unità TO"
+      },
+      "Jerk": {
+        "type": "LReal",
+        "meaning": "Jerk (derivata accelerazione), 0=rampa lineare"
+      },
+      "VelocityPositionControlled": {
+        "type": "Bool",
+        "meaning": "Velocity mode con anello posizione attivo (più preciso)",
+        "use_case": "Riduce errore seguimento in velocity mode"
+      },
+      "ExtControl": {
+        "type": "Bool",
+        "meaning": "Controllo esterno attivo (gearing, camming)",
+        "impact": "Mantiene power ma non gestito da questo FB"
+      }
+    },
+    "AxisSts": {
+      "description": "Stati da L1 verso L2",
+      "AlarmPresence": {
+        "type": "Bool",
+        "formula": "Alarm.TOAxis OR Alarm.MCFunction OR Alarm.Drive"
+      },
+      "WarningPresence": {
+        "type": "Bool",
+        "formula": "Warning.TOAxis OR Warning.Drive"
+      },
+      "Enabled": {
+        "type": "Bool",
+        "formula": "MC_POWER.Status AND StatusWord.Enable"
+      },
+      "Done": {
+        "type": "Bool",
+        "meaning": "Ultimo comando completato",
+        "source": "StatusWord.Done"
+      },
+      "Standstill": {
+        "type": "Bool",
+        "source": "StatusWord.Standstill"
+      },
+      "RstHWDone": {
+        "type": "Bool",
+        "formula": "AxisCtrl.RstHW AND MC_RESET.Done"
+      },
+      "Homed": {
+        "type": "Bool",
+        "source": "StatusWord.HomingDone"
+      },
+      "HomingPermitted": {
+        "type": "Bool",
+        "formula": "NOT PositioningCommand AND (NOT VelocityCommand OR HomeMode=0) AND NOT Synchronous AND NOT SafeStop (se power needed) AND NOT Alarm.TOAxis AND NOT ErrorMC_Home"
+      },
+      "HomingDone": {
+        "type": "Bool",
+        "source": "MC_HOME.Done"
+      },
+      "AtProgrammedSpeed": {
+        "type": "Bool",
+        "source": "StatusWord.CostantVelocity"
+      },
+      "MoveMinusPermitted": {
+        "type": "Bool",
+        "formula": "NOT HomingCommand AND NOT MovePlus AND NOT MoveAbs AND NOT Alarm.LimitMinus AND GeneralConditions"
+      },
+      "MovePlusPermitted": {
+        "type": "Bool",
+        "formula": "NOT HomingCommand AND NOT MoveMinus AND NOT MoveAbs AND NOT Alarm.LimitPlus AND GeneralConditions"
+      },
+      "MoveAbsPermitted": {
+        "type": "Bool",
+        "formula": "NOT HomingCommand AND HomingDone AND GeneralConditions"
+      },
+      "ActualPosition": {
+        "type": "LReal",
+        "source": "Axis.ActualPosition"
+      },
+      "ActualTarget": {
+        "type": "LReal",
+        "meaning": "Target position attuale (da MoveAbsTarget)"
+      },
+      "ActualSpeed": {
+        "type": "LReal",
+        "source": "Axis.ActualVelocity"
+      },
+      "Positioned": {
+        "type": "Bool",
+        "formula": "MoveAbsolute AND MC_MOVEABSOLUTE.Done"
+      },
+      "SwLimitMinus": {
+        "type": "LReal",
+        "source": "Axis.PositionLimits_SW.MinPosition"
+      },
+      "SwLimitPlus": {
+        "type": "LReal",
+        "source": "Axis.PositionLimits_SW.MaxPosition"
+      }
+    },
+    "Alarms": {
+      "TOAxis": {
+        "trigger": "StatusWord.Error AND ErrorDetail.Reaction > 0",
+        "diagnostic": "Diag.TO_Message := ErrorDetail.Number",
+        "typical_errors": "Errore encoder, limite SW/HW, errore seguimento, parametri TO",
+        "code_line": "Line 193-199"
+      },
+      "MCFunction": {
+        "trigger": "Error da MC_RESET, MC_POWER, MC_HOME, MC_MOVEVELOCITY, MC_MOVEABSOLUTE, MC_HALT, MC_STOP",
+        "diagnostic": "Diag.MC_Message := ErrorId del blocco in errore",
+        "note": "Ogni MC block ha flag Local.ErrorMC_xxx separato per diagnostic",
+        "code_line": "Line 228-267"
+      },
+      "Drive": {
+        "trigger": "ErrorWord.DriveFault",
+        "diagnostic": "Lettura Sinamics r2131 (fault code) via RW_SINAMICS_Par",
+        "code_line": "Line 204, 316-346"
+      },
+      "LimitMinus": {
+        "trigger": "StatusWord.SW_NegativeLimitSwitch OR StatusWord.HW_NegativeLimitSwitch",
+        "diagnostic": "Separate flags per SW vs HW limit",
+        "code_line": "Line 209-223"
+      },
+      "LimitPlus": {
+        "trigger": "StatusWord.SW_PositiveLimitSwitch OR StatusWord.HW_PositiveLimitSwitch",
+        "code_line": "Line 212-223"
+      }
+    },
+    "Warnings": {
+      "TOAxis": {
+        "trigger": "(Error AND Reaction=0) OR WarningWord<>0 OR RestartNeeded OR RestartActive OR SimulationActive",
+        "code_line": "Line 274-278"
+      },
+      "Drive": {
+        "trigger": "WarningWord.DriveWarning",
+        "diagnostic": "Lettura Sinamics r2132 (warning code) via RW_SINAMICS_Par",
+        "note": "Overwrite da PEEK_BOOL telegramma per lettura diretta",
+        "code_line": "Line 150-155, 324-346"
+      }
+    },
+    "GeneralConditions": {
+      "description": "Condizioni generali per eseguire operazioni MC",
+      "formula": "NOT SafeStop AND NOT Alarm.TOAxis AND NOT Alarm.MCFunction",
+      "code_line": "Line 373-375",
+      "used_by": [
+        "MoveVelMinusPermitted",
+        "MoveVelPlusPermitted",
+        "MoveAbsPermitted"
+      ]
+    },
+    "Power_Flow": {
+      "description": "Flusso abilitazione potenza",
+      "PowerPermit": {
+        "formula": "NOT SafeStop AND Drive.Infeed_ON AND NOT Alarm.TOAxis AND NOT ErrorMC_Power",
+        "code_line": "Line 446-449"
+      },
+      "PowerEnable": {
+        "formula": "(Power OR MovePlus OR MoveMinus OR (Homing AND HomePowerOn) OR MoveAbsolute OR ExtControl OR MC_Busy) AND PowerPermit",
+        "code_line": "Line 459-469"
+      },
+      "PowerOn": {
+        "logic": "PowerEnable → PowerOn=TRUE con delay OFF (PowerOffDelay)",
+        "delay_off_condition": "NOT PowerEnable AND PowerOn → TON(PowerOffDelay)",
+        "force_off": "NOT PowerPermit AND Standstill → immediate PowerOn=FALSE",
+        "code_line": "Line 475-482"
+      },
+      "Infeed_REQ_ON": {
+        "formula": "(Power OR MovePlus OR MoveMinus OR (Homing AND HomePowerOn) OR MoveAbsolute OR ExtControl OR PowerOn) TOF 300ms",
+        "meaning": "Richiesta DC bus con delay OFF 300ms",
+        "code_line": "Line 498-508"
+      }
+    },
+    "Restart_Management": {
+      "description": "Gestione restart Technology Object",
+      "RestartConditions": {
+        "formula": "NOT (any command) AND Standstill AND NOT Rst AND NOT RestartActive",
+        "meaning": "Asse fermo, nessun comando attivo, restart completato",
+        "purpose": "Permette restart sicuro solo quando asse idle",
+        "code_line": "Line 414-426"
+      },
+      "RestartActive": {
+        "detection": "StatusWord.RestartActive TOF 1s",
+        "meaning": "Restart in corso, wait 1s dopo fine per stabilizzazione",
+        "code_line": "Line 408-409"
+      },
+      "RestartNeeded": {
+        "trigger": "StatusWord.OnlineStartValuesChanged",
+        "meaning": "Parametri TO cambiati online, serve restart per applicare",
+        "diagnostic": "Diag.TO_RestartNeeded := TRUE",
+        "code_line": "Line 306"
+      },
+      "restart_command": {
+        "trigger": "AxisCtrl.RstHW OR Diag.TO_RestartCmd",
+        "condition": "AND RestartConditions",
+        "action": "MC_RESET(Restart:=TRUE)",
+        "code_line": "Line 432-437"
+      }
+    },
+    "Simulation_Logic": {
+      "description": "Gestione modalità simulazione TO",
+      "Simulate.Active": {
+        "formula": "StatusWord.AxisSimulation AND VirtualAxis.Mode=0",
+        "meaning": "Simulazione realmente attiva nel TO",
+        "code_line": "Line 380"
+      },
+      "sync_logic": {
+        "trigger": "Config.Simulation <> Simulate.Active AND NOT RestartActive",
+        "action": "WRIT_DBL(Simulate.Mode) → TO.Simulation.Mode, poi Diag.TO_RestartCmd := TRUE",
+        "purpose": "Sincronizza flag Config con stato TO, forza restart per applicare",
+        "code_line": "Line 384-398"
+      },
+      "HomeMode_override": {
+        "condition": "Simulate.Active",
+        "action": "MC_HOME.Mode := 0 (direct set)",
+        "purpose": "In simulazione solo direct homing senza movimento",
+        "code_line": "Line 531-535"
+      }
+    },
+    "Halt_Stop_Logic": {
+      "description": "Logica arresto controllato con fallback",
+      "Halt_trigger": {
+        "formula": "NOT (commands active) AND NOT Done AND NOT HALT.Error AND NOT STOP.Busy AND AxisEnabled",
+        "meaning": "Nessun comando ma asse ancora in movimento → HALT",
+        "code_line": "Line 667-676"
+      },
+      "Halt_timeout": {
+        "threshold": "10s",
+        "detection": "TON_HaltTimeOut(Ctrl.Halt AND NOT Standstill, PT:=10s)",
+        "code_line": "Line 687"
+      },
+      "Stop_trigger": {
+        "formula": "(HALT.Error OR HaltTimeOut.Q) AND NOT Standstill AND AxisEnabled",
+        "meaning": "HALT fallito → emergency STOP mode 2",
+        "code_line": "Line 698-702"
+      },
+      "fallback_chain": [
+        "1. Comandi normali interrotti → MC_HALT (deceleration controllata)",
+        "2. Se HALT non completa in 10s OR HALT.Error → MC_STOP Mode=2 (emergency)",
+        "3. MC_STOP come safety net finale"
+      ]
+    },
+    "Diagnostic_System": {
+      "description": "Sistema diagnostico completo multi-livello",
+      "DeviceType": "12 (PositioningAxis)",
+      "MessageType": {
+        "0": "No error/warning",
+        "1": "Warning attivo",
+        "2": "Alarm attivo"
+      },
+      "TO_Diagnostic": {
+        "TO_Message": "ErrorDetail.Number se Error",
+        "TO_ErrorPresence": "Alarm.TOAxis",
+        "TO_RestartNeeded": "StatusWord.OnlineStartValuesChanged",
+        "TO_RestartEnable": "RestartConditions",
+        "TO_RestartActive": "tofRestartActive.Q",
+        "TO_SimulationActive": "Simulate.Active"
+      },
+      "MC_Diagnostic": {
+        "MC_Message": "ErrorId del blocco MC in errore",
+        "MC_ErrorPresence": "Alarm.MCFunction",
+        "individual_flags": [
+          "ErrorMC_Reset",
+          "ErrorMC_Power",
+          "ErrorMC_Home",
+          "ErrorMC_MoveVel",
+          "ErrorMC_MoveAbs",
+          "ErrorMC_Halt",
+          "ErrorMC_Stop"
+        ]
+      },
+      "Drive_Diagnostic": {
+        "Drive_Message": "r2131 (fault) o r2132 (warning) da Sinamics",
+        "Drive_ErrorPresence": "Alarm.Drive",
+        "access": "Via RW_SINAMICS_Par con Drive.AccessPoint e TokenChain"
+      },
+      "Limit_Diagnostic": {
+        "flags": [
+          "ErrorReached_SwLimitMinus",
+          "ErrorReached_SwLimitPlus",
+          "ErrorReached_HwLimitMinus",
+          "ErrorReached_HwLimitPlus"
+        ],
+        "note": "Latch su trigger, solo reset esplicito"
+      }
+    },
+    "Target_Change_Handling": {
+      "description": "Gestione cambio parametri on-the-fly",
+      "velocity_change": {
+        "detection": "ABS(Velocity - OldVelocity) > VelocityThreshold",
+        "action": "MC_MOVEVELOCITY.Execute := FALSE per 1 ciclo, poi riattiva",
+        "purpose": "Smooth velocity change senza fermare asse",
+        "code_line": "Line 557-560, 607"
+      },
+      "position_target_change": {
+        "detection": "ABS(Target - OldTarget) > PositioningWindow",
+        "action": "MC_MOVEABSOLUTE.Execute := FALSE per 1 ciclo, poi riattiva",
+        "purpose": "Permette cambio target durante movimento",
+        "code_line": "Line 622-625, 650"
+      },
+      "position_velocity_change": {
+        "detection": "ABS(Velocity - OldVelocity) > VelocityThreshold durante MOVEABSOLUTE",
+        "action": "Execute := FALSE per 1 ciclo",
+        "purpose": "Cambio velocità durante posizionamento",
+        "code_line": "Line 629-632, 650"
+      },
+      "pattern": "One-cycle FALSE pulse su Execute quando parametro cambia oltre threshold"
     }
   },
   "L2_PositioningMachine": {

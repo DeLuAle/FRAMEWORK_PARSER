@@ -1,0 +1,250 @@
+{
+    "meta": {
+        "description": "Integration patterns for HMI and Safety Buttons (L1/L2) -> L3 Machines. Generalized for Code Generation.",
+        "version": "2.0",
+        "source_docs": [
+            "HMI_BUTTONS_PATTERN.md",
+            "Decoiler1_CALL.scl"
+        ]
+    },
+    "Control_Philosophy": {
+        "Concept": "Dual Control System (Parallel)",
+        "Modes": {
+            "HMI_Control": {
+                "Condition": "Operator outside barriers + Barriers Closed",
+                "Speed": "Normal / Fast",
+                "Logic": "Selection via HMI Page -> CodeReq -> Decoder"
+            },
+            "Safe_Control": {
+                "Condition": "Operator inside zone + Maintenance Key + Bimanual Console",
+                "Speed": "SLS (Safety Limited Speed e.g. 6 m/min)",
+                "Logic": "Selection via Physical Buttons -> Bimanual Consent (TwoHandsPushed)"
+            }
+        }
+    },
+    "Project_Structure": {
+        "Directory_Layout": {
+            "Root_Folder": "[Software Unit Root]",
+            "HMI_Subfolder": "Program blocks/04_HMI",
+            "Safe_Subfolder": "Program blocks/05_BUTTON_SAFE"
+        },
+        "Naming_Convention": {
+            "HMI_Block": "[AreaName]_HMI_FB (e.g. Area01_HMI_FB)",
+            "HMI_Call_Block": "[AreaName]_HMI_CALL (e.g. Area01_HMI_CALL)",
+            "Safe_Call_FC": "[AreaName]_ButtonsSafe_CALL (e.g. Area01_ButtonsSafe_CALL)",
+            "Safe_Panel_FB": "ButtonsSafe_[PanelID] (e.g. ButtonsSafe_LB101)"
+        }
+    },
+    "Scaffolding_Rules": {
+        "HMI_System": {
+            "Step_1": "Create directory '04_HMI' in the Area Program Blocks.",
+            "Step_2": "Create '[AreaName]_HMI_FB' (Function Block).",
+            "Step_3": "Declare 'ButtonsHMIDecoder' instances inside HMI_FB for each logical button group (e.g. #MB1_Decoder, #MB2_Decoder).",
+            "Step_4": "Map HMI Tags (CodeReq, Button+/-) to Decoder Inputs."
+        },
+        "Safe_System": {
+            "Step_1": "Create directory '05_BUTTON_SAFE' in the Area Program Blocks.",
+            "Step_2": "Create '[AreaName]_ButtonsSafe_CALL' (Function).",
+            "Step_3": "Create individual FBs 'ButtonsSafe_[PanelID]' for each physical Bimanual Console.",
+            "Step_4": "In the CALL FC, call all Panel FBs sequentially.",
+            "Step_5": "Implement the 'Reset_Others' chain logic in the CALL FC to ensure mutual exclusion."
+        }
+    },
+    "Preconditions": {
+        "Required_Inputs": {
+            "L3_Machines": "List of L3 machines in the area, including manual commands per machine.",
+            "LB_Panels": "List of LB panels and the physical buttons on each panel.",
+            "HMI_Commands": "List of HMI manual commands available in the HMI project.",
+            "Area_Context": "Area name, roles (InLine/OutLine), and any enable/disable rules."
+        },
+        "Question_Gate": {
+            "If_Missing": [
+                "Stop and ask for the missing inputs before generating code or networks."
+            ],
+            "Minimum_Questions": [
+                "Which L3 machines are present in the area, and what manual commands does each machine expose?",
+                "Which LB panels exist, and which physical buttons are on each panel?",
+                "Which HMI manual commands exist and how are they named or coded?",
+                "Are there role-based enable rules (e.g. InLine vs OutLine) that affect which commands are active?"
+            ]
+        },
+        "Completion_Criteria": [
+            "Each L3 machine has a complete list of manual commands.",
+            "Each LB panel has a complete list of physical buttons.",
+            "A unified command list exists with source (HMI/LB) and target (L3 machine).",
+            "Any enable/disable rules are explicit."
+        ],
+        "Input_Schema_Example": {
+            "L3_Machines": [
+                {
+                    "Machine_ID": "L3_Decoiler_InLine",
+                    "Manual_Commands": [
+                        "Coilcar_Up",
+                        "Coilcar_Down",
+                        "Expand",
+                        "Retract"
+                    ]
+                }
+            ],
+            "LB_Panels": [
+                {
+                    "Panel_ID": "LB101",
+                    "Buttons": [
+                        "Coilcar_Up",
+                        "Coilcar_Down"
+                    ]
+                }
+            ],
+            "HMI_Commands": [
+                "Coilcar_Up",
+                "Coilcar_Down",
+                "Expand",
+                "Retract"
+            ]
+        }
+    },
+    "Network_Insertion_Steps": {
+        "Derived_From_SCL": [
+            "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/04_HMI/A01_HMI_FB.scl",
+            "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/04_HMI/A01_HMI_CALL.scl",
+            "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/05_BUTTON_SAFE/A01_ButtonsSafe_CALL.scl",
+            "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/05_BUTTON_SAFE/ButtonsSafe_LB101.scl",
+            "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/04_HMI/A02_HMI_FB.scl",
+            "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/04_HMI/A02_HMI_CALL.scl",
+            "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/05_BUTTON_SAFE/A02_ButtonSafe_CALL.scl",
+            "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/05_BUTTON_SAFE/ButtonsSafe_LB211.scl"
+        ],
+        "HMI_FB_Networks": {
+            "Step_1_Reset_Op": "First region resets decoder status: OpEnabled/OpRunning/OpDone := FALSE.",
+            "Step_2_Command_Regions": [
+                "For each command code, create a REGION 'MBx Code <code> - <description>'.",
+                "Map HMI button tags for that command: Stop/Start or Rest/Work or Bwd/Fwd (minus/plus).",
+                "Compute OpEnabled using machine CheckNext or eligibility signals relevant to the command.",
+                "Compute OpRunning from machine Standstill or Running signals.",
+                "Compute OpDone from target position/limit/condition or a fixed FALSE if not used.",
+                "If a command targets multiple machines (e.g., Decoiler1/Decoiler2), OR the enable/running/done conditions by role (InLine/OutLine)."
+            ],
+            "Step_3_Array_Commands": [
+                "If a command family is indexed (e.g., multiple pushers), use a FOR loop and derive the code by base + index.",
+                "Inside the loop, clear default outputs for all items, then set only the matched index.",
+                "Reuse the same pattern for OpEnabled/OpRunning/OpDone with indexed machine references."
+            ],
+            "Step_4_Decoder_Call": "Last region calls ButtonsHMIDecoder with ButtonMinus, ButtonPlus, CodeReq and Lamp. Output Code must bind to HMI.ManCode_CMD.",
+            "Rule_Code_Mapping": "Every REGION must correspond to a unique Code constant declared in VAR CONSTANT, and the decoder compares Code to that constant."
+        },
+        "HMI_CALL_Networks": {
+            "Step_1_Single_Call": "Call the area HMI FB instance in one REGION, with en := TRUE, then read .Q. (No additional logic)."
+        },
+        "ButtonsSafe_FB_Networks": {
+            "Step_1_Interlocks_Init": [
+                "On AreaInterface.ManOneShot, reset SettingWriteDone := FALSE.",
+                "If SettingWriteDone is FALSE, set all PbPanel.Enables[i,j] := FALSE, then set TRUE only for compatible operations."
+            ],
+            "Step_2_Button_Mapping": "Map physical inputs to PbPanel.Buttons[OpIndex].",
+            "Step_3_Op_Enabled_Running_Done": [
+                "OpEnabled uses CheckNext or role-based eligibility signals.",
+                "OpRunning uses motion or valve in-progress signals.",
+                "OpDone uses target position/limit or completion status."
+            ],
+            "Step_4_PbPanel_Call": "Call Buttons2Hands with Activation := (NOT Reset_OthersPBs_Activation_IN) AND F_DB.<PanelID>.Enable, Items := ITEMS, TwoHandsPushed := F_DB.<PanelID>.SafeMotion.",
+            "Step_5_Output_Mapping": "Map PbPanel.Operations[] to human-readable PB struct outputs.",
+            "Step_6_Lamps": "Map PbPanel.Lamps[] to panel lamps.",
+            "Step_7_Reset_Others": "Set Reset_OthersPBs_Activation_OUT := TRUE when any button or operation is active."
+        },
+        "ButtonsSafe_CALL_Networks": {
+            "Step_1_Sequence": "One REGION per LB panel, call each ButtonsSafe_<PanelID> FB in a fixed order.",
+            "Step_2_Reset_Others_Chain": [
+                "Reset_OthersPBs_Activation_IN is the negated OR of all other panels' Reset_OthersPBs_Activation_OUT.",
+                "Include AreaInterface.Man gating where used in the SCL (AreaXX.AreaInterface.Man).",
+                "If an inter-area lock exists, include Areas_ITF.<OtherArea>.PB.<InterlockSignal> in the chain."
+            ],
+            "Step_3_Cross_Area_Interlock": "If a panel serves another area feed, map Reset_OthersPBs_Activation_OUT to Areas_ITF.<Area>.PB.<InterlockSignal> as shown in A01/A02 patterns."
+        }
+    },
+    "Block_Anatomy": {
+        "ButtonsHMIDecoder": {
+            "Internal_Logic": {
+                "Stability_Check": "Uses 'tonStable' (Timer) to filter 'CodeReq' glitches. Only processes commands when Code is stable.",
+                "Edge_Logic": "Operation Output = (PosEdge(Button) OR Latch) AND Button AND Stable. Ensures command is only valid while pressed and stable.",
+                "Lamp_Logic": "Calls 'PB_Lamp' to manage standard blinking/status (Enabled/Running/Done)."
+            }
+        },
+        "ButtonsSafe_LBxxx": {
+            "Type": "Project Specific FB",
+            "Structure": {
+                "Constants": "Define INT constants for every operation (e.g. 'COILCAR_UP' : Int := 1).",
+                "Inputs": "Reset_OthersPBs_Activation_IN : Bool",
+                "Outputs": "Reset_OthersPBs_Activation_OUT : Bool",
+                "Static_Vars": "PbPanel : Buttons2Hands (The core logic UDT)",
+                "Interlock_Matrix": "In 'Region Interlocks', set 'PbPanel.Enables[i,j] := TRUE' for compatible concurrent operations.",
+                "Mapping": {
+                    "Input": "Map physical Tags -> PbPanel.Buttons[k]",
+                    "State": "Map Machine.COut.CheckNext/Running -> PbPanel.OpEnabled[k]/OpRunning[k]",
+                    "Output": "Map PbPanel.Operations[k] -> Human Readable Struct (PB.Coilcar_Up)"
+                }
+            }
+        }
+    },
+    "Code_Assignment_Strategy": {
+        "Rule": "Codes are application-specific integers defined in the HMI generation phase. They MUST be unique and grouped by machine/component without gaps within the group.",
+        "Example_Assignment": {
+            "Hydraulic_Units": "1001-1009",
+            "Decoiler_InLine": "1011-1017",
+            "Decoiler_OutLine": "1021-1027"
+        },
+        "Folder_Based_Range": {
+            "Rule": "When L3 FBs are grouped in a folder with numeric prefix (e.g. '24_Peeler'), use that prefix as the hundreds for manual command codes (e.g. 2401, 2402). Keep codes contiguous within the folder group.",
+            "Collision_Check": "Before assigning, check for existing codes in the same hundred range and shift to the next available slot if needed.",
+            "Override_Map": {
+                "Rule": "If a folder prefix is not used in practice, define an explicit base range here.",
+                "Examples": {
+                    "04_MeasWheelFakCalc": "2031-2032",
+                    "20_Rollformer": "2021-2024"
+                }
+            }
+        }
+    },
+    "Example_Area100_Peeler": {
+        "Context": "Demo for Area 100, MB100. L3 FB folder: '24_Peeler' -> codes 2401..",
+        "HMI_Block": "A100_HMI_FB",
+        "MB_Group": "MB100",
+        "Command_Codes": {
+            "PEELER_LIFT": 2401,
+            "PEELER_EXTENSION": 2402
+        },
+        "HMI_Regions": [
+            {
+                "Region": "MB100 Code 2401 - Peeler lift up / down",
+                "HMI_Path": "A100_HMI.MB100.Button.CoilHandling.Peeler.Lift",
+                "Signals": {
+                    "OpMinus": "Rest (Down)",
+                    "OpPlus": "Work (Up)",
+                    "OpEnabled": "Peeler.Lift.COut.Rest_CheckNext OR Peeler.Lift.COut.Work_CheckNext",
+                    "OpRunning": "NOT Peeler.Lift.Sts.Standstill",
+                    "OpDone": "Peeler.Lift.V.IsAtRest OR Peeler.Lift.V.IsAtWork"
+                }
+            },
+            {
+                "Region": "MB100 Code 2402 - Peeler extension bwd / fwd",
+                "HMI_Path": "A100_HMI.MB100.Button.CoilHandling.Peeler.Extension",
+                "Signals": {
+                    "OpMinus": "Rest (Bwd)",
+                    "OpPlus": "Work (Fwd)",
+                    "OpEnabled": "Peeler.Extension.COut.Rest_CheckNext OR Peeler.Extension.COut.Work_CheckNext",
+                    "OpRunning": "NOT Peeler.Extension.Sts.Standstill",
+                    "OpDone": "Peeler.Extension.COut.Rest OR Peeler.Extension.COut.Work"
+                }
+            }
+        ],
+        "Integration_Note": "Use ValveMachine_PB_Connector in the Peeler_CALL to map HMI_PB to Peeler.DataIn.<Device>.PB."
+    },
+    "Integration_Pattern": {
+        "Layer": "Occurs in the Machine '_CALL' block (L5/Integration Layer).",
+        "Connectors": {
+            "Axis": "Ax_PB_Connector",
+            "Valve": "ValveMachine_PB_Connector"
+        },
+        "Function": "Aggregates HMI and Safe commands into a single standard UDT (Ax_PB / ValveMachine_PB).",
+        "Dynamic_Logic": "Connectors are Conditionally Enabled based on machine role (e.g. InLine/OutLine) using the 'Enable' input."
+    }
+}
