@@ -1,0 +1,217 @@
+{
+  "meta": {
+    "description": "Pattern di integrazione per unita idraulica (HU_Pump + HU_Tank) e wrapper di area.",
+    "analysis_scope": "L3 utility / area service (hydraulic unit: pump + tank)",
+    "version": "1.2",
+    "source_files": [
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/HydraulicUnit/HU_Pump.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/HydraulicUnit/HU_Tank.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/HydraulicUnit/HU_Pump_Config.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/HydraulicUnit/HU_Pump_Par.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/HydraulicUnit/HU_Tank_Config.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/HydraulicUnit/HU_Tank_Par.udt"
+    ],
+    "area_call_examples": [
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/18_Main HU/Area01_HU_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/18_Main HU/Area01_HU_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/09_Main HU/Area02_HU_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/09_Main HU/Area02_HU_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/19_Decoilers HU/DecoilersHU_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/19_Decoilers HU/DecoilersHU_CALL.scl"
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "AreaInterface": "AreaInterface completo (EStop, StopInPhase, StopProgrammed, RstAlarms, Man/Aut).",
+      "ZSI": "udt_ZoneSafetyInterface (Door_NormalStop, Door_Opened) se si vuole blocco per apertura porta.",
+      "DSI": "udt_DeviceSafetyInterface per il motore pompa (SafeStop, DevicesInSafeState).",
+      "Pump_Fdbk": "MainPump_FdbkRunning e MainPump_MotorThermalProtection.",
+      "Pump_Sensors": "SensorPumpFilterClogged (verificare NO/NC e inversione).",
+      "Tank_Sensors": "Livelli, temperatura olio, filtro ricircolo, chiller, feedback motori e analogici.",
+      "Config": "HU_Pump_Config + HU_Tank_Config in DB di area (es. A01_Config.Area01_HU).",
+      "Par": "HU_Pump_Par + HU_Tank_Par in DB PERS.",
+      "PressureReq_Sources": "OR di tutte le macchine che richiedono pressione olio (ReqOilPressure e/o CtrlSafe)."
+    },
+    "Question_Gate": {
+      "If_Missing": [
+        "Fermati e fai domande se mancano segnali o configurazioni critiche."
+      ],
+      "Minimum_Questions": [
+        "Quali macchine generano PressureReq (ReqOilPressure e CtrlSafe)?",
+        "SafetyCutOffValveExist e StandbyValveExist sono presenti?",
+        "Sensori e feedback disponibili (livello, filtro, temperatura, chiller)?",
+        "DSI/ZSI da collegare e condizioni di stop richieste?"
+      ]
+    }
+  },
+  "Core_Behavior": {
+    "HU_Pump": {
+      "role": "Comanda la pompa principale olio e le valvole EvAccumulator/EvStandby in base a PressureReq.",
+      "key_logic": [
+        "PumpRunPermitted arriva da HU_Tank.COut e da logiche di sicurezza.",
+        "Stop per porta: usa ZSI.Door_NormalStop quando SafetyCutOffValveExist=FALSE.",
+        "StopInPhase/StopProgrammed sono bypassati se SafetyCutOffValveExist=TRUE.",
+        "Filtro intasato: Alarm.PumpFilterClogged con Par.DelayCheckFilterClogged.",
+        "EvAccumulator ON con motore in marcia; EvStandby con PressureReq e delay.",
+        "COut.PressureRunning confermato con Par.DelayPressureRunning.",
+        "COut.CtrlSafe usa comando attivo e AreaInterface.Cycle, esclusa Simulation."
+      ]
+    },
+    "HU_Tank": {
+      "role": "Gestisce ricircolo, scambio termico, riscaldo e chiller del serbatoio.",
+      "key_logic": [
+        "COut.PumpRunPermitted dipende da temperatura olio e allarmi serbatoio.",
+        "Cooling/Heating con hysteresis e delay da Config e Par.",
+        "Filter watch abilitato sopra TemperatureStartCheckFilters.",
+        "WeeklyClockEnable consente heating anche con EStop se finestra attiva.",
+        "Chiller water e alarm gestiti con delay (tonDelayCheckChiller)."
+      ]
+    },
+    "MachineInterface_Merge": "I wrapper di area fondono Pump + Tank con MachineInterface_2_To_1."
+  },
+  "Parameters_and_Config": {
+    "HU_Pump_Config": {
+      "SafetyCutOffValveExist": "TRUE = stop in phase/programmed bypassati e porta non blocca.",
+      "StandbyValveExist": "TRUE = usa EvStandby oltre a EvAccumulator.",
+      "OilPumpContactotFeedbackTimeOut": "Timeout feedback contattore motore pompa."
+    },
+    "HU_Pump_Par": {
+      "DelayCheckFilterClogged": "Ritardo allarme filtro pompa.",
+      "DelayPumpInactivity": "Spegnimento pompa per assenza PressureReq.",
+      "DelayEvPressureStart/Stop": "Delay comando valvole pressione.",
+      "DelayPressureRunning": "Conferma pressione attiva."
+    },
+    "HU_Tank_Config": {
+      "RecirculationPumpExist": "Abilita gestione pompa ricircolo.",
+      "HeatExchangerFanExist": "Abilita ventilatore scambiatore.",
+      "HeatingUnitExistNum": "Numero unita riscaldo.",
+      "ChillerExist": "Abilita chiller e valvola acqua.",
+      "OilMaxTemperature / WaterMaxTemperature": "Soglie allarme/avviso.",
+      "TemperatureStartCheckFilters": "Soglia per attivare check filtri.",
+      "HeatingHysteresys": "Hysteresis riscaldo.",
+      "DelayHeatingStart/Stop, DelayCollingStart/Stop": "Delay per heating/cooling.",
+      "AnalogLimits": "AnlOilTemp_* e AnlWaterTemp_* limiti analogici."
+    },
+    "HU_Tank_Par": {
+      "DelayCheckFilterClogged": "Ritardo allarme filtro ricircolo.",
+      "DelayRecirculationPumpOff": "Delay spegnimento ricircolo.",
+      "HeatingEnable / CoolingEnable": "Abilitazione termica.",
+      "HeatingTempRunPermit": "Soglia temperatura per PumpRunPermitted.",
+      "HeatingSetpoint / HeatingUnit2Delta / CoolingSetpoint": "Setpoint termici.",
+      "WeeklyClockEnable / WeeklyClockSetup": "Pianificazione riscaldo."
+    }
+  },
+  "Integration_Steps": {
+    "Step_1_Create_Folder": "Crea cartella HU in area (numeri liberi, es. 18_Main HU, 09_Main HU, 20_HU_AreaXX).",
+    "Step_2_Create_Config": "Aggiungi HU_Pump_Config + HU_Tank_Config nel DB Config (Axx_Config.AreaXX_HU).",
+    "Step_3_Create_DB": "Crea <Area>_HU_PERS con Par_Pump e Par_Tank.",
+    "Step_4_Create_FB": "Crea <Area>_HU_FB che istanzia HU_Pump e HU_Tank e unisce MachineInterface.",
+    "Step_5_Map_Pump_DataIn": [
+      "PbStart/PbStop da HMI (MBx.Button.<Area>HU)",
+      "MainPump_FdbkRunning e MainPump_MotorThermalProtection",
+      "SensorPumpFilterClogged (verificare inversione NO/NC)",
+      "DSI.SafeStop e DSI.DevicesInSafeState"
+    ],
+    "Step_6_Map_Pump_CIn": [
+      "PumpRunPermitted := Tank.COut.PumpRunPermitted AND F_DB.<Area>_EstopDelay",
+      "EnableCheckFilter := Tank.COut.EnableCheckFIler",
+      "EnableStopInPhase/EnableStopProgrammed se richiesti",
+      "PressureReq := OR ReqOilPressure + CtrlSafe dalle macchine idrauliche"
+    ],
+    "Step_7_Map_Tank_DataIn": [
+      "SensorLevelOk_Alarm / SensorLevelOk_Warning",
+      "SensorOilMaxTempOk, SensorRecircFilterClogged",
+      "RecircPump_FdbkRunning, HeatExchangeFan_FdbkRunning",
+      "HeatingUnit1/2_FdbkRunning, ChillerWaterFluxOk, ChillerAlarmPresence",
+      "Anl_OilTemperature (e Anl_WaterTemperature se disponibile)"
+    ],
+    "Step_8_Map_Tank_CIn": [
+      "PumpRunning := Pump.COut.PumpRunning"
+    ],
+    "Step_9_Call_FB": "Chiama <Area>_HU_FB nel call di area ed esponi MachineInterface.",
+    "Step_10_Publish_CtrlSafe": "Mappa CtrlSafe/PressureRunning in Areas_ITF.Safety_CtrlSafe (es. HU_A01_Motor, HU_A01_StandbyValve, HU_A01_SafetyValve_*, HU_FinalCut_*)."
+  },
+  "AreaXX_Template": {
+    "Folder": "AreaXX/Program blocks/20_HU_AreaXX",
+    "Wrapper": "AreaXX_HU_FB.scl",
+    "Call": "AreaXX_HU_CALL.scl",
+    "Config": "Axx_Config.AreaXX_HU",
+    "Par_DB": "AreaXX_HU_PERS.db",
+    "DSI": "F_DB.DSI_HU_AreaXX_Pump",
+    "PressureReq_Sources": "OR di ReqOilPressure e CtrlSafe delle macchine idrauliche in AreaXX.",
+    "Notes": [
+      "I numeri cartella sono liberi; mantenere coerenza con naming area.",
+      "Se non esiste MotorThermalProtection, usare FALSE."
+    ]
+  },
+  "Area01_Example": {
+    "Folder": "31_Area01/Program blocks/18_Main HU",
+    "Wrapper": "Area01_HU_FB.scl",
+    "Call": "Area01_HU_CALL.scl",
+    "Config": "A01_Config.Area01_HU",
+    "Par_DB": "Area01_HU_PERS.db",
+    "DSI": "F_DB.DSI_HU_Area01_Pump",
+    "PressureReq_Sources": "Peeler/JB/Coilcar ReqOilPressure + CtrlSafe; usa F_DB.A01_EstopDelay.",
+    "Notes": [
+      "SensorRecircFilterClogged e invertito: NOT (HU_Area01_S_ReturnFilterClogged).",
+      "HeatingSetpoint forzato a 40.0 nel wrapper.",
+      "MainPump_MotorThermalProtection non mappato: se assente usare FALSE."
+    ]
+  },
+  "Area02_Example": {
+    "Folder": "32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/09_Main HU",
+    "Wrapper": "Area02_HU_FB.scl",
+    "Call": "Area02_HU_CALL.scl",
+    "Config": "A02_Config.Area02_HU",
+    "Par_DB": "Area02_HU_PERS.db",
+    "DSI": "F_DB.DSI_HU_FinalCut_Pump",
+    "PressureReq_Sources": "FinalCut ReqOilPressure + CtrlSafe, con logiche Man/Cycle e Rollformer.Sts.CndFWD_OK.",
+    "Notes": [
+      "F_DB.A01_EstopDelay usato anche in Area02.",
+      "Input chiller e heating in questo esempio sono FALSE.",
+      "MainPump_MotorThermalProtection mappato da A0201_Centralina_Olio_Banco_Taglio_Anomalie_Termici."
+    ]
+  },
+  "Area01_DecoilersHU_Example": {
+    "Folder": "31_Area01/Program blocks/19_Decoilers HU",
+    "FB": "DecoilersHU_FB.scl",
+    "Call": "DecoilersHU_CALL.scl",
+    "Uses_StdBlocks": "NON usa HU_Pump/HU_Tank; e un servizio idraulico locale basato su Motor.",
+    "HMI": "A01_HMI.MB1.Button.CoilHandling.DecoilersHU.Start/Stop",
+    "DSI_ZSI": "F_DB.DSI_HU_Decoilers_Pump + F_DB.ZSI_Zone01",
+    "PressureReq_Sources": "DecoilersHRot + Decoiler1/2 (ReqOilPressure).",
+    "Outputs": [
+      "HU_Decoilers_Pump_C := DecoilersHU.Pump_M.Contactor",
+      "Pressure_V su Areas_ITF.A01.Safety_CtrlSafe.HU_Decoilers_StandbyValve"
+    ],
+    "Notes": [
+      "Nessun DB PERS dedicato; il blocco non usa HU_Pump_Par/HU_Tank_Par.",
+      "Stop per apertura porta gestito da ZSI.Door_NormalStop."
+    ]
+  },
+  "Usage_Rules": {
+    "PressureReq": "Deve includere tutte le utenze idrauliche; mancanze portano a mancata pressione e blocco movimenti.",
+    "SafetyCutOffValveExist": "TRUE semplifica stop e porta; FALSE richiede ZSI.Door_NormalStop valido.",
+    "Tank_PumpRunPermitted": "Se temperatura olio bassa o allarmi tank, la pompa viene inibita.",
+    "CtrlSafe_Mapping": "Le uscite di sicurezza devono essere pubblicate in Areas_ITF per logiche safety esterne."
+  },
+  "TODO_Strategy": {
+    "goal": "Consentire prima generazione compilabile in TIA lasciando TODO per segnali mancanti.",
+    "rules": [
+      "Usare TODO solo nei commenti, mai come nomi variabile.",
+      "Assegnare sempre un valore di default sicuro.",
+      "Risolvere i TODO in un secondo pass sostituendo la riga completa."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: mappa PressureReq da macchine idrauliche",
+      "Pump.CIn.PressureReq := FALSE;",
+      "// TODO: mappa sensori serbatoio",
+      "Tank.DataIn.SensorLevelOk_Alarm := FALSE;"
+    ]
+  }
+}

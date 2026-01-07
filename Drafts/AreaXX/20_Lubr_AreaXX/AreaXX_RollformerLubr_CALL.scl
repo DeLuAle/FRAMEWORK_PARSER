@@ -1,0 +1,19 @@
+// Block: AreaXX_RollformerLubr_CALL
+// Title: Rollformer lubrication call (AreaXX)
+
+FUNCTION "AreaXX_RollformerLubr_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "Call"
+      // TODO: replace AreaXX with actual area instance
+      #AreaXX_RollformerLubr(
+         en := TRUE,
+         AreaInterface := AreaXX.AreaInterface
+      );
+
+      #AreaXX_RollformerLubr.Q;
+   END_REGION
+
+END_FUNCTION

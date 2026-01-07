@@ -1,0 +1,173 @@
+{
+  "meta": {
+    "description": "Integration patterns for Sinamics Infeed (DC bus) used by drive-based machines. Based on Infeed.scl and Generic_FB usage.",
+    "version": "1.0",
+    "source_files": [
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/002_Device/Infeed/Infeed.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/1000_Gen/100_Generic/Generic_FB.scl"
+    ],
+    "notes": [
+      "Infeed is called as a multi-instance inside Generic_FB.",
+      "Infeed aggregates Enable requests coming from multiple Areas (Infeed_ReqON)."
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "Infeed_Instance_Name": "Instance name used inside Generic_FB (e.g. INFEED_640A1).",
+      "Instance_Naming_Rule": "Suffix derives from electrical schema component code (e.g. 640A1). It is not a fixed value.",
+      "Enable_Request_Sources": "List of Infeed_ReqON sources to OR (Areas_ITF.A01..A04 + debug).",
+      "HW_Identifiers": "Tel370_HWID, AccessPoint, AxisID, TokenChain for the Sinamics infeed.",
+      "EStop_Delay_Source": "EStop delay chain and door interlock logic.",
+      "Rst_Source": "Reset source (e.g. Ctrl.RstAlarms).",
+      "Simulation_Flag": "Simulation input if used."
+    },
+    "Question_Gate": {
+      "If_Missing": [
+        "Stop and ask for the missing inputs before generating the Infeed integration."
+      ],
+      "Minimum_Questions": [
+        "Which Infeed instance name and hardware IDs are used?",
+        "Which Areas_ITF.*.Infeed_ReqON signals are aggregated?",
+        "What is the EStop delay chain and door interlock condition?",
+        "Which reset signal is used?"
+      ]
+    }
+  },
+  "Block_Anatomy": {
+    "Inputs": {
+      "EStopDly": "Bool, delayed EStop chain and door interlock.",
+      "Rst": "Bool, reset for alarms.",
+      "Enable": "Bool, aggregated OR of Infeed_ReqON requests.",
+      "Tel370_HWID": "HW_IO for telegram 370.",
+      "AccessPoint": "HW_IO for Sinamics access.",
+      "AxisID": "USInt, axis ID.",
+      "TokenChain": "Int, token chain for RW_SINAMICS_Par.",
+      "Simulation": "Bool, simulation mode.",
+      "Delay_PowerOff": "Time, power off delay."
+    },
+    "Outputs": {
+      "Ready": "Bool, infeed ready or simulation.",
+      "Running": "Bool, after Run delay or Enable+Simulation.",
+      "AlarmPresence": "Bool, OR of Infeed alarms.",
+      "WarningPresence": "Bool, OR of Infeed warnings."
+    },
+    "InOut": {
+      "Alarm": "InfeedAlr",
+      "Warning": "InfeedWng",
+      "Diag": "TO_Diagnostic"
+    }
+  },
+  "Function_Logic": {
+    "Communication_ON": "tonComunicationON on (SinaInfeed.DiagID = 0), 1s filter.",
+    "EnableInfeed": [
+      "EnableInfeed := TRUE when Enable AND EStopDly AND SinaInfeed.Ready AND NOT Simulation.",
+      "EnableInfeed := FALSE when power-off timer done OR EStopDly FALSE OR SinaInfeed not Ready OR Simulation."
+    ],
+    "SinaInfeed_Call": "Call SinaInfeed with EnablePrecharging and EnableInfeed, AckFault := Rst, HWIDs and map Fault/Warning.",
+    "Timeout_Activation": "Alarm.TimeoutActivation if Enable AND NOT SinaInfeed.Run for 20s (not Simulation).",
+    "General_Error": "Alarm.GeneralError if SinaInfeed.Error (not Simulation).",
+    "Ready": "Ready := SinaInfeed.Ready OR Simulation.",
+    "Running": "tonPowered 500ms on SinaInfeed.Run; Running := tonPowered.Q OR (Enable AND Simulation).",
+    "AlarmPresence": "DeMorgan OR of Alarm.InfeedFault, Alarm.ComunicationFault, Alarm.TimeoutActivation, Alarm.GeneralError.",
+    "WarningPresence": "DeMorgan OR of Warning.InfeedWarning and NOT Simulation."
+  },
+  "Diagnostic_Logic": {
+    "DeviceType": "Diag.DeviceType := 2",
+    "Simulation": "Diag.TO_SimulationActive := Simulation",
+    "ReadFault": "If AccessPoint>0 and TokenChain>0 and NOT Simulation, read r2131 when Fault.",
+    "ReadWarning": "If Warning and not Fault, read r2132.",
+    "Drive_Message": "Set to 0 if no Fault/Warning or if no access."
+  },
+  "TokenChain_and_HW_Mapping": {
+    "description": "Drive parameter access is serialized per CU using TokenChain and requires correct HW mapping.",
+    "rules": [
+      "TokenChain selects the CU chain (TOKENCHAIN_CU1..TOKENCHAIN_CU8).",
+      "AxisID/AxisNo is the drive position inside the CU (Token_CONST: CUx_ID_y_*).",
+      "AccessPoint is the HW_ID of the CU from TIA hardware config.",
+      "All three must match the electrical schema and CU parameterization."
+    ],
+    "notes": [
+      "TokenChain_FC runs in System_CALL to advance tokens.",
+      "GetToken is used inside RW_SINAMICS_Par to serialize access."
+    ],
+    "source_files": [
+      "TokenChain_FC.scl",
+      "GetToken.scl",
+      "RW_SINAMICS_Par.scl",
+      "Token_CONST.xml/Token_CONST.csv"
+    ]
+  },
+  "Generic_FB_Usage": {
+    "Multi_Instance": "Infeed instance declared in VAR and called in REGION 'Infeed' in Generic_FB.",
+    "Enable_Source": "Enable := OR of Areas_ITF.A01..A04.Infeed_REQ_ON and debug force.",
+    "EStopDly_Source": "EStop delay chain with door interlock and self-hold (<INFEED_INSTANCE>.Enable).",
+    "Running_Broadcast": "Running output mapped to Areas_ITF.AG.Infeed_Running."
+  },
+  "SCL_Minimal_Example": {
+    "Description": "Minimal multi-area Infeed call pattern (based on Generic_FB).",
+    "Example": [
+      "REGION \"Infeed\"",
+      "   #INFEED_<CODE>(",
+      "      en := TRUE,",
+      "      EStopDly := (EStopDelayChain AND NOT DoorOpen) OR (EStopDelayChain AND INFEED_<CODE>.Enable),",
+      "      Enable := (Areas_ITF.A01.Infeed_REQ_ON OR Areas_ITF.A02.Infeed_REQ_ON OR Areas_ITF.A03.Infeed_REQ_ON OR Areas_ITF.A04.Infeed_REQ_ON),",
+      "      Rst := Ctrl.RstAlarms,",
+      "      Tel370_HWID := <HWID_TEL370>,",
+      "      AccessPoint := <ACCESS_POINT>,",
+      "      AxisID := <AXIS_ID>,",
+      "      TokenChain := <TOKENCHAIN>,",
+      "      Alarm := Alarm.INFEED_<CODE>,",
+      "      Warning := Warning.INFEED_<CODE>,",
+      "      Diag := Diag.CC1_INFEED_<CODE>,",
+      "      Running => Areas_ITF.AG.Infeed_Running",
+      "   );",
+      "END_REGION"
+    ]
+  },
+  "Integration_Pattern": {
+    "Layer": "Orchestrator / Generic layer, not inside L3 machines.",
+    "Flow": [
+      "L2 machines output COut.Infeed_ReqON",
+      "Area or Generic aggregator ORs all requests",
+      "Infeed FB enables DC bus",
+      "Broadcast Drive.Infeed_ON or Areas_ITF.AG.Infeed_Running to devices"
+    ],
+    "Do_Not": [
+      "Do not instantiate Infeed inside each L3 machine.",
+      "Do not bypass EStopDly or door interlocks."
+    ]
+  },
+  "Validation_Checklist": {
+    "enable": "Enable aggregates all Infeed_ReqON sources.",
+    "safety": "EStopDly includes door interlock and delay chain.",
+    "hw_ids": "Tel370_HWID, AccessPoint, AxisID, TokenChain are wired.",
+    "broadcast": "Running is broadcast to Areas_ITF.AG.Infeed_Running.",
+    "simulation": "Simulation bypasses Ready/Running logic as in block."
+  },
+  "Existing_JSON_Coverage": {
+    "Status": "Partial",
+    "Notes": [
+      "FeedMachine/SpeedMachine/PositioningMachine document Infeed_ReqON and aggregation flow.",
+      "They do not document the Infeed FB behavior, parameters, or Generic_FB multi-instance usage."
+    ]
+  },
+  "TODO_Strategy": {
+    "goal": "Allow first pass code generation to compile in TIA while leaving TODOs for missing mappings.",
+    "rules": [
+      "Use TODOs only in comments, never as placeholder variable names.",
+      "Always assign a safe default value so the code compiles.",
+      "Resolve TODOs in a second pass by replacing the full assignment line."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: Map real device command",
+      "t_CIn_Device.Manager.Control_ON := FALSE;",
+      "// TODO: Map real setpoint",
+      "t_CIn_Device.Manager.Vel := 0.0;"
+    ]
+  }
+}

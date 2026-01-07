@@ -1,0 +1,114 @@
+// Block: AreaXX_HU_FB
+// Title: HU template (AreaXX)
+
+FUNCTION_BLOCK "AreaXX_HU_FB"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+   VAR_INPUT
+      AreaInterface : AreaInterface;
+   END_VAR
+
+   VAR_OUTPUT
+      MachineInterface : MachineInterface;
+   END_VAR
+
+   VAR
+      Pump : HU_Pump;
+      Tank : HU_Tank;
+      Cfg_Pump : HU_Pump_Config;
+      Cfg_Tank : HU_Tank_Config;
+      Par_Pump : HU_Pump_Par;
+      Par_Tank : HU_Tank_Par;
+      DSI_Local : udt_DeviceSafetyInterface;
+      ZSI_Local : udt_ZoneSafetyInterface;
+   END_VAR
+
+BEGIN
+   REGION "Defaults and TODO"
+      // TODO: replace local Cfg_* and Par_* with Axx_Config and AreaXX_HU_PERS
+      // TODO: map DSI/ZSI from F_DB
+      DSI_Local.SafeStop := FALSE;
+      DSI_Local.DevicesInSafeState := FALSE;
+      ZSI_Local.Door_NormalStop := FALSE;
+      ZSI_Local.Door_Opened := FALSE;
+   END_REGION
+
+   REGION "Pump DataIn"
+      // TODO: map HMI and pump sensors
+      Pump.DataIn.PbStop := FALSE;
+      Pump.DataIn.PbStart := FALSE;
+      Pump.DataIn.MainPump_FdbkRunning := FALSE;
+      Pump.DataIn.MainPump_MotorThermalProtection := FALSE;
+      Pump.DataIn.SensorPumpFilterClogged := FALSE;
+   END_REGION
+
+   REGION "Pump CIn"
+      // TODO: map EstopDelay and PressureReq sources
+      Pump.CIn.PumpRunPermitted := (Tank.COut.PumpRunPermitted AND FALSE);
+      Pump.CIn.EnableCheckFilter := Tank.COut.EnableCheckFIler;
+      Pump.CIn.EnableStopInPhase := FALSE;
+      Pump.CIn.EnableStopProgrammed := FALSE;
+      Pump.CIn.PressureReq := FALSE;
+   END_REGION
+
+   REGION "Pump"
+      #Pump(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         ZSI := ZSI_Local,
+         DSI := DSI_Local,
+         Config := Cfg_Pump,
+         Par := Par_Pump
+      );
+
+      #Pump.Q;
+   END_REGION
+
+   REGION "Tank DataIn"
+      // TODO: map tank sensors and analog inputs
+      Tank.DataIn.SensorLevelOk_Alarm := FALSE;
+      Tank.DataIn.SensorLevelOk_Warning := FALSE;
+      Tank.DataIn.SensorOilMaxTempOk := FALSE;
+      Tank.DataIn.SensorRecircFilterClogged := FALSE;
+      Tank.DataIn.SwThermostatCooling := FALSE;
+      Tank.DataIn.RecircPump_FdbkRunning := FALSE;
+      Tank.DataIn.HeatExchangeFan_FdbkRunning := FALSE;
+      Tank.DataIn.HeatingUnit1_FdbkRunning := FALSE;
+      Tank.DataIn.HeatingUnit2_FdbkRunning := FALSE;
+      Tank.DataIn.ChillerWaterFluxOk := FALSE;
+      Tank.DataIn.ChillerAlarmPresence := FALSE;
+      Tank.DataIn.Anl_OilTemperature := 0;
+      Tank.DataIn.Anl_WaterTemperature := 0;
+   END_REGION
+
+   REGION "Tank CIn"
+      Tank.CIn.PumpRunning := Pump.COut.PumpRunning;
+   END_REGION
+
+   REGION "Tank"
+      #Tank(
+         en := TRUE,
+         AreaInterface := AreaInterface,
+         Config := Cfg_Tank,
+         Par := Par_Tank
+      );
+
+      #Tank.Q;
+   END_REGION
+
+   REGION "Machine interface merge"
+      "MachineInterface_2_To_1"(
+         en := TRUE,
+         AdditionalWarnings := FALSE,
+         MachineInterface_1 := Pump.MachineInterface,
+         MachineInterface_2 := Tank.MachineInterface,
+         AdditionalAlarms := FALSE,
+         Ret_Val => MachineInterface
+      );
+
+      MachineInterface := "MachineInterface_2_To_1"(AdditionalWarnings := FALSE, MachineInterface_1 := Pump.MachineInterface, MachineInterface_2 := Tank.MachineInterface, AdditionalAlarms := FALSE);
+   END_REGION
+
+END_FUNCTION_BLOCK
+
+

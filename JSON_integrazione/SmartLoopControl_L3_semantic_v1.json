@@ -1,0 +1,325 @@
+{
+  "meta": {
+    "description": "Integration patterns for SmartLoopControl (material loop speed modulation between entry/exit feed machines).",
+    "analysis_scope": "L3 utility / area service (loop control between upstream and downstream feed machines)",
+    "version": "1.0",
+    "source_files": [
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/002_PrjBlocks/03_Machines/11_SmartLoop/SmartLoopControl.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/11_LoopControl/SmartLoopControl_CIn.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/11_LoopControl/SmartLoopControl_COut.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/11_LoopControl/SmartLoopControl_Par.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC tags/99_CONST/MACH_CONST.csv"
+    ],
+    "area_call_examples": [
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/40_Loop1/Loop1_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/40_Loop1/Loop1_PERS.db"
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "Entry_Machine": "Upstream feed machine instance (enable/override inputs available).",
+      "Exit_Machine": "Downstream feed machine instance (enable/override inputs available).",
+      "Entry_AreaInterface": "AreaInterface for entry side.",
+      "Exit_AreaInterface": "AreaInterface for exit side.",
+      "Entry_MaterialCounter": "Material counter data from entry side (CounterValue, CounterValid, Standstill).",
+      "Exit_MaterialCounter": "Material counter data from exit side (CounterValue, CounterValid, Standstill).",
+      "Loop_Sensors": "Loop sensors for max low / min high and plug connected.",
+      "Entry_Exit_MaterialPresence": "Presence signals for entry and exit material.",
+      "Persistent_DB": "DB instance holding SmartLoopControl_Par (Loop1_PERS)."
+    },
+    "Question_Gate": {
+      "If_Missing": [
+        "Stop and ask for missing inputs before generating integration."
+      ],
+      "Minimum_Questions": [
+        "Which machines are the entry (upstream) and exit (downstream) feeds?",
+        "Which material counters are used for entry and exit?",
+        "Which loop sensors are wired (max low, min high, plug connected)?",
+        "Is the loop working in material counter mode or sensor mode?",
+        "Is there 1 loop or 2 loops (prepunching present)?"
+      ]
+    }
+  },
+  "Constants": {
+    "MATERIAL_COUNTERS_MODULE": {
+      "value": 1000000.0,
+      "unit": "mm",
+      "source": "MACH_CONST.csv",
+      "note": "Modulo per contatore materiale continuo (linee fino a ~100 m)."
+    }
+  },
+  "Data_Types": {
+    "SmartLoopControl_CIn": {
+      "fields": [
+        "EnableStopInPhase",
+        "EnableStopProgrammed",
+        "ON_Request",
+        "Synchro_Request",
+        "MaterialMiddlePos_Request",
+        "Entry_MaxLowOverride",
+        "Entry_NxtBkw",
+        "Entry_NxtFwd",
+        "Entry_MatCounterValid",
+        "Entry_MaterialStandstill",
+        "Entry_NxtEndOfMaterial",
+        "Entry_EmptyingConfirmed",
+        "Entry_ActualVelocity",
+        "Entry_MatCounter",
+        "Entry_MeasInput_*",
+        "Exit_NxtBkw",
+        "Exit_NxtFwd",
+        "Exit_MatCounterValid",
+        "Exit_MaterialStandstill",
+        "Exit_ActualVelocity",
+        "Exit_MatCounter",
+        "Exit_MeasInput_*",
+        "PitTables.Sts_PosUp",
+        "PitTables.Sts_PosMiddle",
+        "PitTables.Sts_PosDown"
+      ]
+    },
+    "SmartLoopControl_COut": {
+      "fields": [
+        "SystemOn",
+        "LoopMaterialCounterValid",
+        "MaxLowReached",
+        "MinHighReached",
+        "SynchroRunning",
+        "SynchroDone",
+        "Sync_EntryReduceOrStopFeed",
+        "Sync_ExitReduceOrStopFeed",
+        "Entry_EnableFeedBkw",
+        "Entry_EnableFeedFwd",
+        "Exit_EnableFeedBkw",
+        "Exit_EnableFeedFwd",
+        "EnableMeasuringInputs",
+        "EnableMovePitTablesOnMiddlePos",
+        "Entry_ActVelocityOverride",
+        "Exit_ActVelocityOverride",
+        "Exit_MaxAllowableFeedFwd",
+        "LoopMaterialCounter",
+        "LoopMaterialMissingToSynch",
+        "LoopMaterialMissingToMaxLow",
+        "LoopMaterialMissingToMinHigh",
+        "Entry_VelocityOverride",
+        "Exit_VelocityOverride"
+      ]
+    },
+    "SmartLoopControl_Par": {
+      "fields": [
+        "WorkMode",
+        "SyncEntryMode",
+        "SyncExitMode",
+        "PosStopMinHigh",
+        "PosStopMiddle",
+        "PosStopMaxLow",
+        "PosSynch",
+        "PosDeltaRestartAfterMaxLow",
+        "PosDeltaRestartAfteMinHigh",
+        "PosIntervalSynchroCyclic",
+        "HysteresysSynchroExt",
+        "Entry_Lim1_VMin",
+        "Entry_Lim2_VMed",
+        "Entry_Lim3_VMax",
+        "Entry_Override1_VMin",
+        "Entry_Override2_VMed",
+        "Entry_Override3_VMax",
+        "Exit_Lim1_VMin",
+        "Exit_Lim2_VMed",
+        "Exit_Lim3_VMax",
+        "Exit_Override1_VMin",
+        "Exit_Override2_VMed",
+        "Exit_Override3_VMax",
+        "DlySetMaxLow",
+        "DlyRstMaxLow",
+        "Exit_MaxFeed_CaseSystemOff",
+        "Exit_MaxFeed_CaseNextEndOfMaterial",
+        "Exit_MaxFeed_CaseLoopMaterialNotValid"
+      ]
+    }
+  },
+  "Core_Behavior": {
+    "Purpose": "Modulates entry/exit feed velocity to keep loop within min-high and max-low limits.",
+    "Modes": {
+      "MaterialCounters": "Uses Entry/Exit material counters with MODULE := MATERIAL_COUNTERS_MODULE.",
+      "Sensors": "Fallback mode based on loop sensors (max low / min high)."
+    },
+    "Key_Outputs": {
+      "Entry_VelocityOverride": "% override for entry feed machine.",
+      "Exit_VelocityOverride": "% override for exit feed machine.",
+      "Entry_EnableFeedFwd/Bkw": "Enable feed directions for entry machine.",
+      "Exit_EnableFeedFwd/Bkw": "Enable feed directions for exit machine.",
+      "LoopMaterialCounter": "Material length inside loop (modulo)."
+    },
+    "Sync": {
+      "Description": "Synchronizes loop counter offset using sensors and measuring inputs.",
+      "Triggers": [
+        "Synchro_Request",
+        "MaterialMiddlePos_Request",
+        "SyncEntryMode/SyncExitMode"
+      ]
+    }
+  },
+  "Loop_Behavior_Description": {
+    "Why_Sync": "Loop is a buffer; entry adds material and exit removes it. Counter drift (FAK changes) makes loop quantity inaccurate, so sync recalibrates the loop offset using sensor events and measuring inputs.",
+    "Sync_Cycle_Steps": [
+      "01. Activate measuring inputs and wait for sync request.",
+      "02. Catch sensor low (material down) by reducing/stopping EXIT feed (Sync_ExitReduceOrStopFeed).",
+      "03. Loose sensor low (material up) by reducing/stopping ENTRY feed (Sync_EntryReduceOrStopFeed).",
+      "04. Last catch: acquire entry/exit measuring positions and export them for conversion.",
+      "05. Calculate offset: LoopMaterialCounterOffset := PosSynch - DeltaPosSync (material counter domain)."
+    ],
+    "Sync_Measuring_Conversion": {
+      "description": "During sync, measured positions are exported for optional conversion. If inputs are axis positions (tastatori/encoder), convert PosAx -> PosMat using MaterialCounter functions. If inputs are already material counter positions (FAK applied), no conversion is needed.",
+      "conversion_blocks": [
+        "PosAxisToPosMat_Wheel",
+        "PosMatToPosAxis_Wheel"
+      ],
+      "application_note": "In this application the measuring value uses material counter positions, so conversion is not required."
+    },
+    "Entry_vs_Exit_Modulation": {
+      "Entry": "During sync, Entry override can be STOP or VMin depending on SyncEntryMode.",
+      "Exit": "In this application exit override is kept at 100% (flying cut), so only entry is modulated."
+    },
+    "If_Cut_At_Stop": "If exit must stop, set SyncExitMode to STOP or enable exit reduction during sync."
+  },
+  "Boundary_Area_Interfaces": {
+    "description": "SmartLoop can sit between two areas and expose two AreaInterface + two MachineInterface (entry/exit).",
+    "current_application": "Area01 (entry) + Area02 (exit).",
+    "alternative": "If loop is internal to a single area, the two interfaces can be the same AreaInterface or one side can be unused."
+  },
+  "Architecture_Note": {
+    "classification": "L3 utility / area service",
+    "note": "Does not wrap L1/L2 blocks; like Material Counter, it is an independent L3 service."
+  },
+  "Integration_Steps": {
+    "Step_1_Create_Folder": "Create area folder 40_Loop1 (or 40_Loop2 if second loop is needed).",
+    "Step_2_Create_DB": "Create Loop1_PERS DB with SmartLoopControl_Par (same structure as example).",
+    "Step_3_Create_CALL": "Create Loop1_CALL.scl with DataIn, CIn mapping and FB call.",
+    "Step_4_Map_DataIn": [
+      "Pb_StartStop := loop pushbuttons (Area and HMI)",
+      "Pb_Start / Pb_Stop := HMI and logic stop",
+      "SensorEntryMaterialPresence := entry material presence",
+      "SensorExitMaterialPresence := exit material presence",
+      "SensorExitEnableUseEncoder := exit material presence (enables encoder use)",
+      "SensorLoopMaxLow_Or_TPEntry/Exit := loop max low sensor(s)",
+      "SensorNotLoopMinHigh := loop min high sensor",
+      "PlugConnected := loop connector signal"
+    ],
+    "Step_5_Map_CIn_Core": [
+      "EnableStopInPhase / EnableStopProgrammed from AreaInterface and machine ack",
+      "ON_Request and Synchro_Request from process logic",
+      "MaterialMiddlePos_Request if pit tables middle position is used"
+    ],
+    "Step_6_Map_CIn_Entry": [
+      "Entry_NxtBkw/Fwd from entry feed CheckNext",
+      "Entry_MatCounterValid from entry material counter",
+      "Entry_MaterialStandstill from entry standstill + velocity setpoint",
+      "Entry_ActualVelocity from entry line speed",
+      "Entry_MatCounter from entry counter value",
+      "Entry_EmptyingConfirmed and Entry_NxtEndOfMaterial from entry manager"
+    ],
+    "Step_7_Map_CIn_Exit": [
+      "Exit_NxtBkw/Fwd from exit feed CheckNext",
+      "Exit_MatCounterValid from exit material counter",
+      "Exit_MaterialStandstill from exit standstill + velocity setpoint",
+      "Exit_ActualVelocity from exit line speed",
+      "Exit_MatCounter from exit counter value"
+    ],
+    "Step_8_MeasuringInputs": "Wire Entry/Exit measuring inputs (MeasuringDone_ID + MeasuringValue) on loop sensor edge for synchronization.",
+    "Step_9_Call_FB": "Call SmartLoopControl with AreaInterfaceEntry/Exit, Config, and Loop1_PERS.PersistentValues.",
+    "Step_10_Use_Outputs": [
+      "Apply Entry_VelocityOverride to entry feed machine override",
+      "Apply Exit_VelocityOverride to exit feed machine override",
+      "Gate entry/exit feed enable signals with Entry/Exit_EnableFeed*",
+      "Expose Loop1.COut to Areas_ITF (for HMI and other logic)"
+    ],
+    "Step_11_Alarm_Warning_Propagation": [
+      "Always map Loop alarms/warnings to the Area message collections.",
+      "Use the Loop1 example as reference for indices and message grouping."
+    ]
+  },
+  "AreaXX_Template": {
+    "Folder": "Drafts/AreaXX/40_Loop1",
+    "Call": "Drafts/AreaXX/40_Loop1/Loop1_CALL.scl",
+    "Par_DB": "Drafts/AreaXX/40_Loop1/Loop1_PERS.db",
+    "Config": "Axx_Config.Loop1",
+    "Notes": [
+      "Template uses TODO + safe defaults; replace AreaXX/Areas_ITF/Axx_Config with real area wiring.",
+      "Requires Loop1 FB instance (SmartLoopControl) and Loop1_PERS DB."
+    ]
+  },
+  "TODO_Strategy": {
+    "goal": "Allow first pass code generation to compile in TIA while leaving TODOs for missing mappings.",
+    "rules": [
+      "Use TODOs only in comments, never as placeholder variable names.",
+      "Always assign a safe default value so the code compiles.",
+      "Resolve TODOs in a second pass by replacing the full assignment line."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: Map real device command",
+      "t_CIn_Device.Manager.Control_ON := FALSE;",
+      "// TODO: Map real setpoint",
+      "t_CIn_Device.Manager.Vel := 0.0;"
+    ]
+  },
+  "Folder_Output": {
+    "Area_Folder": "40_Loop1 (or 40_Loop2 if a second loop exists)",
+    "Files": [
+      "Loop1_CALL.scl",
+      "Loop1_PERS.db"
+    ],
+    "Naming_Rules": [
+      "Loop name matches folder number (Loop1, Loop2).",
+      "DB name uses <LoopName>_PERS.",
+      "CALL file name uses <LoopName>_CALL.scl."
+    ]
+  },
+  "Area01_Example": {
+    "Folder": "31_Area01/Program blocks/40_Loop1",
+    "LoopInstance": "Loop1",
+    "Persistent_DB": "Loop1_PERS",
+    "Config": "A01_Config.Loop1",
+    "Entry_Side": "CoilHandling + Straightener",
+    "Exit_Side": "Area02 Rollformer",
+    "Usage": [
+      "CoilHandling.CIn.Loop uses Loop1.COut.Entry_EnableFeed* and Entry_VelocityOverride",
+      "Straightener.Feed_BwdEnable/FwdEnable use Loop1.COut.Entry_EnableFeed*",
+      "Areas_ITF.A01.Loop1_COut := Loop1.COut",
+      "HMI uses Loop1.COut for loop diagnostics and lamp"
+    ]
+  },
+  "Usage_Rules": {
+    "Loop_Count": "Use 1 or 2 loops depending on prepunching presence (press feeder).",
+    "Modulo_Math": "When using material counters, apply MODULE := MATERIAL_COUNTERS_MODULE for all position math.",
+    "Material_Counter_Dependency": "Loop logic relies on valid Entry/Exit material counters; handle fallback to sensors if invalid.",
+    "Velocity_Override_Range": "Typical override range is 0..150% (clamped in upstream manager)."
+  },
+  "Parameter_Defaults": {
+    "note": "Default values depend on the application (loop length, material stored in loop, intermittent vs continuous process).",
+    "examples": [
+      "Flying cut: keep Exit override at 100%, modulate Entry only.",
+      "Cut at stop: allow Exit override reduction/stop during sync."
+    ]
+  },
+  "Single_Area_Option": {
+    "description": "If loop belongs to a single area, use the same AreaInterface for Entry/Exit and use only the first MachineInterface output.",
+    "mapping_rule": "AreaInterfaceEntry == AreaInterfaceExit; MachineInterfaceExit can be ignored by area aggregation."
+  },
+  "Alarm_Warning_Propagation": {
+    "rule": "All loop Alr/Wng must be assigned to the Area message collections.",
+    "reference": "Use the Loop1 example for message mapping in the area call."
+  },
+  "Validation_Checklist": {
+    "counters": "Entry/Exit material counters are valid and published in Areas_ITF.",
+    "sensors": "Max low and min high sensors are wired and stable.",
+    "overrides": "Entry/Exit override signals reach feed machines.",
+    "enables": "Entry/Exit EnableFeed signals are used to gate movement.",
+    "system_on": "Loop SystemOn is driven by HMI/area requests and material presence."
+  }
+}

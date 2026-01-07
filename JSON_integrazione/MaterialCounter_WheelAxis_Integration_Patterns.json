@@ -1,0 +1,270 @@
+{
+  "meta": {
+    "description": "Integration patterns for Wheel&Axis material counters (MatCounter + conversions).",
+    "analysis_scope": "L3 utility / area service (material counter shared by multiple machines)",
+    "version": "1.0",
+    "source_files": [
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/002_PrjBlocks/03_Machines/10_Material_Counters/Wheel&Axis/MatCounter.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/002_PrjBlocks/03_Machines/10_Material_Counters/Wheel&Axis/MatCounter_UPD.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/002_PrjBlocks/03_Machines/10_Material_Counters/Wheel&Axis/PosAxisToPosMat_Wheel.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/002_PrjBlocks/03_Machines/10_Material_Counters/Wheel&Axis/PosMatToPosAxis_Wheel.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/03_Machine/10_Material Counters/Material Counter/MatCountCIn.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/03_Machine/10_Material Counters/Material Counter/MatCountData.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/002_PrjBlocks/03_Machine/10_Material Counters/Material Counter/MatCountPersistent.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC tags/99_CONST/MACH_CONST.csv"
+    ],
+    "area_call_examples": [
+      "PLC_410D1_Parsed_Final/Software units/31_Area01/Program blocks/11_MATERIAL_COUNTER/CoilHandlingMatCounter_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/03_MaterialCounter/PostPunchingMatCounter_CALL.scl"
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "AxisPos_Source": "Axis actual position for the material encoder (LReal).",
+      "EncoderValid": "Bool indicating encoder is valid (e.g., axis StatusWord).",
+      "EncoderPosValid": "Bool gating encoder position validity (often tied to material presence).",
+      "Standstill": "Bool indicating material is not moving (based on machine standstill + velocity setpoint).",
+      "CheckNextFeeding": "Bool that indicates feeding requested and material presence is true.",
+      "AxisModule": "Mechanical module of the measuring axis (LReal, same unit as AxisPos).",
+      "Default_FAK": "Default correction factor for encoder (LReal).",
+      "Persistent_DB": "DB instance of MatCountPersistent for saving counter and FAK.",
+      "MATERIAL_COUNTERS_MODULE": "Counter module constant (LReal, mm)."
+    },
+    "Question_Gate": {
+      "If_Missing": [
+        "Stop and ask for missing inputs before generating integration."
+      ],
+      "Minimum_Questions": [
+        "Which axis provides the material position (AxisPos) and how is EncoderValid derived?",
+        "What is the AxisModule value for the measuring system?",
+        "Which material presence condition is used to validate EncoderPosValid?",
+        "What Default_FAK should be used for this area?"
+      ]
+    }
+  },
+  "Constants": {
+    "MATERIAL_COUNTERS_MODULE": {
+      "value": 1000000.0,
+      "unit": "mm",
+      "source": "MACH_CONST.csv",
+      "note": "Modulo per contatore materiale continuo (linee fino a ~100 m)."
+    },
+    "FAK_MIN_VALUE": {
+      "value": 0.98,
+      "source": "MACH_CONST.csv"
+    },
+    "FAK_MAX_VALUE": {
+      "value": 1.02,
+      "source": "MACH_CONST.csv"
+    }
+  },
+  "Data_Types": {
+    "MatCountCIn": {
+      "fields": [
+        "Rst",
+        "Standstill",
+        "CheckNextFeeding",
+        "EncoderValid",
+        "EncoderPosValid",
+        "PresetExe",
+        "PresetPosition",
+        "AxisPos",
+        "AxisModule"
+      ]
+    },
+    "MatCountPersistent": {
+      "Data": "MatCountData",
+      "Par": "MatCountPar"
+    },
+    "MatCountData": {
+      "fields": [
+        "Standstill",
+        "CounterValid",
+        "AxPosition",
+        "AxPositionPrevious",
+        "FAK",
+        "CounterValueInit",
+        "CounterOffset",
+        "CounterValue",
+        "FAKPrevious",
+        "AX_MODULE",
+        "COUNTER_MODULE"
+      ]
+    },
+    "MatCountPar": {
+      "fields": [
+        "FAK"
+      ]
+    },
+    "MatCounterAlr": {
+      "fields": [
+        "CounterNotInOperation"
+      ]
+    },
+    "MatCounterWng": {
+      "fields": [
+        "EncoderNotValid",
+        "EncoderPosNotValid",
+        "PresetRunning"
+      ]
+    },
+    "MatCountHMI": {
+      "fields": [
+        "PbFAKCalculation",
+        "PbFAKDefault",
+        "PbFAKPrevious",
+        "FAKSetDefaultDone",
+        "FAKCalcDone",
+        "FAKSetPrevDone",
+        "LenghtDesired",
+        "LenghtMeasured",
+        "FAKPrevious"
+      ]
+    }
+  },
+  "Core_Blocks": {
+    "MatCounter_FB": {
+      "role": "Maintains continuous material position with modulo wrap and FAK correction.",
+      "key_logic": [
+        "Saves AxisPos into PersistentValues.Data.AxPosition each cycle.",
+        "Sets PersistentValues.Data.COUNTER_MODULE := MATERIAL_COUNTERS_MODULE.",
+        "Validates FAK between FAK_MIN_VALUE and FAK_MAX_VALUE; else use Default_FAK.",
+        "On startup, uses CounterValueInit to force position and compute CounterOffset.",
+        "MatCounter_UPD updates CounterValue and handles wrap-around.",
+        "StopFeeding := NOT (InOperation AND NOT PresetExe AND NOT PresetDone AND NOT CounterNotInOperation)."
+      ],
+      "dependencies": [
+        "Sys.FirstPLCCycle",
+        "FAK_MIN_VALUE / FAK_MAX_VALUE",
+        "MATERIAL_COUNTERS_MODULE"
+      ]
+    },
+    "MatCounter_UPD_FC": {
+      "role": "Updates counter value and offset with wrap-around and AX module handling.",
+      "key_logic": [
+        "AxDifference := AxPosition - AxPositionPrevious",
+        "If AxDifference > AX_MODULE/2 -> CounterOffset -= (AX_MODULE * FAK)",
+        "If AxDifference < -AX_MODULE/2 -> CounterOffset += (AX_MODULE * FAK)",
+        "CounterValue := AxPosition * FAK + CounterOffset",
+        "If CounterValue >= COUNTER_MODULE -> CounterOffset -= COUNTER_MODULE",
+        "If CounterValue < 0 -> CounterOffset += COUNTER_MODULE"
+      ]
+    },
+    "PosAxisToPosMat_Wheel_FC": {
+      "role": "Convert axis position to material counter position (modulo aware).",
+      "uses": [
+        "Data.AX_MODULE",
+        "Data.FAK",
+        "Data.CounterValue",
+        "Data.COUNTER_MODULE"
+      ]
+    },
+    "PosMatToPosAxis_Wheel_FC": {
+      "role": "Convert material counter position to axis position (modulo aware).",
+      "uses": [
+        "Data.AX_MODULE",
+        "Data.FAK",
+        "Data.AxPositionPrevious",
+        "Data.CounterValue"
+      ]
+    }
+  },
+  "Integration_Steps": {
+    "Step_1_Create_DB": "Create a DB instance <Name>_MatCounter_PERS with MatCountPersistent.",
+    "Step_2_Configure_Default_FAK": "Set Config.Default_FAK in area config (A01_Config/A02_Config).",
+    "Step_3_Map_CIn": [
+      "Rst := AreaInterface.RstAlarms",
+      "Standstill := machine standstill (include velocity setpoint check)",
+      "CheckNextFeeding := CheckNext activity AND material presence",
+      "EncoderValid := Axis StatusWord or equivalent",
+      "EncoderPosValid := MaterialPresence OR (NOT MaterialPresence AND EncoderValid)",
+      "AxisPos := Axis actual position",
+      "AxisModule := measuring axis module (LReal)"
+    ],
+    "Step_3b_Set_AX_MODULE": "Set PersistentValues.Data.AX_MODULE once (startup or config) to the same AxisModule used by the measuring system.",
+    "Step_4_Call_FB": "Call MatCounter with Config.Default_FAK and PersistentValues.",
+    "Step_5_Publish": "Publish PersistentValues.Data to Areas_ITF.<Area>.MaterialCounter.",
+    "Step_6_Use_StopFeeding": "Use MatCounter.COut.StopFeeding to block feeds when counter not in operation.",
+    "Step_7_Use_Module_Operators": "Use M_PosAPlusCostB / M_PosAMinusPosB with MODULE := MATERIAL_COUNTERS_MODULE for all material position math.",
+    "Step_8_Conversions": "Use PosAxisToPosMat_Wheel and PosMatToPosAxis_Wheel for conversions between axis and material domains."
+  },
+  "AreaXX_Template": {
+    "Folder": "Drafts/AreaXX/03_MaterialCounter",
+    "Call": "Drafts/AreaXX/03_MaterialCounter/AreaXX_MatCounter_CALL.scl",
+    "Par_DB": "Drafts/AreaXX/03_MaterialCounter/AreaXX_MatCounter_PERS.db",
+    "Config": "Axx_Config.AreaXX_MatCounter",
+    "Instance": "AreaXX_MatCounter",
+    "Notes": [
+      "Template uses TODO + safe defaults; replace Axx_Config/AreaXX with real area wiring.",
+      "Requires MatCounter FB instance and AreaXX_MatCounter_PERS DB."
+    ]
+  },
+  "Area01_Example": {
+    "Instance": "CoilHandlingMatCounter",
+    "Persistent_DB": "CoilHandlingMatCounter_PERS",
+    "Config": "A01_Config.CoilHandlingMatCounter",
+    "CIn_Mapping": {
+      "Rst": "Area01.AreaInterface.RstAlarms",
+      "Standstill": "Straightener standstill AND JB pinchroll standstill/rest",
+      "CheckNextFeeding": "Any feed CheckNext AND MaterialPresence_JBPinchExit",
+      "EncoderValid": "A01_Straightener_Ax.StatusWord",
+      "EncoderPosValid": "MaterialPresence_JBPinchExit OR (NOT MaterialPresence_JBPinchExit AND EncoderValid)",
+      "AxisPos": "A01_Straightener_Ax.ActualPosition"
+    },
+    "Notes": [
+      "Areas_ITF.A01.MaterialCounter := CoilHandlingMatCounter_PERS.PersistentValues.Data",
+      "CoilHandling.CIn.MaterialCounter uses MatCounter COut and PersistentValues.Data"
+    ]
+  },
+  "Area02_Example": {
+    "Instance": "PostPunchingMatCounter",
+    "Persistent_DB": "PostPunchingMatCounter_PERS",
+    "Config": "A02_Config.PostPunchingMatCounter",
+    "CIn_Mapping": {
+      "Rst": "Area02.AreaInterface.RstAlarms",
+      "Standstill": "Rollformer.COut.Feed.Standstill",
+      "CheckNextFeeding": "Any Rollformer CheckNext AND MaterialPresence",
+      "EncoderValid": "A02_Rollformer.StatusWord",
+      "EncoderPosValid": "MaterialPresence OR (NOT MaterialPresence AND EncoderValid)",
+      "AxisPos": "A02_Rollformer.ActualPosition"
+    },
+    "FAK_Update": "If RollformingMng.COut.FAK_UpdatePPrf.FAK_Apply then PersistentValues.Par.FAK := FAK_Calculate.",
+    "Notes": [
+      "Areas_ITF.A02.MaterialCounter := PostPunchingMatCounter_PERS.PersistentValues.Data",
+      "Area01 Loop uses Areas_ITF.A02.MaterialCounter for exit tracking"
+    ]
+  },
+  "Usage_Rules": {
+    "Continuous_Material": "The counter is modulo, used for continuous material (web).",
+    "Modulo_Math": "Always use MODULE := MATERIAL_COUNTERS_MODULE when comparing or adding material positions.",
+    "Line_Length_Assumption": "Lines are <= 100 m, module is 1,000,000 mm so wrap-around should not occur during normal tracking but is handled.",
+    "Counter_Validity": "CounterValid is TRUE only after encoder valid + pos valid for 10s (tonInOperation)."
+  },
+  "Validation_Checklist": {
+    "module": "MATERIAL_COUNTERS_MODULE = 1000000.0 mm set in MACH_CONST.",
+    "axis_module": "AxisModule is set and consistent with measuring system.",
+    "ax_module": "PersistentValues.Data.AX_MODULE is initialized (required by MatCounter_UPD).",
+    "encoder_valid": "EncoderValid and EncoderPosValid are wired as in area examples.",
+    "standstill": "Standstill uses both device standstill and velocity setpoint = 0.",
+    "publishing": "Areas_ITF.<Area>.MaterialCounter is updated from PersistentValues.Data."
+  },
+  "TODO_Strategy": {
+    "goal": "Allow first pass code generation to compile in TIA while leaving TODOs for missing mappings.",
+    "rules": [
+      "Use TODOs only in comments, never as placeholder variable names.",
+      "Always assign a safe default value so the code compiles.",
+      "Resolve TODOs in a second pass by replacing the full assignment line."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: Map real device command",
+      "t_CIn_Device.Manager.Control_ON := FALSE;",
+      "// TODO: Map real setpoint",
+      "t_CIn_Device.Manager.Vel := 0.0;"
+    ]
+  }
+}

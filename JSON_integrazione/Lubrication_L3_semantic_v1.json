@@ -1,0 +1,250 @@
+{
+  "meta": {
+    "description": "Pattern di integrazione per macchine di lubrificazione in StdBlocks/010_Machine.",
+    "analysis_scope": "L3 utility / area service (lubrication motor, pump, valve e FB specializzati)",
+    "version": "1.2",
+    "source_files": [
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/Lubr_Motor.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/Lubr_Pump.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/Lubr_Valve.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/MatLub_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/MatLub_Count_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/GuideLubrication_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/DiesLubrication_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/Program blocks/001_StdBlocks/010_Machine/Lubrication/Losma_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/Lubrication/LubrValve_Config.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/Lubrication/LubrValve_Par.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/Lubrication/LubrValve_Pers.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/Lubrication/LubrPump_Par.udt",
+      "PLC_410D1_Parsed_Final/Software units/1_Orchestrator_Safety/PLC data types/001_StdBlocks/010_Machine/Lubrication/LubrMotor_Par.udt"
+    ],
+    "area_call_examples": [
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/21_RollformerLub/RollformerLubr_FB.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/21_RollformerLub/RollfomrerLubr_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/48_CarriageLub/CarriageLub_CALL.scl",
+      "PLC_410D1_Parsed_Final/Software units/32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/51_DiesLub/FinalCutLub_CALL.scl"
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "AreaInterface": "AreaInterface completo per stop/fasi/allarmi.",
+      "MaterialCounter": "MaterialCounter per FB a distanza (MatLub_Count, GuideLubrication).",
+      "HMI_Commands": "PbStart/PbStop per manuale e pb per cicli.",
+      "Sensors": "Level, rotation, connector, cycle feedback, feedback motori.",
+      "Persistent_DB": "DB PERS con Par e contatori (LubrValve_Pers, LubrMotor_Par, ecc.)."
+    },
+    "Question_Gate": {
+      "If_Missing": [
+        "Fermati e fai domande se mancano segnali o parametri base."
+      ],
+      "Minimum_Questions": [
+        "Quale tipo di lubrificazione serve (valvole, pompa, contatore materiale, dies, losma)?",
+        "Quale MaterialCounter usare e in quale unita (mm)?",
+        "Quali sensori/feedback sono disponibili?",
+        "Manuale, automatico o entrambi?"
+      ]
+    }
+  },
+  "Core_Behavior": {
+    "Lubr_Valve": {
+      "role": "Valvola con catena (ValveChain) e logiche manuale/automatico.",
+      "key_logic": [
+        "Ogni istanza incrementa LubrInterface.ValveChain.MaxValve; serve LubrInterface condivisa.",
+        "CounterMode=0 usa CIn.ActualPosition (delta); CounterMode=1 usa CIn.OperationDone.",
+        "Valori delta invalidi: >1000.0 o <0.005 vengono ignorati.",
+        "WorkMode=0 feedback, WorkMode=1 tempo, WorkMode=2 conteggio valvola.",
+        "Config.ValveType=1 non ammesso con LubrInterface.Sts.PumpType=1 (ConfigError)."
+      ]
+    },
+    "Lubr_Motor": {
+      "role": "Pompa con motore e feedback rotazione; fornisce LubrInterface per Valves.",
+      "key_logic": [
+        "RunContactor attivo se LubrInterface.Ctrl.WorkReq o PbManualLubr.",
+        "Allarme rotazione su Par.RotationFbkCheckTime.",
+        "Allarme livello su Par.LowLevelCheckTime.",
+        "ValveChain avanza con ValveCycleTimeOut."
+      ]
+    },
+    "Lubr_Pump": {
+      "role": "Pompa senza feedback motore; genera ValveCmd per catena.",
+      "key_logic": [
+        "ValveCmd ON/OFF con Par.ValveONTime/ValveOFFTime.",
+        "Allarme livello su Par.LowLevelCheckTime.",
+        "ValveChain avanza con ValveCycleTimeOut."
+      ]
+    },
+    "MatLub_FB": {
+      "role": "Lubrificazione con elettrovalvola e stop ritardato da MaterialMoving.",
+      "key_logic": [
+        "StopSafeStandstill usa DSI.DevicesInSafeState.",
+        "Parameter.SystemOnOff abilita la funzione.",
+        "DelayOff mantiene solenoide attivo dopo fine materiale."
+      ]
+    },
+    "MatLub_Count_FB": {
+      "role": "Lubrificazione a distanza con contatore materiale.",
+      "key_logic": [
+        "Delta materiale con M_PosAMinusPosB e MATERIAL_COUNTERS_MODULE.",
+        "SpaceInterval e OnDuration definiscono trigger e durata.",
+        "Enable=FALSE o OnDuration=0 disattivano il ciclo."
+      ]
+    },
+    "GuideLubrication_FB": {
+      "role": "Lubrificazione guide basata su distanza e numero cicli.",
+      "key_logic": [
+        "CycleToExecute e SpaceInterval controllano la richiesta.",
+        "TimeoutCycle se feedback ciclo non arriva entro 20s.",
+        "Reset contatori a fine ciclo."
+      ]
+    },
+    "DiesLubrication_FB": {
+      "role": "Lubrificazione stampi a numero lavori/pompate.",
+      "key_logic": [
+        "JobsToStart e OilPumpCycles in PersistentValues.Par.",
+        "Uso opzionale di pompa esterna (Config.ExternalPump).",
+        "ConnectorPlugged controllato se CutBenchCode <> 0."
+      ]
+    },
+    "Losma_FB": {
+      "role": "Sistema estrazione nebbia olio (pompa + blower + cloth + oil separator).",
+      "key_logic": [
+        "MaterialMoving genera PumpRunReq/BlowerRunReq.",
+        "ZSI.Door_NormalStop e DSI.SafeStop influenzano stop.",
+        "Cloth e OilSeparator opzionali da Config."
+      ]
+    }
+  },
+  "Parameters_and_Config": {
+    "LubrValve_Config": {
+      "WorkMode": "0=feedback, 1=time, 2=valve count",
+      "CounterMode": "0=position based, 1=operation based",
+      "ValveType": "0=direct, 1=pulsed (ValveON/ValveOFF)",
+      "ManualCmdTimeOut": "Timeout per comando manuale"
+    },
+    "LubrValve_Par": {
+      "SystemOn": "Abilita lubrificazione",
+      "EnableCheckFdbk": "Abilita check feedback ciclo",
+      "CycleFdbkCheckTime": "Timeout feedback ciclo",
+      "WorkTime": "Tempo lavoro (WorkMode=1)",
+      "ValveONTime/ValveOFFTime": "Timing per ValveType=1",
+      "ValvePumpSetPoint": "Soglia conteggio valvola",
+      "LubrReqSetPoint": "Soglia distanza/contatore"
+    },
+    "LubrValve_Pers": {
+      "ValvePumpCounter": "Contatore valvola persistente",
+      "LubrReqCounter": "Contatore richiesta lubrificazione persistente"
+    },
+    "LubrMotor_Par": {
+      "EnableCheckRotation": "Abilita check rotazione",
+      "LowLevelCheckTime": "Ritardo allarme livello",
+      "RotationFbkCheckTime": "Timeout rotazione"
+    },
+    "LubrPump_Par": {
+      "LowLevelCheckTime": "Ritardo allarme livello",
+      "ValveONTime/ValveOFFTime": "Timing pompa"
+    }
+  },
+  "Integration_Steps": {
+    "Step_1_Create_Folder": "Crea cartella per ogni servizio (numeri liberi, es. 21_RollformerLub, 48_CarriageLub, 51_DiesLub, 20_Lubr_AreaXX).",
+    "Step_2_Create_DB": "Crea DB PERS per ogni servizio con Par e contatori richiesti.",
+    "Step_3_Map_DataIn": [
+      "HMI PbStart/PbStop e PbCycleExe",
+      "SensorLevel, LubrRotationFbk, MotorFdbkRunning",
+      "ConnectorPlugged e CycleFbk"
+    ],
+    "Step_4_Map_CIn": [
+      "LubrEnable da NOT Standstill",
+      "ActualPosition da asse (CounterMode=0)",
+      "OperationDone per CounterMode=1",
+      "MaterialCounter per MatLub_Count e GuideLubrication"
+    ],
+    "Step_5_Set_Config": [
+      "WorkMode / CounterMode / ValveType",
+      "ManualCmdTimeOut",
+      "ValveCycleTimeOut (es. T#5M) per Lubr_Motor/Lubr_Pump"
+    ],
+    "Step_6_Call_FB": "Chiama il FB con AreaInterface, Config e PERS.",
+    "Step_7_Output": "Mappa ValveCmd o RunContactor a uscite fisiche (attenzione a inversioni).",
+    "Step_8_Alarms": "Propaga Alr/Wng alle collezioni messaggi area."
+  },
+  "AreaXX_Template": {
+    "Folder": "AreaXX/Program blocks/20_Lubr_AreaXX",
+    "FB_or_CALL": "AreaXX_Lubr_CALL.scl",
+    "PERS": "AreaXX_Lubr_PERS.db",
+    "Config": "Axx_Config.AreaXX_Lubr",
+    "Notes": [
+      "I numeri cartella sono liberi; mantenere coerenza con naming area.",
+      "Per catena valvole: condividere LubrInterface tra tutte le Lubr_Valve."
+    ]
+  },
+  "Known_Project_Examples": {
+    "Used_In_Project": [
+      "RollformerLubr (Area02)",
+      "CarriageLub (Area02)",
+      "FinalCutLub (Area02)"
+    ],
+    "Notes": "Nel progetto corrente non risultano esempi MatLub/GuideLub/Losma nelle aree 1-2."
+  },
+  "Area02_Examples": {
+    "RollformerLubr": {
+      "Folder": "32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/21_RollformerLub",
+      "FB": "RollformerLubr_FB.scl",
+      "Call": "RollfomrerLubr_CALL.scl",
+      "PERS": "RollformerLubr_PERS.db",
+      "Notes": [
+        "Lubr_Motor fornisce LubrInterface condivisa a 3 Lubr_Valve.",
+        "ActualPosition usato solo con MaterialPresence_Entry/AfterMW.",
+        "Uscite valvole sono invertite: NOT (ValvesX.ValveCmd).",
+        "Config usa A02_Config.RollfomerLubr (typo nel nome)."
+      ]
+    },
+    "CarriageLub": {
+      "Folder": "32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/48_CarriageLub",
+      "Call": "CarriageLub_CALL.scl",
+      "PERS": "CarriageLub_PERS.db",
+      "Notes": [
+        "Lubr_Pump con ValveCycleTimeOut T#5M.",
+        "Config: WorkMode=2, CounterMode=0, ValveType=0, ManualCmdTimeOut=T#20M.",
+        "Reset counter con CarriageLub_PERS.CarriageLub_Pers_HMI_ResetCounter."
+      ]
+    },
+    "FinalCutLub": {
+      "Folder": "32_Area02/Program blocks/10_A0201_PROFILATURA_TAGLIO/51_DiesLub",
+      "Call": "FinalCutLub_CALL.scl",
+      "PERS": "FinalCutLub_PERS.db",
+      "Notes": [
+        "DiesLubrication_FB con A02_Config.FinalCutLub.",
+        "JobDone da FinalCut.COut.CutHead.Work.",
+        "DataIn.ConnectorPlugged non mappato in esempio: usare TRUE o mappare sensore."
+      ]
+    }
+  },
+  "Usage_Rules": {
+    "MaterialCounter_Use": "Per funzioni a distanza, usare M_PosAMinusPosB e MATERIAL_COUNTERS_MODULE.",
+    "ValveChain": "Tutte le Lubr_Valve devono condividere la stessa LubrInterface (da Lubr_Motor/Lubr_Pump).",
+    "Manual_vs_Auto": "Manuale solo in AreaInterface.Man; automatico con contatori/condizioni.",
+    "Signal_Inversion": "Verificare se ValveCmd va invertito per elettrovalvole fisiche."
+  },
+  "Open_Risks": {
+    "DiesLubrication_LubNormCycleReq": "Nel blocco standard Sts.LubNormCycleReq e forzato FALSE; verificare se e voluto o richiede modifica applicativa."
+  },
+  "TODO_Strategy": {
+    "goal": "Consentire prima generazione compilabile in TIA lasciando TODO per segnali mancanti.",
+    "rules": [
+      "Usare TODO solo nei commenti, mai come nomi variabile.",
+      "Assegnare sempre un valore di default sicuro.",
+      "Risolvere i TODO in un secondo pass sostituendo la riga completa."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: mappa PB lubrificazione",
+      "Lubr.DataIn.PbStartLubr := FALSE;",
+      "// TODO: mappa sensore livello",
+      "Lubr.DataIn.SensorLevel := FALSE;"
+    ]
+  }
+}

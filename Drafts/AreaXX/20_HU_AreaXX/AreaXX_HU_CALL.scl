@@ -1,0 +1,19 @@
+// Block: AreaXX_HU_CALL
+// Title: HU call (AreaXX)
+
+FUNCTION "AreaXX_HU_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+
+BEGIN
+   REGION "HU call"
+      // TODO: replace AreaXX with actual area instance
+      #AreaXX_HU(
+         en := TRUE,
+         AreaInterface := AreaXX.AreaInterface
+      );
+
+      #AreaXX_HU.Q;
+   END_REGION
+
+END_FUNCTION

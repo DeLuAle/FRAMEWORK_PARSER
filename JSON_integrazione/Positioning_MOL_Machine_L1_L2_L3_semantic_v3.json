@@ -1,242 +1,302 @@
 {
-    "meta": {
-        "analysis_scope": "L1_OnOffAxis + L1_MotorS + L2_Positioning_MOL_Machine",
-        "version": "3.0",
-        "analysis_date": "2026-01-07",
-        "physical_model": "Positioning system using standard AC Motor (Contactors) + Encoder Feedback. 'Open Loop' refers to motor control (no servo drive), but 'Closed Loop' positioning via logic.",
-        "key_features": [
-            "No Servo Drive - Uses standard contactors (Fwd/Bkw)",
-            "Multi-speed logic (High/Med/Low) calculated by PLC based on distance to target",
-            "Positioning via Switch-Off points (PreCutOff)",
-            "Backlash compensation",
-            "Homing support (Direct & Switch Search)",
-            "Unit Transformation - Native conversion between Machine Units (Um1) and Display/Profile Units (Um2)"
-        ]
+  "meta": {
+    "analysis_scope": "L1_OnOffAxis + L1_MotorS + L2_Positioning_MOL_Machine",
+    "version": "3.0",
+    "analysis_date": "2026-01-07",
+    "physical_model": "Positioning system using standard AC Motor (Contactors) + Encoder Feedback. 'Open Loop' refers to motor control (no servo drive), but 'Closed Loop' positioning via logic.",
+    "key_features": [
+      "No Servo Drive - Usos standard contactors (Fwd/Bkw)",
+      "Multi-speed logic (High/Med/Low) calculated by PLC based on distance to target",
+      "Positioning via Switch-Off points (PreCutOff)",
+      "Backlash compensation",
+      "Homing support (Direct & Switch Search)",
+      "Unit Transformation - Native conversion between Machine Units (Um1) and Display/Profile Units (Um2)"
+    ]
+  },
+  "Preconditions": {
+    "Required_Inputs": {
+      "L3_Machine_List": "List of L3/L4 machine instances and their call blocks",
+      "L3_CIn_Mapping": "Mapping for Manager/ExtEnable/Config/DSI and any HMI manual commands",
+      "L3_COut_Aggregation": "Which COut signals must be aggregated and where they are consumed",
+      "Safety_Inputs": "AreaInterface, ZSI/DSI signals and any interlocks"
     },
-    "Unit_Transformation": {
-        "description": "Linear transformation handling between Control Units (Um1) and Human Interface/Profile Units (Um2). Allows the HMI to work in a different unit (e.g. inches, degrees) than the logic.",
-        "Definitions": {
-            "Um1 (Unit 1)": "Primary/Machine Unit. The unit used by the logic, L1 controllers, and standard calculations (e.g. mm).",
-            "Um2 (Unit 2)": "Secondary/Display Unit. The unit presented to the operator or defined in product recipes (e.g. inches)."
-        },
-        "Functions": {
-            "Um1-2": {
-                "Formula": "Um2 = (Um1 * m) + q",
-                "Usage": "Displaying actual position data to HMI (COut.ActualPosition -> HMI.Sts.ActualPos_UM2)"
-            },
-            "Um2-1": {
-                "Formula": "Um1 = (Um2 - q) / m",
-                "Usage": "Converting setpoints from HMI/Recipe to logical values (HMI.PresetPosition -> Ax.AxisCtrl.HomePosition)"
-            }
-        },
-        "Data_Type": {
-            "Name": "udt_LinTranformation",
-            "Fields": {
-                "m": "Slope/Multiplier (Real)",
-                "q": "Offset (Real)"
-            }
-        }
-    },
-    "L1_OnOffAxis": {
-        "description": "Logic Controller for Positioning without Servo Drive. Generates discrete speed/direction commands based on position error.",
-        "source_file": "OnOffAxis.scl (581 lines)",
-        "version": "1.2.3 (30/10/2023)",
-        "inputs": {
-            "Interface": "PosFbk_ITF (Actual Position from Encoder)",
-            "HwLsMinus": "Hardware Limit Switch Minus",
-            "HwLsPlus": "Hardware Limit Switch Plus",
-            "HwLsZero": "Home Switch (used in Mode 1)"
-        },
-        "outputs": {
-            "ActorCtrl": {
-                "CmdMinus": "Command Move Backward",
-                "CmdPlus": "Command Move Forward",
-                "CmdLowSpeed": "Select Low Speed (e.g. Inverter DIN or 2-speed motor)",
-                "CmdMediumSpeed": "Select Medium Speed",
-                "CmdHighSpeed": "Select High Speed"
-            }
-        },
-        "functionality": {
-            "Velocity_Calculation": {
-                "method": "Differentiation of position over time (RecallTime)",
-                "filter": "First order lag filter (decayFct)",
-                "units": "Configurable (0=unit/s, 1=mm/s, 2=m/min)"
-            },
-            "Positioning_Logic": {
-                "type": "Multi-stage Switch-off",
-                "Control_Zones": {
-                    "High_Speed": "Distance > PreEndMedSpeed",
-                    "Medium_Speed": "Distance <= PreEndMedSpeed AND Distance > PreEndLowSpeed",
-                    "Low_Speed": "Distance <= PreEndLowSpeed"
-                },
-                "Stop_Point": "Target +/- PreCutOff (Fly distance compensation)",
-                "InPosition_Window": "Target +/- ToleranceWindow"
-            },
-            "Backlash_Compensation": {
-                "description": "Compensates mechanical play when reversing direction",
-                "mechanism": "Overshoots target by 'Backlash' distance then returns",
-                "activation": "Config.BacklashActivation = TRUE"
-            },
-            "Homing": {
-                "Mode_0": "Direct Set (Preset) - Sets current position to 'HomePosition'",
-                "Mode_1": "Switch Search - Moves until HwLsZero/Limit, then sets preset",
-                "Inputs": "Config.HomingDirection, HwLsZero"
-            }
-        },
-        "Config": {
-            "RecallTime": "Time base for velocity calculation (e.g. 100ms)",
-            "StandstillVelocity": "Velocity threshold for Standstill detection",
-            "PreEndLowSpeed": "Distance from target to switch to Low Speed",
-            "PreEndMedSpeed": "Distance from target to switch to Medium Speed",
-            "PreCutOff": "Stop signal advance distance (braking distance)",
-            "Backlash": "Backlash distance"
-        },
-        "PosFbk_Interface_and_Variants": {
-            "description": "Modular Position Feedback system. Aggiunge flessibilità permettendo di collegare qualsiasi fonte di posizione all'OnOffAxis tramite un'interfaccia standard.",
-            "Interface_UDT": {
-                "name": "PosFbk_ITF",
-                "structure": {
-                    "Sts": {
-                        "Position": "LReal - Posizione attuale in unità ingegneristiche",
-                        "Error": "Bool - Errore sensore attivo",
-                        "ErrorNotSynched": "Bool - Posizione non valida/referenziata",
-                        "EncIsAbsolute": "Bool - True se encoder assoluto (no homing required)",
-                        "PresetAck": "Bool - Conferma esecuzione preset"
-                    },
-                    "Ctrl": {
-                        "PresetCmd": "Bool - Comando forza posizione (Homing)",
-                        "PresetPosition": "LReal - Valore da forzare",
-                        "Rst": "Bool - Reset errori sensore"
-                    }
-                }
-            },
-            "Available_Implementations": {
-                "PosFbk_AnalogIn": {
-                    "description": "Feedback da ingresso analogico (es. LVDT, Potenziometro lineare)",
-                    "features": "Scaling, simulazione integrata, gestione errore rottura cavo (-32768)"
-                },
-                "PosFbk_SickAFM60": {
-                    "description": "Driver per encoder Sick AFM60 (Profinet/EtherNetIP)",
-                    "features": "Lettura diretta posizione multitu/singletu"
-                },
-                "PosFbk_SickANM58": {
-                    "description": "Driver per encoder Sick ANM58"
-                },
-                "PosFbk_BaumerEAL580": {
-                    "description": "Driver per encoder Baumer EAL580"
-                },
-                "Generic/External": {
-                    "description": "È possibile mappare qualsiasi altra fonte (es. TO_ExternalEncoder, HSC) scrivendo logicamente sull'UDT PosFbk_ITF prima di chiamare OnOffAxis"
-                }
-            }
-        },
-        "Alarms": {
-            "TargetPosIncorrect": "Target outside limits",
-            "PosOutTolerance": "Axis stopped outside tolerance window",
-            "WrongDirection": "Encoder counts opposite to command (wiring error)",
-            "WrongNotIncrease": "Command active but position not changing (mechanical jam)",
-            "HwLimitMinus/Plus": "Hardware limit switch hit",
-            "TimeoutPreset": "Homing sequence timeout"
-        }
-    },
-    "L1_MotorS": {
-        "description": "Bidirectional Motor Starter Wrapper (Contactor Control)",
-        "source_file": "MotorS.scl (116 lines)",
-        "version": "4.2",
-        "inputs": {
-            "MotorCtrl": {
-                "RunFwd": "Request Run Forward",
-                "RunBkw": "Request Run Backward",
-                "Rst": "Reset Alarms",
-                "SafeStop": "Interlock from Safety"
-            },
-            "ThermalProtectionA/B": "Thermal breaker feedback (NC)",
-            "FdbkRunning": "Contactor feedback (Aux contact)",
-            "ReversalTime": "Dead time when switching direction (Anti-plugging)"
-        },
-        "outputs": {
-            "BkwContactor": "Output to Backward Contactor coil",
-            "FwdContactor": "Output to Forward Contactor coil"
-        },
-        "logic": {
-            "Interlock": "FwdDeny / BkwDeny ensures contactors never engage simultaneously",
-            "Reversal_Delay": "Wait 'ReversalTime' (e.g. 500ms) after stop before allowing reverse direction",
-            "Feedback_Monitor": "Checks FdbkRunning matches Command within 'FeedbackTimeout'",
-            "Simulation": "If Sys.SimulationDevice=TRUE, bypasses Feedback checks"
-        },
-        "Alarms": {
-            "ThermalProtectionA/B": "Motor overload tripped",
-            "Feedback": "Contactor failed to pick up or welded"
-        }
-    },
-    "L2_Positioning_MOL_Machine": {
-        "description": "Aggregator L2 for Motor Open Loop Positioning",
-        "structure": {
-            "Ax": "L1_OnOffAxis instance ('Brain' of positioning)",
-            "Motor": "L1_MotorS instance ('Muscle' of movement)",
-            "PosFeedback": "External interface (not L1 block, likely encoder input)"
-        },
-        "Mapping": {
-            "Ax_to_Motor": [
-                "Ax.ActorCtrl.CmdMinus -> Motor.MotorCtrl.RunBkw",
-                "Ax.ActorCtrl.CmdPlus -> Motor.MotorCtrl.RunFwd"
-            ],
-            "Speed_Selection": "Ax.ActorCtrl.CmdLow/Medium/High -> Wired to physical outputs or Inverter inputs (not handled in L2 FB directly, likely via DataOut external mapping? - CHECK)"
-        },
-        "Config": {
-            "DelayMissingCondition": "Warning delay if movement requested but not permitted",
-            "CyclicOBTime_ms": "Cycle time for velocity calc (passed to Ax)",
-            "Ax": "Configuration for OnOffAxis (Limits, Windows, etc.)",
-            "Ax_UM2": "Linear Transformation for secondary UoM (e.g. mm to inch or similar)"
-        },
-        "Par": {
-            "description": "Runtime Parameters",
-            "PosTolerance": "Positioning accuracy window",
-            "Minus_Limit/Plus_Limit": "Software Limits",
-            "PreCutOff": "Braking distance override"
-        },
-        "CIn": {
-            "Manager": {
-                "Control_ON": "TRUE=Auto, FALSE=Manual",
-                "MoveToPos": "Command: Go to 'Pos'",
-                "Minus/Plus": "Command: Jog",
-                "Pos": "Target Position (Auto)"
-            },
-            "PositionLimits": "Dynamic limits override (Min/Max Enable & Valid)"
-        },
-        "COut": {
-            "ActualPosition": "Current Position",
-            "InPosition": "Target Reached",
-            "Minus/PlusRunning": "Motor Contactor Active",
-            "Min/MaxPosition": "Active Limits"
-        },
-        "Manual_Mode": {
-            "Inputs": "DataIn.PB.Bwd_Minus, Fwd_Plus, MoveToPos (Move to HMI Target)",
-            "Preset": "HMI.B_Preset -> Sets current pos to HMI.PresetPosition",
-            "Preset_UM2": "Same but uses Unit Measure 2 transformation"
-        },
-        "Conditions_Logic": {
-            "Gen_Cnd": "NOT SafeStop AND NOT Alarm AND NOT StopCommands",
-            "Minus_Cnd": "Gen_Cnd AND MinusExtEnable AND Ax.MoveMinusPermitted",
-            "Plus_Cnd": "Gen_Cnd AND PlusExtEnable AND Ax.MovePlusPermitted",
-            "Pos_Cnd": "Directional Permitted AND Homing Done"
-        },
-        "Alarms": {
-            "Ax_NotHomed": "Attempt to move in Auto/Pos without Homing",
-            "Ax": "Bubbled up from OnOffAxis",
-            "Motor": "Bubbled up from MotorS"
-        }
-    },
-    "L3_Integration_Patterns": {
-        "Start_Positioning": {
-            "Step_1": "Check MachineInterface.AutReady = TRUE",
-            "Step_2": "Set CIn.Manager.Pos = Target",
-            "Step_3": "Set CIn.Manager.MoveToPos = TRUE",
-            "Step_4": "Wait for COut.InPosition = TRUE"
-        },
-        "Homing_Sequence": {
-            "Direct": "Operator places machine, presses HMI Preset",
-            "Switch_Search": "Not directly exposed in Manager UDT? Check AxisCtrl usage."
-        }
+    "Question_Gate": {
+      "If_Missing": [
+        "Stop and ask for the missing inputs before generating L3 integration."
+      ],
+      "Minimum_Questions": [
+        "Which L3/L4 machine instances are present and what are their call block names?",
+        "Which Manager/ExtEnable/Config/DSI fields are used for this machine type?",
+        "Which COut signals must be aggregated in L3?",
+        "Which safety/area signals (AreaInterface, ZSI/DSI) must be wired?"
+      ]
     }
+  },
+  "Unit_Transformation": {
+    "description": "Linear transformation handling between Control Units (Um1) and Human Interface/Profile Units (Um2). Allows the HMI to work in a different unit (e.g. inches, degrees) than the logic.",
+    "Definitions": {
+      "Um1 (Unit 1)": "Primary/Machine Unit. The unit used by the logic, L1 controllers, and standard calculations (e.g. mm).",
+      "Um2 (Unit 2)": "Secondary/Display Unit. The unit presented to the operator or defined in product recipes (e.g. inches)."
+    },
+    "Functions": {
+      "Um1-2": {
+        "Formula": "Um2 = (Um1 * m) + q",
+        "Usage": "Displaying actual position data to HMI (COut.ActualPosition -> HMI.Sts.ActualPos_UM2)"
+      },
+      "Um2-1": {
+        "Formula": "Um1 = (Um2 - q) / m",
+        "Usage": "Converting setpoints from HMI/Recipe to logical values (HMI.PresetPosition -> Ax.AxisCtrl.HomePosition)"
+      }
+    },
+    "Data_Type": {
+      "Name": "udt_LinTranformation",
+      "Fields": {
+        "m": "Slope/Multiplier (Real)",
+        "q": "Offset (Real)"
+      }
+    }
+  },
+  "L1_OnOffAxis": {
+    "description": "Logic Controller for Positioning without Servo Drive. Generates discrete speed/direction commands based on position error.",
+    "source_file": "OnOffAxis.scl (581 lines)",
+    "version": "1.2.3 (30/10/2023)",
+    "inputs": {
+      "Interface": "PosFbk_ITF (Actual Position from Encoder)",
+      "HwLsMinus": "Hardware Limit Switch Minus",
+      "HwLsPlus": "Hardware Limit Switch Plus",
+      "HwLsZero": "Home Switch (used in Mode 1)"
+    },
+    "outputs": {
+      "ActorCtrl": {
+        "CmdMinus": "Command Move Backward",
+        "CmdPlus": "Command Move Forward",
+        "CmdLowSpeed": "Select Low Speed (e.g. Inverter DIN or 2-speed motor)",
+        "CmdMediumSpeed": "Select Medium Speed",
+        "CmdHighSpeed": "Select High Speed"
+      }
+    },
+    "functionality": {
+      "Velocity_Calculation": {
+        "method": "Differentiation of position over time (RecallTime)",
+        "filter": "First order lag filter (decayFct)",
+        "units": "Configurable (0=unit/s, 1=mm/s, 2=m/min)"
+      },
+      "Positioning_Logica": {
+        "type": "Multi-stage Switch-off",
+        "Control_Zones": {
+          "High_Speed": "Distance > PreEndMedSpeed",
+          "Medium_Speed": "Distance <= PreEndMedSpeed AND Distance > PreEndLowSpeed",
+          "Low_Speed": "Distance <= PreEndLowSpeed"
+        },
+        "Stop_Point": "Target +/- PreCutOff (Fly distance compensation)",
+        "InPosition_Window": "Target +/- ToleranceWindow"
+      },
+      "Backlash_Compensation": {
+        "description": "Compensates mechanical play when reversing direction",
+        "mechanism": "Overshoots target by 'Backlash' distance then returns",
+        "activation": "Config.BacklashActivation = TRUE"
+      },
+      "Homing": {
+        "Mode_0": "Direct Set (Preset) - Sets current position to 'HomePosition'",
+        "Mode_1": "Switch Search - Moves until HwLsZero/Limit, then sets preset",
+        "Inputs": "Config.HomingDirection, HwLsZero"
+      }
+    },
+    "Config": {
+      "RecallTime": "Time base for velocity calculation (e.g. 100ms)",
+      "StandstillVelocity": "Velocity threshold for Standstill detection",
+      "PreEndLowSpeed": "Distance from target to switch to Low Speed",
+      "PreEndMedSpeed": "Distance from target to switch to Medium Speed",
+      "PreCutOff": "Stop signal advance distance (braking distance)",
+      "Backlash": "Backlash distance"
+    },
+    "PosFbk_Interface_and_Variants": {
+      "description": "Modular Position Feedback system. Aggiunge flessibilit\u00e0 permettendo di collegare qualsiasi fonte di posizione all'OnOffAxis tramite un'interfaccia standard.",
+      "Interface_UDT": {
+        "name": "PosFbk_ITF",
+        "structure": {
+          "Sts": {
+            "Position": "LReal - Posizione attuale in unit\u00e0 ingegneristiche",
+            "Error": "Bool - Errore sensore attivo",
+            "ErrorNotSynched": "Bool - Posizione non valida/referenziata",
+            "EncIsAbsolute": "Bool - True se encoder assoluto (no homing required)",
+            "PresetAck": "Bool - Conferma esecuzione preset"
+          },
+          "Ctrl": {
+            "PresetCmd": "Bool - Comando forza posizione (Homing)",
+            "PresetPosition": "LReal - Valore da forzare",
+            "Rst": "Bool - Reset errori sensore"
+          }
+        }
+      },
+      "Available_Implementations": {
+        "PosFbk_AnalogIn": {
+          "description": "Feedback da ingresso analogico (es. LVDT, Potenziometro lineare)",
+          "features": "Scaling, simulazione integrata, gestione errore rottura cavo (-32768)"
+        },
+        "PosFbk_SickAFM60": {
+          "description": "Driver per encoder Sick AFM60 (Profinet/EtherNetIP)",
+          "features": "Lettura diretta posizione multitu/singletu"
+        },
+        "PosFbk_SickANM58": {
+          "description": "Driver per encoder Sick ANM58"
+        },
+        "PosFbk_BaumerEAL580": {
+          "description": "Driver per encoder Baumer EAL580"
+        },
+        "Generic/External": {
+          "description": "\u00c8 possibile mappare qualsiasi altra fonte (es. TO_ExternalEncoder, HSC) scrivendo logicamente sull'UDT PosFbk_ITF prima di chiamare OnOffAxis"
+        }
+      }
+    },
+    "Alarms": {
+      "TargetPosIncorrect": "Target outside limits",
+      "PosOutTolerance": "Axis stopped outside tolerance window",
+      "WrongDirection": "Encoder counts opposite to command (wiring error)",
+      "WrongNotIncrease": "Command active but position not changing (mechanical jam)",
+      "HwLimitMinus/Plus": "Hardware limit switch hit",
+      "TimeoutPreset": "Homing sequence timeout"
+    }
+  },
+  "L1_MotorS": {
+    "description": "Bidirectional Motor Starter Wrapper (Contactor Control)",
+    "source_file": "MotorS.scl (116 lines)",
+    "version": "4.2",
+    "inputs": {
+      "MotorCtrl": {
+        "RunFwd": "Request Run Forward",
+        "RunBkw": "Request Run Backward",
+        "Rst": "Reset Alarms",
+        "SafeStop": "Interlock from Safety"
+      },
+      "ThermalProtectionA/B": "Thermal breaker feedback (NC)",
+      "FdbkRunning": "Contactor feedback (Aux contact)",
+      "ReversalTime": "Dead time when switching direction (Anti-plugging)"
+    },
+    "outputs": {
+      "BkwContactor": "Output to Backward Contactor coil",
+      "FwdContactor": "Output to Forward Contactor coil"
+    },
+    "logic": {
+      "Interlock": "FwdDeny / BkwDeny ensures contactors never engage simultaneously",
+      "Reversal_Delay": "Wait 'ReversalTime' (e.g. 500ms) after stop before allowing reverse direction",
+      "Feedback_Monitor": "Checks FdbkRunning matches Command within 'FeedbackTimeout'",
+      "Simulation": "If Sys.SimulationDevice=TRUE, bypasses Feedback checks"
+    },
+    "Alarms": {
+      "ThermalProtectionA/B": "Motor overload tripped",
+      "Feedback": "Contactor failed to pick up or welded"
+    }
+  },
+  "L2_Positioning_MOL_Machine": {
+    "description": "Aggregator L2 for Motor Open Loop Positioning",
+    "structure": {
+      "Ax": "L1_OnOffAxis instance ('Brain' of positioning)",
+      "Motor": "L1_MotorS instance ('Muscle' of movement)",
+      "PosFeedback": "External interface (not L1 block, likely encoder input)"
+    },
+    "Mapping": {
+      "Ax_to_Motor": [
+        "Ax.ActorCtrl.CmdMinus -> Motor.MotorCtrl.RunBkw",
+        "Ax.ActorCtrl.CmdPlus -> Motor.MotorCtrl.RunFwd"
+      ],
+      "Speed_Selection": "Ax.ActorCtrl.CmdLow/Medium/High -> Wired to physical outputs or Inverter inputs (not handled in L2 FB directly, likely via DataOut external mapping? - CHECK)"
+    },
+    "Config": {
+      "DelayMissingCondition": "Warning delay if movement requested but not permitted",
+      "CyclicOBTime_ms": "Cycle time for velocity calc (passed to Ax)",
+      "Ax": "Configuration for OnOffAxis (Limits, Windows, etc.)",
+      "Ax_UM2": "Linear Transformation for secondary UoM (e.g. mm to inch or similar)"
+    },
+    "Par": {
+      "description": "Runtime Parameters",
+      "PosTolerance": "Positioning accuracy window",
+      "Minus_Limit/Plus_Limit": "Software Limits",
+      "PreCutOff": "Braking distance override"
+    },
+    "CIn": {
+      "Manager": {
+        "Control_ON": "TRUE=Auto, FALSE=Manual",
+        "MoveToPos": "Command: Go to 'Pos'",
+        "Minus/Plus": "Command: Jog",
+        "Pos": "Target Position (Auto)"
+      },
+      "PositionLimits": "Dynamic limits override (Min/Max Enable & Valid)"
+    },
+    "COut": {
+      "ActualPosition": "Current Position",
+      "InPosition": "Target Reached",
+      "Minus/PlusRunning": "Motor Contactor Active",
+      "Min/MaxPosition": "Active Limits"
+    },
+    "Manual_Mode": {
+      "Inputs": "DataIn.PB.Bwd_Minus, Fwd_Plus, MoveToPos (Move to HMI Target)",
+      "Preset": "HMI.B_Preset -> Sets current pos to HMI.PresetPosition",
+      "Preset_UM2": "Same but uses Unit Measure 2 transformation"
+    },
+    "Conditions_Logica": {
+      "Gen_Cnd": "NOT SafeStop AND NOT Alarm AND NOT StopCommands",
+      "Minus_Cnd": "Gen_Cnd AND MinusExtEnable AND Ax.MoveMinusPermitted",
+      "Plus_Cnd": "Gen_Cnd AND PlusExtEnable AND Ax.MovePlusPermitted",
+      "Pos_Cnd": "Directional Permitted AND Homing Done"
+    },
+    "Alarms": {
+      "Ax_NotHomed": "Attempt to move in Auto/Pos without Homing",
+      "Ax": "Bubbled up from OnOffAxis",
+      "Motor": "Bubbled up from MotorS"
+    }
+  },
+  "L3_Integration_Patterns": {
+    "Start_Positioning": {
+      "Step_1": "Check MachineInterface.AutReady = TRUE",
+      "Step_2": "Set CIn.Manager.Pos = Target",
+      "Step_3": "Set CIn.Manager.MoveToPos = TRUE",
+      "Step_4": "Wait for COut.InPosition = TRUE"
+    },
+    "Homing_Sequence": {
+      "Direct": "Operator places machine, presses HMI Preset",
+      "Switch_Search": "Not directly exposed in Manager UDT? Check AxisCtrl usage."
+    }
+  },
+  "L3_Validation_Checklist": {
+    "inputs": "Required inputs provided and mapped",
+    "safety": "AreaInterface/ZSI/DSI wired and consistent",
+    "aggregation": "COut aggregation implemented as specified",
+    "commands": "Manager/Manual commands mapped without conflicts"
+  },
+  "Standard_Schema": {
+    "Schema_Version": "1.0",
+    "Standard_Sections": [
+      "meta",
+      "Precondizioni",
+      "Variabili_Globali",
+      "L1",
+      "L2",
+      "L3",
+      "Pattern_Integrazione_L3",
+      "Matrice_Responsabilita",
+      "Errori_Comuni_L3",
+      "Checklist_Validazione_L3"
+    ],
+    "Note": "Le sezioni italiane sono alias delle sezioni tecniche esistenti; usare i contenuti piu dettagliati presenti nel file."
+  },
+  "TODO_Strategy": {
+    "goal": "Allow first pass code generation to compile in TIA while leaving TODOs for missing mappings.",
+    "rules": [
+      "Use TODOs only in comments, never as placeholder variable names.",
+      "Always assign a safe default value so the code compiles.",
+      "Resolve TODOs in a second pass by replacing the full assignment line."
+    ],
+    "safe_defaults": {
+      "Bool": "FALSE",
+      "LReal": "0.0",
+      "Int/UInt": "0"
+    },
+    "example_block": [
+      "// TODO: Map real device command",
+      "t_CIn_Device.Manager.Control_ON := FALSE;",
+      "// TODO: Map real setpoint",
+      "t_CIn_Device.Manager.Vel := 0.0;"
+    ]
+  }
 }

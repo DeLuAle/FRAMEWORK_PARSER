@@ -1,0 +1,106 @@
+// Block: Loop1_CALL
+// Title: Data In (template)
+
+FUNCTION "Loop1_CALL" : Void
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 0.1
+// Data In (template)
+   VAR_TEMP
+      Dummy : Bool;
+   END_VAR
+
+
+BEGIN
+   REGION "Data In"
+      // TODO: map loop pushbuttons and sensors
+      Loop1.DataIn.Pb_StartStop := FALSE;
+      Loop1.DataIn.Pb_Start := FALSE;
+      Loop1.DataIn.Pb_Stop := FALSE;
+      Loop1.DataIn.SensorEntryMaterialPresence := FALSE;
+      Loop1.DataIn.SensorExitEnableUseEncoder := FALSE;
+      Loop1.DataIn.SensorExitMaterialPresence := FALSE;
+      Loop1.DataIn.SensorLoopMaxLow_Or_TPEntry := FALSE;
+      Loop1.DataIn.SensorLoopMaxLow_Or_TPExit := FALSE;
+      Loop1.DataIn.PlugConnected := FALSE;
+      Loop1.DataIn.SensorNotLoopMinHigh := FALSE;
+   END_REGION
+
+   REGION "Coordination In"
+      // TODO: map stop/requests from area logic
+      Loop1.CIn.EnableStopInPhase := FALSE;
+      Loop1.CIn.EnableStopProgrammed := FALSE;
+      Loop1.CIn.ON_Request := FALSE;
+      Loop1.CIn.Synchro_Request := FALSE;
+      Loop1.CIn.MaterialMiddlePos_Request := FALSE;
+   END_REGION
+
+   REGION "Coordination In - Entry"
+      // TODO: map entry machine CheckNext + material counter
+      Loop1.CIn.Entry_MaxLowOverride := FALSE;
+      Loop1.CIn.Entry_NxtBkw := FALSE;
+      Loop1.CIn.Entry_NxtFwd := FALSE;
+      Loop1.CIn.Entry_MatCounterValid := FALSE;
+      Loop1.CIn.Entry_MaterialStandstill := FALSE;
+      Loop1.CIn.Entry_NxtEndOfMaterial := FALSE;
+      Loop1.CIn.Entry_EmptyingConfirmed := FALSE;
+      Loop1.CIn.Entry_ActualVelocity := 0.0;
+      Loop1.CIn.Entry_MatCounter := 0.0;
+      Loop1.CIn.Entry_AtSinch_EchoPosAx := 0.0;
+      Loop1.CIn.Entry_AtSynch_ConvertedPosMatCounter := 0.0;
+   END_REGION
+
+   REGION "Coordination In - Exit"
+      // TODO: map exit machine CheckNext + material counter
+      Loop1.CIn.Exit_NxtBkw := FALSE;
+      Loop1.CIn.Exit_NxtFwd := FALSE;
+      Loop1.CIn.Exit_MatCounterValid := FALSE;
+      Loop1.CIn.Exit_MaterialStandstill := FALSE;
+      Loop1.CIn.Exit_ActualVelocity := 0.0;
+      Loop1.CIn.Exit_MatCounter := 0.0;
+      Loop1.CIn.Exit_AtSynch_ConvEchoPosAx := 0.0;
+      Loop1.CIn.Exit_AtSynch_ConvertedPosMatCounter := 0.0;
+   END_REGION
+
+   REGION "Coordination In - Measuring Input entry"
+      // TODO: map entry measuring inputs on sensor edge
+      Loop1.CIn.Entry_MeasInput_InOperation := FALSE;
+      Loop1.CIn.Entry_MeasInput_ErrorPresence := FALSE;
+      Loop1.CIn.Entry_MeasInput_MeasuringDone_ID := 0;
+      Loop1.CIn.Entry_MeasInput_MeasuringValue := 0.0;
+   END_REGION
+
+   REGION "Coordination In - Measuring Input exit"
+      // TODO: map exit measuring inputs on sensor edge
+      Loop1.CIn.Exit_MeasInput_InOperation := FALSE;
+      Loop1.CIn.Exit_MeasInput_ErrorPresence := FALSE;
+      Loop1.CIn.Exit_MeasInput_MeasuringDone_ID := 0;
+      Loop1.CIn.Exit_MeasInput_MeasuringValue := 0.0;
+   END_REGION
+
+   REGION "Coordination in - Pit tables"
+      // TODO: map pit table positions if used
+      Loop1.CIn.PitTables.Sts_PosUp := FALSE;
+      Loop1.CIn.PitTables.Sts_PosMiddle := FALSE;
+      Loop1.CIn.PitTables.Sts_PosDown := FALSE;
+   END_REGION
+
+   REGION "Main"
+      // TODO: replace AreaXX/Areas_ITF/Axx_Config with real area wiring
+      #Loop1(
+         en := TRUE,
+         AreaInterfaceEntry := AreaXX.AreaInterface,
+         AreaInterfaceExit := Areas_ITF.Axx.AreaInterface,
+         Config := Axx_Config.Loop1,
+         PersistentValues := Loop1_PERS.PersistentValues
+      );
+
+      #Loop1.Q;
+   END_REGION
+
+   REGION "Data Out"
+      // TODO: map loop lamp and COut to Areas_ITF
+      Dummy := Loop1.DataOut.LampSystemOn;
+   END_REGION
+
+
+END_FUNCTION
