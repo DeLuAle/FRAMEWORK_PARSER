@@ -41,7 +41,6 @@
             "mandatory": true,
             "notes": "IN0 e IN1 devono essere dello stesso tipo. Molto utile per assegnazioni condizionali.",
             "see_also": [
-                "MUX",
                 "IF"
             ],
             "tia_version": "V20+"
@@ -155,8 +154,7 @@
             "example": "isEqual := EQ(IN1 := status, IN2 := 'READY');",
             "notes": "Generalmente si preferisce l'operatore = diretto. Utile in contesti funzionali.",
             "see_also": [
-                "NE",
-                "CMP"
+                "NE"
             ],
             "tia_version": "V20+"
         },
@@ -187,8 +185,7 @@
             "example": "isDifferent := NE(IN1 := currentMode, IN2 := previousMode);",
             "notes": "Generalmente si preferisce l'operatore <> diretto.",
             "see_also": [
-                "EQ",
-                "CMP"
+                "EQ"
             ],
             "tia_version": "V20+"
         },
@@ -323,6 +320,74 @@
                 "LE"
             ],
             "tia_version": "V20+"
+        },
+        {
+            "name": "MUX",
+            "signature": "MUX(K := <selector>, IN0 := <val0>, IN1 := <val1>, ...)",
+            "parameters": [
+                {
+                    "name": "K",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Selettore (0=IN0, 1=IN1, ...)",
+                    "optional": false
+                },
+                {
+                    "name": "IN0..INn",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valori di input possibili",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "Same as inputs",
+                "description": "Valore selezionato da K"
+            },
+            "description": "Multiplexer. Seleziona uno degli input INx in base al valore intero K.",
+            "example": "selected := MUX(K := selector, IN0 := valA, IN1 := valB, IN2 := valC);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "OK",
+            "signature": "OK(IN := <real/lreal>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore floating-point da verificare.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se il numero è valido (non NaN, non Inf)."
+            },
+            "description": "Verifica se un numero floating-point è valido secondo IEEE 754.",
+            "example": "IF OK(#myReal) THEN ...",
+            "tia_version": "V11+"
+        },
+        {
+            "name": "NOT_OK",
+            "signature": "NOT_OK(IN := <real/lreal>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL/LREAL",
+                    "direction": "IN",
+                    "description": "Valore floating-point da verificare.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "TRUE se il numero NON è valido (NaN, Inf)."
+            },
+            "description": "Verifica se un numero floating-point è invalido (NaN o Inf).",
+            "example": "IF NOT_OK(#myReal) THEN ...",
+            "tia_version": "V11+"
         }
     ]
 }

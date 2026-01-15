@@ -72,7 +72,6 @@
             "mandatory": true,
             "notes": "COUNT non deve superare la dimensione degli array. Gli array devono avere elementi dello stesso tipo.",
             "see_also": [
-                "UMOVE_BLK",
                 "FILL_BLK",
                 "MOVE"
             ],
@@ -115,8 +114,7 @@
             "mandatory": true,
             "notes": "Utile per inizializzazione array. COUNT non deve superare la dimensione dell'array.",
             "see_also": [
-                "MOVE_BLK",
-                "UFILL_BLK"
+                "MOVE_BLK"
             ],
             "tia_version": "V20+"
         },
@@ -188,10 +186,367 @@
             "description": "Verifica se una variabile è di tipo array.",
             "example": "IF IS_ARRAY(data) THEN\n    count := CountOfElements(data);\nEND_IF;",
             "see_also": [
-                "CountOfElements",
-                "TypeOf"
+                "CountOfElements"
             ],
             "tia_version": "V20+"
+        },
+        {
+            "name": "Serialize",
+            "signature": "Serialize(SRC_VARIABLE := <variant>, DEST_ARRAY := <variant>, POS := <dint>)",
+            "parameters": [
+                {
+                    "name": "SRC_VARIABLE",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Variabile sorgente (UDT, STRUCT, ecc.) da serializzare",
+                    "optional": false
+                },
+                {
+                    "name": "DEST_ARRAY",
+                    "type": "VARIANT",
+                    "direction": "OUT",
+                    "description": "Array di destinazione (ARRAY of BYTE/CHAR/WBTYE/WCHAR) standard access",
+                    "optional": false
+                },
+                {
+                    "name": "POS",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di inizio scrittura nell'array. Aggiornato alla fine.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Status code (0 = OK)"
+            },
+            "description": "Serializza una variabile complessa in un array di byte sequenziale.",
+            "example": "status := Serialize(SRC_VARIABLE := \"myUdt\", DEST_ARRAY := \"buffer\", POS := \"index\");",
+            "notes": "L'array di destinazione deve essere abbastanza grande. POS viene incrementato automaticamente.",
+            "see_also": [
+                "Deserialize"
+            ],
+            "tia_version": "V13+"
+        },
+        {
+            "name": "Deserialize",
+            "signature": "Deserialize(SRC_ARRAY := <variant>, DEST_VARIABLE => <variant>, POS := <dint>)",
+            "parameters": [
+                {
+                    "name": "SRC_ARRAY",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Array sorgente (ARRAY of BYTE/CHAR) con i dati serializzati",
+                    "optional": false
+                },
+                {
+                    "name": "DEST_VARIABLE",
+                    "type": "VARIANT",
+                    "direction": "OUT",
+                    "description": "Variabile di destinazione dove ricostruire i dati",
+                    "optional": false
+                },
+                {
+                    "name": "POS",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di inizio lettura. Aggiornato alla fine.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Status code (0 = OK)"
+            },
+            "description": "Deserializza un array di byte ricostruendo la struttura dati originale.",
+            "example": "status := Deserialize(SRC_ARRAY := \"buffer\", DEST_VARIABLE => \"myUdt\", POS := \"index\");",
+            "notes": "Speculare a Serialize.",
+            "see_also": [
+                "Serialize"
+            ],
+            "tia_version": "V13+"
+        },
+        {
+            "name": "SCATTER",
+            "signature": "SCATTER(IN := <bit_sequence>, OUT => <bool_array_or_struct>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE/WORD/DWORD/LWORD",
+                    "direction": "IN",
+                    "description": "Sequenza di bit da scomporre",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY of BOOL / STRUCT",
+                    "direction": "OUT",
+                    "description": "Destinazione bit singoli. Deve avere numero esatto di elementi.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scompone una variabile bit-string in singoli bit.",
+            "example": "SCATTER(IN := myWord, OUT => myBoolArray);",
+            "notes": "L'array di destinazione deve corrispondere esattamente alla dimensione di IN (es. 16 bool per WORD).",
+            "see_also": [
+                "GATHER",
+                "SCATTER_BLK"
+            ],
+            "tia_version": "V14+"
+        },
+        {
+            "name": "GATHER",
+            "signature": "GATHER(IN := <bool_array_or_struct>, OUT => <bit_sequence>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ARRAY of BOOL / STRUCT",
+                    "direction": "IN",
+                    "description": "Sorgente bit singoli",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "BYTE/WORD/DWORD/LWORD",
+                    "direction": "OUT",
+                    "description": "Destinazione variabile bit-string",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Ricompone singoli bit in una variabile bit-string.",
+            "example": "GATHER(IN := myBoolArray, OUT => myWord);",
+            "notes": "Speculare a SCATTER.",
+            "see_also": [
+                "SCATTER",
+                "GATHER_BLK"
+            ],
+            "tia_version": "V14+"
+        },
+        {
+            "name": "SCATTER_BLK",
+            "signature": "SCATTER_BLK(IN := <array_bit_sequence>, COUNT_IN := <count>, OUT => <array_bool>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ARRAY of BYTE/WORD/...",
+                    "direction": "IN",
+                    "description": "Array sorgente di bit-string",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT_IN",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi dell'array IN da processare",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY of BOOL",
+                    "direction": "OUT",
+                    "description": "Array di destinazione bool (deve essere abbastanza capiente)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scompone multipli elementi bit-string in un array continuo di bool.",
+            "example": "SCATTER_BLK(IN := wordArr, COUNT_IN := 2, OUT => boolArr); // Scompone 2 WORD in 32 BOOL",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "GATHER_BLK",
+            "signature": "GATHER_BLK(IN := <array_bool>, COUNT_OUT := <count>, OUT => <array_bit_sequence>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ARRAY of BOOL",
+                    "direction": "IN",
+                    "description": "Sorgente array di bool",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT_OUT",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi dell'array OUT da scrivere",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY of BYTE/WORD/...",
+                    "direction": "OUT",
+                    "description": "Destinazione array bit-string",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Ricompone un array continuo di bool in multipli elementi bit-string.",
+            "example": "GATHER_BLK(IN := boolArr, COUNT_OUT := 2, OUT => wordArr); // Ricompone 32 BOOL in 2 WORD",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "UMOVE_BLK",
+            "signature": "UMOVE_BLK(IN := <source_array>, COUNT := <num_elements>, OUT => <dest_array>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ARRAY",
+                    "direction": "IN",
+                    "description": "Array sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi da copiare",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY",
+                    "direction": "OUT",
+                    "description": "Array destinazione",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Copia un blocco di dati in modo ininterrompibile (Uninterruptible).",
+            "example": "UMOVE_BLK(IN := src, COUNT := 10, OUT => dest);",
+            "notes": "Non può essere interrotto da OB a priorità superiore. Usare con cautela per non bloccare il ciclo.",
+            "see_also": [
+                "MOVE_BLK"
+            ],
+            "tia_version": "V13+"
+        },
+        {
+            "name": "UFILL_BLK",
+            "signature": "UFILL_BLK(IN := <value>, COUNT := <num_elements>, OUT => <dest_array>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Valore da replicare",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT",
+                    "type": "UINT/UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi",
+                    "optional": false
+                },
+                {
+                    "name": "OUT",
+                    "type": "ARRAY",
+                    "direction": "OUT",
+                    "description": "Array destinazione",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Riempie un array con un valore in modo ininterrompibile.",
+            "example": "UFILL_BLK(IN := 0, COUNT := 100, OUT => arr);",
+            "notes": "Versione ininterrompibile di FILL_BLK.",
+            "see_also": [
+                "FILL_BLK"
+            ],
+            "tia_version": "V13+"
+        },
+        {
+            "name": "MOVE_BLK_VARIANT",
+            "signature": "MOVE_BLK_VARIANT(SRC := <variant>, COUNT := <udint>, SRC_INDEX := <dint>, DEST_INDEX := <dint>, DEST => <variant>)",
+            "parameters": [
+                {
+                    "name": "SRC",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Sorgente dati (Variant)",
+                    "optional": false
+                },
+                {
+                    "name": "COUNT",
+                    "type": "UDINT",
+                    "direction": "IN",
+                    "description": "Numero di elementi",
+                    "optional": false
+                },
+                {
+                    "name": "SRC_INDEX",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Indice di partenza array sorgente",
+                    "optional": false
+                },
+                {
+                    "name": "DEST_INDEX",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Indice di partenza array destinazione",
+                    "optional": false
+                },
+                {
+                    "name": "DEST",
+                    "type": "VARIANT",
+                    "direction": "OUT",
+                    "description": "Destinazione dati (Variant)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Status code"
+            },
+            "description": "Copia un blocco di dati tra due VARIANT (array dinamici o strutture).",
+            "example": "status := MOVE_BLK_VARIANT(SRC := #vSrc, COUNT := 10, SRC_INDEX := 0, DEST_INDEX := 5, DEST => #vDest);",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "REF_ASSIGN",
+            "signature": "<target_ref> ?= <source_var>",
+            "parameters": [
+                {
+                    "name": "Target Reference",
+                    "type": "REF_TO <Type>",
+                    "direction": "OUT",
+                    "description": "Riferimento da assegnare"
+                },
+                {
+                    "name": "Source Variable",
+                    "type": "VARIANT / REF",
+                    "direction": "IN",
+                    "description": "Variabile o riferimento sorgente"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Operatore '?=' (Attempt Assignment). Tenta di assegnare un riferimento controllando la compatibilità di tipo a runtime.",
+            "example": "myRef ?= myVariant; // Se i tipi coincidono, myRef punta a myVariant. Altrimenti myRef = NULL.",
+            "notes": "Diverso dall'assegnazione classica ':=' che richiede corrispondenza statica certa o non strict.",
+            "tia_version": "V15+"
         }
     ]
 }

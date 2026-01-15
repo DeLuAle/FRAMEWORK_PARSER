@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "purpose": "Operational checks for a Python-based lint engine",
+  "checks": [
+    {
+      "id": "SCL-SYN-001",
+      "match_type": "regex",
+      "pattern_ref": "assignment",
+      "requires": []
+    },
+    {
+      "id": "SCL-SYN-004",
+      "match_type": "stack",
+      "pattern_refs": [
+        "if_open",
+        "if_close",
+        "for_open",
+        "for_close",
+        "while_open",
+        "while_close",
+        "repeat_open",
+        "repeat_close",
+        "case_open",
+        "case_close"
+      ],
+      "requires": []
+    },
+    {
+      "id": "SCL-SEM-001",
+      "match_type": "symbol_table",
+      "requires": [
+        "lint_types.json"
+      ]
+    },
+    {
+      "id": "SCL-SEM-004",
+      "match_type": "signature",
+      "requires": [
+        "lint_functions.json"
+      ]
+    },
+    {
+      "id": "SCL-BP-002",
+      "match_type": "regex",
+      "pattern": "\\b[IQM][0-9]+(\\.[0-9]+)?\\b",
+      "requires": []
+    }
+  ]
+}

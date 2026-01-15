@@ -370,8 +370,9 @@ class FBFCGenerator(SCLGeneratorBase):
         inputs = fb_call.get('inputs', {})
         outputs = fb_call.get('outputs', {})
         
-        # Use # prefix for instances (FBs), but NOT for standalone calls (FCs)
-        call_name = f'#{instance}' if instance else f'"{fb_type}"'
+        # Use quoted names for FB instances in SCL
+        # In SCL, both FB instances and FC calls use quoted names: "InstanceName"()
+        call_name = f'"{instance}"' if instance else f'"{fb_type}"'
         self._add_line(f'{call_name}(')
         self._indent()
         

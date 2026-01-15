@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "source": "mc_functions.json",
+  "category": "mc_move",
+  "functions": [
+    {
+      "name": "MC_MoveAbsolute",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Position",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "IsHomed/IsEnabled/HasError prerequisites",
+        "Position within limits",
+        "Velocity/Acceleration/Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_MoveRelative",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Distance",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Final position within limits",
+        "Distance != 0"
+      ]
+    },
+    {
+      "name": "MC_MoveVelocity",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Positioning/sync axes require homing",
+        "Accel/Decel > 0",
+        "Velocity may be 0"
+      ]
+    },
+    {
+      "name": "MC_MoveJog",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "JogForward",
+        "JogBackward",
+        "Velocity",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "JogForward and JogBackward not both TRUE",
+        "No rising edge required"
+      ]
+    },
+    {
+      "name": "MC_MoveSuperimposed",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Distance",
+        "VelocityDiff",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Distance can be +/-",
+        "VelocityDiff >= 0"
+      ]
+    }
+  ]
+}

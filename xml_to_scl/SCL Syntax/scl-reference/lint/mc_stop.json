@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "source": "mc_functions.json",
+  "category": "mc_stop",
+  "functions": [
+    {
+      "name": "MC_Halt",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_Stop",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Mode 0..3"
+      ]
+    }
+  ]
+}

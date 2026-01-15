@@ -1,0 +1,60 @@
+{
+    "category": "Motion Control",
+    "description": "Funzioni per il controllo del movimento (PLCopen) su S7-1500",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Motion Control Instructions",
+    "functions": [
+        {
+            "name": "MC_Power",
+            "signature": "#instance(Axis := <to_axis>, Enable := <bool>, StartMode := <int>, StopMode := <int>, Status => <bool>, Busy => <bool>, Error => <bool>, ErrorID => <word>);",
+            "parameters": [
+                {
+                    "name": "Axis",
+                    "type": "TO_AXIS",
+                    "direction": "IN",
+                    "description": "Oggetto tecnologico asse"
+                },
+                {
+                    "name": "Enable",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Abilita l'asse"
+                },
+                {
+                    "name": "Status",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Asse abilitato"
+                }
+            ],
+            "description": "Abilita o disabilita un oggetto tecnologico asse.",
+            "example": "#mcPower(Axis := \"Axis_1\", Enable := #enableCmd);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MC_Reset",
+            "signature": "#instance(Axis := <to_axis>, Execute := <bool>, Restart := <bool>, Done => <bool>, Busy => <bool>, Error => <bool>, ErrorID => <word>);",
+            "description": "Resetta gli errori dell'asse o ricarica la configurazione.",
+            "example": "#mcReset(Axis := \"Axis_1\", Execute := #resetFault);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MC_Home",
+            "signature": "#instance(Axis := <to_axis>, Execute := <bool>, Position := <real>, Mode := <int>, Done => <bool>, Busy => <bool>);",
+            "description": "Esegue l'omaggio (homing) dell'asse.",
+            "example": "#mcHome(Axis := \"Axis_1\", Execute := #doHome, Mode := 0);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MC_MoveAbsolute",
+            "signature": "#instance(Axis := <to_axis>, Execute := <bool>, Position := <real>, Velocity := <real>, Done => <bool>);",
+            "description": "Sposta l'asse in una posizione assoluta.",
+            "example": "#mcMoveAbs(Axis := \"Axis_1\", Execute := #startMove, Position := 1000.0, Velocity := 100.0);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        }
+    ]
+}

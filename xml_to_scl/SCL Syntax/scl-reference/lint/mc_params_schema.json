@@ -1,0 +1,1060 @@
+{
+  "version": "1.1",
+  "source": "Docs_SCL/LINT_SKILL_MC_1.MD",
+  "functions": [
+    {
+      "name": "MC_Power",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis",
+        "TO_ExternalEncoder"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Enable",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "StartMode",
+          "type": "DINT",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1"
+        },
+        {
+          "name": "StopMode",
+          "type": "INT",
+          "direction": "IN",
+          "constraints": [],
+          "default": "0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Status",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "StopMode 0..3",
+        "StartMode 0..1 for positioning axis",
+        "Check CommunicationOK before Enable"
+      ]
+    },
+    {
+      "name": "MC_Reset",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Restart",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Restart requires power disabled"
+      ]
+    },
+    {
+      "name": "MC_Home",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Mode",
+          "type": "INT",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Position",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Mode 0..13",
+        "Verify IsHomed after completion"
+      ]
+    },
+    {
+      "name": "MC_Halt",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_MoveAbsolute",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Position",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Velocity",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Acceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Jerk",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "IsHomed/IsEnabled/HasError prerequisites",
+        "Position within limits",
+        "Velocity/Acceleration/Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_MoveRelative",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Distance",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Velocity",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Acceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Jerk",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Final position within limits",
+        "Distance != 0"
+      ]
+    },
+    {
+      "name": "MC_PositionProfile",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "TimePosition",
+          "type": "TO_Cam",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "BufferMode",
+          "type": "DINT",
+          "direction": "IN",
+          "constraints": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "CAM must be interpolated"
+      ]
+    },
+    {
+      "name": "MC_MoveVelocity",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Velocity",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Acceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Jerk",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Positioning/sync axes require homing",
+        "Accel/Decel > 0",
+        "Velocity may be 0"
+      ]
+    },
+    {
+      "name": "MC_MoveJog",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "JogForward",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "JogBackward",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Velocity",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Acceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "JogForward and JogBackward not both TRUE",
+        "No rising edge required"
+      ]
+    },
+    {
+      "name": "MC_MoveSuperimposed",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Distance",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "VelocityDiff",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Acceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        },
+        {
+          "name": "Deceleration",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "1.0"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Distance can be +/-",
+        "VelocityDiff >= 0"
+      ]
+    },
+    {
+      "name": "MC_Stop",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        },
+        {
+          "name": "Mode",
+          "type": "INT",
+          "direction": "IN",
+          "constraints": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Mode 0..3"
+      ]
+    },
+    {
+      "name": "MC_SetSensor",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Axis",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Mode",
+          "type": "INT",
+          "direction": "IN",
+          "constraints": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Mode 0..3"
+      ]
+    },
+    {
+      "name": "MC_VelocitySynchronization",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Master",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Slave",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Ratio",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Tolerance",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Master and Slave cannot be same axis",
+        "Ratio > 0",
+        "Tolerance >= 0"
+      ]
+    },
+    {
+      "name": "MC_PositionSynchronization",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Master",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Slave",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "StartPosition",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "MasterStartPosition",
+          "type": "LREAL",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Master and Slave cannot be same axis"
+      ]
+    },
+    {
+      "name": "MC_InterpolateCam",
+      "axis_types": [
+        "TO_Cam",
+        "TO_Cam_10k",
+        "TO_Cam_16kSeg",
+        "TO_Cam_600Seg"
+      ],
+      "inputs": [
+        {
+          "name": "Cam",
+          "type": "TO_Cam",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Cam type must be supported"
+      ]
+    },
+    {
+      "name": "MC_CamIn",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Master",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Slave",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Cam",
+          "type": "TO_Cam",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge",
+        "Cam must be interpolated",
+        "Master/Slave different"
+      ]
+    },
+    {
+      "name": "MC_CamOut",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        {
+          "name": "Slave",
+          "type": "TO_*",
+          "direction": "IN",
+          "constraints": []
+        },
+        {
+          "name": "Execute",
+          "type": "BOOL",
+          "direction": "IN",
+          "constraints": [],
+          "default": "FALSE"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Done",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Busy",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "Error",
+          "type": "BOOL",
+          "direction": "OUT"
+        },
+        {
+          "name": "ErrorID",
+          "type": "WORD",
+          "direction": "OUT"
+        }
+      ],
+      "constraints": [
+        "Execute rising edge"
+      ]
+    }
+  ]
+}

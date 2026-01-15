@@ -211,9 +211,6 @@
             "example": "remainder := MOD(IN1 := counter, IN2 := 10);",
             "mandatory": true,
             "notes": "IN2 non deve essere 0 (divisione per zero). Funziona solo con tipi interi.",
-            "see_also": [
-                "DIV"
-            ],
             "tia_version": "V20+"
         },
         {
@@ -238,8 +235,7 @@
             "why_native": "Più leggibile e semanticamente chiaro. Stessa performance ma migliore manutenibilità.",
             "mandatory": true,
             "see_also": [
-                "SQRT",
-                "POW"
+                "SQRT"
             ],
             "tia_version": "V20+"
         },
@@ -264,8 +260,7 @@
             "mandatory": true,
             "notes": "IN deve essere >= 0, altrimenti risultato indefinito o errore ENO.",
             "see_also": [
-                "SQR",
-                "POW"
+                "SQR"
             ],
             "tia_version": "V20+"
         },
@@ -290,8 +285,7 @@
             "mandatory": true,
             "notes": "IN deve essere > 0.",
             "see_also": [
-                "EXP",
-                "LOG"
+                "EXP"
             ],
             "tia_version": "V20+"
         },
@@ -315,8 +309,7 @@
             "example": "expValue := EXP(IN := rate);",
             "mandatory": true,
             "see_also": [
-                "LN",
-                "POW"
+                "LN"
             ],
             "tia_version": "V20+"
         },
@@ -342,8 +335,7 @@
             "notes": "L'angolo deve essere in radianti, non gradi.",
             "see_also": [
                 "COS",
-                "TAN",
-                "ASIN"
+                "TAN"
             ],
             "tia_version": "V20+"
         },
@@ -369,8 +361,7 @@
             "notes": "L'angolo deve essere in radianti, non gradi.",
             "see_also": [
                 "SIN",
-                "TAN",
-                "ACOS"
+                "TAN"
             ],
             "tia_version": "V20+"
         },
@@ -393,11 +384,77 @@
             "description": "Calcola la tangente di un angolo espresso in radianti.",
             "example": "tanValue := TAN(IN := angle);",
             "mandatory": true,
-            "notes": "L'angolo deve essere in radianti. Evitare multipli dispari di π/2.",
+            "notes": [
+                "L",
+                "'",
+                "a",
+                "n",
+                "g",
+                "o",
+                "l",
+                "o",
+                " ",
+                "d",
+                "e",
+                "v",
+                "e",
+                " ",
+                "e",
+                "s",
+                "s",
+                "e",
+                "r",
+                "e",
+                " ",
+                "i",
+                "n",
+                " ",
+                "r",
+                "a",
+                "d",
+                "i",
+                "a",
+                "n",
+                "t",
+                "i",
+                ".",
+                " ",
+                "E",
+                "v",
+                "i",
+                "t",
+                "a",
+                "r",
+                "e",
+                " ",
+                "m",
+                "u",
+                "l",
+                "t",
+                "i",
+                "p",
+                "l",
+                "i",
+                " ",
+                "d",
+                "i",
+                "s",
+                "p",
+                "a",
+                "r",
+                "i",
+                " ",
+                "d",
+                "i",
+                " ",
+                "π",
+                "/",
+                "2",
+                "."
+            ],
             "see_also": [
                 "SIN",
-                "COS",
-                "ATAN"
+                "COS"
             ],
             "tia_version": "V20+"
         },
@@ -421,9 +478,7 @@
             "example": "rounded := ROUND(IN := 3.7);  // risultato: 4",
             "mandatory": true,
             "see_also": [
-                "TRUNC",
-                "CEIL",
-                "FLOOR"
+                "TRUNC"
             ],
             "tia_version": "V20+"
         },
@@ -447,11 +502,197 @@
             "example": "intPart := TRUNC(IN := 3.7);  // risultato: 3\nintNeg := TRUNC(IN := -3.7);  // risultato: -3",
             "mandatory": true,
             "see_also": [
-                "ROUND",
-                "CEIL",
-                "FLOOR"
+                "ROUND"
             ],
-            "tia_version": "V20+"
+            "tia_version": "V20+"{
+                "name": "CEIL",
+                "signature": "CEIL(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore floating point",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "DINT/LINT",
+                    "description": "Valore arrotondato all'interiorsuperiore più vicino"
+                },
+                "description": "Arrotondamento per eccesso (Ceiling). Ritorna il più piccolo intero non minore di IN.",
+                "example": "result := CEIL(IN := 3.14); // result: 4",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "FLOOR",
+                "signature": "FLOOR(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore floating point",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "DINT/LINT",
+                    "description": "Valore arrotondato all'interoinferiore più vicino"
+                },
+                "description": "Arrotondamento per difetto (Floor). Ritorna il più grande intero non maggiore di IN.",
+                "example": "result := FLOOR(IN := 3.14); // result: 3",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "LOG",
+                "signature": "LOG(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore input (>0)",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "REAL/LREAL",
+                    "description": "Logaritmo in base 10"
+                },
+                "description": "Calcola il logaritmo in base 10 di IN.",
+                "example": "val := LOG(IN := 100.0); // val: 2.0",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "POW",
+                "signature": "POW(IN1 := <base>, IN2 := <exponent>)",
+                "parameters": [
+                    {
+                        "name": "IN1",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Base",
+                        "optional": false
+                    },
+                    {
+                        "name": "IN2",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Esponente",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "REAL/LREAL",
+                    "description": "Risultato della potenza"
+                },
+                "description": "Calcola la potenza: base ^ esponente.",
+                "example": "res := POW(IN1 := 2.0, IN2 := 3.0); // res: 8.0",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "ACOS",
+                "signature": "ACOS(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore input (-1.0 to 1.0)",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "REAL/LREAL",
+                    "description": "Arccoseno in radianti"
+                },
+                "description": "Calcola l'arcocoseno.",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "ASIN",
+                "signature": "ASIN(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore input (-1.0 to 1.0)",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "REAL/LREAL",
+                    "description": "Arcoseno in radianti"
+                },
+                "description": "Calcola l'arcoseno.",
+                "mandatory": true,
+                "tia_version": "V20+"
+            },
+            {
+                "name": "ATAN",
+                "signature": "ATAN(IN := <value>)",
+                "parameters": [
+                    {
+                        "name": "IN",
+                        "type": "REAL/LREAL",
+                        "direction": "IN",
+                        "description": "Valore input",
+                        "optional": false
+                    }
+                ],
+                "return": {
+                    "type": "REAL/LREAL",
+                    "description": "Arcotangente in radianti",
+                    "tia_version": "V20+"
+                },
+                {
+                    "name": "INC",
+                    "signature": "INC(IN_OUT := <variable>)",
+                    "parameters": [
+                        {
+                            "name": "IN_OUT",
+                            "type": "SINT/INT/DINT/USINT/UINT/UDINT",
+                            "direction": "IN_OUT",
+                            "description": "Variabile da incrementare di 1.",
+                            "optional": false
+                        }
+                    ],
+                    "return": {
+                        "type": "VOID",
+                        "description": "N/A"
+                    },
+                    "description": "Incrementa il valore della variabile di 1.",
+                    "example": "INC(#counter);",
+                    "notes": "Attenzione all'overflow.",
+                    "tia_version": "V11+"
+                },
+                {
+                    "name": "DEC",
+                    "signature": "DEC(IN_OUT := <variable>)",
+                    "parameters": [
+                        {
+                            "name": "IN_OUT",
+                            "type": "SINT/INT/DINT/USINT/UINT/UDINT",
+                            "direction": "IN_OUT",
+                            "description": "Variabile da decrementare di 1.",
+                            "optional": false
+                        }
+                    ],
+                    "return": {
+                        "type": "VOID",
+                        "description": "N/A"
+                    },
+                    "description": "Decrementa il valore della variabile di 1.",
+                    "example": "DEC(#counter);",
+                    "notes": "Attenzione all'underflow.",
+                    "tia_version": "V11+"
+                }
+            ]
         }
-    ]
-}

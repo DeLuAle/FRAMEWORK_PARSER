@@ -1,0 +1,270 @@
+{
+  "version": "1.4",
+  "scope": "SCL (TIA Portal V20+)",
+  "purpose": "SCL syntax and structural patterns for code generation",
+  "sources": [
+    "xml_to_scl/SCL Syntax/Docs_SCL/LINT_SKILL_Sintassi_SCl.MD"
+  ],
+  "elements": {
+    "assignments": {
+      "pattern": "<target> := <expression>;",
+      "examples": [
+        "\"MyTag\" := 0;",
+        "\"Output\" := \"Input\" + 10;"
+      ]
+    },
+    "block_calls": {
+      "pattern": "<BlockName>(<param_list>);",
+      "examples": [
+        "\"MyDB\"();",
+        "\"MyFB\"(IN := 10, OUT => \"Result\");"
+      ]
+    },
+    "control_structures": {
+      "if": {
+        "pattern": "IF <condition> THEN ... [ELSIF <condition> THEN ...] [ELSE ...] END IF;",
+        "example": "IF \"Condition\" THEN\n  \"Output\" := 1;\nELSE\n  \"Output\" := 0;\nEND IF;"
+      },
+      "case": {
+        "pattern": "CASE <selector> OF <value_list>: <statements>; [ELSE <statements>;] END_CASE;",
+        "example": "CASE \"Mode\" OF\n  0: \"X\" := 0;\n  1: \"X\" := 1;\nEND_CASE;"
+      },
+      "while": {
+        "pattern": "WHILE <condition> DO ... END_WHILE;",
+        "example": "WHILE \"Counter\" < 10 DO\n  \"Counter\" := \"Counter\" + 1;\nEND_WHILE;"
+      },
+      "for": {
+        "pattern": "FOR <counter> := <start> TO <end> DO ... END_FOR;",
+        "example": "FOR \"i\" := 0 TO 10 DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+      },
+      "repeat": {
+        "pattern": "REPEAT ... UNTIL <condition> END_REPEAT;",
+        "example": "REPEAT\n  \"Counter\" := \"Counter\" + 1;\nUNTIL \"Counter\" >= 10\nEND_REPEAT;"
+      }
+    },
+    "comments": {
+      "single_line": "// comment"
+    },
+    "case_insensitive": true,
+    "literals": {
+      "time": [
+        "T#5S",
+        "T#100MS"
+      ],
+      "date": [
+        "D#2024-01-15"
+      ],
+      "time_of_day": [
+        "TOD#14:30:45.500"
+      ],
+      "date_and_time": [
+        "DT#2024-01-15-14:30:45"
+      ]
+    },
+    "motion_control": {
+      "functions": [
+        "MC_Power",
+        "MC_Reset",
+        "MC_Home",
+        "MC_Halt",
+        "MC_MoveAbsolute",
+        "MC_MoveRelative",
+        "MC_PositionProfile",
+        "MC_MoveVelocity",
+        "MC_MoveJog",
+        "MC_MoveSuperimposed",
+        "MC_Stop",
+        "MC_SetSensor",
+        "MC_VelocitySynchronization",
+        "MC_PositionSynchronization"
+      ],
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis",
+        "TO_ExternalEncoder"
+      ],
+      "common_params": [
+        "Axis",
+        "Execute",
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "execute_rising_edge": true,
+      "status_fields": [
+        "IsEnabled",
+        "IsActive",
+        "HasError",
+        "IsHomed",
+        "ActualPosition",
+        "ActualVelocity",
+        "PositionLimits_SW.MinPosition",
+        "PositionLimits_SW.MaxPosition",
+        "StatusWord.X15",
+        "StatusWord.X16",
+        "StatusWord.X6",
+        "StatusWord.X11",
+        "StatusSensor[n].CommunicationOK",
+        "StatusDrive.CommunicationOK",
+        "DynamicLimits.MaxVelocity",
+        "DynamicLimits.MaxAcceleration",
+        "DynamicLimits.MaxDeceleration",
+        "DynamicLimits.MaxJerk"
+      ]
+    },
+    "technology_objects": {
+      "types": [
+        "MC_Axis",
+        "MC_SyncGroup"
+      ],
+      "axis_status_fields": [
+        "IsEnabled",
+        "IsMoving",
+        "IsHomed",
+        "IsStopping",
+        "HasError",
+        "IsPositionValid",
+        "IsReferencePoint"
+      ],
+      "axis_fields": [
+        "Velocity",
+        "Position",
+        "TargetPosition",
+        "TargetVelocity",
+        "LoadCycleTime"
+      ],
+      "limits_fields": [
+        "PositionLimits_SW.MinPosition",
+        "PositionLimits_SW.MaxPosition",
+        "DynamicLimits.MaxVelocity",
+        "DynamicLimits.MaxAcceleration",
+        "DynamicLimits.MaxDeceleration"
+      ]
+    },
+    "naming_conventions": {
+      "mc_to_pattern": "<Component>_<AxisOrType>_MC",
+      "variable_prefixes": {
+        "BOOL": "b",
+        "INT": "i",
+        "REAL": "r"
+      },
+      "variable_suffixes": {
+        "status": "_Status",
+        "error": "_Error",
+        "error_id": "_ErrorID"
+      }
+    }
+  },
+  "data_types": {
+    "basic": [
+      "BOOL",
+      "BYTE",
+      "WORD",
+      "DWORD",
+      "LWORD",
+      "INT",
+      "DINT",
+      "LINT",
+      "UINT",
+      "UDINT",
+      "ULINT",
+      "REAL",
+      "LREAL",
+      "TIME",
+      "TOD",
+      "DATE",
+      "DT",
+      "STRING"
+    ],
+    "complex": [
+      "ARRAY",
+      "STRUCT",
+      "UDT",
+      "POINTER"
+    ],
+    "parameters": [
+      "IN",
+      "OUT",
+      "IN_OUT",
+      "STATIC",
+      "TEMP"
+    ]
+  },
+  "operations": {
+    "logic": [
+      "AND",
+      "OR",
+      "NOT",
+      "XOR"
+    ],
+    "compare": [
+      "=",
+      "<>",
+      "<",
+      "<=",
+      ">",
+      ">="
+    ],
+    "math": [
+      "ADD",
+      "SUB",
+      "MUL",
+      "DIV",
+      "MOD",
+      "ABS",
+      "SQRT",
+      "SIN",
+      "COS"
+    ],
+    "move": [
+      "MOVE",
+      "MOVE_BLK",
+      "FILL_BLK"
+    ],
+    "conversion": [
+      "CONVERT",
+      "TO_INT",
+      "TO_REAL",
+      "TO_BOOL"
+    ],
+    "shift_rotate": [
+      "SHL",
+      "SHR",
+      "ROL",
+      "ROR"
+    ],
+    "timers": [
+      "TON",
+      "TOF",
+      "TP",
+      "TONR"
+    ],
+    "counters": [
+      "CTU",
+      "CTD",
+      "CTUD"
+    ],
+    "word_logic": [
+      "DECO",
+      "ENCO",
+      "SEL",
+      "MUX",
+      "DEMUX"
+    ]
+  },
+  "best_practice_patterns": {
+    "symbolic_addressing": "Prefer symbolic names over absolute I/Q/M addresses",
+    "use_iec_blocks": "Prefer IEC timers/counters",
+    "avoid_magic_numbers": "Use CONST for limits",
+    "array_bounds": "Validate bounds or use MIN/MAX",
+    "prefer_native_functions": "Use system functions instead of manual reimplementation",
+    "use_r_trig_f_trig": "Use R_TRIG/F_TRIG for edges instead of manual previous-state checks",
+    "use_move_blk": "Use MOVE_BLK/FILL_BLK for array copy instead of loops"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "source": "mc_functions.json",
+  "category": "mc_power",
+  "functions": [
+    {
+      "name": "MC_Power",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis",
+        "TO_ExternalEncoder"
+      ],
+      "inputs": [
+        "Axis",
+        "Enable",
+        "StartMode",
+        "StopMode"
+      ],
+      "outputs": [
+        "Status",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "StopMode 0..3",
+        "StartMode 0..1 for positioning axis",
+        "Check CommunicationOK before Enable"
+      ]
+    },
+    {
+      "name": "MC_Reset",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Restart"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Restart requires power disabled"
+      ]
+    },
+    {
+      "name": "MC_Home",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode",
+        "Position"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Mode 0..13",
+        "Verify IsHomed after completion"
+      ]
+    }
+  ]
+}

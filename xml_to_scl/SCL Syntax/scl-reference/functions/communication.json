@@ -1,0 +1,396 @@
+{
+    "category": "Communication",
+    "description": "Standard Communication Blocks (Open User Communication)",
+    "tia_version": "V13+",
+    "source": "TIA Portal Help",
+    "functions": [
+        {
+            "name": "TSEND_C",
+            "signature": "#instance(REQ:=<bool>, CONNECT:=<variant>, DATA:=<variant>, ...)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": false,
+                    "description": "Starts job on rising edge"
+                },
+                {
+                    "name": "CONT",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "FALSE",
+                    "description": "Continuous connection"
+                },
+                {
+                    "name": "LEN",
+                    "type": "UDINT",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "0",
+                    "description": "Length of data to send"
+                },
+                {
+                    "name": "CONNECT",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "optional": false,
+                    "description": "Connection parameters"
+                },
+                {
+                    "name": "DATA",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "optional": false,
+                    "description": "Pointer to send area"
+                },
+                {
+                    "name": "COM_RST",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "FALSE",
+                    "description": "Restart connection"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Job done"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Job busy"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Error occurred"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Status code"
+                }
+            ]
+        },
+        {
+            "name": "TRCV_C",
+            "signature": "#instance(EN_R:=<bool>, CONNECT:=<variant>, DATA:=<variant>, ...)",
+            "parameters": [
+                {
+                    "name": "EN_R",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": false,
+                    "description": "Enable receiving"
+                },
+                {
+                    "name": "CONT",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "FALSE",
+                    "description": "Continuous connection"
+                },
+                {
+                    "name": "LEN",
+                    "type": "UDINT",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "0",
+                    "description": "Length"
+                },
+                {
+                    "name": "ADHOC",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "FALSE",
+                    "description": "Ad-hoc mode"
+                },
+                {
+                    "name": "CONNECT",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "optional": false,
+                    "description": "Connection parameters"
+                },
+                {
+                    "name": "DATA",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "optional": false,
+                    "description": "Pointer to receive area"
+                },
+                {
+                    "name": "COM_RST",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "optional": true,
+                    "default": "FALSE",
+                    "description": "Restart connection"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "New data received"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Job busy"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Error occurred"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Status code"
+                },
+                {
+                    "name": "RCVD_LEN",
+                    "type": "UDINT",
+                    "direction": "OUT",
+                    "optional": true,
+                    "description": "Received length"
+                }
+            ]
+        },
+        {
+            "name": "TCON",
+            "signature": "#instance(REQ := <bool>, ID := <conn_ouc>, CONNECT := <variant>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la connessione"
+                },
+                {
+                    "name": "ID",
+                    "type": "CONN_OUC",
+                    "direction": "IN",
+                    "description": "ID della connessione"
+                },
+                {
+                    "name": "CONNECT",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Parametri di connessione (struttura TCON_IP_v4, etc.)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Connessione stabilita con successo"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Esecuzione in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore durante la connessione"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato della connessione"
+                }
+            ],
+            "description": "Stabilisce una connessione di comunicazione tra due partner CPU.",
+            "example": "#status := TCON(REQ := #startConn, ID := 1, CONNECT := #connParam);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TDISCON",
+            "signature": "#instance(REQ := <bool>, ID := <conn_ouc>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la disconnessione"
+                },
+                {
+                    "name": "ID",
+                    "type": "CONN_OUC",
+                    "direction": "IN",
+                    "description": "ID della connessione"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Disconnessione completata"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Esecuzione in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore durante la disconnessione"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato della disconnessione"
+                }
+            ],
+            "description": "Interrompe una connessione di comunicazione esistente.",
+            "example": "#status := TDISCON(REQ := #stopConn, ID := 1);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GET",
+            "signature": "#instance(REQ := <bool>, ID := <conn_s7>, ADDR_1 := <remote_addr>, RD_1 := <local_dest>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la lettura"
+                },
+                {
+                    "name": "ID",
+                    "type": "CONN_S7",
+                    "direction": "IN",
+                    "description": "ID della connessione S7"
+                },
+                {
+                    "name": "ADDR_1",
+                    "type": "REMOTE",
+                    "direction": "IN_OUT",
+                    "description": "Indirizzo dell'area dati sulla CPU remota"
+                },
+                {
+                    "name": "RD_1",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Area dati sulla CPU locale in cui scrivere i dati letti"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Dati letti con successo"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Esecuzione in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore durante la lettura"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Codice di stato"
+                }
+            ],
+            "description": "Legge dati da una CPU remota tramite comunicazione S7.",
+            "example": "#status := GET(REQ := #doRead, ID := 16#01, ADDR_1 := P#DB10.DBX0.0 BYTE 100, RD_1 := #bufferLocal);",
+            "notes": "Richiede che la CPU remota permetta l'accesso tramite PUT/GET (impostazione di sicurezza).",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "PUT",
+            "signature": "#instance(REQ := <bool>, ID := <conn_s7>, ADDR_1 := <remote_addr>, SD_1 := <local_src>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la scrittura"
+                },
+                {
+                    "name": "ID",
+                    "type": "CONN_S7",
+                    "direction": "IN",
+                    "description": "ID della connessione S7"
+                },
+                {
+                    "name": "ADDR_1",
+                    "type": "REMOTE",
+                    "direction": "IN_OUT",
+                    "description": "Indirizzo dell'area dati sulla CPU remota"
+                },
+                {
+                    "name": "SD_1",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Area dati sulla CPU locale da scrivere sulla remota"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Dati scritti con successo"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Esecuzione in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore durante la scrittura"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Codice di stato"
+                }
+            ],
+            "description": "Scrive dati su una CPU remota tramite comunicazione S7.",
+            "example": "#status := PUT(REQ := #doWrite, ID := 16#01, ADDR_1 := P#DB10.DBX0.0 BYTE 100, SD_1 := #bufferOutput);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        }
+    ]
+}

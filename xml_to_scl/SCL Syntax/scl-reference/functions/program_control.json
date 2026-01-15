@@ -5,7 +5,7 @@
     "source": "TIA Portal Help - SCL Programming / IEC 61131-3 Standard",
     "functions": [
         {
-            "name": "IF_STATEMENT",
+            "name": "IF",
             "signature": "IF <condition> THEN\n    <statements>\n[ELSIF <condition2> THEN\n    <statements2>]\n[ELSE\n    <statements_default>]\nEND_IF;",
             "category": "Conditional",
             "description": "Esegue blocchi di codice basandosi su condizioni booleane.",
@@ -47,7 +47,7 @@
             "tia_version": "V20+"
         },
         {
-            "name": "CASE_STATEMENT",
+            "name": "CASE",
             "signature": "CASE <selector> OF\n    <value1>: <statements1>;\n    <value2>: <statements2>;\n    [ELSE <default_statements>;]\nEND_CASE;",
             "category": "Conditional",
             "description": "Seleziona ed esegue un blocco di istruzioni basato sul valore di un selettore.",
@@ -93,13 +93,12 @@
                 "Se nessun case corrisponde e non c'è ELSE, non viene eseguito nulla"
             ],
             "see_also": [
-                "IF",
-                "MUX"
+                "IF"
             ],
             "tia_version": "V20+"
         },
         {
-            "name": "FOR_LOOP",
+            "name": "FOR",
             "signature": "FOR <counter> := <start> TO <end> [BY <step>] DO\n    <statements>\nEND_FOR;",
             "category": "Loop",
             "description": "Esegue un blocco di istruzioni un numero determinato di volte.",
@@ -175,7 +174,7 @@
             "tia_version": "V20+"
         },
         {
-            "name": "WHILE_LOOP",
+            "name": "WHILE",
             "signature": "WHILE <condition> DO\n    <statements>\nEND_WHILE;",
             "category": "Loop",
             "description": "Esegue un blocco di istruzioni finché la condizione rimane TRUE. Pre-test loop (condizione verificata prima dell'esecuzione).",
@@ -209,7 +208,7 @@
             "tia_version": "V20+"
         },
         {
-            "name": "REPEAT_LOOP",
+            "name": "REPEAT",
             "signature": "REPEAT\n    <statements>\nUNTIL <condition>\nEND_REPEAT;",
             "category": "Loop",
             "description": "Esegue un blocco di istruzioni finché la condizione diventa TRUE. Post-test loop (condizione verificata dopo l'esecuzione).",
@@ -293,7 +292,7 @@
             "tia_version": "V20+"
         },
         {
-            "name": "GOTO_LABEL",
+            "name": "GOTO",
             "signature": "GOTO <label_name>;\n...\n<label_name>: <statement>;",
             "category": "Flow Control",
             "description": "Salta incondizionatamente a un'etichetta (label) nel codice. SCONSIGLIATO: rende il codice difficile da leggere e mantenere.",
@@ -309,6 +308,27 @@
                 "EXIT"
             ],
             "tia_version": "V20+"
+        },
+        {
+            "name": "RUNTIME",
+            "signature": "RET_VAL := RUNTIME(MEM := <lreal>)",
+            "parameters": [
+                {
+                    "name": "MEM",
+                    "type": "LREAL",
+                    "direction": "IN_OUT",
+                    "description": "Memoria per il calcolo del tempo (timestamp precedente).",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "LREAL",
+                "description": "Tempo trascorso in secondi dall'ultima chiamata."
+            },
+            "description": "Misura il tempo di esecuzione del programma o di una parte di esso.",
+            "example": "#executionTime := RUNTIME(MEM := #memRuntime);",
+            "notes": "La prima chiamata inizializza MEM. Le chiamate successive restituiscono il delta tempo.",
+            "tia_version": "V11+"
         }
     ]
 }

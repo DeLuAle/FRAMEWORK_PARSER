@@ -1,0 +1,217 @@
+{
+    "category": "Distributed I/O",
+    "description": "Funzioni per la lettura/scrittura di record di dati e scambio dati consistente",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Distributed I/O Instructions",
+    "functions": [
+        {
+            "name": "RDREC",
+            "signature": "#retVal := RDREC(REQ := <bool>, ID := <hw_any>, INDEX := <dint>, MLEN := <int>, VALID => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <dword>, LEN => <int>, RECORD := <variant>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la lettura"
+                },
+                {
+                    "name": "ID",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "ID hardware del modulo (LADDR)"
+                },
+                {
+                    "name": "INDEX",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Numero del record di dati"
+                },
+                {
+                    "name": "MLEN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Lunghezza massima da leggere"
+                },
+                {
+                    "name": "VALID",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se i dati sono validi"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se l'esecuzione è in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se si è verificato un errore"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "DWORD",
+                    "direction": "OUT",
+                    "description": "Codice di stato/errore"
+                },
+                {
+                    "name": "LEN",
+                    "type": "INT",
+                    "direction": "OUT",
+                    "description": "Lunghezza effettiva letta"
+                },
+                {
+                    "name": "RECORD",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Buffer di destinazione per il record"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Intero di stato (spesso non usato, vedi STATUS)"
+            },
+            "description": "Legge un record di dati da un dispositivo PROFINET IO o PROFIBUS DP.",
+            "example": "// Legge record 50 da modulo I/O\n#status := RDREC(REQ := #startRead, ID := #hwId, INDEX := 50, MLEN := 100, VALID => #dataValid, RECORD := #dataBuffer);",
+            "mandatory": true,
+            "notes": "Istruzione asincrona. Chiamare ciclicamente finché BUSY o VALID/ERROR non cambiano stato.",
+            "see_also": [
+                "WRREC"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WRREC",
+            "signature": "#retVal := WRREC(REQ := <bool>, ID := <hw_any>, INDEX := <dint>, LEN := <int>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <dword>, RECORD := <variant>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la scrittura"
+                },
+                {
+                    "name": "ID",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "ID hardware del modulo"
+                },
+                {
+                    "name": "INDEX",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Numero del record di dati"
+                },
+                {
+                    "name": "LEN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Lunghezza dati da scrivere"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se la scrittura è completata con successo"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se l'esecuzione è in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se si è verificato un errore"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "DWORD",
+                    "direction": "OUT",
+                    "description": "Codice di stato/errore"
+                },
+                {
+                    "name": "RECORD",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Dati da scrivere"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Intero di stato"
+            },
+            "description": "Scrive un record di dati in un dispositivo PROFINET IO o PROFIBUS DP.",
+            "example": "// Scrive parametri di configurazione a inverter\n#status := WRREC(REQ := #startWrite, ID := #driveId, INDEX := 100, LEN := 10, RECORD := #configData);",
+            "mandatory": true,
+            "notes": "Istruzione asincrona. Non modificare RECORD finché BUSY è TRUE.",
+            "see_also": [
+                "RDREC"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DPRD_DAT",
+            "signature": "#retVal := DPRD_DAT(LADDR := <hw_any>, RECORD => <variant>);",
+            "parameters": [
+                {
+                    "name": "LADDR",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "Indirizzo hardware del modulo"
+                },
+                {
+                    "name": "RECORD",
+                    "type": "VARIANT",
+                    "direction": "OUT",
+                    "description": "Buffer per i dati letti"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Codice di errore (0 = Successo)"
+            },
+            "description": "Legge dati in modo consistente da un dispositivo I/O (PROFIBUS/PROFINET).",
+            "example": "#status := DPRD_DAT(LADDR := #sensorId, RECORD => #sensorData);",
+            "mandatory": true,
+            "notes": "Garantisce che i dati siano letti in un singolo ciclo bus, evitando inconsistenze.",
+            "see_also": [
+                "DPWR_DAT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DPWR_DAT",
+            "signature": "#retVal := DPWR_DAT(LADDR := <hw_any>, RECORD := <variant>);",
+            "parameters": [
+                {
+                    "name": "LADDR",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "Indirizzo hardware del modulo"
+                },
+                {
+                    "name": "RECORD",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Dati da scrivere"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Codice di errore (0 = Successo)"
+            },
+            "description": "Scrive dati in modo consistente in un dispositivo I/O (PROFIBUS/PROFINET).",
+            "example": "#status := DPWR_DAT(LADDR := #actuatorId, RECORD := #controlCmds);",
+            "mandatory": true,
+            "see_also": [
+                "DPRD_DAT"
+            ],
+            "tia_version": "V20+"
+        }
+    ]
+}

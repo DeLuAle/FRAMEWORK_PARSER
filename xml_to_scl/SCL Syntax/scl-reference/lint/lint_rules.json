@@ -1,0 +1,736 @@
+{
+  "version": "1.4",
+  "scope": "SCL (TIA Portal V20+)",
+  "purpose": "Lint rules for syntax, semantics, and best practices in SCL code",
+  "sources": [
+    "xml_to_scl/SCL Syntax/Docs_SCL/LINT_SKILL_Sintassi_SCl.MD"
+  ],
+  "rule_groups": [
+    {
+      "group": "syntax_rules",
+      "rules": [
+        {
+          "id": "SCL-SYN-001",
+          "title": "Statement termination",
+          "severity": "error",
+          "summary": "Every instruction must end with ';'",
+          "rationale": "SCL requires semicolon-terminated instructions",
+          "check": "Ensure every assignment, call, and instruction ends with ';'",
+          "examples": {
+            "bad": [
+              "\"Counter\" := 0"
+            ],
+            "good": [
+              "\"Counter\" := 0;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SYN-002",
+          "title": "Bracket and parenthesis matching",
+          "severity": "error",
+          "summary": "Parentheses and brackets must be balanced",
+          "check": "Validate '(' with ')', '[' with ']' and nested structures",
+          "examples": {
+            "bad": [
+              "\"Array\"[i := 1;"
+            ],
+            "good": [
+              "\"Array\"[i] := 1;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SYN-003",
+          "title": "Single-line comment syntax",
+          "severity": "error",
+          "summary": "Single-line comments use //",
+          "check": "Reject unsupported comment tokens",
+          "examples": {
+            "bad": [
+              "# comment"
+            ],
+            "good": [
+              "// comment"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SYN-004",
+          "title": "Control structure closure",
+          "severity": "error",
+          "summary": "Control structures must be properly closed",
+          "check": "IF/CASE/FOR/WHILE/REPEAT must end with END IF/END_CASE/END_FOR/END_WHILE/END_REPEAT",
+          "examples": {
+            "bad": [
+              "IF \"Cond\" THEN\n  \"X\" := 1;"
+            ],
+            "good": [
+              "IF \"Cond\" THEN\n  \"X\" := 1;\nEND IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SYN-005",
+          "title": "ELSIF keyword",
+          "severity": "error",
+          "summary": "Use ELSIF, not ELSEIF",
+          "check": "Flag ELSEIF tokens and replace with ELSIF",
+          "examples": {
+            "bad": [
+              "ELSEIF \"Cond\" THEN"
+            ],
+            "good": [
+              "ELSIF \"Cond\" THEN"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "semantic_rules",
+      "rules": [
+        {
+          "id": "SCL-SEM-001",
+          "title": "Variable declared before use",
+          "severity": "error",
+          "summary": "All variables must be declared in the block interface before use",
+          "check": "Ensure symbol exists in DECLARE/VAR sections",
+          "examples": {
+            "bad": [
+              "\"Undeclared\" := 1;"
+            ],
+            "good": [
+              "LOCAL \"Declared\" : INT := 1;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SEM-002",
+          "title": "Type consistency",
+          "severity": "error",
+          "summary": "Assignments and operations must respect data types",
+          "check": "Validate assignment type compatibility and explicit conversions",
+          "examples": {
+            "bad": [
+              "\"IntValue\" := \"RealValue\";"
+            ],
+            "good": [
+              "\"IntValue\" := TO_INT(IN := \"RealValue\");"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SEM-003",
+          "title": "Array bounds",
+          "severity": "warning",
+          "summary": "Array index must stay within declared bounds",
+          "check": "Detect declared bounds and validate access",
+          "examples": {
+            "bad": [
+              "FOR \"i\" := 0 TO \"UserInput\" DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+            ],
+            "good": [
+              "FOR \"i\" := 0 TO MIN(\"UserInput\", 99) DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SEM-004",
+          "title": "Function parameter types",
+          "severity": "error",
+          "summary": "Call parameters must match the declared signature",
+          "check": "Validate IN/OUT/IN_OUT directions and data types",
+          "examples": {
+            "bad": [
+              "\"MyFB\"(IN := \"StringValue\");"
+            ],
+            "good": [
+              "\"MyFB\"(IN := \"IntValue\", OUT => \"Result\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "instruction_rules",
+      "rules": [
+        {
+          "id": "SCL-INS-001",
+          "title": "IF/ELSIF/ELSE structure",
+          "severity": "error",
+          "summary": "IF blocks must close with END IF",
+          "check": "Validate IF/ELSIF/ELSE nesting and closure",
+          "examples": {
+            "bad": [
+              "IF \"Condition\" THEN\n  \"Output\" := 1;"
+            ],
+            "good": [
+              "IF \"Condition\" THEN\n  \"Output\" := 1;\nEND IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-INS-002",
+          "title": "FOR loop structure",
+          "severity": "error",
+          "summary": "FOR must end with END_FOR",
+          "check": "Validate FOR header and END_FOR closure",
+          "examples": {
+            "bad": [
+              "FOR \"i\" := 0 TO 10 DO\n  \"Array\"[\"i\"] := 0;"
+            ],
+            "good": [
+              "FOR \"i\" := 0 TO 10 DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-INS-003",
+          "title": "WHILE loop structure",
+          "severity": "error",
+          "summary": "WHILE must end with END_WHILE",
+          "check": "Validate WHILE header and END_WHILE closure",
+          "examples": {
+            "bad": [
+              "WHILE \"Counter\" < 10 DO\n  \"Counter\" := \"Counter\" + 1;"
+            ],
+            "good": [
+              "WHILE \"Counter\" < 10 DO\n  \"Counter\" := \"Counter\" + 1;\nEND_WHILE;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-INS-004",
+          "title": "REPEAT loop structure",
+          "severity": "error",
+          "summary": "REPEAT must end with END_REPEAT",
+          "check": "Validate REPEAT/UNTIL structure",
+          "examples": {
+            "bad": [
+              "REPEAT\n  \"Counter\" := \"Counter\" + 1;"
+            ],
+            "good": [
+              "REPEAT\n  \"Counter\" := \"Counter\" + 1;\nUNTIL \"Counter\" >= 10\nEND_REPEAT;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-INS-005",
+          "title": "CASE structure",
+          "severity": "error",
+          "summary": "CASE must end with END_CASE",
+          "check": "Validate CASE/OF structure and END_CASE closure",
+          "examples": {
+            "bad": [
+              "CASE \"Mode\" OF\n  0: \"X\" := 0;"
+            ],
+            "good": [
+              "CASE \"Mode\" OF\n  0: \"X\" := 0;\nEND_CASE;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-INS-006",
+          "title": "Block calls",
+          "severity": "error",
+          "summary": "Block calls must match declared parameters",
+          "check": "Validate block existence and parameter list",
+          "examples": {
+            "bad": [
+              "\"MyFB\"(IN := 10);"
+            ],
+            "good": [
+              "\"MyFB\"(IN := 10, OUT => \"Result\");"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "data_type_rules",
+      "rules": [
+        {
+          "id": "SCL-TYP-001",
+          "title": "Basic types",
+          "severity": "info",
+          "summary": "Use valid basic types",
+          "check": "Validate BOOL, BYTE, WORD, DWORD, LWORD, INT, DINT, LINT, UINT, UDINT, ULINT, REAL, LREAL, TIME, TOD, DATE, DT, STRING",
+          "examples": {
+            "bad": [
+              "LOCAL \"X\" : INTEGER;"
+            ],
+            "good": [
+              "LOCAL \"X\" : INT;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-TYP-002",
+          "title": "Complex types",
+          "severity": "info",
+          "summary": "Validate ARRAY, STRUCT, UDT, POINTER",
+          "check": "Ensure proper declaration and access syntax",
+          "examples": {
+            "bad": [
+              "LOCAL \"A\" : ARRAY OF INT;"
+            ],
+            "good": [
+              "LOCAL \"A\" : ARRAY[0..9] OF INT;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-TYP-003",
+          "title": "Parameter directions",
+          "severity": "warning",
+          "summary": "Use IN, OUT, IN_OUT, STATIC, TEMP correctly",
+          "check": "Validate parameter directions in block interface",
+          "examples": {
+            "bad": [
+              "IN_OUT \"X\" : BOOL; // used as OUT"
+            ],
+            "good": [
+              "OUT \"X\" : BOOL;"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "best_practices",
+      "rules": [
+        {
+          "id": "SCL-BP-001",
+          "title": "Prefer IEC timers and counters",
+          "severity": "warning",
+          "summary": "Use standard IEC timers/counters where available",
+          "check": "Flag legacy S5 timers/counters",
+          "examples": {
+            "bad": [
+              "S5T#1S"
+            ],
+            "good": [
+              "TONR",
+              "TON",
+              "CTU"
+            ]
+          }
+        },
+        {
+          "id": "SCL-BP-002",
+          "title": "Prefer symbolic addressing",
+          "severity": "warning",
+          "summary": "Prefer symbolic names over absolute addresses",
+          "check": "Flag direct I/O addressing patterns like I/Q/M",
+          "examples": {
+            "bad": [
+              "I0.0",
+              "Q4.0",
+              "M10.2"
+            ],
+            "good": [
+              "\"StartButton\"",
+              "\"MotorOutput\""
+            ]
+          }
+        },
+        {
+          "id": "SCL-BP-003",
+          "title": "Avoid magic numbers",
+          "severity": "info",
+          "summary": "Use named constants for limits",
+          "check": "Detect numeric literals in comparisons",
+          "examples": {
+            "bad": [
+              "IF \"Pressure\" > 250 THEN"
+            ],
+            "good": [
+              "CONST MAX_PRESSURE : INT := 250;\nIF \"Pressure\" > MAX_PRESSURE THEN"
+            ]
+          }
+        },
+        {
+          "id": "SCL-BP-004",
+          "title": "Guard clauses",
+          "severity": "info",
+          "summary": "Prefer early returns to deep nesting",
+          "check": "Detect long nested IF chains",
+          "examples": {
+            "bad": [
+              "IF A THEN IF B THEN IF C THEN X := 1; END_IF; END_IF; END_IF;"
+            ],
+            "good": [
+              "IF NOT A THEN RETURN; END_IF; IF NOT B THEN RETURN; END_IF; IF NOT C THEN RETURN; END_IF; X := 1;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-BP-005",
+          "title": "Array bounds checks",
+          "severity": "warning",
+          "summary": "Validate user-driven bounds",
+          "check": "Require MIN/MAX or explicit bound checks",
+          "examples": {
+            "bad": [
+              "FOR \"i\" := 0 TO \"UserInput\" DO"
+            ],
+            "good": [
+              "FOR \"i\" := 0 TO MIN(\"UserInput\", 99) DO"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "safety_rules",
+      "rules": [
+        {
+          "id": "SCL-SAFE-001",
+          "title": "Division by zero",
+          "severity": "error",
+          "summary": "Guard against division by zero",
+          "check": "Detect division where denominator can be 0; require guard or safe function",
+          "examples": {
+            "bad": [
+              "\"Result\" := \"A\" / \"B\";"
+            ],
+            "good": [
+              "IF \"B\" = 0 THEN\n  \"Result\" := 0;\nELSE\n  \"Result\" := \"A\" / \"B\";\nEND_IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-SAFE-002",
+          "title": "Overflow guard for INT",
+          "severity": "warning",
+          "summary": "Guard additions that can overflow INT",
+          "check": "Detect INT additions without bounds or LIMIT",
+          "examples": {
+            "bad": [
+              "\"Value\" := \"Value\" + 100;"
+            ],
+            "good": [
+              "\"Value\" := LIMIT(MN := -32768, IN := \"Value\" + 100, MX := 32767);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "naming_conventions",
+      "rules": [
+        {
+          "id": "SCL-NAME-001",
+          "title": "Meaningful identifiers",
+          "severity": "info",
+          "summary": "Prefer descriptive names",
+          "check": "Flag single-letter identifiers used repeatedly",
+          "examples": {
+            "bad": [
+              "\"X\" := \"A\" * \"B\";"
+            ],
+            "good": [
+              "\"MotorSpeed\" := \"SpeedReference\" * \"GainFactor\";"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "style_rules",
+      "rules": [
+        {
+          "id": "SCL-STYLE-001",
+          "title": "Consistent indentation",
+          "severity": "info",
+          "summary": "Use consistent indentation in nested blocks",
+          "check": "Detect mixed indentation within a block",
+          "examples": {
+            "bad": [
+              "IF \"A\" THEN\n \"X\" := 1;\n  \"Y\" := 2;\nEND IF;"
+            ],
+            "good": [
+              "IF \"A\" THEN\n  \"X\" := 1;\n  \"Y\" := 2;\nEND IF;"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "performance_guidelines",
+      "rules": [
+        {
+          "id": "SCL-PERF-001",
+          "title": "Avoid repeated expensive calls",
+          "severity": "info",
+          "summary": "Compute constant expressions once",
+          "check": "Detect repeated function calls in loops",
+          "examples": {
+            "bad": [
+              "FOR \"i\" := 0 TO 999 DO\n  \"Value\"[\"i\"] := SQRT(999) * \"i\";\nEND_FOR;"
+            ],
+            "good": [
+              "\"SqrtValue\" := SQRT(999);\nFOR \"i\" := 0 TO 999 DO\n  \"Value\"[\"i\"] := \"SqrtValue\" * \"i\";\nEND_FOR;"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "mc_rules",
+      "rules": [
+        {
+          "id": "SCL-MC-001",
+          "title": "MC_Power StopMode range",
+          "severity": "error",
+          "summary": "StopMode must be 0-3",
+          "check": "Validate MC_Power.StopMode is within 0..3",
+          "examples": {
+            "bad": [
+              "MC_Power(..., StopMode := 4, ...);"
+            ],
+            "good": [
+              "MC_Power(..., StopMode := 0, ...);"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-002",
+          "title": "MC_Power StartMode range",
+          "severity": "error",
+          "summary": "StartMode must be 0 or 1 for positioning axis",
+          "check": "Validate MC_Power.StartMode is 0 or 1",
+          "examples": {
+            "bad": [
+              "MC_Power(..., StartMode := 2, ...);"
+            ],
+            "good": [
+              "MC_Power(..., StartMode := 1, ...);"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-003",
+          "title": "MC_Reset Execute rising edge",
+          "severity": "error",
+          "summary": "Execute must be rising edge",
+          "check": "Require rising edge for Execute",
+          "examples": {
+            "bad": [
+              "MC_Reset(..., Execute := bCmd, ...);"
+            ],
+            "good": [
+              "bEdge := bCmd AND NOT bCmdPrev;\nMC_Reset(..., Execute := bEdge, ...);"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-004",
+          "title": "MC_MoveAbsolute prerequisites",
+          "severity": "error",
+          "summary": "Axis must be enabled, homed, and error-free",
+          "check": "Require IsEnabled=TRUE, IsHomed=TRUE, HasError=FALSE before MC_MoveAbsolute",
+          "examples": {
+            "bad": [
+              "MC_MoveAbsolute(Axis := Axis, Execute := bEdge, Position := 10.0, ...);"
+            ],
+            "good": [
+              "IF Axis.IsHomed AND Axis.IsEnabled AND NOT Axis.HasError THEN\n  MC_MoveAbsolute(...);\nEND_IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-005",
+          "title": "MC_MoveAbsolute position limits",
+          "severity": "error",
+          "summary": "Position must be within soft limits",
+          "check": "Validate Position within Axis.PositionLimits_SW.MinPosition..MaxPosition",
+          "examples": {
+            "bad": [
+              "Position := 1e9;"
+            ],
+            "good": [
+              "Position := 100.0; // within limits"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-006",
+          "title": "MC_MoveAbsolute dynamics",
+          "severity": "error",
+          "summary": "Velocity/Acceleration/Deceleration must be > 0",
+          "check": "Reject zero values for velocity/accel/decel",
+          "examples": {
+            "bad": [
+              "Velocity := 0.0;"
+            ],
+            "good": [
+              "Velocity := 10.0;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-007",
+          "title": "MC_MoveRelative final position limits",
+          "severity": "error",
+          "summary": "Final position must stay within soft limits",
+          "check": "Validate ActualPosition + Distance within limits",
+          "examples": {
+            "bad": [
+              "Distance := 1e9;"
+            ],
+            "good": [
+              "Distance := 10.0;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-008",
+          "title": "MC_MoveVelocity homing rules",
+          "severity": "warning",
+          "summary": "Speed axis does not require homing; positioning/sync do",
+          "check": "If axis type is positioning/sync, require IsHomed=TRUE",
+          "examples": {
+            "bad": [
+              "MC_MoveVelocity(Axis := PosAxis, Execute := bEdge, Velocity := 10.0);"
+            ],
+            "good": [
+              "IF PosAxis.IsHomed THEN MC_MoveVelocity(...); END_IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-009",
+          "title": "MC_MoveJog mutually exclusive",
+          "severity": "error",
+          "summary": "JogForward and JogBackward cannot be TRUE together",
+          "check": "Validate NOT (JogForward AND JogBackward)",
+          "examples": {
+            "bad": [
+              "JogForward := TRUE; JogBackward := TRUE;"
+            ],
+            "good": [
+              "JogForward := TRUE; JogBackward := FALSE;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-010",
+          "title": "MC_Stop mode range",
+          "severity": "error",
+          "summary": "MC_Stop.Mode must be 0-3",
+          "check": "Validate Mode range",
+          "examples": {
+            "bad": [
+              "MC_Stop(..., Mode := 5, ...);"
+            ],
+            "good": [
+              "MC_Stop(..., Mode := 0, ...);"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-011",
+          "title": "MC_Home mode range",
+          "severity": "error",
+          "summary": "MC_Home.Mode must be 0-13",
+          "check": "Validate Mode range 0..13",
+          "examples": {
+            "bad": [
+              "MC_Home(..., Mode := 20, ...);"
+            ],
+            "good": [
+              "MC_Home(..., Mode := 3, ...);"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-012",
+          "title": "MC_Halt deceleration",
+          "severity": "error",
+          "summary": "Deceleration must be > 0",
+          "check": "Reject Deceleration = 0",
+          "examples": {
+            "bad": [
+              "MC_Halt(..., Deceleration := 0.0, ...);"
+            ],
+            "good": [
+              "MC_Halt(..., Deceleration := 100.0, ...);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "mc_status_checks",
+      "rules": [
+        {
+          "id": "SCL-MC-STATUS-001",
+          "title": "Axis enabled before motion",
+          "severity": "error",
+          "summary": "IsEnabled and MC_Power.Status must be TRUE before movement",
+          "check": "Gate motion calls on IsEnabled and power status",
+          "examples": {
+            "bad": [
+              "MC_MoveAbsolute(...);"
+            ],
+            "good": [
+              "IF Axis.IsEnabled AND Power.Status THEN MC_MoveAbsolute(...); END_IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-STATUS-002",
+          "title": "Homing required",
+          "severity": "error",
+          "summary": "IsHomed must be TRUE for positioning/sync axes",
+          "check": "Require IsHomed before MoveAbsolute/MoveRelative",
+          "examples": {
+            "bad": [
+              "MC_MoveAbsolute(Axis := PosAxis, ...);"
+            ],
+            "good": [
+              "IF PosAxis.IsHomed THEN MC_MoveAbsolute(...); END_IF;"
+            ]
+          }
+        },
+        {
+          "id": "SCL-MC-STATUS-003",
+          "title": "Encoder communication",
+          "severity": "warning",
+          "summary": "StatusSensor CommunicationOK should be TRUE",
+          "check": "Check StatusSensor[n].CommunicationOK",
+          "examples": {
+            "bad": [
+              "// no comm check"
+            ],
+            "good": [
+              "IF Axis.StatusSensor[1].CommunicationOK THEN ..."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "group": "mc_naming",
+      "rules": [
+        {
+          "id": "SCL-MC-NAME-001",
+          "title": "TO naming pattern",
+          "severity": "info",
+          "summary": "Use <Component>_<AxisOrType>_MC",
+          "check": "Flag TO names not matching pattern",
+          "examples": {
+            "bad": [
+              "Ax1"
+            ],
+            "good": [
+              "Spindle_MC"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

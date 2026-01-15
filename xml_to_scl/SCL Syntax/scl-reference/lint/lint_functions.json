@@ -1,0 +1,1651 @@
+{
+  "version": "1.0",
+  "source": "scl-reference/functions/*.json",
+  "functions": [
+    {
+      "name": "AND",
+      "category": "Bitwise Operations",
+      "signature": "AND(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "AND bit a bit"
+      }
+    },
+    {
+      "name": "OR",
+      "category": "Bitwise Operations",
+      "signature": "OR(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "OR bit a bit"
+      }
+    },
+    {
+      "name": "XOR",
+      "category": "Bitwise Operations",
+      "signature": "XOR(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "XOR bit a bit"
+      }
+    },
+    {
+      "name": "NOT",
+      "category": "Bitwise Operations",
+      "signature": "NOT(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "NOT bit a bit (complemento a 1)"
+      }
+    },
+    {
+      "name": "SHL",
+      "category": "Bitwise Operations",
+      "signature": "SHL(IN := <value>, N := <shift_count>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "N",
+          "type": "UINT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore shiftato a sinistra"
+      }
+    },
+    {
+      "name": "SHR",
+      "category": "Bitwise Operations",
+      "signature": "SHR(IN := <value>, N := <shift_count>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "N",
+          "type": "UINT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore shiftato a destra"
+      }
+    },
+    {
+      "name": "ROL",
+      "category": "Bitwise Operations",
+      "signature": "ROL(IN := <value>, N := <rotate_count>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "N",
+          "type": "UINT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore ruotato a sinistra"
+      }
+    },
+    {
+      "name": "ROR",
+      "category": "Bitwise Operations",
+      "signature": "ROR(IN := <value>, N := <rotate_count>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "N",
+          "type": "UINT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore ruotato a destra"
+      }
+    },
+    {
+      "name": "SEL",
+      "category": "Comparison and Selection",
+      "signature": "SEL(G := <condition>, IN0 := <value_false>, IN1 := <value_true>)",
+      "parameters": [
+        {
+          "name": "G",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN0",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN1",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN0/IN1",
+        "description": "IN0 se G=FALSE, IN1 se G=TRUE"
+      }
+    },
+    {
+      "name": "IN_RANGE",
+      "category": "Comparison and Selection",
+      "signature": "IN_RANGE(MIN := <min>, VAL := <value>, MAX := <max>)",
+      "parameters": [
+        {
+          "name": "MIN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "VAL",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "MAX",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se MIN <= VAL <= MAX"
+      }
+    },
+    {
+      "name": "OUT_RANGE",
+      "category": "Comparison and Selection",
+      "signature": "OUT_RANGE(MIN := <min>, VAL := <value>, MAX := <max>)",
+      "parameters": [
+        {
+          "name": "MIN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "VAL",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "MAX",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se VAL < MIN OR VAL > MAX"
+      }
+    },
+    {
+      "name": "EQ",
+      "category": "Comparison and Selection",
+      "signature": "EQ(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 = IN2"
+      }
+    },
+    {
+      "name": "NE",
+      "category": "Comparison and Selection",
+      "signature": "NE(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 <> IN2"
+      }
+    },
+    {
+      "name": "LT",
+      "category": "Comparison and Selection",
+      "signature": "LT(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 < IN2"
+      }
+    },
+    {
+      "name": "LE",
+      "category": "Comparison and Selection",
+      "signature": "LE(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 <= IN2"
+      }
+    },
+    {
+      "name": "GT",
+      "category": "Comparison and Selection",
+      "signature": "GT(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 > IN2"
+      }
+    },
+    {
+      "name": "GE",
+      "category": "Comparison and Selection",
+      "signature": "GE(IN1 := <value1>, IN2 := <value2>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se IN1 >= IN2"
+      }
+    },
+    {
+      "name": "CONVERT",
+      "category": "Type Conversion and Scaling",
+      "signature": "CONVERT(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Tipo target",
+        "description": "Valore convertito nel tipo di destinazione"
+      }
+    },
+    {
+      "name": "SCALE_X",
+      "category": "Type Conversion and Scaling",
+      "signature": "SCALE_X(MIN := <eng_min>, VALUE := <raw_value>, MAX := <eng_max>)",
+      "parameters": [
+        {
+          "name": "MIN",
+          "type": "REAL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "VALUE",
+          "type": "INT/DINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "MAX",
+          "type": "REAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "REAL",
+        "description": "Valore scalato in unit\u00e0 ingegneristiche"
+      }
+    },
+    {
+      "name": "NORM_X",
+      "category": "Type Conversion and Scaling",
+      "signature": "NORM_X(MIN := <phys_min>, VALUE := <phys_value>, MAX := <phys_max>)",
+      "parameters": [
+        {
+          "name": "MIN",
+          "type": "REAL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "VALUE",
+          "type": "REAL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "MAX",
+          "type": "REAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "REAL",
+        "description": "Valore normalizzato (0.0 - 1.0)"
+      }
+    },
+    {
+      "name": "TO_INT",
+      "category": "Type Conversion and Scaling",
+      "signature": "TO_INT(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "INT",
+        "description": "Valore convertito in INT"
+      }
+    },
+    {
+      "name": "TO_DINT",
+      "category": "Type Conversion and Scaling",
+      "signature": "TO_DINT(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "DINT",
+        "description": "Valore convertito in DINT"
+      }
+    },
+    {
+      "name": "TO_REAL",
+      "category": "Type Conversion and Scaling",
+      "signature": "TO_REAL(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "REAL",
+        "description": "Valore convertito in REAL"
+      }
+    },
+    {
+      "name": "TO_BOOL",
+      "category": "Type Conversion and Scaling",
+      "signature": "TO_BOOL(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_BIT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "Valore convertito in BOOL"
+      }
+    },
+    {
+      "name": "BOOL_TO_INT",
+      "category": "Type Conversion and Scaling",
+      "signature": "BOOL_TO_INT(IN := <bool_value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "INT",
+        "description": "0 se FALSE, 1 se TRUE"
+      }
+    },
+    {
+      "name": "CTU",
+      "category": "IEC Counters",
+      "signature": "#instanceName(CU := <count_up>, R := <reset>, PV := <preset_value>, Q => <output>, CV => <count_value>);",
+      "parameters": [
+        {
+          "name": "CU",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "R",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "CV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e CV"
+      }
+    },
+    {
+      "name": "CTD",
+      "category": "IEC Counters",
+      "signature": "#instanceName(CD := <count_down>, LD := <load>, PV := <preset_value>, Q => <output>, CV => <count_value>);",
+      "parameters": [
+        {
+          "name": "CD",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "LD",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "CV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e CV"
+      }
+    },
+    {
+      "name": "CTUD",
+      "category": "IEC Counters",
+      "signature": "#instanceName(CU := <count_up>, CD := <count_down>, R := <reset>, LD := <load>, PV := <preset_value>, QU => <up_output>, QD => <down_output>, CV => <count_value>);",
+      "parameters": [
+        {
+          "name": "CU",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "CD",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "R",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "LD",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "QU",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "QD",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "CV",
+          "type": "INT/DINT/UINT/UDINT",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output QU, QD e CV"
+      }
+    },
+    {
+      "name": "LIMIT",
+      "category": "Math Functions",
+      "signature": "LIMIT(MN := <min>, IN := <value>, MX := <max>)",
+      "parameters": [
+        {
+          "name": "MN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "MX",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore limitato nell'intervallo [MN, MX]"
+      }
+    },
+    {
+      "name": "MIN",
+      "category": "Math Functions",
+      "signature": "MIN(IN1 := <value1>, IN2 := <value2>, ...)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN3..IN32",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": true
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "Il valore minimo tra tutti gli input"
+      }
+    },
+    {
+      "name": "MAX",
+      "category": "Math Functions",
+      "signature": "MAX(IN1 := <value1>, IN2 := <value2>, ...)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN3..IN32",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": true
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "Il valore massimo tra tutti gli input"
+      }
+    },
+    {
+      "name": "ABS",
+      "category": "Math Functions",
+      "signature": "ABS(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore assoluto di IN"
+      }
+    },
+    {
+      "name": "NEG",
+      "category": "Math Functions",
+      "signature": "NEG(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Negazione di IN (-IN)"
+      }
+    },
+    {
+      "name": "MOD",
+      "category": "Math Functions",
+      "signature": "MOD(IN1 := <dividend>, IN2 := <divisor>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "ANY_INT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "ANY_INT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as inputs",
+        "description": "Resto della divisione intera IN1 / IN2"
+      }
+    },
+    {
+      "name": "SQR",
+      "category": "Math Functions",
+      "signature": "SQR(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_NUM",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Quadrato del valore (IN * IN)"
+      }
+    },
+    {
+      "name": "SQRT",
+      "category": "Math Functions",
+      "signature": "SQRT(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Radice quadrata di IN"
+      }
+    },
+    {
+      "name": "LN",
+      "category": "Math Functions",
+      "signature": "LN(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Logaritmo naturale di IN (base e)"
+      }
+    },
+    {
+      "name": "EXP",
+      "category": "Math Functions",
+      "signature": "EXP(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "e elevato alla potenza IN"
+      }
+    },
+    {
+      "name": "SIN",
+      "category": "Math Functions",
+      "signature": "SIN(IN := <angle>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Seno dell'angolo"
+      }
+    },
+    {
+      "name": "COS",
+      "category": "Math Functions",
+      "signature": "COS(IN := <angle>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Coseno dell'angolo"
+      }
+    },
+    {
+      "name": "TAN",
+      "category": "Math Functions",
+      "signature": "TAN(IN := <angle>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Tangente dell'angolo"
+      }
+    },
+    {
+      "name": "ROUND",
+      "category": "Math Functions",
+      "signature": "ROUND(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "DINT/LINT",
+        "description": "Valore arrotondato al numero intero pi\u00f9 vicino"
+      }
+    },
+    {
+      "name": "TRUNC",
+      "category": "Math Functions",
+      "signature": "TRUNC(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "REAL/LREAL",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "DINT/LINT",
+        "description": "Parte intera (troncata verso zero)"
+      }
+    },
+    {
+      "name": "MOVE",
+      "category": "Move and Data Operations",
+      "signature": "MOVE(IN := <source>, OUT => <destination>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "OUT",
+          "type": "ANY",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "VOID",
+        "description": "Assegnazione diretta"
+      }
+    },
+    {
+      "name": "MOVE_BLK",
+      "category": "Move and Data Operations",
+      "signature": "MOVE_BLK(IN := <source_array>, COUNT := <num_elements>, OUT => <dest_array>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ARRAY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "COUNT",
+          "type": "UINT/UDINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "OUT",
+          "type": "ARRAY",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "VOID",
+        "description": "N/A"
+      }
+    },
+    {
+      "name": "FILL_BLK",
+      "category": "Move and Data Operations",
+      "signature": "FILL_BLK(IN := <value>, COUNT := <num_elements>, OUT => <dest_array>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "COUNT",
+          "type": "UINT/UDINT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "OUT",
+          "type": "ARRAY",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "VOID",
+        "description": "N/A"
+      }
+    },
+    {
+      "name": "SWAP",
+      "category": "Move and Data Operations",
+      "signature": "SWAP(IN := <value>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "WORD/DWORD",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "Same as IN",
+        "description": "Valore con byte invertiti"
+      }
+    },
+    {
+      "name": "CountOfElements",
+      "category": "Move and Data Operations",
+      "signature": "CountOfElements(<array>)",
+      "parameters": [
+        {
+          "name": "array",
+          "type": "ARRAY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "DINT",
+        "description": "Numero di elementi nell'array"
+      }
+    },
+    {
+      "name": "IS_ARRAY",
+      "category": "Move and Data Operations",
+      "signature": "IS_ARRAY(<variable>)",
+      "parameters": [
+        {
+          "name": "variable",
+          "type": "ANY",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "BOOL",
+        "description": "TRUE se la variabile \u00e8 un array"
+      }
+    },
+    {
+      "name": "IF",
+      "category": "Program Control Structures",
+      "signature": "IF <condition> THEN\n    <statements>\n[ELSIF <condition2> THEN\n    <statements2>]\n[ELSE\n    <statements_default>]\nEND_IF;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "CASE",
+      "category": "Program Control Structures",
+      "signature": "CASE <selector> OF\n    <value1>: <statements1>;\n    <value2>: <statements2>;\n    [ELSE <default_statements>;]\nEND_CASE;",
+      "parameters": [
+        {
+          "name": "selector",
+          "type": "INT/DINT/WORD/DWORD/BYTE",
+          "direction": null,
+          "optional": false
+        }
+      ],
+      "return": null
+    },
+    {
+      "name": "FOR",
+      "category": "Program Control Structures",
+      "signature": "FOR <counter> := <start> TO <end> [BY <step>] DO\n    <statements>\nEND_FOR;",
+      "parameters": [
+        {
+          "name": "counter",
+          "type": "INT/DINT",
+          "direction": null,
+          "optional": false
+        },
+        {
+          "name": "start",
+          "type": "INT/DINT",
+          "direction": null,
+          "optional": false
+        },
+        {
+          "name": "end",
+          "type": "INT/DINT",
+          "direction": null,
+          "optional": false
+        },
+        {
+          "name": "step",
+          "type": "INT/DINT",
+          "direction": null,
+          "optional": false
+        }
+      ],
+      "return": null
+    },
+    {
+      "name": "WHILE",
+      "category": "Program Control Structures",
+      "signature": "WHILE <condition> DO\n    <statements>\nEND_WHILE;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "REPEAT",
+      "category": "Program Control Structures",
+      "signature": "REPEAT\n    <statements>\nUNTIL <condition>\nEND_REPEAT;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "EXIT",
+      "category": "Program Control Structures",
+      "signature": "EXIT;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "CONTINUE",
+      "category": "Program Control Structures",
+      "signature": "CONTINUE;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "RETURN",
+      "category": "Program Control Structures",
+      "signature": "RETURN;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "GOTO",
+      "category": "Program Control Structures",
+      "signature": "GOTO <label_name>;\n...\n<label_name>: <statement>;",
+      "parameters": [],
+      "return": null
+    },
+    {
+      "name": "CONCAT",
+      "category": "String Functions",
+      "signature": "CONCAT(IN1 := <string1>, IN2 := <string2>, [IN3 := <string3>, ...])",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN3..IN32",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": true
+        }
+      ],
+      "return": {
+        "type": "STRING/WSTRING",
+        "description": "Stringa concatenata"
+      }
+    },
+    {
+      "name": "LEN",
+      "category": "String Functions",
+      "signature": "LEN(IN := <string>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "INT/DINT",
+        "description": "Lunghezza corrente della stringa (numero di caratteri validi)"
+      }
+    },
+    {
+      "name": "LEFT",
+      "category": "String Functions",
+      "signature": "LEFT(IN := <string>, L := <length>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "L",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "STRING/WSTRING",
+        "description": "Sottostringa con i primi L caratteri"
+      }
+    },
+    {
+      "name": "RIGHT",
+      "category": "String Functions",
+      "signature": "RIGHT(IN := <string>, L := <length>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "L",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "STRING/WSTRING",
+        "description": "Sottostringa con gli ultimi L caratteri"
+      }
+    },
+    {
+      "name": "MID",
+      "category": "String Functions",
+      "signature": "MID(IN := <string>, L := <length>, P := <position>)",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "L",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "P",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "STRING/WSTRING",
+        "description": "Sottostringa estratta"
+      }
+    },
+    {
+      "name": "FIND",
+      "category": "String Functions",
+      "signature": "FIND(IN1 := <string>, IN2 := <search_string>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "INT",
+        "description": "Posizione della prima occorrenza (1-based), 0 se non trovata"
+      }
+    },
+    {
+      "name": "REPLACE",
+      "category": "String Functions",
+      "signature": "REPLACE(IN1 := <string>, IN2 := <search>, L := <length>, P := <position>)",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "IN2",
+          "type": "STRING/WSTRING",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "L",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "P",
+          "type": "INT",
+          "direction": "IN",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "STRING/WSTRING",
+        "description": "Stringa con sostituzione effettuata"
+      }
+    },
+    {
+      "name": "TON",
+      "category": "IEC Timers",
+      "signature": "#instanceName(IN := <enable>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PT",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "ET",
+          "type": "TIME/LTIME",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e ET"
+      }
+    },
+    {
+      "name": "TOF",
+      "category": "IEC Timers",
+      "signature": "#instanceName(IN := <enable>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PT",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "ET",
+          "type": "TIME/LTIME",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e ET"
+      }
+    },
+    {
+      "name": "TP",
+      "category": "IEC Timers",
+      "signature": "#instanceName(IN := <trigger>, PT := <pulse_time>, Q => <output>, ET => <elapsed_time>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PT",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "ET",
+          "type": "TIME/LTIME",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e ET"
+      }
+    },
+    {
+      "name": "TONR",
+      "category": "IEC Timers",
+      "signature": "#instanceName(IN := <enable>, R := <reset>, PT := <preset_time>, Q => <output>, ET => <elapsed_time>);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "R",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "PT",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        },
+        {
+          "name": "ET",
+          "type": "TIME/LTIME",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q e ET"
+      }
+    },
+    {
+      "name": "R_TRIG",
+      "category": "Triggers and Edge Detection",
+      "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+      "parameters": [
+        {
+          "name": "CLK",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q"
+      }
+    },
+    {
+      "name": "F_TRIG",
+      "category": "Triggers and Edge Detection",
+      "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+      "parameters": [
+        {
+          "name": "CLK",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q"
+      }
+    },
+    {
+      "name": "P_TRIG",
+      "category": "Triggers and Edge Detection",
+      "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+      "parameters": [
+        {
+          "name": "CLK",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q"
+      }
+    },
+    {
+      "name": "N_TRIG",
+      "category": "Triggers and Edge Detection",
+      "signature": "#instanceName(CLK := <signal>, Q => <output>);",
+      "parameters": [
+        {
+          "name": "CLK",
+          "type": "BOOL",
+          "direction": "IN",
+          "optional": false
+        },
+        {
+          "name": "Q",
+          "type": "BOOL",
+          "direction": "OUT",
+          "optional": false
+        }
+      ],
+      "return": {
+        "type": "N/A (FB)",
+        "description": "Usare output Q"
+      }
+    }
+  ]
+}

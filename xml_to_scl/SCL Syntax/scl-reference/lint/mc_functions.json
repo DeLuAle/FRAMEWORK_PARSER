@@ -1,0 +1,404 @@
+{
+  "version": "1.1",
+  "source": "Docs_SCL/LINT_SKILL_MC_1.MD",
+  "functions": [
+    {
+      "name": "MC_Power",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis",
+        "TO_ExternalEncoder"
+      ],
+      "inputs": [
+        "Axis",
+        "Enable",
+        "StartMode",
+        "StopMode"
+      ],
+      "outputs": [
+        "Status",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "StopMode 0..3",
+        "StartMode 0..1 for positioning axis",
+        "Check CommunicationOK before Enable"
+      ]
+    },
+    {
+      "name": "MC_Reset",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Restart"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Restart requires power disabled"
+      ]
+    },
+    {
+      "name": "MC_Home",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode",
+        "Position"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Mode 0..13",
+        "Verify IsHomed after completion"
+      ]
+    },
+    {
+      "name": "MC_Halt",
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_MoveAbsolute",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Position",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "IsHomed/IsEnabled/HasError prerequisites",
+        "Position within limits",
+        "Velocity/Acceleration/Deceleration > 0"
+      ]
+    },
+    {
+      "name": "MC_MoveRelative",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Distance",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Final position within limits",
+        "Distance != 0"
+      ]
+    },
+    {
+      "name": "MC_PositionProfile",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "TimePosition",
+        "Execute",
+        "BufferMode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "CAM must be interpolated"
+      ]
+    },
+    {
+      "name": "MC_MoveVelocity",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Positioning/sync axes require homing",
+        "Accel/Decel > 0",
+        "Velocity may be 0"
+      ]
+    },
+    {
+      "name": "MC_MoveJog",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "JogForward",
+        "JogBackward",
+        "Velocity",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "JogForward and JogBackward not both TRUE",
+        "No rising edge required"
+      ]
+    },
+    {
+      "name": "MC_MoveSuperimposed",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Distance",
+        "VelocityDiff",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Distance can be +/-",
+        "VelocityDiff >= 0"
+      ]
+    },
+    {
+      "name": "MC_Stop",
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Mode 0..3"
+      ]
+    },
+    {
+      "name": "MC_SetSensor",
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Mode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Mode 0..3"
+      ]
+    },
+    {
+      "name": "MC_VelocitySynchronization",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "Ratio",
+        "Tolerance",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Master and Slave cannot be same axis",
+        "Ratio > 0",
+        "Tolerance >= 0"
+      ]
+    },
+    {
+      "name": "MC_PositionSynchronization",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "StartPosition",
+        "MasterStartPosition",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Master and Slave cannot be same axis"
+      ]
+    },
+    {
+      "name": "MC_InterpolateCam",
+      "axis_types": [
+        "TO_Cam",
+        "TO_Cam_10k",
+        "TO_Cam_16kSeg",
+        "TO_Cam_600Seg"
+      ],
+      "inputs": [
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Cam type must be supported"
+      ]
+    },
+    {
+      "name": "MC_CamIn",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Cam must be interpolated",
+        "Master/Slave different"
+      ]
+    },
+    {
+      "name": "MC_CamOut",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Slave",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge"
+      ]
+    }
+  ]
+}

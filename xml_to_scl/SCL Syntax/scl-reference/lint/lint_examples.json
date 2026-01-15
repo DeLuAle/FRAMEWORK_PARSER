@@ -1,0 +1,450 @@
+{
+  "version": "1.0",
+  "examples": [
+    {
+      "rule_id": "SCL-SYN-001",
+      "title": "Statement termination",
+      "bad": [
+        "\"Counter\" := 0"
+      ],
+      "good": [
+        "\"Counter\" := 0;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SYN-002",
+      "title": "Bracket and parenthesis matching",
+      "bad": [
+        "\"Array\"[i := 1;"
+      ],
+      "good": [
+        "\"Array\"[i] := 1;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SYN-003",
+      "title": "Single-line comment syntax",
+      "bad": [
+        "# comment"
+      ],
+      "good": [
+        "// comment"
+      ]
+    },
+    {
+      "rule_id": "SCL-SYN-004",
+      "title": "Control structure closure",
+      "bad": [
+        "IF \"Cond\" THEN\n  \"X\" := 1;"
+      ],
+      "good": [
+        "IF \"Cond\" THEN\n  \"X\" := 1;\nEND IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SYN-005",
+      "title": "ELSIF keyword",
+      "bad": [
+        "ELSEIF \"Cond\" THEN"
+      ],
+      "good": [
+        "ELSIF \"Cond\" THEN"
+      ]
+    },
+    {
+      "rule_id": "SCL-SEM-001",
+      "title": "Variable declared before use",
+      "bad": [
+        "\"Undeclared\" := 1;"
+      ],
+      "good": [
+        "LOCAL \"Declared\" : INT := 1;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SEM-002",
+      "title": "Type consistency",
+      "bad": [
+        "\"IntValue\" := \"RealValue\";"
+      ],
+      "good": [
+        "\"IntValue\" := TO_INT(IN := \"RealValue\");"
+      ]
+    },
+    {
+      "rule_id": "SCL-SEM-003",
+      "title": "Array bounds",
+      "bad": [
+        "FOR \"i\" := 0 TO \"UserInput\" DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+      ],
+      "good": [
+        "FOR \"i\" := 0 TO MIN(\"UserInput\", 99) DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SEM-004",
+      "title": "Function parameter types",
+      "bad": [
+        "\"MyFB\"(IN := \"StringValue\");"
+      ],
+      "good": [
+        "\"MyFB\"(IN := \"IntValue\", OUT => \"Result\");"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-001",
+      "title": "IF/ELSIF/ELSE structure",
+      "bad": [
+        "IF \"Condition\" THEN\n  \"Output\" := 1;"
+      ],
+      "good": [
+        "IF \"Condition\" THEN\n  \"Output\" := 1;\nEND IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-002",
+      "title": "FOR loop structure",
+      "bad": [
+        "FOR \"i\" := 0 TO 10 DO\n  \"Array\"[\"i\"] := 0;"
+      ],
+      "good": [
+        "FOR \"i\" := 0 TO 10 DO\n  \"Array\"[\"i\"] := 0;\nEND_FOR;"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-003",
+      "title": "WHILE loop structure",
+      "bad": [
+        "WHILE \"Counter\" < 10 DO\n  \"Counter\" := \"Counter\" + 1;"
+      ],
+      "good": [
+        "WHILE \"Counter\" < 10 DO\n  \"Counter\" := \"Counter\" + 1;\nEND_WHILE;"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-004",
+      "title": "REPEAT loop structure",
+      "bad": [
+        "REPEAT\n  \"Counter\" := \"Counter\" + 1;"
+      ],
+      "good": [
+        "REPEAT\n  \"Counter\" := \"Counter\" + 1;\nUNTIL \"Counter\" >= 10\nEND_REPEAT;"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-005",
+      "title": "CASE structure",
+      "bad": [
+        "CASE \"Mode\" OF\n  0: \"X\" := 0;"
+      ],
+      "good": [
+        "CASE \"Mode\" OF\n  0: \"X\" := 0;\nEND_CASE;"
+      ]
+    },
+    {
+      "rule_id": "SCL-INS-006",
+      "title": "Block calls",
+      "bad": [
+        "\"MyFB\"(IN := 10);"
+      ],
+      "good": [
+        "\"MyFB\"(IN := 10, OUT => \"Result\");"
+      ]
+    },
+    {
+      "rule_id": "SCL-TYP-001",
+      "title": "Basic types",
+      "bad": [
+        "LOCAL \"X\" : INTEGER;"
+      ],
+      "good": [
+        "LOCAL \"X\" : INT;"
+      ]
+    },
+    {
+      "rule_id": "SCL-TYP-002",
+      "title": "Complex types",
+      "bad": [
+        "LOCAL \"A\" : ARRAY OF INT;"
+      ],
+      "good": [
+        "LOCAL \"A\" : ARRAY[0..9] OF INT;"
+      ]
+    },
+    {
+      "rule_id": "SCL-TYP-003",
+      "title": "Parameter directions",
+      "bad": [
+        "IN_OUT \"X\" : BOOL; // used as OUT"
+      ],
+      "good": [
+        "OUT \"X\" : BOOL;"
+      ]
+    },
+    {
+      "rule_id": "SCL-BP-001",
+      "title": "Prefer IEC timers and counters",
+      "bad": [
+        "S5T#1S"
+      ],
+      "good": [
+        "TONR",
+        "TON",
+        "CTU"
+      ]
+    },
+    {
+      "rule_id": "SCL-BP-002",
+      "title": "Prefer symbolic addressing",
+      "bad": [
+        "I0.0",
+        "Q4.0",
+        "M10.2"
+      ],
+      "good": [
+        "\"StartButton\"",
+        "\"MotorOutput\""
+      ]
+    },
+    {
+      "rule_id": "SCL-BP-003",
+      "title": "Avoid magic numbers",
+      "bad": [
+        "IF \"Pressure\" > 250 THEN"
+      ],
+      "good": [
+        "CONST MAX_PRESSURE : INT := 250;\nIF \"Pressure\" > MAX_PRESSURE THEN"
+      ]
+    },
+    {
+      "rule_id": "SCL-BP-004",
+      "title": "Guard clauses",
+      "bad": [
+        "IF A THEN IF B THEN IF C THEN X := 1; END_IF; END_IF; END_IF;"
+      ],
+      "good": [
+        "IF NOT A THEN RETURN; END_IF; IF NOT B THEN RETURN; END_IF; IF NOT C THEN RETURN; END_IF; X := 1;"
+      ]
+    },
+    {
+      "rule_id": "SCL-BP-005",
+      "title": "Array bounds checks",
+      "bad": [
+        "FOR \"i\" := 0 TO \"UserInput\" DO"
+      ],
+      "good": [
+        "FOR \"i\" := 0 TO MIN(\"UserInput\", 99) DO"
+      ]
+    },
+    {
+      "rule_id": "SCL-SAFE-001",
+      "title": "Division by zero",
+      "bad": [
+        "\"Result\" := \"A\" / \"B\";"
+      ],
+      "good": [
+        "IF \"B\" = 0 THEN\n  \"Result\" := 0;\nELSE\n  \"Result\" := \"A\" / \"B\";\nEND_IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-SAFE-002",
+      "title": "Overflow guard for INT",
+      "bad": [
+        "\"Value\" := \"Value\" + 100;"
+      ],
+      "good": [
+        "\"Value\" := LIMIT(MN := -32768, IN := \"Value\" + 100, MX := 32767);"
+      ]
+    },
+    {
+      "rule_id": "SCL-NAME-001",
+      "title": "Meaningful identifiers",
+      "bad": [
+        "\"X\" := \"A\" * \"B\";"
+      ],
+      "good": [
+        "\"MotorSpeed\" := \"SpeedReference\" * \"GainFactor\";"
+      ]
+    },
+    {
+      "rule_id": "SCL-STYLE-001",
+      "title": "Consistent indentation",
+      "bad": [
+        "IF \"A\" THEN\n \"X\" := 1;\n  \"Y\" := 2;\nEND IF;"
+      ],
+      "good": [
+        "IF \"A\" THEN\n  \"X\" := 1;\n  \"Y\" := 2;\nEND IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-PERF-001",
+      "title": "Avoid repeated expensive calls",
+      "bad": [
+        "FOR \"i\" := 0 TO 999 DO\n  \"Value\"[\"i\"] := SQRT(999) * \"i\";\nEND_FOR;"
+      ],
+      "good": [
+        "\"SqrtValue\" := SQRT(999);\nFOR \"i\" := 0 TO 999 DO\n  \"Value\"[\"i\"] := \"SqrtValue\" * \"i\";\nEND_FOR;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-001",
+      "title": "MC_Power StopMode range",
+      "bad": [
+        "MC_Power(..., StopMode := 4, ...);"
+      ],
+      "good": [
+        "MC_Power(..., StopMode := 0, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-002",
+      "title": "MC_Power StartMode range",
+      "bad": [
+        "MC_Power(..., StartMode := 2, ...);"
+      ],
+      "good": [
+        "MC_Power(..., StartMode := 1, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-003",
+      "title": "MC_Reset Execute rising edge",
+      "bad": [
+        "MC_Reset(..., Execute := bCmd, ...);"
+      ],
+      "good": [
+        "bEdge := bCmd AND NOT bCmdPrev;\nMC_Reset(..., Execute := bEdge, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-004",
+      "title": "MC_MoveAbsolute prerequisites",
+      "bad": [
+        "MC_MoveAbsolute(Axis := Axis, Execute := bEdge, Position := 10.0, ...);"
+      ],
+      "good": [
+        "IF Axis.IsHomed AND Axis.IsEnabled AND NOT Axis.HasError THEN\n  MC_MoveAbsolute(...);\nEND_IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-005",
+      "title": "MC_MoveAbsolute position limits",
+      "bad": [
+        "Position := 1e9;"
+      ],
+      "good": [
+        "Position := 100.0; // within limits"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-006",
+      "title": "MC_MoveAbsolute dynamics",
+      "bad": [
+        "Velocity := 0.0;"
+      ],
+      "good": [
+        "Velocity := 10.0;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-007",
+      "title": "MC_MoveRelative final position limits",
+      "bad": [
+        "Distance := 1e9;"
+      ],
+      "good": [
+        "Distance := 10.0;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-008",
+      "title": "MC_MoveVelocity homing rules",
+      "bad": [
+        "MC_MoveVelocity(Axis := PosAxis, Execute := bEdge, Velocity := 10.0);"
+      ],
+      "good": [
+        "IF PosAxis.IsHomed THEN MC_MoveVelocity(...); END_IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-009",
+      "title": "MC_MoveJog mutually exclusive",
+      "bad": [
+        "JogForward := TRUE; JogBackward := TRUE;"
+      ],
+      "good": [
+        "JogForward := TRUE; JogBackward := FALSE;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-010",
+      "title": "MC_Stop mode range",
+      "bad": [
+        "MC_Stop(..., Mode := 5, ...);"
+      ],
+      "good": [
+        "MC_Stop(..., Mode := 0, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-011",
+      "title": "MC_Home mode range",
+      "bad": [
+        "MC_Home(..., Mode := 20, ...);"
+      ],
+      "good": [
+        "MC_Home(..., Mode := 3, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-012",
+      "title": "MC_Halt deceleration",
+      "bad": [
+        "MC_Halt(..., Deceleration := 0.0, ...);"
+      ],
+      "good": [
+        "MC_Halt(..., Deceleration := 100.0, ...);"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-STATUS-001",
+      "title": "Axis enabled before motion",
+      "bad": [
+        "MC_MoveAbsolute(...);"
+      ],
+      "good": [
+        "IF Axis.IsEnabled AND Power.Status THEN MC_MoveAbsolute(...); END_IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-STATUS-002",
+      "title": "Homing required",
+      "bad": [
+        "MC_MoveAbsolute(Axis := PosAxis, ...);"
+      ],
+      "good": [
+        "IF PosAxis.IsHomed THEN MC_MoveAbsolute(...); END_IF;"
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-STATUS-003",
+      "title": "Encoder communication",
+      "bad": [
+        "// no comm check"
+      ],
+      "good": [
+        "IF Axis.StatusSensor[1].CommunicationOK THEN ..."
+      ]
+    },
+    {
+      "rule_id": "SCL-MC-NAME-001",
+      "title": "TO naming pattern",
+      "bad": [
+        "Ax1"
+      ],
+      "good": [
+        "Spindle_MC"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,118 @@
+{
+    "category": "Variant & DB_ANY",
+    "description": "Funzioni per la gestione dinamica dei dati tramite puntatori VARIANT e riferimenti DB_ANY.",
+    "tia_version": "V14+",
+    "source": "TIA Portal Help - Variant Instructions",
+    "functions": [
+        {
+            "name": "VariantGet",
+            "signature": "VariantGet(SRC := <variant>, DST => <variable>)",
+            "parameters": [
+                {
+                    "name": "SRC",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Puntatore Variant alla variabile sorgente da leggere.",
+                    "optional": false
+                },
+                {
+                    "name": "DST",
+                    "type": "ANY",
+                    "direction": "OUT",
+                    "description": "Variabile di destinazione. Deve essere di tipo compatibile con il valore puntato da SRC.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Legge il valore puntato da una variabile VARIANT e lo copia in una variabile di destinazione.",
+            "example": "VariantGet(SRC := #tempVariant, DST => #localInt);",
+            "notes": "Se i tipi non coincidono, non avviene alcuna copia (EN/ENO mechanism).",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "VariantPut",
+            "signature": "VariantPut(SRC := <variable>, DST := <variant>)",
+            "parameters": [
+                {
+                    "name": "SRC",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Variabile sorgente da scrivere.",
+                    "optional": false
+                },
+                {
+                    "name": "DST",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Puntatore Variant alla variabile di destinazione.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scrive il valore di una variabile sorgente nella locazione puntata da una variabile VARIANT.",
+            "example": "VariantPut(SRC := #localInt, DST := #tempVariant);",
+            "notes": "Richiede compatibilità di tipo tra SRC e il target di DST.",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "VARIANT_TO_DB_ANY",
+            "signature": "RET_VAL := VARIANT_TO_DB_ANY(IN := <variant>, ERR => <int>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Puntatore Variant ad un blocco dati (es. istanza o array DB).",
+                    "optional": false
+                },
+                {
+                    "name": "ERR",
+                    "type": "INT",
+                    "direction": "OUT",
+                    "description": "Codice errore (0 = OK).",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DB_ANY",
+                "description": "Numero del DB puntato dal Variant."
+            },
+            "description": "Estrae il numero di DB (come DB_ANY) da un puntatore VARIANT.",
+            "example": "#demoDB := VARIANT_TO_DB_ANY(IN := #myVariant, ERR => #errCode);",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "DB_ANY_TO_VARIANT",
+            "signature": "RET_VAL := DB_ANY_TO_VARIANT(IN := <db_any>, ERR => <int>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DB_ANY",
+                    "direction": "IN",
+                    "description": "Numero del DB da convertire.",
+                    "optional": false
+                },
+                {
+                    "name": "ERR",
+                    "type": "INT",
+                    "direction": "OUT",
+                    "description": "Codice errore (0 = OK).",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VARIANT",
+                "description": "Puntatore Variant al DB specificato."
+            },
+            "description": "Crea un puntatore VARIANT a partire da un numero di DB (DB_ANY).",
+            "example": "#tempVariant := DB_ANY_TO_VARIANT(IN := #demoDB, ERR => #errCode);",
+            "tia_version": "V14+"
+        }
+    ]
+}

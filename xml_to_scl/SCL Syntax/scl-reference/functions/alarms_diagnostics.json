@@ -1,0 +1,146 @@
+{
+    "category": "Alarms and Diagnostics",
+    "description": "Funzioni per la gestione di allarmi di programma e diagnostica hardware",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Alarms and Diagnostics Instructions",
+    "functions": [
+        {
+            "name": "Program_Alarm",
+            "signature": "#instanceName(SIG := <trigger>, SD_1 := <value1>, [SD_2..10 := <valueN>]);",
+            "parameters": [
+                {
+                    "name": "SIG",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di trigger dell'allarme (fronte salita=entrante, fronte discesa=uscente)",
+                    "optional": false
+                },
+                {
+                    "name": "SD_1..SD_10",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Valori associati da inviare con l'allarme",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "Nessun valore di ritorno diretto"
+            },
+            "description": "Genera un allarme di programma con timestamp e valori associati. Deve essere usata come multi-istanza in un FB.",
+            "example": "// Genera allarme con valore di pressione associato\n#tempAlarm(SIG := #highTempTrigger, SD_1 := #currentTemp);",
+            "mandatory": true,
+            "notes": "L'allarme viene configurato nelle proprietà dell'istanza in TIA Portal. Supporta fino a 10 valori associati.",
+            "see_also": [
+                "Get_AlarmState"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "Get_AlarmState",
+            "signature": "#status := Get_AlarmState(Alarm := <instance>, AlarmState => <byte_var>);",
+            "parameters": [
+                {
+                    "name": "Alarm",
+                    "type": "PORT",
+                    "direction": "IN",
+                    "description": "Istanza di Program_Alarm da monitorare",
+                    "optional": false
+                },
+                {
+                    "name": "AlarmState",
+                    "type": "BYTE",
+                    "direction": "OUT",
+                    "description": "Stato attuale dell'allarme (bit-coded)",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Stato dell'istruzione (0 = Successo)"
+            },
+            "description": "Legge lo stato corrente di un allarme di programma configurato.",
+            "example": "#retVal := Get_AlarmState(Alarm := #tempAlarm, AlarmState => #state);",
+            "mandatory": true,
+            "see_also": [
+                "Program_Alarm"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GET_DIAG",
+            "signature": "#retVal := GET_DIAG(MODE := <uint>, LADDR := <hw_any>, CNT_DIAG => <uint>, DIAG := <variant>, [DETAIL := <variant>]);",
+            "parameters": [
+                {
+                    "name": "MODE",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Tipo di informazioni diagnostiche da leggere",
+                    "optional": false
+                },
+                {
+                    "name": "LADDR",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "Identificativo hardware del modulo",
+                    "optional": false
+                },
+                {
+                    "name": "CNT_DIAG",
+                    "type": "UINT",
+                    "direction": "OUT",
+                    "description": "Numero di informazioni diagnostiche trovate",
+                    "optional": false
+                },
+                {
+                    "name": "DIAG",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Buffer per le informazioni diagnostiche",
+                    "optional": false
+                },
+                {
+                    "name": "DETAIL",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Dettagli diagnostici aggiuntivi",
+                    "optional": true
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Stato dell'istruzione (0 = Successo)"
+            },
+            "description": "Legge informazioni diagnostiche dettagliate da un modulo hardware.",
+            "example": "#status := GET_DIAG(MODE := 1, LADDR := \"Local~CPU\", CNT_DIAG => #count, DIAG := #diagBuffer);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LED",
+            "signature": "#retVal := LED(LADDR := <hw_any>, LED := <uint>);",
+            "parameters": [
+                {
+                    "name": "LADDR",
+                    "type": "HW_ANY",
+                    "direction": "IN",
+                    "description": "Identificativo hardware del modulo"
+                },
+                {
+                    "name": "LED",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "ID dell'operando LED (1=STOP/RUN, 2=ERROR, 3=MAINT, ecc.)"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Stato del LED (0=Off, 1=On green, 2=On red, etc.)"
+            },
+            "description": "Legge lo stato di un LED di sistema su un modulo o CPU.",
+            "example": "#cpuStatus := LED(LADDR := \"Local~CPU\", LED := 1); // Legge RUN/STOP",
+            "mandatory": true,
+            "tia_version": "V20+"
+        }
+    ]
+}

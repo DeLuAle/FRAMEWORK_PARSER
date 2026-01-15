@@ -1,0 +1,313 @@
+{
+    "category": "Data Block and Addressing",
+    "description": "Funzioni per l'accesso diretto alla memoria, gestione DB e riflessione simbolica",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Data Block Instructions",
+    "functions": [
+        {
+            "name": "PEEK",
+            "signature": "value := PEEK(area := <hex>, dbNumber := <int>, byteOffset := <dint>);",
+            "parameters": [
+                {
+                    "name": "area",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Area di memoria (16#81: I, 16#82: Q, 16#83: M, 16#84: DB)"
+                },
+                {
+                    "name": "dbNumber",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero del DB (se area=16#84, altrimenti 0)"
+                },
+                {
+                    "name": "byteOffset",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Offset in byte dall'inizio dell'area"
+                }
+            ],
+            "return": {
+                "type": "BYTE",
+                "description": "Valore letto dalla memoria"
+            },
+            "description": "Legge un byte da un'area di memoria non ottimizzata.",
+            "example": "// Legge byte 10 dal DB 5\n#myByte := PEEK(area := 16#84, dbNumber := 5, byteOffset := 10);",
+            "anti_pattern": "Non usare PEEK/POKE per accedere a DB ottimizzati or per dati strutturati se sono disponibili accessi simbolici.",
+            "why_native": "Necessario per comunicazioni legacy o driver che operano su offset grezzi.",
+            "mandatory": true,
+            "see_also": [
+                "POKE",
+                "PEEK_WORD",
+                "PEEK_DWORD"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "POKE",
+            "signature": "POKE(area := <hex>, dbNumber := <int>, byteOffset := <dint>, value := <byte>);",
+            "parameters": [
+                {
+                    "name": "area",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Area di memoria"
+                },
+                {
+                    "name": "dbNumber",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Numero del DB"
+                },
+                {
+                    "name": "byteOffset",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Offset in byte"
+                },
+                {
+                    "name": "value",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore da scrivere"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "VOID"
+            },
+            "description": "Scrive un byte in un'area di memoria non ottimizzata.",
+            "example": "// Scrive 16#FF nel Merker Byte 20\nPOKE(area := 16#83, dbNumber := 0, byteOffset := 20, value := 16#FF);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "READ_DBL",
+            "signature": "#retVal := READ_DBL(REQ := <bool>, SRCBLK := <variant>, BUSY => <bool>, DSTBLK => <variant>);",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia la lettura"
+                },
+                {
+                    "name": "SRCBLK",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Blocco sorgente in Load Memory"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Indica se l'istruzione è in esecuzione"
+                },
+                {
+                    "name": "DSTBLK",
+                    "type": "VARIANT",
+                    "direction": "OUT",
+                    "description": "Blocco destinazione in Work Memory"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Codice di errore (0=Nessun errore, 7001..7002=Busy)"
+            },
+            "description": "Copia i valori iniziali di un DB (o parte di esso) dalla memoria di caricamento (Load Memory) alla memoria di lavoro (Work Memory).",
+            "example": "// Ripristina valori ricetta da Flash a RAM\n#status := READ_DBL(REQ := #startRestore, SRCBLK := \"RecipeDB\", BUSY => #busyFlag, DSTBLK => \"ActiveRecipe\");",
+            "mandatory": true,
+            "notes": "Istruzione asincrona. Deve essere chiamata ciclicamente finché BUSY non diventa FALSE.",
+            "see_also": [
+                "WRIT_DBL"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TypeOf",
+            "signature": "result := TypeOf(<variant_tag>);",
+            "parameters": [
+                {
+                    "name": "variant_tag",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Tag Variant di cui testare il tipo"
+                }
+            ],
+            "return": {
+                "type": "TYPE_ID",
+                "description": "Identificativo del tipo (confrontabile con nomi tipi)"
+            },
+            "description": "Interroga il tipo di dati di un operando a cui punta un tag VARIANT.",
+            "example": "IF TypeOf(#anyInput) = REAL THEN\n    // Esegui calcolo floating point\nEND_IF;",
+            "mandatory": true,
+            "notes": "Può essere usato solo in espressioni di confronto (IF, CASE).",
+            "see_also": [
+                "TypeOfElements",
+                "IS_ARRAY"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "GetSymbolName",
+            "signature": "stringResult := GetSymbolName(variable := <interface_param>, size := <int>);",
+            "parameters": [
+                {
+                    "name": "variable",
+                    "type": "ANY",
+                    "direction": "IN",
+                    "description": "Parametro dell'interfaccia (Input/Output/InOut)"
+                },
+                {
+                    "name": "size",
+                    "type": "INT",
+                    "description": "Dimensione massima (0 = tutta la stringa)"
+                }
+            ],
+            "return": {
+                "type": "STRING",
+                "description": "Nome simbolico del variabile collegata"
+            },
+            "description": "Ritorna il nome simbolico della variabile collegata a un parametro di blocco.",
+            "example": "#name := GetSymbolName(variable := #myInputParam, size := 0);",
+            "notes": "Molto utile per messaggistica dinamica, ma ha un impatto sulle performance.",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "READ_LITTLE",
+            "signature": "READ_LITTLE(src_array := <variant>, dest_variable => <variant>, pos := <dint>)",
+            "parameters": [
+                {
+                    "name": "src_array",
+                    "type": "VARIANT (Array of Byte/Char)",
+                    "direction": "IN",
+                    "description": "Area di memoria sorgente (Little Endian).",
+                    "optional": false
+                },
+                {
+                    "name": "dest_variable",
+                    "type": "VARIANT (Scalar)",
+                    "direction": "OUT",
+                    "description": "Variabile destinazione dove scrivere il valore letto.",
+                    "optional": false
+                },
+                {
+                    "name": "pos",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di partenza (byte offset). Viene aggiornato automaticamente.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Legge un valore scalare da un array di byte interpretandolo in Little Endian.",
+            "example": "READ_LITTLE(src_array := #buffer, dest_variable => #myVal, pos := #idx);",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "WRITE_LITTLE",
+            "signature": "WRITE_LITTLE(src_variable := <variant>, dest_array => <variant>, pos := <dint>)",
+            "parameters": [
+                {
+                    "name": "src_variable",
+                    "type": "VARIANT (Scalar)",
+                    "direction": "IN",
+                    "description": "Valore da scrivere.",
+                    "optional": false
+                },
+                {
+                    "name": "dest_array",
+                    "type": "VARIANT (Array of Byte/Char)",
+                    "direction": "IN_OUT",
+                    "description": "Area di memoria destinazione (Little Endian).",
+                    "optional": false
+                },
+                {
+                    "name": "pos",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di scrittura. Viene aggiornato.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scrive un valore scalare in un array di byte in formato Little Endian.",
+            "example": "WRITE_LITTLE(src_variable := #myVal, dest_array => #buffer, pos := #idx);",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "READ_BIG",
+            "signature": "READ_BIG(src_array := <variant>, dest_variable => <variant>, pos := <dint>)",
+            "parameters": [
+                {
+                    "name": "src_array",
+                    "type": "VARIANT (Array of Byte/Char)",
+                    "direction": "IN",
+                    "description": "Area di memoria sorgente (Big Endian).",
+                    "optional": false
+                },
+                {
+                    "name": "dest_variable",
+                    "type": "VARIANT (Scalar)",
+                    "direction": "OUT",
+                    "description": "Variabile destinazione.",
+                    "optional": false
+                },
+                {
+                    "name": "pos",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di partenza. Viene aggiornato.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Legge un valore scalare da un array di byte interpretandolo in Big Endian.",
+            "example": "READ_BIG(src_array := #buffer, dest_variable => #myVal, pos := #idx);",
+            "tia_version": "V14+"
+        },
+        {
+            "name": "WRITE_BIG",
+            "signature": "WRITE_BIG(src_variable := <variant>, dest_array => <variant>, pos := <dint>)",
+            "parameters": [
+                {
+                    "name": "src_variable",
+                    "type": "VARIANT (Scalar)",
+                    "direction": "IN",
+                    "description": "Valore da scrivere.",
+                    "optional": false
+                },
+                {
+                    "name": "dest_array",
+                    "type": "VARIANT (Array of Byte/Char)",
+                    "direction": "IN_OUT",
+                    "description": "Area di memoria destinazione (Big Endian).",
+                    "optional": false
+                },
+                {
+                    "name": "pos",
+                    "type": "DINT",
+                    "direction": "IN_OUT",
+                    "description": "Indice di scrittura. Viene aggiornato.",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scrive un valore scalare in un array di byte in formato Big Endian.",
+            "example": "WRITE_BIG(src_variable := #myVal, dest_array => #buffer, pos := #idx);",
+            "tia_version": "V14+"
+        }
+    ]
+}

@@ -73,6 +73,76 @@ DEFAULT_CONFIG = {
 }
 
 
+
+import json
+import glob
+import os
+
+def load_fb_signatures_from_reference() -> Dict[str, Dict]:
+    """
+    Dynamically load FB signatures from 'SCL Syntax/scl-reference/functions' JSON files.
+    Returns dictionary in format: 
+    { 'BlockName': { 'ParamName': 'Type' or ('Type', 'Default') } }
+    """
+    signatures = {}
+    
+    # Path relative to this config.py file
+    base_dir = Path(__file__).parent
+    ref_dir = base_dir / 'SCL Syntax' / 'scl-reference' / 'functions'
+    
+    # Check if directory exists (in case project structure is different during tests)
+    if not ref_dir.exists():
+        logging.getLogger(__name__).warning(f"SCL Reference directory not found at {ref_dir}. Using empty signatures.")
+        return {}
+
+    # Find all JSON files
+    json_files = glob.glob(str(ref_dir / "*.json"))
+    
+    for json_file in json_files:
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                
+            if 'functions' not in data:
+                continue
+                
+            for func in data['functions']:
+                block_name = func.get('name')
+                if not block_name: continue
+                
+                params = {}
+                if 'parameters' in func:
+                    for p in func['parameters']:
+                        p_name = p.get('name')
+                        p_type = p.get('type', 'Void')
+                        p_default = p.get('default')
+                        
+                        # Store as tuple (Type, Default) if default exists, else just Type
+                        if p_default is not None:
+                            params[p_name] = (p_type, p_default)
+                        else:
+                            params[p_name] = p_type
+                            
+                signatures[block_name] = params
+                
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"Failed to load signatures from {json_file}: {e}")
+            
+    return signatures
+
+# Load signatures dynamically
+FB_SIGNATURES = load_fb_signatures_from_reference()
+
+
+# Fallback/Hardcoded Signatures (if loading fails or for critical overrides)
+if not FB_SIGNATURES:
+    # Minimal fallback for bootstrapping if files are missing
+    FB_SIGNATURES = {
+        'TON': {'IN': 'Bool', 'PT': 'Time'},
+        'CTU': {'CU': 'Bool', 'R': ('Bool', 'FALSE'), 'PV': ('Int', '0')}
+    }
+
+
 class Config:
     """Configuration class for parser settings"""
     
@@ -87,6 +157,11 @@ class Config:
     def set(self, key: str, value):
         """Set configuration value"""
         self.settings[key] = value
+    
+    @property
+    def fb_signatures(self) -> Dict[str, Dict]:
+        """Get FB signatures mapping"""
+        return FB_SIGNATURES
         
     @property
     def indent(self) -> str:

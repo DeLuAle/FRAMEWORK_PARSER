@@ -1,0 +1,507 @@
+{
+    "category": "Recipe & DataLog",
+    "description": "Funzioni per la gestione di Ricette e Data Logging su file CSV in Load Memory",
+    "tia_version": "V13+",
+    "source": "TIA Portal Help - Recipe and DataLog Instructions",
+    "functions": [
+        {
+            "name": "RecipeExport",
+            "signature": "RecipeExport(REQ := <bool>, RECIPE_DB := <variant>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia l'esportazione"
+                },
+                {
+                    "name": "RECIPE_DB",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "DB di ricetta da esportare (deve essere 'Standard Access' per vecchie versioni, Optimized per V15+)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Operazione completata con successo"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Operazione in corso"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore durante l'operazione"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato o codice di errore"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A - Asincrono"
+            },
+            "description": "Esporta i dati di un DB di ricetta in un file CSV nella memoria di caricamento della CPU.",
+            "example": "RecipeExport(REQ := #exportReq, RECIPE_DB := \"MyRecipeDB\", DONE => #done, STATUS => #status);",
+            "notes": "Il file viene salvato nella cartella 'Recipes'. Il nome del file corrisponde al nome del DB.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "RecipeImport",
+            "signature": "RecipeImport(REQ := <bool>, RECIPE_DB := <variant>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia l'importazione"
+                },
+                {
+                    "name": "RECIPE_DB",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "DB di ricetta destinazione (i valori verranno sovrascritti)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Output flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Output flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Output flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status code"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A - Asincrono"
+            },
+            "description": "Importa dati da un file CSV della load memory in un DB di ricetta.",
+            "example": "RecipeImport(REQ := #importReq, RECIPE_DB := \"MyRecipeDB\", DONE => #done, STATUS => #status);",
+            "notes": "Il file CSV deve avere struttura compatibile col DB.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogCreate",
+            "signature": "DataLogCreate(REQ := <bool>, RECORDS := <udint>, FORMAT := <uint>, TIMESTAMP := <uint>, NAME := <variant>, ID => <dword>, HEADER := <variant>, DATA := <variant>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "RECORDS",
+                    "type": "UDINT",
+                    "direction": "IN",
+                    "description": "Numero max record nel file"
+                },
+                {
+                    "name": "FORMAT",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Formato (0=CSV standart, 1=CSV user)"
+                },
+                {
+                    "name": "TIMESTAMP",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Tipo timestamp (0=None, 1=Date&Time)"
+                },
+                {
+                    "name": "NAME",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Nome file (String)"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "OUT",
+                    "description": "ID del DataLog creato (Handle)"
+                },
+                {
+                    "name": "HEADER",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Intestazione colonne (String)"
+                },
+                {
+                    "name": "DATA",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Struttura dati di un record (Struct/UDT)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Crea e inizializza un nuovo file di Data Log.",
+            "example": "DataLogCreate(REQ:=#req, NAME:='Log1', DATA:=#myDataStruct, ID=>#logID);",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogWrite",
+            "signature": "DataLogWrite(REQ := <bool>, ID := <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Scrive un record sul fronte"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "ID del DataLog (da DataLogCreate/Open)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Finito"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Occupato"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Scrive i valori attuali della struttura 'DATA' (definita in Create) come nuovo record nel log.",
+            "example": "DataLogWrite(REQ:=#trigger, ID:=#logID);",
+            "notes": "I dati vengono presi dalla memoria referenziata al momento della creazione.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogOpen",
+            "signature": "DataLogOpen(REQ := <bool>, NAME := <variant>, ID => <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "NAME",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Nome file DataLog"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN_OUT",
+                    "description": "Restituisce ID se aperto con successo"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Apre un Data Log esistente per scrittura.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogClose",
+            "signature": "DataLogClose(REQ := <bool>, ID := <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "ID DataLog"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Chiude un Data Log aperto.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogNewFile",
+            "signature": "DataLogNewFile(REQ := <bool>, RECORDS := <udint>, NAME := <variant>, ID := <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "RECORDS",
+                    "type": "UDINT",
+                    "direction": "IN",
+                    "description": "Max Records"
+                },
+                {
+                    "name": "NAME",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Nuovo nome file"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN_OUT",
+                    "description": "ID DataLog esistente (viene chiuso) e poi nuovo ID"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Crea un nuovo file Data Log in base alle proprietà di un ID DataLog aperto (es. rollover file).",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogDelete",
+            "signature": "DataLogDelete(REQ := <bool>, NAME := <variant>, ID := <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "NAME",
+                    "type": "VARIANT",
+                    "direction": "IN",
+                    "description": "Nome file (opzionale se si usa ID)"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "ID DataLog (opzionale se si usa NAME)"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Elimina un file Data Log dalla memoria.",
+            "tia_version": "V13+"
+        },
+        {
+            "name": "DataLogClear",
+            "signature": "DataLogClear(REQ := <bool>, ID := <dword>, DONE => <bool>, BUSY => <bool>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Start"
+                },
+                {
+                    "name": "ID",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "ID DataLog"
+                },
+                {
+                    "name": "DONE",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "BUSY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Status"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Cancella tutti i dati da un Data Log aperto.",
+            "tia_version": "V13+"
+        }
+    ]
+}

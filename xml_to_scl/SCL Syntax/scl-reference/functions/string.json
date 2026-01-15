@@ -69,7 +69,6 @@
             "mandatory": true,
             "notes": "Ritorna la lunghezza CORRENTE, non la lunghezza massima dichiarata. Lunghezza massima STRING è 254 caratteri se non specificato diversamente.",
             "see_also": [
-                "MAX_LEN",
                 "CONCAT"
             ],
             "tia_version": "V20+"
@@ -258,10 +257,116 @@
             "mandatory": true,
             "notes": "P è 1-based. Se risultato eccede lunghezza massima, viene troncato.",
             "see_also": [
-                "FIND",
-                "INSERT",
-                "DELETE"
+                "FIND"
             ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DELETE",
+            "signature": "DELETE(IN := <string>, L := <length>, P := <position>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa sorgente"
+                },
+                {
+                    "name": "L",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Numero di caratteri da eliminare"
+                },
+                {
+                    "name": "P",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Posizione iniziale (1-based)"
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Stringa con caratteri eliminati"
+            },
+            "description": "Elimina L caratteri a partire dalla posizione P.",
+            "example": "result := DELETE(IN := 'Hello World', L := 6, P := 1); // risultato: 'World'",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INSERT",
+            "signature": "INSERT(IN1 := <string>, IN2 := <insert>, P := <position>)",
+            "parameters": [
+                {
+                    "name": "IN1",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa in cui inserire"
+                },
+                {
+                    "name": "IN2",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa da inserire"
+                },
+                {
+                    "name": "P",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Posizione dopo la quale inserire (0-based)"
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Stringa con inserimento effettuato"
+            },
+            "description": "Inserisce la stringa IN2 nella stringa IN1 dopo la posizione P.",
+            "example": "result := INSERT(IN1 := 'Hello ', IN2 := 'World', P := 6);",
+            "notes": "Se P = 0, IN2 viene inserito prima di IN1.",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "MAX_LEN",
+            "signature": "MAX_LEN(IN := <string>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING/WSTRING",
+                    "direction": "IN",
+                    "description": "Stringa di cui determinare la capacità"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Lunghezza massima dichiarata"
+            },
+            "description": "Ritorna la lunghezza massima dichiarata per la stringa data.",
+            "example": "max := MAX_LEN(IN := myString);",
+            "see_also": [
+                "LEN"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "S_CONV",
+            "signature": "S_CONV(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "ANY_ELEMENTARY",
+                    "direction": "IN",
+                    "description": "Valore da convertire in stringa"
+                }
+            ],
+            "return": {
+                "type": "STRING/WSTRING",
+                "description": "Stringa rappresentante il valore"
+            },
+            "description": "Converte un valore elementare (INT, REAL, BOOL, ecc.) in una stringa.",
+            "example": "str := S_CONV(IN := 123);",
+            "notes": "Equivalente a TO_STRING/TO_WSTRING in molte implementazioni IEC.",
+            "mandatory": true,
             "tia_version": "V20+"
         }
     ]

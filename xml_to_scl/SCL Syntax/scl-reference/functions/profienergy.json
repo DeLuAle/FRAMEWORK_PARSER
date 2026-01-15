@@ -1,0 +1,202 @@
+{
+    "category": "PROFIenergy",
+    "description": "Funzioni per la gestione energetica tramite protocollo PROFIenergy su PROFINET",
+    "tia_version": "V14+",
+    "source": "TIA Portal Help - PROFIenergy Instructions",
+    "functions": [
+        {
+            "name": "PE_START_END",
+            "signature": "PE_START_END(START := <bool>, END := <bool>, ID := <hw_submodule>, PAUSE_TIME := <time>, MODE_ID => <byte>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "START",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Avvia la modalità risparmio energetico (Start_Pause)"
+                },
+                {
+                    "name": "END",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Termina la modalità risparmio energetico (End_Pause)"
+                },
+                {
+                    "name": "ID",
+                    "type": "HW_SUBMODULE",
+                    "direction": "IN",
+                    "description": "Identificativo hardware del modulo PROFIenergy"
+                },
+                {
+                    "name": "PAUSE_TIME",
+                    "type": "TIME",
+                    "direction": "IN",
+                    "description": "Durata prevista della pausa (min 10ms)"
+                },
+                {
+                    "name": "MODE_ID",
+                    "type": "BYTE",
+                    "direction": "OUT",
+                    "description": "ID della modalità PE attivata (0=Ready_To_Operate, 255=Energy_Saving)"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag di errore"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato dell'istruzione o codice errore"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A - Usa parametri di output"
+            },
+            "description": "Gestisce l'attivazione e disattivazione semplice della modalità risparmio energetico per un dispositivo PROFIenergy.",
+            "example": "PE_START_END(START := #enableSleep, END := #wakeUp, ID := \"PeModule\", PAUSE_TIME := T#10m, MODE_ID => #currentMode, STATUS => #status);",
+            "mandatory": false,
+            "notes": "Utilizza internamente WRREC/RDREC. Richiede blocco dati di istanza.",
+            "see_also": [
+                "PE_CMD"
+            ],
+            "tia_version": "V14+"
+        },
+        {
+            "name": "PE_CMD",
+            "signature": "PE_CMD(REQ := <bool>, ID := <hw_submodule>, CMD := <byte>, CMD_MODIFIER := <byte>, CMD_PARA := <variant>, DATA_ERROR => <bool>, FAULT_ID => <byte>, RETURN_VALUE => <variant>, ERROR => <bool>, STATUS => <word>)",
+            "parameters": [
+                {
+                    "name": "REQ",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Fronte di salita avvia il comando"
+                },
+                {
+                    "name": "ID",
+                    "type": "HW_SUBMODULE",
+                    "direction": "IN",
+                    "description": "Identificativo hardware del modulo PROFIenergy"
+                },
+                {
+                    "name": "CMD",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "ID del comando PROFIenergy (es. 1=Start_Pause, 2=End_Pause, 3=Query_Modes)"
+                },
+                {
+                    "name": "CMD_MODIFIER",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Modificatore del comando (spesso 0)"
+                },
+                {
+                    "name": "CMD_PARA",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Parametri del comando (struttura specifica per CMD)"
+                },
+                {
+                    "name": "DATA_ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Errore nei dati ricevuti"
+                },
+                {
+                    "name": "FAULT_ID",
+                    "type": "BYTE",
+                    "direction": "OUT",
+                    "description": "ID errore PROFIenergy"
+                },
+                {
+                    "name": "RETURN_VALUE",
+                    "type": "VARIANT",
+                    "direction": "IN_OUT",
+                    "description": "Dati di ritorno dal dispositivo"
+                },
+                {
+                    "name": "ERROR",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Flag di errore istruzione"
+                },
+                {
+                    "name": "STATUS",
+                    "type": "WORD",
+                    "direction": "OUT",
+                    "description": "Stato istruzione"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Invia comandi PROFIenergy completi (inclusi lettura misure e stati complessi).",
+            "example": "PE_CMD(REQ := #req, ID := \"PeID\", CMD := 4, CMD_MODIFIER := 0, CMD_PARA := #params, RETURN_VALUE => #resultData, STATUS => #status);",
+            "mandatory": false,
+            "notes": "Più flessibile di PE_START_END ma richiede gestione strutture dati complesse.",
+            "see_also": [
+                "PE_START_END"
+            ],
+            "tia_version": "V14+"
+        },
+        {
+            "name": "PE_I_DEV",
+            "signature": "PE_I_DEV(EN := <bool>, ID := <hw_submodule>, PE_MODE_ID := <byte>, CONNECTED => <bool>, NEW => <bool>, CMD => <byte>, CMD_MODIFIER => <byte>)",
+            "parameters": [
+                {
+                    "name": "EN",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Abilitazione blocco"
+                },
+                {
+                    "name": "ID",
+                    "type": "HW_SUBMODULE",
+                    "direction": "IN",
+                    "description": "Hardware ID dell'I-Device"
+                },
+                {
+                    "name": "PE_MODE_ID",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Modalità energetica attuale del dispositivo (feedback)"
+                },
+                {
+                    "name": "CONNECTED",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Connessione PROFIenergy stabilita"
+                },
+                {
+                    "name": "NEW",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Nuovo comando ricevuto"
+                },
+                {
+                    "name": "CMD",
+                    "type": "BYTE",
+                    "direction": "OUT",
+                    "description": "Comando ricevuto"
+                },
+                {
+                    "name": "CMD_MODIFIER",
+                    "type": "BYTE",
+                    "direction": "OUT",
+                    "description": "Modificatore ricevuto"
+                }
+            ],
+            "return": {
+                "type": "VOID",
+                "description": "N/A"
+            },
+            "description": "Blocco per implementare funzionalità PROFIenergy lato I-Device (Device invece che Controller).",
+            "example": "PE_I_DEV(EN := TRUE, ID := \"Local~Device\", PE_MODE_ID := #myMode, NEW => #newCmd, CMD => #cmdCode);",
+            "mandatory": false,
+            "tia_version": "V14+"
+        }
+    ]
+}

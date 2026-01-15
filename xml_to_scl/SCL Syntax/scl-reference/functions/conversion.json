@@ -22,6 +22,8 @@
             },
             "description": "Converte un valore da un tipo dati a un altro. Il tipo di destinazione è determinato dalla variabile di assegnazione.",
             "example": "intValue := CONVERT(IN := realValue);  // REAL -> INT\nrealValue := CONVERT(IN := intValue);  // INT -> REAL",
+            "anti_pattern": "intValue := realValue;  // Errato se non è ammessa conversione implicita (narrowing)",
+            "why_native": "Rende esplicito il cambio di tipo, evitando errori di compilazione e rendendo il codice leggibile.",
             "mandatory": true,
             "notes": "Conversione esplicita raccomandata per chiarezza. Gestisce overflow/underflow secondo regole IEC.",
             "see_also": [
@@ -69,8 +71,7 @@
             "mandatory": true,
             "notes": "Range input standard: 0-27648 per INT, 0-2764800 per DINT. Per range custom usare formula manuale o NORM_X.",
             "see_also": [
-                "NORM_X",
-                "UNSCALE"
+                "NORM_X"
             ],
             "tia_version": "V20+"
         },
@@ -114,103 +115,334 @@
             "tia_version": "V20+"
         },
         {
-            "name": "TO_INT",
-            "signature": "TO_INT(IN := <value>)",
+            "name": "REAL_TO_INT",
+            "signature": "REAL_TO_INT(IN := <value>)",
             "parameters": [
                 {
                     "name": "IN",
-                    "type": "ANY_NUM",
+                    "type": "REAL",
                     "direction": "IN",
-                    "description": "Valore da convertire",
+                    "description": "Valore REAL da convertire",
                     "optional": false
                 }
             ],
             "return": {
                 "type": "INT",
-                "description": "Valore convertito in INT"
+                "description": "Valore convertito in INT (arrotondato)"
             },
-            "description": "Converte esplicitamente un valore in tipo INT.",
-            "example": "intValue := TO_INT(IN := realValue);",
-            "notes": "Conversione con troncamento per tipi REAL/LREAL. Overflow possibile se valore fuori range INT.",
+            "description": "Converte un valore REAL in INT. Il risultato dipende dall'uso di ROUND, CEIL, FLOOR, TRUNC.",
+            "example": "intValue := REAL_TO_INT(IN := 3.14); // Risultato: 3",
+            "notes": "L'output ENO viene impostato a '0' se l'intervallo ammesso è superato o se il valore non è un numero a virgola mobile valido.",
             "see_also": [
-                "TO_DINT",
-                "TO_REAL",
-                "CONVERT"
+                "REAL_TO_DINT",
+                "TRUNC",
+                "ROUND"
             ],
             "tia_version": "V20+"
         },
         {
-            "name": "TO_DINT",
-            "signature": "TO_DINT(IN := <value>)",
+            "name": "REAL_TO_SINT",
+            "signature": "REAL_TO_SINT(IN := <value>)",
             "parameters": [
                 {
                     "name": "IN",
-                    "type": "ANY_NUM",
+                    "type": "REAL",
                     "direction": "IN",
-                    "description": "Valore da convertire",
+                    "description": "Valore REAL da convertire",
                     "optional": false
                 }
             ],
             "return": {
-                "type": "DINT",
-                "description": "Valore convertito in DINT"
+                "type": "SINT",
+                "description": "Valore convertito in SINT"
             },
-            "description": "Converte esplicitamente un valore in tipo DINT.",
-            "example": "dintValue := TO_DINT(IN := realValue);",
-            "see_also": [
-                "TO_INT",
-                "TO_REAL",
-                "CONVERT"
-            ],
+            "description": "Converte un valore REAL in SINT.",
+            "example": "sintValue := REAL_TO_SINT(IN := realValue);",
             "tia_version": "V20+"
         },
         {
-            "name": "TO_REAL",
-            "signature": "TO_REAL(IN := <value>)",
+            "name": "REAL_TO_USINT",
+            "signature": "REAL_TO_USINT(IN := <value>)",
             "parameters": [
                 {
                     "name": "IN",
-                    "type": "ANY_NUM",
+                    "type": "REAL",
                     "direction": "IN",
-                    "description": "Valore da convertire",
+                    "description": "Valore REAL da convertire",
                     "optional": false
                 }
             ],
             "return": {
-                "type": "REAL",
-                "description": "Valore convertito in REAL"
+                "type": "USINT",
+                "description": "Valore convertito in USINT"
             },
-            "description": "Converte esplicitamente un valore in tipo REAL.",
-            "example": "realValue := TO_REAL(IN := intValue);",
-            "see_also": [
-                "TO_INT",
-                "TO_DINT",
-                "TO_LREAL",
-                "CONVERT"
-            ],
+            "description": "Converte un valore REAL in USINT.",
+            "example": "usintValue := REAL_TO_USINT(IN := realValue);",
             "tia_version": "V20+"
         },
         {
-            "name": "TO_BOOL",
-            "signature": "TO_BOOL(IN := <value>)",
+            "name": "REAL_TO_UINT",
+            "signature": "REAL_TO_UINT(IN := <value>)",
             "parameters": [
                 {
                     "name": "IN",
-                    "type": "ANY_BIT",
+                    "type": "REAL",
                     "direction": "IN",
-                    "description": "Valore da convertire",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "UINT",
+                "description": "Valore convertito in UINT"
+            },
+            "description": "Converte un valore REAL in UINT.",
+            "example": "uintValue := REAL_TO_UINT(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_UDINT",
+            "signature": "REAL_TO_UDINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "UDINT",
+                "description": "Valore convertito in UDINT"
+            },
+            "description": "Converte un valore REAL in UDINT.",
+            "example": "udintValue := REAL_TO_UDINT(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_LINT",
+            "signature": "REAL_TO_LINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "LINT",
+                "description": "Valore convertito in LINT"
+            },
+            "description": "Converte un valore REAL in LINT.",
+            "example": "lintValue := REAL_TO_LINT(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_ULINT",
+            "signature": "REAL_TO_ULINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "ULINT",
+                "description": "Valore convertito in ULINT"
+            },
+            "description": "Converte un valore REAL in ULINT.",
+            "example": "ulintValue := REAL_TO_ULINT(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_LREAL",
+            "signature": "REAL_TO_LREAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "LREAL",
+                "description": "Valore convertito in LREAL"
+            },
+            "description": "Converte un valore REAL in LREAL.",
+            "example": "lrealValue := REAL_TO_LREAL(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_DWORD",
+            "signature": "REAL_TO_DWORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DWORD",
+                "description": "Bit pattern del valore REAL"
+            },
+            "description": "Trasferisce il pattern di bit di un REAL direttamente in un DWORD (right-justified).",
+            "example": "dwValue := REAL_TO_DWORD(IN := realValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_WSTRING",
+            "signature": "REAL_TO_WSTRING(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "WSTRING",
+                "description": "Stringa WIDE rappresentante il valore"
+            },
+            "description": "Converte un valore REAL in una stringa di caratteri WIDE.",
+            "example": "wstrValue := REAL_TO_WSTRING(IN := 12.3);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_BOOL",
+            "signature": "WORD_TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire",
                     "optional": false
                 }
             ],
             "return": {
                 "type": "BOOL",
-                "description": "Valore convertito in BOOL"
+                "description": "Bit 0 del WORD"
             },
-            "description": "Converte un valore in tipo BOOL. Qualsiasi valore diverso da 0 diventa TRUE.",
-            "example": "boolValue := TO_BOOL(IN := intValue);",
-            "see_also": [
-                "BOOL_TO_INT"
+            "description": "Converte un WORD in BOOL estraendo il bit meno significativo (0).",
+            "example": "bValue := WORD_TO_BOOL(IN := wValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_INT",
+            "signature": "WORD_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire",
+                    "optional": false
+                }
             ],
+            "return": {
+                "type": "INT",
+                "description": "Valore interpretato come INT"
+            },
+            "description": "Trasferisce il pattern di bit di un WORD in un INT.",
+            "example": "iValue := WORD_TO_INT(IN := wValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_DINT",
+            "signature": "DWORD_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore interpretato come DINT"
+            },
+            "description": "Trasferisce il pattern di bit di un DWORD in un DINT.",
+            "example": "diValue := DWORD_TO_DINT(IN := dwValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "LWORD_TO_LINT",
+            "signature": "LWORD_TO_LINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "LWORD",
+                    "direction": "IN",
+                    "description": "Valore LWORD da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "LINT",
+                "description": "Valore interpretato come LINT"
+            },
+            "description": "Trasferisce il pattern di bit di un LWORD in un LINT.",
+            "example": "liValue := LWORD_TO_LINT(IN := lwValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_STRING",
+            "signature": "REAL_TO_STRING(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "STRING",
+                "description": "Stringa rappresentante il valore"
+            },
+            "description": "Converte un valore REAL in una stringa di caratteri.",
+            "example": "strValue := REAL_TO_STRING(IN := 12.3);",
+            "notes": "Lunghezza minima della stringa: 14 caratteri. ENO='0' se la lunghezza viene superata.",
+            "see_also": [
+                "S_CONV",
+                "VAL_STRG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_REAL",
+            "signature": "DWORD_TO_REAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Pattern di bit da trasferire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore interpretato come REAL"
+            },
+            "description": "Trasferisce il pattern di bit di un DWORD direttamente in un REAL (right-justified).",
+            "example": "realValue := DWORD_TO_REAL(IN := dwValue);",
             "tia_version": "V20+"
         },
         {
@@ -232,9 +464,1024 @@
             "description": "Converte un BOOL in INT (0 o 1).",
             "example": "intValue := BOOL_TO_INT(IN := flag);",
             "see_also": [
-                "TO_BOOL",
-                "TO_INT"
+                "INT_TO_BOOL"
             ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_REAL",
+            "signature": "INT_TO_REAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Valore INT da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore convertito in REAL"
+            },
+            "description": "Converte un valore INT in REAL.",
+            "example": "realValue := INT_TO_REAL(IN := intValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DINT_TO_REAL",
+            "signature": "DINT_TO_REAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Valore DINT da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore convertito in REAL"
+            },
+            "description": "Converte un valore DINT in REAL.",
+            "example": "realValue := DINT_TO_REAL(IN := dintValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_BOOL",
+            "signature": "INT_TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Valore INT da convertire",
+                    "optional": false
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "FALSE se 0, TRUE altrimenti"
+            },
+            "description": "Converte un valore INT in BOOL. Qualsiasi valore diverso da 0 diventa TRUE (solitamente bit 0 per bit pattern, ma per valori numerici segue la regola del diverso da zero).",
+            "example": "boolValue := INT_TO_BOOL(IN := intValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "REAL_TO_DINT",
+            "signature": "REAL_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore REAL da convertire"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore convertito in DINT (arrotondato)"
+            },
+            "description": "Converte un valore REAL in DINT.",
+            "example": "dintValue := REAL_TO_DINT(IN := realValue);",
+            "mandatory": true,
+            "see_also": [
+                "REAL_TO_INT",
+                "ROUND"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DINT_TO_INT",
+            "signature": "DINT_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Valore DINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore troncato a 16 bit"
+            },
+            "description": "Converte un valore DINT (32 bit) in INT (16 bit).",
+            "example": "intValue := DINT_TO_INT(IN := dintValue);",
+            "notes": "Attenzione al possibile overflow se il valore DINT supera range di ±32767.",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_DINT",
+            "signature": "INT_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Valore INT da convertire"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore esteso a 32 bit"
+            },
+            "description": "Converte un valore INT in DINT.",
+            "example": "dintValue := INT_TO_DINT(IN := intValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_WORD",
+            "signature": "INT_TO_WORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Valore INT da convertire"
+                }
+            ],
+            "return": {
+                "type": "WORD",
+                "description": "Bit pattern dell'intero"
+            },
+            "description": "Trasferisce il pattern di bit di un INT in un WORD.",
+            "example": "wordValue := INT_TO_WORD(IN := intValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_UINT",
+            "signature": "WORD_TO_UINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "UINT",
+                "description": "Valore interpretato come intero senza segno"
+            },
+            "description": "Trasferisce il pattern di bit di un WORD in un UINT.",
+            "example": "uintValue := WORD_TO_UINT(IN := wordValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "UINT_TO_WORD",
+            "signature": "UINT_TO_WORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "UINT",
+                    "direction": "IN",
+                    "description": "Valore UINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "WORD",
+                "description": "Bit pattern dell'intero senza segno"
+            },
+            "description": "Trasferisce il pattern di bit di un UINT in un WORD.",
+            "example": "wordValue := UINT_TO_WORD(IN := uintValue);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "STRING_TO_INT",
+            "signature": "STRING_TO_INT(IN := <string>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "STRING",
+                    "direction": "IN",
+                    "description": "Stringa contenente numeri"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore numerico convertito"
+            },
+            "description": "Converte una stringa di caratteri (es. '123') in un valore intero.",
+            "example": "intValue := STRING_TO_INT(IN := '123');",
+            "notes": "Se la stringa contiene caratteri non numerici, ENO viene impostato a FALSE.",
+            "mandatory": true,
+            "see_also": [
+                "INT_TO_STRING",
+                "VAL_STRG"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_STRING",
+            "signature": "INT_TO_STRING(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Intero da convertire"
+                }
+            ],
+            "return": {
+                "type": "STRING",
+                "description": "Stringa rappresentante l'intero"
+            },
+            "description": "Converte un valore intero in una stringa di caratteri.",
+            "example": "strValue := INT_TO_STRING(IN := 123);",
+            "mandatory": true,
+            "see_also": [
+                "STRING_TO_INT",
+                "STRG_VAL"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CHAR_TO_INT",
+            "signature": "CHAR_TO_INT(IN := <char>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "CHAR",
+                    "direction": "IN",
+                    "description": "Carattere singolo"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Codice ASCII del carattere"
+            },
+            "description": "Converte un carattere nel suo valore numerico corrispondente (ASCII).",
+            "example": "asciiVal := CHAR_TO_INT(IN := 'A'); // Risultato: 65",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "INT_TO_CHAR",
+            "signature": "INT_TO_CHAR(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "INT",
+                    "direction": "IN",
+                    "description": "Valore ASCII"
+                }
+            ],
+            "return": {
+                "type": "CHAR",
+                "description": "Carattere corrispondente"
+            },
+            "description": "Converte un codice ASCII nel carattere corrispondente.",
+            "example": "myChar := INT_TO_CHAR(IN := 65); // Risultato: 'A'",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DINT_TO_TIME",
+            "signature": "DINT_TO_TIME(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Valore in millisecondi"
+                }
+            ],
+            "return": {
+                "type": "TIME",
+                "description": "Variabile di tempo"
+            },
+            "description": "Converte un valore intero doppio (millisecondi) nel tipo dati TIME.",
+            "example": "timeValue := DINT_TO_TIME(IN := 5000); // 5 secondi",
+            "mandatory": true,
+            "see_also": [
+                "TIME_TO_DINT"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "TIME_TO_DINT",
+            "signature": "TIME_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "TIME",
+                    "direction": "IN",
+                    "description": "Variabile di tempo"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore intero in millisecondi"
+            },
+            "description": "Converte un tipo dati TIME nel numero corrispondente di millisecondi.",
+            "example": "dintValue := TIME_TO_DINT(IN := T#5s); // 5000",
+            "mandatory": true,
+            "see_also": [
+                "DINT_TO_TIME"
+            ],
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_INT",
+            "signature": "BYTE_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore intero (0-255)"
+            },
+            "description": "Converte un BYTE in INT.",
+            "example": "intValue := BYTE_TO_INT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_WORD",
+            "signature": "BYTE_TO_WORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "WORD",
+                "description": "Valore WORD (byte basso)"
+            },
+            "description": "Converte un BYTE in WORD (zero padding).",
+            "example": "wordVal := BYTE_TO_WORD(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_INT",
+            "signature": "SINT_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore intero con segno"
+            },
+            "description": "Converte un SINT (8-bit signed) in INT (16-bit signed).",
+            "example": "intValue := SINT_TO_INT(IN := sintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_INT",
+            "signature": "USINT_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore intero positivo"
+            },
+            "description": "Converte un USINT (8-bit unsigned) in INT (16-bit signed).",
+            "example": "intValue := USINT_TO_INT(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_INT",
+            "signature": "SINT_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore intero con segno"
+            },
+            "description": "Converte un SINT (8-bit signed) in INT (16-bit signed).",
+            "example": "intValue := SINT_TO_INT(IN := sintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_USINT",
+            "signature": "SINT_TO_USINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "USINT",
+                "description": "Valore convertito (bit pattern preserved)"
+            },
+            "description": "Converte un SINT in USINT. Attenzione: i valori negativi vengono interpretati come grandi positivi (complemento a due).",
+            "example": "usintValue := SINT_TO_USINT(IN := -1); // Risultato: 255",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_DINT",
+            "signature": "SINT_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore esteso a 32 bit con segno"
+            },
+            "description": "Converte un SINT (8-bit) in DINT (32-bit). Il segno viene mantenuto.",
+            "example": "dintValue := SINT_TO_DINT(IN := sintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_REAL",
+            "signature": "SINT_TO_REAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "REAL",
+                "description": "Valore convertito in virgola mobile"
+            },
+            "description": "Converte un valore SINT in REAL.",
+            "example": "realValue := SINT_TO_REAL(IN := sintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_LREAL",
+            "signature": "SINT_TO_LREAL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "LREAL",
+                "description": "Valore convertito in virgola mobile a doppia precisione"
+            },
+            "description": "Converte un valore SINT in LREAL.",
+            "example": "lrealValue := SINT_TO_LREAL(IN := sintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_CHAR",
+            "signature": "SINT_TO_CHAR(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT (codice ASCII)"
+                }
+            ],
+            "return": {
+                "type": "CHAR",
+                "description": "Carattere corrispondente"
+            },
+            "description": "Interpreta il valore SINT come codice ASCII e lo converte in CHAR.",
+            "example": "charVal := SINT_TO_CHAR(IN := 65); // 'A'",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "SINT_TO_STRING",
+            "signature": "SINT_TO_STRING(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "SINT",
+                    "direction": "IN",
+                    "description": "Valore SINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "STRING",
+                "description": "Rappresentazione stringa del valore"
+            },
+            "description": "Converte il valore numerico SINT in una stringa.",
+            "example": "strVal := SINT_TO_STRING(IN := -12); // '-12'",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_BOOL",
+            "signature": "USINT_TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "Bit meno significativo (LSB)"
+            },
+            "description": "Converte un USINT in BOOL estraendo il bit 0. (Dispari=TRUE, Pari=FALSE).",
+            "example": "boolVal := USINT_TO_BOOL(IN := 1); // TRUE\nboolVal := USINT_TO_BOOL(IN := 2); // FALSE",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_BYTE",
+            "signature": "USINT_TO_BYTE(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "BYTE",
+                "description": "Valore come bit-string 8 bit"
+            },
+            "description": "Trasferisce il pattern di bit di un USINT in un BYTE.",
+            "example": "byteVal := USINT_TO_BYTE(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_WORD",
+            "signature": "USINT_TO_WORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "WORD",
+                "description": "Valore esteso a 16 bit (zero padding)"
+            },
+            "description": "Converte un USINT in WORD. Il byte alto viene riempito con zeri.",
+            "example": "wordVal := USINT_TO_WORD(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_UINT",
+            "signature": "USINT_TO_UINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "UINT",
+                "description": "Valore numerico 16 bit"
+            },
+            "description": "Converte un USINT (8-bit unsigned) in UINT (16-bit unsigned).",
+            "example": "uintVal := USINT_TO_UINT(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_DINT",
+            "signature": "USINT_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore numerico 32 bit"
+            },
+            "description": "Converte un USINT (8-bit unsigned) in DINT (32-bit signed).",
+            "example": "dintVal := USINT_TO_DINT(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "USINT_TO_UDINT",
+            "signature": "USINT_TO_UDINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "USINT",
+                    "direction": "IN",
+                    "description": "Valore USINT da convertire"
+                }
+            ],
+            "return": {
+                "type": "UDINT",
+                "description": "Valore numerico 32 bit senza segno"
+            },
+            "description": "Converte un USINT (8-bit unsigned) in UDINT (32-bit unsigned).",
+            "example": "udintVal := USINT_TO_UDINT(IN := usintVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_BOOL",
+            "signature": "BYTE_TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "Bit meno significativo (LSB)"
+            },
+            "description": "Converte un BYTE in BOOL estraendo il bit 0. (Dispari=TRUE, Pari=FALSE).",
+            "example": "boolVal := BYTE_TO_BOOL(IN := 16#01); // TRUE",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_DWORD",
+            "signature": "BYTE_TO_DWORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "DWORD",
+                "description": "Valore esteso a 32 bit (zero padding)"
+            },
+            "description": "Converte un BYTE in DWORD. I 3 byte alti vengono riempiti con zeri.",
+            "example": "dwordVal := BYTE_TO_DWORD(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_SINT",
+            "signature": "BYTE_TO_SINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "SINT",
+                "description": "Valore interpretato come intero con segno"
+            },
+            "description": "Converte un BYTE (bit string) in SINT (8-bit signed). Pattern di bit preservato.",
+            "example": "sintVal := BYTE_TO_SINT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_USINT",
+            "signature": "BYTE_TO_USINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "USINT",
+                "description": "Valore interpretato come intero senza segno"
+            },
+            "description": "Converte un BYTE (bit string) in USINT (8-bit unsigned).",
+            "example": "usintVal := BYTE_TO_USINT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_UINT",
+            "signature": "BYTE_TO_UINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "UINT",
+                "description": "Valore numerico 16 bit"
+            },
+            "description": "Converte un BYTE in UINT (16-bit unsigned).",
+            "example": "uintVal := BYTE_TO_UINT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_DINT",
+            "signature": "BYTE_TO_DINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "DINT",
+                "description": "Valore numerico 32 bit"
+            },
+            "description": "Converte un BYTE in DINT (32-bit signed).",
+            "example": "dintVal := BYTE_TO_DINT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "BYTE_TO_UDINT",
+            "signature": "BYTE_TO_UDINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "BYTE",
+                    "direction": "IN",
+                    "description": "Valore BYTE da convertire"
+                }
+            ],
+            "return": {
+                "type": "UDINT",
+                "description": "Valore numerico 32 bit senza segno"
+            },
+            "description": "Converte un BYTE in UDINT (32-bit unsigned).",
+            "example": "udintVal := BYTE_TO_UDINT(IN := byteVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_BYTE",
+            "signature": "WORD_TO_BYTE(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "BYTE",
+                "description": "Byte meno significativo (LSB)"
+            },
+            "description": "Converte un WORD in BYTE estraendo gli 8 bit meno significativi.",
+            "example": "byteVal := WORD_TO_BYTE(IN := 16#1234); // 16#34",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_DWORD",
+            "signature": "WORD_TO_DWORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "DWORD",
+                "description": "Valore esteso a 32 bit (zero padding)"
+            },
+            "description": "Converte un WORD in DWORD. I 2 byte alti vengono riempiti con zeri.",
+            "example": "dwordVal := WORD_TO_DWORD(IN := wordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_SINT",
+            "signature": "WORD_TO_SINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "SINT",
+                "description": "Valore interpretato come intero 8 bit"
+            },
+            "description": "Converte un WORD in SINT. Prende solo il byte meno significativo.",
+            "example": "sintVal := WORD_TO_SINT(IN := wordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_USINT",
+            "signature": "WORD_TO_USINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "USINT",
+                "description": "Valore interpretato come intero 8 bit senza segno"
+            },
+            "description": "Converte un WORD in USINT. Prende solo il byte meno significativo.",
+            "example": "usintVal := WORD_TO_USINT(IN := wordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "WORD_TO_UDINT",
+            "signature": "WORD_TO_UDINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "WORD",
+                    "direction": "IN",
+                    "description": "Valore WORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "UDINT",
+                "description": "Valore numerico 32 bit senza segno"
+            },
+            "description": "Converte un WORD in UDINT. Estensione con zeri.",
+            "example": "udintVal := WORD_TO_UDINT(IN := wordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_BOOL",
+            "signature": "DWORD_TO_BOOL(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "BOOL",
+                "description": "Byte meno significativo (LSB)"
+            },
+            "description": "Converte un DWORD in BOOL estraendo il bit meno significativo (bit 0).",
+            "example": "boolVal := DWORD_TO_BOOL(IN := 16#00000001); // TRUE",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_BYTE",
+            "signature": "DWORD_TO_BYTE(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "BYTE",
+                "description": "Byte meno significativo (LSB)"
+            },
+            "description": "Converte un DWORD in BYTE. Viene preso solo l'ultimo byte.",
+            "example": "byteVal := DWORD_TO_BYTE(IN := 16#12345678); // 16#78",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_WORD",
+            "signature": "DWORD_TO_WORD(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "WORD",
+                "description": "Parola meno significativa (Low Word)"
+            },
+            "description": "Converte un DWORD in WORD. Vengono presi solo i 16 bit meno significativi.",
+            "example": "wordVal := DWORD_TO_WORD(IN := 16#12345678); // 16#5678",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_INT",
+            "signature": "DWORD_TO_INT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Valore troncato a 16 bit"
+            },
+            "description": "Converte un DWORD in INT (16 bit). Prende solo la parte bassa.",
+            "example": "intVal := DWORD_TO_INT(IN := 16#0000FFFF); // -1",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_UINT",
+            "signature": "DWORD_TO_UINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "UINT",
+                "description": "Valore troncato a 16 bit unsigned"
+            },
+            "description": "Converte un DWORD in UINT (16 bit). Prende solo la parte bassa.",
+            "example": "uintVal := DWORD_TO_UINT(IN := 16#0000FFFF); // 65535",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_USINT",
+            "signature": "DWORD_TO_USINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "USINT",
+                "description": "Valore troncato a 8 bit unsigned"
+            },
+            "description": "Converte un DWORD in USINT. Prende solo l'ultimo byte.",
+            "example": "usintVal := DWORD_TO_USINT(IN := dwordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_SINT",
+            "signature": "DWORD_TO_SINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "SINT",
+                "description": "Valore troncato a 8 bit signed"
+            },
+            "description": "Converte un DWORD in SINT. Prende solo l'ultimo byte.",
+            "example": "sintVal := DWORD_TO_SINT(IN := dwordVal);",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "DWORD_TO_UDINT",
+            "signature": "DWORD_TO_UDINT(IN := <value>)",
+            "parameters": [
+                {
+                    "name": "IN",
+                    "type": "DWORD",
+                    "direction": "IN",
+                    "description": "Valore DWORD da convertire"
+                }
+            ],
+            "return": {
+                "type": "UDINT",
+                "description": "Valore numerico 32 bit senza segno"
+            },
+            "description": "Converte un DWORD in UDINT. Bit pattern preservato.",
+            "example": "udintVal := DWORD_TO_UDINT(IN := dwordVal);",
             "tia_version": "V20+"
         }
     ]

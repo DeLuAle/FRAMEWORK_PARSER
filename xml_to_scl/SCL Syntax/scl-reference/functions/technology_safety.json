@@ -1,0 +1,168 @@
+{
+    "category": "Technology and Safety",
+    "description": "Funzioni tecnologiche (PID, HSC) e blocchi per la sicurezza (Safety)",
+    "tia_version": "V20+",
+    "source": "TIA Portal Help - Technology and Safety Instructions",
+    "functions": [
+        {
+            "name": "PID_Compact",
+            "signature": "#instance(Setpoint := <real>, ProcessValue := <real>, ManualEnable := <bool>, ManualValue := <real>, RESTART := <bool>, [..], State => <int>, Error => <bool>, [..]);",
+            "parameters": [
+                {
+                    "name": "Setpoint",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore di riferimento del regolatore"
+                },
+                {
+                    "name": "ProcessValue",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore attuale di processo"
+                },
+                {
+                    "name": "ManualEnable",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Abilita la modalità manuale"
+                },
+                {
+                    "name": "ManualValue",
+                    "type": "REAL",
+                    "direction": "IN",
+                    "description": "Valore di uscita manuale"
+                },
+                {
+                    "name": "State",
+                    "type": "INT",
+                    "direction": "OUT",
+                    "description": "Stato attuale del regolatore (0=Inattivo, 3=Automatico, ecc.)"
+                },
+                {
+                    "name": "Error",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "TRUE se presente un errore"
+                }
+            ],
+            "description": "Regolatore PID universale con ottimizzazione integrata (S7-1200/1500).",
+            "example": "// Esempio di chiamata PID_Compact\n#tempController(Setpoint := #setPoint, ProcessValue := #actualTemp, ManualEnable := false);",
+            "mandatory": true,
+            "notes": "Richiede un oggetto tecnologico (TO) e un'istanza DB. La configurazione fine avviene tramite l'editor TO in TIA Portal.",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "CTRL_HSC",
+            "signature": "#retVal := CTRL_HSC(HSC := <hsc_ptr>, DIR := <bool>, CV := <bool>, RV := <bool>, [..], NEW_DIR := <int>, NEW_CV := <dint>, [..]);",
+            "parameters": [
+                {
+                    "name": "HSC",
+                    "type": "HSC_PTR",
+                    "direction": "IN",
+                    "description": "Identificativo del contatore veloce"
+                },
+                {
+                    "name": "DIR",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Carica nuova direzione (NEW_DIR)"
+                },
+                {
+                    "name": "CV",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Carica nuovo valore attuale (NEW_CV)"
+                },
+                {
+                    "name": "RV",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Carica nuovo valore di riferimento (NEW_RV)"
+                },
+                {
+                    "name": "NEW_CV",
+                    "type": "DINT",
+                    "direction": "IN",
+                    "description": "Nuovo valore di conteggio attuale"
+                }
+            ],
+            "return": {
+                "type": "INT",
+                "description": "Stato esecuzione"
+            },
+            "description": "Controlla il funzionamento di un hardware High Speed Counter (HSC).",
+            "example": "#status := CTRL_HSC(HSC := \"Local~HSC_1\", CV := true, NEW_CV := 0); // Azzera contatore",
+            "mandatory": true,
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ESTOP1",
+            "signature": "#instance(E_STOP := <bool>, ACK_NEC := <bool>, ACK := <bool>, TIME_MAX := <time>, Q => <bool>, Q_DELAY => <bool>, ERROR => <bool>, STATUS => <word>);",
+            "parameters": [
+                {
+                    "name": "E_STOP",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di emergenza (norm. chiuso, TRUE=OK)"
+                },
+                {
+                    "name": "ACK_NEC",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Richiede conferma manuale (TRUE=SÌ)"
+                },
+                {
+                    "name": "ACK",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di conferma (Acknowledge)"
+                },
+                {
+                    "name": "TIME_MAX",
+                    "type": "TIME",
+                    "direction": "IN",
+                    "description": "Tempo massimo di ritardo per Q_DELAY"
+                },
+                {
+                    "name": "Q",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Uscita di sicurezza (immediata)"
+                },
+                {
+                    "name": "Q_DELAY",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Uscita di sicurezza (ritardata)"
+                }
+            ],
+            "description": "Blocco di sicurezza per la gestione di pulsanti di emergenza (F-Safety).",
+            "example": "#safetyEstop(E_STOP := #hwInput, ACK_NEC := true, ACK := #ackBtn, Q => #safetyEnable);",
+            "mandatory": true,
+            "notes": "Disponibile solo in blocchi F (Safety Administration) con licenza Step 7 Safety.",
+            "tia_version": "V20+"
+        },
+        {
+            "name": "ACK_GL",
+            "signature": "#instance(ACK_GLOB := <bool>, ACK_REI => <bool>);",
+            "parameters": [
+                {
+                    "name": "ACK_GLOB",
+                    "type": "BOOL",
+                    "direction": "IN",
+                    "description": "Segnale di conferma globale"
+                },
+                {
+                    "name": "ACK_REI",
+                    "type": "BOOL",
+                    "direction": "OUT",
+                    "description": "Segnale di reintegro per i moduli F"
+                }
+            ],
+            "description": "Fornisce una conferma globale per reintegrare tutti i moduli I/O di sicurezza (F-I/O).",
+            "example": "#globalAck(ACK_GLOB := #hmiAck);",
+            "mandatory": true,
+            "tia_version": "V20+"
+        }
+    ]
+}

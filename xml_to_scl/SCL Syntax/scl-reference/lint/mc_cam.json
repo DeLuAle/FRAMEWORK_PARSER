@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "source": "mc_functions.json",
+  "category": "mc_cam",
+  "functions": [
+    {
+      "name": "MC_InterpolateCam",
+      "axis_types": [
+        "TO_Cam",
+        "TO_Cam_10k",
+        "TO_Cam_16kSeg",
+        "TO_Cam_600Seg"
+      ],
+      "inputs": [
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Cam type must be supported"
+      ]
+    },
+    {
+      "name": "MC_CamIn",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge",
+        "Cam must be interpolated",
+        "Master/Slave different"
+      ]
+    },
+    {
+      "name": "MC_CamOut",
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Slave",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ],
+      "lint": [
+        "Execute rising edge"
+      ]
+    }
+  ]
+}

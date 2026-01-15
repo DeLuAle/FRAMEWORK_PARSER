@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "purpose": "Regex patterns for tokenizing and detecting SCL constructs",
+  "patterns": {
+    "assignment": "^\\s*(?P<lhs>[^;:=]+)\\s*:=\\s*(?P<rhs>.+);\\s*$",
+    "block_call": "^\\s*\\\"?(?P<block>[A-Za-z0-9_]+)\\\"?\\s*\\((?P<params>.*)\\)\\s*;\\s*$",
+    "if_open": "^\\s*IF\\s+(?P<cond>.+)\\s+THEN\\s*$",
+    "elsif": "^\\s*ELSIF\\s+(?P<cond>.+)\\s+THEN\\s*$",
+    "else": "^\\s*ELSE\\s*$",
+    "if_close": "^\\s*END\\s+IF\\s*;\\s*$",
+    "for_open": "^\\s*FOR\\s+(?P<var>.+)\\s*:=\\s*(?P<start>.+)\\s+TO\\s+(?P<end>.+)\\s+DO\\s*$",
+    "for_close": "^\\s*END_FOR\\s*;\\s*$",
+    "while_open": "^\\s*WHILE\\s+(?P<cond>.+)\\s+DO\\s*$",
+    "while_close": "^\\s*END_WHILE\\s*;\\s*$",
+    "repeat_open": "^\\s*REPEAT\\s*$",
+    "repeat_until": "^\\s*UNTIL\\s+(?P<cond>.+)\\s*$",
+    "repeat_close": "^\\s*END_REPEAT\\s*;\\s*$",
+    "case_open": "^\\s*CASE\\s+(?P<selector>.+)\\s+OF\\s*$",
+    "case_close": "^\\s*END_CASE\\s*;\\s*$",
+    "comment_single": "//.*$",
+    "label": "^\\s*(?P<label>[A-Za-z0-9_]+)\\s*:\\s*$"
+  }
+}

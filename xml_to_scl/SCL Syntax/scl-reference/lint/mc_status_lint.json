@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "source": "Docs_SCL/LINT_SKILL_MC_1.MD",
+  "checks": [
+    {
+      "id": "MC-STATUS-001",
+      "title": "Axis enabled before motion",
+      "summary": "Require IsEnabled and MC_Power.Status TRUE before movement",
+      "fields": [
+        "IsEnabled",
+        "MC_Power.Status"
+      ]
+    },
+    {
+      "id": "MC-STATUS-002",
+      "title": "Axis homed before positioning",
+      "summary": "Require IsHomed TRUE for positioning/sync axes",
+      "fields": [
+        "IsHomed"
+      ]
+    },
+    {
+      "id": "MC-STATUS-003",
+      "title": "No pending error",
+      "summary": "Require HasError FALSE",
+      "fields": [
+        "HasError"
+      ]
+    },
+    {
+      "id": "MC-STATUS-004",
+      "title": "Communication OK",
+      "summary": "Require StatusSensor[n].CommunicationOK and StatusDrive.CommunicationOK",
+      "fields": [
+        "StatusSensor[n].CommunicationOK",
+        "StatusDrive.CommunicationOK"
+      ]
+    },
+    {
+      "id": "MC-STATUS-005",
+      "title": "Encoder valid",
+      "summary": "Require StatusSensor[n].State = 2",
+      "fields": [
+        "StatusSensor[n].State"
+      ]
+    }
+  ]
+}

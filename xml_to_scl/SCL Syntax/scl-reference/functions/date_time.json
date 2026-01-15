@@ -1,0 +1,184 @@
+{
+  "category": "Date and Time Functions",
+  "description": "Funzioni per la manipolazione di date, orari e durate (DTL, TIME, DATE, TOD, LDT).",
+  "tia_version": "V20+",
+  "source": "TIA Portal Help - SCL Instructions",
+  "functions": [
+    {
+      "name": "RD_SYS_T",
+      "signature": "#retVal := RD_SYS_T(OUT => #dtlVariable);",
+      "parameters": [
+        {
+          "name": "OUT",
+          "type": "DTL",
+          "direction": "OUT",
+          "description": "Variabile in cui memorizzare l'ora di sistema (UTC)."
+        }
+      ],
+      "return": {
+        "type": "INT",
+        "description": "Codice di errore (0 = Nessun errore)."
+      },
+      "description": "Legge l'ora di sistema corrente della CPU (formato UTC).",
+      "example": "#status := RD_SYS_T(OUT => #currentUTC);",
+      "mandatory": true,
+      "notes": "L'ora di sistema è sempre in formato UTC. Per l'ora locale (con fuso orario), usare RD_LOC_T.",
+      "see_also": ["RD_LOC_T", "WR_SYS_T"],
+      "tia_version": "V20+"
+    },
+    {
+      "name": "RD_LOC_T",
+      "signature": "#retVal := RD_LOC_T(OUT => #dtlVariable);",
+      "parameters": [
+        {
+          "name": "OUT",
+          "type": "DTL",
+          "direction": "OUT",
+          "description": "Variabile in cui memorizzare l'ora locale."
+        }
+      ],
+      "return": {
+        "type": "INT",
+        "description": "Codice di errore (0 = Nessun errore)."
+      },
+      "description": "Legge l'ora locale corrente della CPU, considerando il fuso orario e l'ora legale impostati.",
+      "example": "#status := RD_LOC_T(OUT => #localTime);",
+      "mandatory": true,
+      "notes": "Richiede che il fuso orario sia correttamente configurato nelle impostazioni della CPU.",
+      "see_also": ["RD_SYS_T", "WR_LOC_T"],
+      "tia_version": "V20+"
+    },
+    {
+      "name": "T_ADD",
+      "signature": "#result := T_ADD(IN1 := #time1, IN2 := #duration);",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "DTL/TIME/LDT/DATE",
+          "direction": "IN",
+          "description": "Tempo base o durata iniziale."
+        },
+        {
+          "name": "IN2",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "description": "Durata da aggiungere."
+        }
+      ],
+      "return": {
+        "type": "Same as IN1",
+        "description": "Somma risultante."
+      },
+      "description": "Aggiunge una durata (TIME) a un timestamp (DTL/LDT) o a un'altra durata.",
+      "example": "#nextMaintenance := T_ADD(IN1 := #lastSync, IN2 := T#24h);",
+      "anti_pattern": "Somma manuale dei singoli componenti (es. #time.SECOND := #time.SECOND + 10) senza gestire overflow.",
+      "why_native": "Gestisce automaticamente il riporto su minuti, ore, giorni e mesi (anche anni bisestili).",
+      "mandatory": true,
+      "see_also": ["T_SUB"],
+      "tia_version": "V20+"
+    },
+    {
+      "name": "T_SUB",
+      "signature": "#result := T_SUB(IN1 := #time1, IN2 := #duration);",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "DTL/TIME/LDT/DATE",
+          "direction": "IN",
+          "description": "Tempo base da cui sottrarre."
+        },
+        {
+          "name": "IN2",
+          "type": "TIME/LTIME",
+          "direction": "IN",
+          "description": "Durata da sottrarre."
+        }
+      ],
+      "return": {
+        "type": "Same as IN1",
+        "description": "Risultato della sottrazione."
+      },
+      "description": "Sottrae una durata da un timestamp o da una durata.",
+      "example": "#startTime := T_SUB(IN1 := #currentTime, IN2 := T#5m);",
+      "mandatory": true,
+      "see_also": ["T_ADD", "T_DIFF"],
+      "tia_version": "V20+"
+    },
+    {
+      "name": "T_DIFF",
+      "signature": "#duration := T_DIFF(IN1 := #time1, IN2 := #time2);",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "DTL/LDT/TOD/DATE",
+          "direction": "IN",
+          "description": "Timestamp finale."
+        },
+        {
+          "name": "IN2",
+          "type": "DTL/LDT/TOD/DATE",
+          "direction": "IN",
+          "description": "Timestamp iniziale."
+        }
+      ],
+      "return": {
+        "type": "TIME/LTIME",
+        "description": "Differenza di tempo (IN1 - IN2)."
+      },
+      "description": "Calcola la durata tra due punti nel tempo.",
+      "example": "#cycleDuration := T_DIFF(IN1 := #endTime, IN2 := #startTime);",
+      "anti_pattern": "Calcolo manuale della differenza sottraendo ore/minuti/secondi.",
+      "why_native": "Gestisce correttamente il passaggio tra giorni diversi e fusi orari se applicabile.",
+      "mandatory": true,
+      "see_also": ["T_ADD", "T_SUB"],
+      "tia_version": "V20+"
+    },
+    {
+      "name": "T_COMBINE",
+      "signature": "#resultDTL := T_COMBINE(IN1 := #date, IN2 := #tod);",
+      "parameters": [
+        {
+          "name": "IN1",
+          "type": "DATE",
+          "direction": "IN",
+          "description": "Parte data."
+        },
+        {
+          "name": "IN2",
+          "type": "TOD",
+          "direction": "IN",
+          "description": "Parte ora del giorno."
+        }
+      ],
+      "return": {
+        "type": "DTL",
+        "description": "Timestamp DTL combinato."
+      },
+      "description": "Combina una variabile DATE e una TOD in un'unica variabile DTL.",
+      "example": "#fullTimestamp := T_COMBINE(IN1 := D#2024-01-01, IN2 := TOD#12:00:00);",
+      "mandatory": true,
+      "notes": "In alcune versioni di TIA Portal, questa funzione è accessibile come CONCAT_DATE_TOD.",
+      "tia_version": "V20+"
+    },
+    {
+      "name": "T_CONV",
+      "signature": "#out := T_CONV(IN := #in);",
+      "parameters": [
+        {
+          "name": "IN",
+          "type": "ANY_DATE/TIME",
+          "direction": "IN",
+          "description": "Valore da convertire."
+        }
+      ],
+      "return": {
+        "type": "Target Type",
+        "description": "Valore convertito."
+      },
+      "description": "Converte tra diversi formati di tempo (es. DTL in LDT, DATE in DTL, ecc.).",
+      "example": "#ldtVal := T_CONV(IN := #dtlVal);",
+      "mandatory": true,
+      "tia_version": "V20+"
+    }
+  ]
+}

@@ -21,7 +21,7 @@ L'analisi del codice sorgente ha rivelato che:
 | # | Debolezza Teorica | Stato | Evidenza |
 |---|-------------------|-------|----------|
 | W1 | UDT incomplete/mancanti | ⚠️ PARZIALE | UDT base OK, nesting non testato |
-| W2 | Wire branching (1→N) | ✅ RISOLTO | `_parse_wires()` lines 306-324 |
+| W2 | Wire branching (1→N) | ✅ RISOLTO | `_parse_wires()` lines 312-325 |
 | W3 | Type casting mancante | ⚠️ PARZIALE | Convert OK, AutomaticTyped incerto |
 | W4 | Blocchi sistema (TSEND) | ❌ CONFERMATO | Nessun database signature FB |
 | W5 | Cross-file UID resolution | ❌ CONFERMATO | Parser single-file only |
@@ -36,7 +36,7 @@ L'analisi del codice sorgente ha rivelato che:
 
 ### W2 - Wire Branching: ✅ RISOLTO
 
-**File:** `lad_parser.py` lines 306-324
+**File:** `lad_parser.py` lines 312-325
 
 ```python
 def _parse_wires(self, wire_elem):
@@ -99,7 +99,7 @@ DEFAULT_CONFIG = {...}
 # MANCA: FB_SIGNATURES, SYSTEM_BLOCK_PARAMS
 ```
 
-**File:** `lad_parser.py` lines 773-804 - gestione generica parametri
+**File:** `lad_parser.py` lines 770-804 - gestione generica parametri
 
 ```python
 # Standard functions: risolve parametri da connessioni wire
@@ -186,7 +186,7 @@ Esempio output per CTU:
 EXPRESSION_BUILDER_AVAILABLE = False  # ← DISABILITATO!
 ```
 
-**File:** `expression_builder.py` - **MODULO COMPLETO MA NON USATO** (277 linee)
+**File:** `expression_builder.py` - **MODULO COMPLETO MA NON USATO** (276 linee)
 
 Il modulo è **ben implementato** con:
 - Dataclass `LadExpression` per albero espressioni
@@ -217,39 +217,45 @@ def _try_build_expression_tree(self, output_uid, output_pin):
 
 ---
 
-### N2 - Fallback "???" per Logica Non Risolta: ⚠️ NUOVO
+### N2 - Fallback "???" per Logica Non Risolta: ❌ CRITICO
 
-**File:** `lad_parser.py` - Multiple occorrenze
-
-```python
-# Line ~850 - Unknown part type
-else:
-    logger.warning(f"Unknown part type: {part_type}")
-    return "???"  # ← Placeholder che finisce nel codice!
-
-# Line ~490 - Failed resolution
-if in_expr is None:
-    in_expr = "???"
-```
-
-**File:** `fbfc_generator.py` lines 201, 211, 221, 233, etc.
+**File:** `lad_parser.py` - 35+ occorrenze (linee: 481, 496, 516, 526, 551, 558, 583, 593, 598, 599, 615, 616, 630, 654, 663, 670, 673, 681, 684, 700, 701, 717, 836, 842, 854, 936, 1142 e altre)
 
 ```python
-# Generator checks for ??? but still generates code
-if en and en != 'TRUE' and en != '???':
-    self._add_line(f"IF {en} THEN")
-    # If condition is VALID: wrap in IF statement
-else:
-    # If en == '???' OR en is falsy: ESEGUE INCONDIZIONATAMENTE
-    self._add_line(f"{op['dest']} := {op['source']};")
+# Esempio 1: lad_parser.py linea 481 - Connection non risolvibile
+if not source_info:
+    return '???'  # ← Placeholder ritornato direttamente nel codice!
+
+# Esempio 2: lad_parser.py linea 516 - Fallback per logica non risolvibile
+return '???'  # ← Se logica non ha connessione valida
 ```
 
-**Impatto CRITICO:**
-- Logica non risolta genera `???` nel codice SCL
-- Quando logica è irrisolvibile (`en == '???'`): **ESEGUE SENZA PROTEZIONE CONDIZIONALE**
+**File:** `fbfc_generator.py` - Gestione di "???" (linee: 201, 211, 221, 233, 240, 247, 273, 284)
+
+```python
+# fbfc_generator.py linea 201 - Comportamento con ???
+elif op_type == 'move':
+    en = op.get('en_expr')
+    if en and en != 'TRUE' and en != '???':
+        # Se en ha valore valido (non TRUE, non ???):
+        self._add_line(f"IF {en} THEN")
+        self._indent()
+        self._add_line(f"{op['dest']} := {op['source']};")
+        self._dedent()
+        self._add_line("END_IF;")
+    else:
+        # Se en == 'TRUE' O en == '???' o en non esiste:
+        # NON genera IF, ma ESEGUE L'AZIONE COMUNQUE (incondizionatamente)!
+        self._add_line(f"{op['dest']} := {op['source']};")
+```
+
+**Impatto CRITICO (Comportamento Intenzionale per Fail-Fast):**
+- Logica non risolta genera `???` nel codice SCL output
+- Quando `en == '???'`: il codice viene eseguito **SENZA protezione condizionale**
 - Non viene "saltato" - viene eseguito **incondizionatamente**
-- Questo è **peggiore** di una semplice omissione: produce comportamento non previsto
-- Compilazione TIA Portal fallisce con errore di logica criptico
+- Compilazione TIA Portal **fallisce** con errore sintattico su `???`
+- **Questo è intenzionale**: forza lo sviluppatore a risolvere i bug del parser
+- Strategia "fail-fast": meglio un errore evidente che logica silenziosa errata
 
 ---
 
@@ -413,7 +419,7 @@ Il parser è **funzionale per casi semplici** ma ha limitazioni significative pe
 | File | Linee | Scopo | Note |
 |------|-------|-------|------|
 | lad_parser.py | 1156 | Parser LAD/FBD principale | Core logic, N1/N2 qui |
-| expression_builder.py | ~250 | Ottimizzatore espressioni | DISABILITATO |
+| expression_builder.py | 276 | Ottimizzatore espressioni | DISABILITATO |
 | fbfc_generator.py | 436 | Generatore FB/FC | Gestisce ??? |
 | scl_generator_base.py | 224 | Base generator | Formatting |
 | xml_parser_base.py | 312 | Base XML parser | Single-file |

@@ -1,0 +1,362 @@
+{
+  "version": "1.0",
+  "functions": {
+    "MC_Power": {
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis",
+        "TO_ExternalEncoder"
+      ],
+      "inputs": [
+        "Axis",
+        "Enable",
+        "StartMode",
+        "StopMode"
+      ],
+      "outputs": [
+        "Status",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_Reset": {
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Restart"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_Home": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode",
+        "Position"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_Halt": {
+      "axis_types": [
+        "TO_*"
+      ],
+      "inputs": [
+        "Axis",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_MoveAbsolute": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Position",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_MoveRelative": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Distance",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_PositionProfile": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "TimePosition",
+        "Execute",
+        "BufferMode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_MoveVelocity": {
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Velocity",
+        "Acceleration",
+        "Deceleration",
+        "Jerk"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_MoveJog": {
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "JogForward",
+        "JogBackward",
+        "Velocity",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_MoveSuperimposed": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Distance",
+        "VelocityDiff",
+        "Acceleration",
+        "Deceleration"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_Stop": {
+      "axis_types": [
+        "TO_SpeedAxis",
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Execute",
+        "Mode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_SetSensor": {
+      "axis_types": [
+        "TO_PositioningAxis",
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Axis",
+        "Mode"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_VelocitySynchronization": {
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "Ratio",
+        "Tolerance",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_PositionSynchronization": {
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "StartPosition",
+        "MasterStartPosition",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_InterpolateCam": {
+      "axis_types": [
+        "TO_Cam",
+        "TO_Cam_10k",
+        "TO_Cam_16kSeg",
+        "TO_Cam_600Seg"
+      ],
+      "inputs": [
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_CamIn": {
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Master",
+        "Slave",
+        "Cam",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    },
+    "MC_CamOut": {
+      "axis_types": [
+        "TO_SynchronousAxis"
+      ],
+      "inputs": [
+        "Slave",
+        "Execute"
+      ],
+      "outputs": [
+        "Done",
+        "Busy",
+        "Error",
+        "ErrorID"
+      ]
+    }
+  },
+  "errors": {
+    "0x1001": {
+      "description": "Axis disabled",
+      "action": "MC_Power Enable TRUE"
+    },
+    "0x1002": {
+      "description": "Homing required",
+      "action": "MC_Home first"
+    },
+    "0x1004": {
+      "description": "Axis in error state",
+      "action": "MC_Reset Restart TRUE"
+    },
+    "0x2001": {
+      "description": "Position underflow",
+      "action": "Adjust position >= MinPosition"
+    },
+    "0x2002": {
+      "description": "Position overflow",
+      "action": "Adjust position <= MaxPosition"
+    },
+    "0x4004": {
+      "description": "Acceleration invalid",
+      "action": "Acceleration > 0"
+    },
+    "0x4005": {
+      "description": "Deceleration invalid",
+      "action": "Deceleration > 0"
+    },
+    "0x4006": {
+      "description": "Velocity invalid",
+      "action": "Velocity > 0 or allowed zero for MoveVelocity"
+    }
+  },
+  "datasets": [
+    "mc_functions.json",
+    "mc_move.json",
+    "mc_stop.json",
+    "mc_power.json",
+    "mc_sync.json",
+    "mc_cam.json",
+    "mc_other.json",
+    "mc_params_schema.json",
+    "mc_error_codes.json",
+    "mc_status_lint.json",
+    "mc_naming_conventions.json",
+    "mc_rule_map.json"
+  ]
+}

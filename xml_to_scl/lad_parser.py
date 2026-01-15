@@ -6,18 +6,28 @@ import logging
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Any, Optional
 
+
+try:
+    from .config import config, FB_SIGNATURES
+except ImportError:
+    # Fallback/Mock for standalone testing without package structure
+    from config import config, FB_SIGNATURES
+
 try:
     from expression_builder import (
         LadExpression, LadAccess, ExprType,
         build_expression_tree, expression_to_scl
     )
-    # DISABLED: expression_builder needs debugging - revert to base LAD parser
-    EXPRESSION_BUILDER_AVAILABLE = False
+    # ENABLED: expression_builder available
+    EXPRESSION_BUILDER_AVAILABLE = True
 except ImportError:
     EXPRESSION_BUILDER_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
+
+# Pins to exclude from FB/FC call parameters (LAD-specific, not needed in SCL)
+EXCLUDED_PINS = {'en', 'eno'}
 
 class LADLogicParser:
     """Parser for LAD/FBD logic in FlgNet format"""
@@ -353,6 +363,11 @@ class LADLogicParser:
                         # This wire connects TO the FB
                         param_name = dest_pin
                         
+                        # Skip EN/ENO pins - they are implicit in SCL
+                        if param_name and param_name.lower() in EXCLUDED_PINS:
+                            logger.debug(f"  Skipping LAD-specific pin: {param_name}")
+                            continue
+                        
                         logger.debug(f"  Input pin: {param_name}")
                         
                         # Resolve the value
@@ -383,6 +398,11 @@ class LADLogicParser:
                             logger.debug(f"    Skipping FB output with no pin name")
                             continue
 
+                        # Skip EN/ENO pins - they are implicit in SCL
+                        if param_name.lower() in EXCLUDED_PINS:
+                            logger.debug(f"  Skipping LAD-specific output pin: {param_name}")
+                            continue
+
                         logger.debug(f"  Output pin: {param_name}")
 
                         # Destination is dest_uid/dest_pin
@@ -399,7 +419,67 @@ class LADLogicParser:
                         elif dest_part:
                             # Connected to logic?
                             logger.debug(f"    Output {param_name} connected to part type {dest_part.get('type')}")
-                        
+                
+                # --- W4/W7 Fix: Inject Default Parameters for Standard Blocks ---
+                # Check if this block type has a known signature
+                # Use fb_call['fb_type'] which holds the block name (e.g. TSEND_C, TON)
+                block_name = fb_call.get('fb_type', '')
+                block_name_upper = block_name.upper() if block_name else ""
+                
+                if block_name_upper in FB_SIGNATURES:
+                    signature = FB_SIGNATURES[block_name_upper]
+                    
+                    # Check all defined parameters in signature
+                    for param, info in signature.items():
+                        # If parameter is already present (wired), skip
+                        if param in fb_call['inputs'] or param in fb_call['outputs']:
+                            continue
+                            
+                        # If it's an optional parameter with a default value
+                        if isinstance(info, tuple) and len(info) == 2:
+                            param_type, default_val = info
+                            # Decide if it's input or output based on conventions or explicit lists
+                            # SCL syntax: MyBlock(Param := Default)
+                            # We put everything in inputs dict for SCL generation purposes 
+                            # (fbfc_generator treats inputs/outputs similarly for Call syntax)
+                            # But distinguishing is accurate.
+                            
+                            # Heuristic: Q, ET, DONE, ERROR, STATUS, CV, CD, QD, QU are usually output-ish
+                            # But if they are optional inputs (like COM_RST), they go to input.
+                            # Standard outputs like Q/ET are usually NOT optional inputs, they are just outputs.
+                            # So default values usually apply to INPUT parameters that are optional.
+                            
+                            # Exception: In TIA, some params are InOut.
+                            
+                            # We only inject defaults for parameters that effectively act as Inputs or InOuts configurable by user.
+                            # If it's a pure Output (like Q), setting it in the call (Q := ...) is for capturing value.
+                            # If not wired, we don't capture.
+                            # But inputs like 'R' (Reset) in Counter, if missing, default to FALSE?
+                            # TIA Portal might have internal defaults. SCL requires explicit assignment if strict?
+                            # Actually, optional parameters in TIA SCL don't strictly require assignment if defaults exist in interface.
+                            # BUT: for correct "System Block" simulation/portability, explicit defaults are safer.
+                            
+                            # Configurable: Only inject defaults for Inputs?
+                            # Signatures generally define defaults for Inputs.
+                            # Outputs usually don't have "defaults" injected by caller, they have values produced by block.
+                            
+                            # Lets check typical defaults in our config:
+                            # R: FALSE -> Input
+                            # PV: 0 -> Input
+                            # COM_RST: FALSE -> Input
+                            # Q: FALSE -> Output? No, we don't assign Q:=FALSE. We read Q=>Var.
+                            # So we should validly distinguish Inputs from Outputs in signature?
+                            
+                            # For implementation simplicity in this fix, we assume defaults apply to INPUTS.
+                            # Skip if param is clearly an output (Q, ET, STATUS, ERROR, DONE, BUSY).
+                            # Actually, TSEND_C "DONE" is output. "COM_RST" is input.
+                            
+                            is_likely_output = param in ['Q', 'ET', 'CV', 'CD', 'QD', 'QU', 'DONE', 'BUSY', 'ERROR', 'STATUS', 'RCVD_LEN']
+                            
+                            if not is_likely_output:
+                                logger.debug(f"  Injecting default for missing optional param: {param} := {default_val}")
+                                fb_call['inputs'][param] = default_val
+
                 fb_calls.append(fb_call)
 
         return fb_calls
