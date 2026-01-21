@@ -55,7 +55,7 @@ def identify_file_type(file_path: Path) -> str:
                     return 'udt'
                 elif 'PlcUserDataType' in tag: # Catch wrapper
                      return 'udt'
-                elif tag == 'GlobalDB':
+                elif tag == 'GlobalDB' or tag == 'InstanceDB':
                     return 'db'
                 elif tag == 'FB':
                     return 'fb'
@@ -71,7 +71,7 @@ def identify_file_type(file_path: Path) -> str:
                 # If we find SW.Blocks...
                 if 'SW.Blocks.FB' in elem.tag: return 'fb'
                 if 'SW.Blocks.FC' in elem.tag: return 'fc'
-                if 'SW.Blocks.GlobalDB' in elem.tag: return 'db'
+                if 'SW.Blocks.GlobalDB' in elem.tag or 'SW.Blocks.InstanceDB' in elem.tag: return 'db'
                 if 'SW.Types.PlcStruct' in elem.tag: return 'udt' # TIA UDTs
                 if 'SW.Tags.PlcTagTable' in elem.tag: return 'tags'
 
@@ -97,7 +97,7 @@ def identify_file_type(file_path: Path) -> str:
                 content = f.read(2048) # Read header
                 if 'SW.Blocks.FB' in content or 'BlockType="FB"' in content: return 'fb'
                 if 'SW.Blocks.FC' in content or 'BlockType="FC"' in content: return 'fc'
-                if 'SW.Blocks.GlobalDB' in content: return 'db'
+                if 'SW.Blocks.GlobalDB' in content or 'SW.Blocks.InstanceDB' in content: return 'db'
                 if 'SW.Types.PlcStruct' in content or 'PlcUserDataType' in content: return 'udt'
                 if 'SW.Tags.PlcTagTable' in content: return 'tags'
         except UnicodeDecodeError as e:
