@@ -89,7 +89,7 @@ class SCLTokenParser:
     def _handle_access(self, node: ET.Element):
         """Handle Access element"""
         scope = node.get('Scope')
-        
+
         if scope == 'Call':
             self._parse_element_children(node) # Will hit CallInfo
         elif scope == 'LiteralConstant':
@@ -98,6 +98,10 @@ class SCLTokenParser:
             self._parse_element_children(node) # Will hit PredefinedVariable
         else:
             # Variables (LocalVariable, GlobalVariable, etc)
+            # Add # prefix for local variables
+            if scope in ['LocalVariable', 'LocalConstant', 'TypedConstant']:
+                self.buffer.append('#')
+
             self._parse_element_children(node) # Will hit Symbol -> Component
 
     def _handle_constant(self, node: ET.Element):
