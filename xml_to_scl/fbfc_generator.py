@@ -142,7 +142,9 @@ class FBFCGenerator(SCLGeneratorBase):
                     self._indent()
 
                     if comment:
-                         self._add_line(f'// {comment.replace("\n", "\n// ")}')
+                         # Fix: Extract replace() outside f-string to avoid backslash in f-string
+                         formatted_comment = comment.replace("\n", "\n// ")
+                         self._add_line(f'// {formatted_comment}')
                          self._add_line('')
 
                     if net['type'] == 'SCL':
@@ -198,55 +200,85 @@ class FBFCGenerator(SCLGeneratorBase):
                                 self._add_line("END_IF;")
                             elif op_type == 'move':
                                 en = op.get('en_expr')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved logic - skip operation with warning comment
+                                    self._add_line(f"// WARNING: Unresolved enable logic - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify: {op['dest']} := {op['source']}")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN")
                                     self._indent()
                                     self._add_line(f"{op['dest']} := {op['source']};")
                                     self._dedent()
                                     self._add_line("END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional execution
                                     self._add_line(f"{op['dest']} := {op['source']};")
                             elif op_type == 'instruction_assignment':
                                 en = op.get('en_expr')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved logic - skip operation with warning comment
+                                    self._add_line(f"// WARNING: Unresolved enable logic - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify: {op['variable']} := {op['expression']}")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN")
                                     self._indent()
                                     self._add_line(f"{op['variable']} := {op['expression']};")
                                     self._dedent()
                                     self._add_line("END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional execution
                                     self._add_line(f"{op['variable']} := {op['expression']};")
                             elif op_type == 'instruction_call':
                                 en = op.get('en_expr')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved logic - skip operation with warning comment
+                                    self._add_line(f"// WARNING: Unresolved enable logic - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify: {op['expression']}")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN")
                                     self._indent()
                                     self._add_line(f"{op['expression']};")
                                     self._dedent()
                                     self._add_line("END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional execution
                                     self._add_line(f"{op['expression']};")
                             
                             # --- CONTROL FLOW ---
                             elif op_type == 'return':
                                 en = op.get('condition')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved condition - skip with warning
+                                    self._add_line(f"// WARNING: Unresolved return condition - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify RETURN condition")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN RETURN; END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional return
                                     self._add_line("RETURN;")
 
                             elif op_type == 'exit':
                                 en = op.get('condition')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved condition - skip with warning
+                                    self._add_line(f"// WARNING: Unresolved exit condition - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify EXIT condition")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN EXIT; END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional exit
                                     self._add_line("EXIT;")
 
                             elif op_type == 'continue':
                                 en = op.get('condition')
-                                if en and en != 'TRUE' and en != '???':
+                                if en == '???':
+                                    # N2 Fix: Unresolved condition - skip with warning
+                                    self._add_line(f"// WARNING: Unresolved continue condition - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify CONTINUE condition")
+                                elif en and en != 'TRUE':
                                     self._add_line(f"IF {en} THEN CONTINUE; END_IF;")
                                 else:
+                                    # en is TRUE or empty -> unconditional continue
                                     self._add_line("CONTINUE;")
 
                             elif op_type == 'label_definition':
@@ -261,16 +293,20 @@ class FBFCGenerator(SCLGeneratorBase):
                                 target = op['target']
                                 cond = op['condition']
                                 negated = op.get('negated', False)
-                                
+
                                 if negated:
                                     # IF (NOT cond) OR cond=FALSE
                                     cond_expr = f"NOT ({cond})"
                                 else:
                                     cond_expr = cond
-                                
-                                if cond_expr == 'TRUE':
+
+                                if '???' in cond_expr:
+                                    # N2 Fix: Unresolved condition - skip with warning
+                                    self._add_line(f"// WARNING: Unresolved jump condition - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify GOTO {target}")
+                                elif cond_expr == 'TRUE':
                                     self._add_line(f"GOTO {target};")
-                                elif cond_expr != 'FALSE' and cond_expr != '???':
+                                elif cond_expr != 'FALSE':
                                     self._add_line(f"IF {cond_expr} THEN")
                                     self._indent()
                                     self._add_line(f"GOTO {target};")
@@ -279,9 +315,13 @@ class FBFCGenerator(SCLGeneratorBase):
                                     
                             elif op_type == 'return':
                                 cond = op['condition']
-                                if cond == 'TRUE':
+                                if cond == '???':
+                                    # N2 Fix: Unresolved condition - skip with warning
+                                    self._add_line(f"// WARNING: Unresolved return condition - operation skipped")
+                                    self._add_line(f"// TODO: Manually verify RETURN condition")
+                                elif cond == 'TRUE':
                                     self._add_line("RETURN;")
-                                elif cond != 'FALSE' and cond != '???':
+                                elif cond != 'FALSE':
                                     self._add_line(f"IF {cond} THEN")
                                     self._indent()
                                     self._add_line("RETURN;")
