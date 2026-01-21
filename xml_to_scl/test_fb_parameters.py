@@ -144,14 +144,13 @@ class TestFBParameterExtraction(unittest.TestCase):
         self.assertEqual(fb_call['instance'], 'SetReset1')
 
         # Check that input has been resolved (with # for local vars)
-        # Note: Complex boolean expressions through serial contacts are a known limitation
-        # The parser currently resolves to the last contact in the chain
+        # Complex boolean expressions should be fully resolved
         self.assertIn('S', fb_call['inputs'])
         s_value = fb_call['inputs']['S']
         self.assertNotEqual(s_value, '???')
-        # Should contain at least one of the variables with # prefix
-        self.assertTrue('#var1' in s_value or '#var2' in s_value,
-                       f"Expected variable with # prefix, got: {s_value}")
+        self.assertIn('#var1', s_value)
+        self.assertIn('#var2', s_value)
+        self.assertIn('AND', s_value)
 
         # Check outputs (local variables should have # prefix)
         self.assertIn('Q', fb_call['outputs'])

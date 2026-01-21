@@ -63,7 +63,7 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         parser.parse()
         ops = parser._extract_operations()
 
-        # Should have 1 assignment: output_var := input_var
+        # Should have 1 assignment: #output_var := #input_var
         self.assertEqual(len(ops), 1)
         self.assertEqual(ops[0]['type'], 'assignment')
         self.assertEqual(ops[0]['variable'], '#output_var')
@@ -130,12 +130,12 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         self.assertEqual(len(ops), 1)
         self.assertEqual(ops[0]['type'], 'assignment')
         self.assertEqual(ops[0]['variable'], '#out')
-        # Expression should be resolved (known limitation: serial contacts may not fully expand)
+        # Expression should be "#var1 AND #var2" (or similar)
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
-        # Should contain at least one variable with # prefix
-        self.assertTrue('#var1' in expr or '#var2' in expr,
-                       f"Expected variable with # prefix in expression, got: {expr}")
+        self.assertIn('#var1', expr)
+        self.assertIn('#var2', expr)
+        self.assertIn('AND', expr)
 
     def test_two_parallel_contacts_with_or(self):
         """Test: Powerrail -> [Contact1, Contact2] -> OR -> Coil"""
@@ -208,10 +208,9 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         self.assertEqual(ops[0]['variable'], '#out')
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
-        # Should contain at least one variable with # prefix
-        # Known limitation: parallel contacts with OR may not fully expand
-        self.assertTrue('#var1' in expr or '#var2' in expr,
-                       f"Expected variable with # prefix in expression, got: {expr}")
+        self.assertIn('#var1', expr)
+        self.assertIn('#var2', expr)
+        self.assertIn('OR', expr)
 
     def test_negated_contact(self):
         """Test: Powerrail -> NOT Contact -> Coil"""
@@ -266,7 +265,7 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
         self.assertIn('NOT', expr)
-        self.assertIn('input_var', expr)
+        self.assertIn('#input_var', expr)
 
 
 if __name__ == '__main__':
