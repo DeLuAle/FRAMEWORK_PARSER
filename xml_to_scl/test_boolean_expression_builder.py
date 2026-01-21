@@ -63,10 +63,10 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         parser.parse()
         ops = parser._extract_operations()
 
-        # Should have 1 assignment: output_var := input_var
+        # Should have 1 assignment: #output_var := #input_var
         self.assertEqual(len(ops), 1)
         self.assertEqual(ops[0]['type'], 'assignment')
-        self.assertEqual(ops[0]['variable'], 'output_var')
+        self.assertEqual(ops[0]['variable'], '#output_var')
         self.assertNotIn('???', ops[0]['expression'], f"Expression should not contain '???' but got: {ops[0]['expression']}")
 
     def test_two_contacts_in_series(self):
@@ -129,12 +129,12 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         # Should have 1 assignment with AND expression
         self.assertEqual(len(ops), 1)
         self.assertEqual(ops[0]['type'], 'assignment')
-        self.assertEqual(ops[0]['variable'], 'out')
-        # Expression should be "var1 AND var2" (or similar)
+        self.assertEqual(ops[0]['variable'], '#out')
+        # Expression should be "#var1 AND #var2" (or similar)
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
-        self.assertIn('var1', expr)
-        self.assertIn('var2', expr)
+        self.assertIn('#var1', expr)
+        self.assertIn('#var2', expr)
         self.assertIn('AND', expr)
 
     def test_two_parallel_contacts_with_or(self):
@@ -205,11 +205,11 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         # Should have 1 assignment with OR expression
         self.assertEqual(len(ops), 1)
         self.assertEqual(ops[0]['type'], 'assignment')
-        self.assertEqual(ops[0]['variable'], 'out')
+        self.assertEqual(ops[0]['variable'], '#out')
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
-        self.assertIn('var1', expr)
-        self.assertIn('var2', expr)
+        self.assertIn('#var1', expr)
+        self.assertIn('#var2', expr)
         self.assertIn('OR', expr)
 
     def test_negated_contact(self):
@@ -265,7 +265,7 @@ class TestBooleanExpressionBuilder(unittest.TestCase):
         expr = ops[0]['expression']
         self.assertNotIn('???', expr, f"Expression should not contain '???' but got: {expr}")
         self.assertIn('NOT', expr)
-        self.assertIn('input_var', expr)
+        self.assertIn('#input_var', expr)
 
 
 if __name__ == '__main__':

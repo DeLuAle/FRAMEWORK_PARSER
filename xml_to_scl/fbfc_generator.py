@@ -142,7 +142,8 @@ class FBFCGenerator(SCLGeneratorBase):
                     self._indent()
 
                     if comment:
-                         self._add_line(f'// {comment.replace("\n", "\n// ")}')
+                         comment_formatted = comment.replace("\n", "\n// ")
+                         self._add_line(f'// {comment_formatted}')
                          self._add_line('')
 
                     if net['type'] == 'SCL':

@@ -89,15 +89,22 @@ class SCLTokenParser:
     def _handle_access(self, node: ET.Element):
         """Handle Access element"""
         scope = node.get('Scope')
-        
+
         if scope == 'Call':
             self._parse_element_children(node) # Will hit CallInfo
         elif scope == 'LiteralConstant':
             self._handle_constant(node)
         elif scope == 'PredefinedVariable':
             self._parse_element_children(node) # Will hit PredefinedVariable
+        elif scope == 'LocalVariable':
+            # Local variables: prefix with #
+            self.buffer.append('#')
+            self._parse_element_children(node) # Will hit Symbol -> Component
+        elif scope == 'GlobalVariable':
+            # Global DB variables: first component in quotes, rest with dots
+            self._handle_global_variable(node)
         else:
-            # Variables (LocalVariable, GlobalVariable, etc)
+            # Fallback for other scopes
             self._parse_element_children(node) # Will hit Symbol -> Component
 
     def _handle_constant(self, node: ET.Element):
@@ -130,3 +137,57 @@ class SCLTokenParser:
         if name:
             self.buffer.append(name)
         self._parse_element_children(param_node)
+
+    def _handle_global_variable(self, node: ET.Element):
+        """
+        Handle GlobalVariable Access element.
+
+        Global DB variables format: "FirstComponent".SecondComponent.ThirdComponent
+        - First component is wrapped in quotes
+        - Subsequent components are separated by dots
+        """
+        # Find Symbol element
+        symbol = node.find('.//{*}Symbol')
+        if symbol is None:
+            # Fallback if no Symbol found
+            self._parse_element_children(node)
+            return
+
+        # Extract all Component elements
+        components = []
+        for child in symbol:
+            tag = child.tag.split('}')[-1]
+            if tag == 'Component':
+                comp_name = child.get('Name')
+                if comp_name:
+                    components.append(comp_name)
+
+                    # Check for nested array index in Component
+                    # Structure: <Component Name="Rest_Ls"><Access><Constant>1</Constant></Access></Component>
+                    for sub_elem in child:
+                        sub_tag = sub_elem.tag.split('}')[-1]
+                        if sub_tag == 'Access':
+                            # Found array index - parse it
+                            for const_elem in sub_elem:
+                                const_tag = const_elem.tag.split('}')[-1]
+                                if const_tag == 'Constant':
+                                    for const_val in const_elem:
+                                        val_tag = const_val.tag.split('}')[-1]
+                                        if val_tag == 'ConstantValue':
+                                            idx = const_val.text
+                                            if idx:
+                                                components.append(f'[{idx}]')
+
+        if not components:
+            return
+
+        # First component wrapped in quotes
+        self.buffer.append(f'"{components[0]}"')
+
+        # Remaining components separated by dots
+        for i, comp in enumerate(components[1:], start=1):
+            # Check if it's an array index (starts with '[')
+            if comp.startswith('['):
+                self.buffer.append(comp)
+            else:
+                self.buffer.append(f'.{comp}')

@@ -118,12 +118,26 @@ class LADLogicParser:
                 if symbol is not None:
                     name_parts = []
                     last_was_component = False
+                    component_count = 0
 
                     for elem in symbol:
                         if 'Component' in elem.tag:
-                            if last_was_component:
-                                name_parts.append('.')
-                            name_parts.append(elem.get('Name'))
+                            component_count += 1
+
+                            # For GlobalVariable: first component in quotes
+                            # For LocalVariable: prefix with #, then normal components
+                            if component_count == 1:
+                                if scope == 'GlobalVariable':
+                                    name_parts.append(f'"{elem.get("Name")}"')
+                                elif scope == 'LocalVariable':
+                                    name_parts.append(f'#{elem.get("Name")}')
+                                else:
+                                    name_parts.append(elem.get('Name'))
+                            else:
+                                if last_was_component:
+                                    name_parts.append('.')
+                                name_parts.append(elem.get('Name'))
+
                             last_was_component = True
 
                             # Check for nested array index in Component
