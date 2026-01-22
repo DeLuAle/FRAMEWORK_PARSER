@@ -261,8 +261,10 @@ class XMLParserBase(ABC):
         if version:
             member_data['version'] = version
         
-        # Get start value
-        start_value_elem = member.find('StartValue')
+        # Get start value (try with namespace first, then without)
+        start_value_elem = member.find('{' + NAMESPACES['sw'] + '}StartValue')
+        if start_value_elem is None:
+            start_value_elem = member.find('StartValue')
         if start_value_elem is not None and start_value_elem.text:
             member_data['start_value'] = start_value_elem.text
         
