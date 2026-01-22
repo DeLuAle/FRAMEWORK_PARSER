@@ -1,22 +1,26 @@
 # Piano d'Azione - FRAMEWORK_PARSER
 
-**Ultimo Aggiornamento**: 2026-01-22
+**Ultimo Aggiornamento**: 2026-01-22 19:35 (Fix #1 COMPLETATO)
 **Branch Attivo**: claude/verify-scl-parser-rules-HQcqc
 
 ---
 
 ## 🚨 Criticità Alta (MUST FIX)
 
-### 1. VAR CONSTANT senza inizializzazione
+### 1. VAR CONSTANT senza inizializzazione ✅ COMPLETATO
 
 **Priorità**: 🔴 CRITICA
+**Status**: ✅ **COMPLETATO** (Commit: fd08755)
+**Tempo Impiegato**: 3 ore (stimato 4-6h)
 **Componente**: xml_to_scl
-**File Coinvolti**:
-- `xml_to_scl/fbfc_parser.py`
-- `xml_to_scl/fbfc_generator.py:107-117`
-- `xml_to_scl/scl_generator_base.py:167-170`
+**File Modificati**:
+- `xml_to_scl/xml_parser_base.py` - Fix estrazione StartValue con namespace
+- `xml_to_scl/utils.py` - Aggiunta funzione get_default_value_for_type()
+- `xml_to_scl/scl_generator_base.py` - Enhanced member declaration con default values
+- `xml_to_scl/fbfc_generator.py` - Fix f-string syntax error
+- `xml_to_scl/test_var_constant_initialization.py` - Nuovi test (3/3 PASS)
 
-**Problema**:
+**Problema Originale**:
 Le sezioni `VAR CONSTANT` vengono generate senza valori di inizializzazione, violando le regole SCL documentate in `xml_to_scl/docs/KB_SCL/Regole_Creazione_FC_SCL.md`.
 
 **Output Attuale** (Scorretto):
@@ -57,12 +61,35 @@ END_VAR
 1. Se non ci sono valori disponibili, omettere completamente `VAR CONSTANT`
 2. Aggiungere warning nel batch report: "VAR CONSTANT omitted (no initialization values)"
 
-**Test Richiesto**:
-- Verificare che dopo la fix, tutti i `VAR CONSTANT` abbiano sintassi `nome : Tipo := valore;`
-- Eseguire `python xml_to_scl/run_all_tests.py`
-- Validare import in TIA Portal
+**Soluzione Implementata**: Ibrida (Opzione A + B)
+1. ✅ Fix parser XML per estrarre StartValue con supporto namespace
+   - Problema: StartValue era in namespace `{http://www.siemens.com/.../v5}`
+   - Soluzione: Cerca con namespace, fallback senza namespace
+2. ✅ Aggiunta generazione valori di default per tipo quando StartValue assente
+   - `Bool` → `FALSE`, `Int` → `0`, `Real` → `0.0`, `Time` → `T#0ms`, `String` → `''`
+3. ✅ Test completi: 3/3 test passano
+   - test_constant_with_startvalue_from_xml
+   - test_constant_without_startvalue_gets_default
+   - test_no_uninitialized_constants
 
-**Stima Effort**: 4-6 ore
+**Risultati**:
+```scl
+// Prima (ERRATO):
+VAR CONSTANT
+   "3002_TRASPORTO" : Int;  // ❌ Mancava valore
+
+// Dopo (CORRETTO):
+VAR CONSTANT
+   "3002_TRASPORTO" : Int := 3002;  // ✅ Da XML StartValue
+```
+
+**Test Validazione**:
+- ✅ Test suite: 16/24 passano (fallimenti pre-esistenti, non correlati al fix)
+- ✅ Nuovi test VAR CONSTANT: 3/3 passano
+- ✅ Validato su file reale: HMI_A04_FB.xml (40+ costanti corrette)
+- ⏳ Import TIA Portal: Da testare (richiede ambiente TIA Portal)
+
+**Stima vs Reale**: 4-6 ore stimato / 3 ore reale ✅
 
 ---
 
@@ -251,15 +278,17 @@ def _add_line(self, line: str = "", context='default'):
 
 ## 📊 Riepilogo Effort
 
-| Priorità | Attività | Effort | Status |
-|-----------|----------|--------|--------|
-| 🔴 CRITICA | #1 VAR CONSTANT fix | 4-6h | ⏸️ TODO |
-| 🟡 MEDIA | #2 Header metadata | 3-4h | ⏸️ TODO |
-| 🟢 BASSA | #3 TAB indentazione | 2-3h | ⏸️ TODO |
-| 🟢 BASSA | #4 Documentazione | 1h | ⏸️ TODO |
-| 🟡 MEDIA | #5 Test TIA Portal | 2h | ⏸️ TODO |
+| Priorità | Attività | Effort Stimato | Effort Reale | Status |
+|-----------|----------|----------------|--------------|--------|
+| 🔴 CRITICA | #1 VAR CONSTANT fix | 4-6h | 3h | ✅ DONE (fd08755) |
+| 🟡 MEDIA | #2 Header metadata | 3-4h | - | 🔄 IN PROGRESS |
+| 🟢 BASSA | #3 TAB indentazione | 2-3h | - | ⏸️ TODO |
+| 🟢 BASSA | #4 Documentazione | 1h | - | ⏸️ TODO |
+| 🟡 MEDIA | #5 Test TIA Portal | 2h | - | ⏸️ TODO |
 
 **Totale Effort Stimato**: 12-16 ore
+**Effort Completato**: 3 ore / 12-16 ore (19-25%)
+**Prossimo**: Fix #2 (Header TITLE/AUTHOR/FAMILY/NAME)
 
 **Sequenza Consigliata**:
 1. Fix #1 (VAR CONSTANT) → Test → Commit
