@@ -33,16 +33,9 @@ class FBFCGenerator(SCLGeneratorBase):
             # FC needs return type - default to Void if not specified
             return_type = self.data.get('return_type', 'Void')
             self._add_line(f'FUNCTION "{name}" : {return_type}')
-        
-        # Attributes (after declaration, before VERSION)
-        self._generate_attributes()
-        
-        # Version
-        self._generate_version()
-        
-        # Add title/comment if present
-        if 'title' in self.data:
-            self._add_comment(self.data['title'])
+
+        # Generate header metadata in KB_SCL format
+        self._generate_header_metadata()
         
         # Generate interface sections
         interface = self.data.get('interface', {})
@@ -399,16 +392,48 @@ class FBFCGenerator(SCLGeneratorBase):
         self._add_line(');')
         self._add_line("")
 
-    def _generate_attributes(self):
-        """Generate block attributes"""
+    def _generate_header_metadata(self):
+        """
+        Generate header metadata in KB_SCL format.
+        Order: TITLE, {Attributes}, AUTHOR, FAMILY, NAME, VERSION
+        """
+        # 1. TITLE (if present, without quotes around value)
+        title = self.data.get('title')
+        if title:
+            self._add_line(f"TITLE = {title}")
+
+        # 2. Attributes in braces { }
+        self._generate_attributes_braces()
+
+        # 3. AUTHOR (with colon, no quotes unless spaces in name)
+        author = self.data.get('author')
+        if author:
+            self._add_line(f"AUTHOR : {author}")
+
+        # 4. FAMILY (with colon)
+        family = self.data.get('family')
+        if family:
+            self._add_line(f"FAMILY : {family}")
+
+        # 5. NAME (identifier with quotes)
+        name = self.data.get('name', 'UnknownBlock')
+        version = self.data.get('version', '0.1')
+        # Format: NAME : 'BlockName_vVersion'
+        self._add_line(f"NAME : '{name}_v{version}'")
+
+        # 6. VERSION
+        self._add_line(f"VERSION : {version}")
+
+    def _generate_attributes_braces(self):
+        """Generate attributes in braces { } only (no AUTHOR/FAMILY here)"""
         attributes = []
-        
+
         # Optimized access
         config_optimized = config.get('optimize_access', True)
-        
-        # If 'memory_layout' is present, use it. 
+
+        # If 'memory_layout' is present, use it
         memory_layout = self.data.get('memory_layout')
-        
+
         if memory_layout:
              if memory_layout == 'Optimized':
                  attributes.append("S7_Optimized_Access := 'TRUE'")
@@ -417,16 +442,12 @@ class FBFCGenerator(SCLGeneratorBase):
         elif config_optimized:
              attributes.append("S7_Optimized_Access := 'TRUE'")
 
-        # Author
-        if 'author' in self.data:
-            attributes.append(f"Author : '{self.data['author']}'")
-
-        # Family
-        if 'family' in self.data:
-            attributes.append(f"Family : '{self.data['family']}'")
-        
         if attributes:
             self._add_line("{ " + "; ".join(attributes) + " }")
+
+    def _generate_attributes(self):
+        """Legacy method - kept for backwards compatibility"""
+        self._generate_attributes_braces()
     
     def _generate_version(self):
         """Generate version declaration"""
