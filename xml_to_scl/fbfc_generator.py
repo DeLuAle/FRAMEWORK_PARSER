@@ -409,10 +409,26 @@ class FBFCGenerator(SCLGeneratorBase):
         fb_type = fb_call.get('fb_type', 'Unknown')
         inputs = fb_call.get('inputs', {})
         outputs = fb_call.get('outputs', {})
-        
-        # Use quoted names for FB instances in SCL
-        # In SCL, both FB instances and FC calls use quoted names: "InstanceName"()
-        call_name = f'"{instance}"' if instance else f'"{fb_type}"'
+
+        # Determine correct call syntax based on instance type
+        # Multi-instance (local FB variable in Static/VAR): #instance_name(...)
+        # Single instance (global DB reference): "FB_Name"(...)
+        # FC call: "FC_Name"(...)
+
+        if instance:
+            # Check if instance is a local variable (multi-instance)
+            is_local_instance = self._is_local_fb_instance(instance)
+
+            if is_local_instance:
+                # Multi-instance: use #instance without quotes
+                call_name = f'#{instance}'
+            else:
+                # Single instance or global reference: use quotes
+                call_name = f'"{instance}"'
+        else:
+            # No instance (FC call or missing instance): use FB type with quotes
+            call_name = f'"{fb_type}"'
+
         self._add_line(f'{call_name}(')
         self._indent()
         
@@ -436,6 +452,41 @@ class FBFCGenerator(SCLGeneratorBase):
         self._dedent()
         self._add_line(');')
         self._add_line("")
+
+    def _is_local_fb_instance(self, instance_name: str) -> bool:
+        """
+        Check if an instance name corresponds to a local FB variable (multi-instance).
+
+        Args:
+            instance_name: Name of the FB instance
+
+        Returns:
+            True if instance is declared in Static section (multi-instance), False otherwise
+        """
+        interface = self.data.get('interface', {})
+        static_vars = interface.get('Static', [])
+
+        # Check if instance name matches any variable in Static section
+        for var in static_vars:
+            var_name = var.get('name', '')
+            # Handle both "instance.member" and "instance" formats
+            # Extract the base instance name before any dot
+            base_instance = instance_name.split('.')[0] if '.' in instance_name else instance_name
+
+            if var_name == base_instance:
+                # Check if datatype is not a basic type (likely an FB type)
+                datatype = var.get('datatype', '')
+                basic_types = ['Bool', 'Byte', 'Word', 'DWord', 'LWord',
+                              'SInt', 'Int', 'DInt', 'LInt', 'USInt', 'UInt', 'UDInt', 'ULInt',
+                              'Real', 'LReal', 'Time', 'LTime', 'String', 'WString', 'Char', 'WChar',
+                              'Date', 'Time_Of_Day', 'Date_And_Time', 'S5Time']
+
+                if datatype not in basic_types and not var.get('is_array', False):
+                    # Likely a FB type (UDT or FB instance)
+                    return True
+
+        # Not found in Static vars - could be global DB reference
+        return False
 
     def _generate_attributes(self):
         """Generate block attributes"""

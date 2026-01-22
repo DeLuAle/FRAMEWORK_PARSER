@@ -16,12 +16,21 @@ except ImportError:
 try:
     from expression_builder import (
         LadExpression, LadAccess, ExprType,
-        build_expression_tree, expression_to_scl
+        build_expression_tree, expression_to_scl,
+        _format_scl_variable
     )
     # ENABLED: expression_builder available
     EXPRESSION_BUILDER_AVAILABLE = True
 except ImportError:
     EXPRESSION_BUILDER_AVAILABLE = False
+    # Fallback implementation if expression_builder not available
+    def _format_scl_variable(symbol: str, scope: str) -> str:
+        """Fallback: formats variable with # prefix for local scope"""
+        if symbol.startswith('#'):
+            return symbol
+        if scope in ['LocalVariable', 'LocalConstant', 'TypedConstant']:
+            return f'#{symbol}'
+        return symbol
 
 logger = logging.getLogger(__name__)
 
@@ -118,12 +127,26 @@ class LADLogicParser:
                 if symbol is not None:
                     name_parts = []
                     last_was_component = False
+                    component_count = 0
 
                     for elem in symbol:
                         if 'Component' in elem.tag:
-                            if last_was_component:
-                                name_parts.append('.')
-                            name_parts.append(elem.get('Name'))
+                            component_count += 1
+
+                            # For GlobalVariable: first component in quotes
+                            # For LocalVariable: prefix with #, then normal components
+                            if component_count == 1:
+                                if scope == 'GlobalVariable':
+                                    name_parts.append(f'"{elem.get("Name")}"')
+                                elif scope == 'LocalVariable':
+                                    name_parts.append(f'#{elem.get("Name")}')
+                                else:
+                                    name_parts.append(elem.get('Name'))
+                            else:
+                                if last_was_component:
+                                    name_parts.append('.')
+                                name_parts.append(elem.get('Name'))
+
                             last_was_component = True
 
                             # Check for nested array index in Component
@@ -149,7 +172,14 @@ class LADLogicParser:
                                     last_was_component = False
 
                     if name_parts:
-                        part_data['name'] = ''.join(name_parts)
+                        var_name = ''.join(name_parts)
+                        # Add # prefix for local variables
+                        # Note: Scope is set earlier (line 116)
+                        if scope in ['LocalVariable', 'LocalConstant', 'TypedConstant']:
+                            # Only add # if not already present
+                            if not var_name.startswith('#'):
+                                var_name = f'#{var_name}'
+                        part_data['name'] = var_name
                 
                 if constant is not None:
                     const_name = constant.get('Name')
@@ -414,6 +444,9 @@ class LADLogicParser:
                         dest_part = self.parts.get(dest_uid)
                         if dest_part and dest_part.get('type') == 'Access':
                             var_name = dest_part.get('name', '???')
+                            scope = dest_part.get('scope', '')
+                            # Format with # prefix for local variables
+                            var_name = _format_scl_variable(var_name, scope)
                             logger.debug(f"    Resolved to variable: {var_name}")
                             fb_call['outputs'][param_name] = var_name
                         elif dest_part:
@@ -578,7 +611,11 @@ class LADLogicParser:
         if src_type == 'IdentCon':
             # Direct variable connection
             if src_uid in self.parts:
-                return self.parts[src_uid].get('name', '???')
+                part = self.parts[src_uid]
+                name = part.get('name', '???')
+                scope = part.get('scope', '')
+                # Format with # prefix for local variables
+                return _format_scl_variable(name, scope)
             return '???'
             
         if src_type == 'NameCon':
@@ -1217,10 +1254,14 @@ class LADLogicParser:
         return None
 
     def _resolve_access_name(self, uid):
-        """Reconstruct variable name from Access part"""
+        """Reconstruct variable name from Access part with proper # prefix"""
         part = self.parts.get(uid)
         if not part: return "???"
-        if part.get('name'): return part.get('name')
+        if part.get('name'):
+            name = part.get('name')
+            scope = part.get('scope', '')
+            # Format with # prefix for local variables
+            return _format_scl_variable(name, scope)
         return "???"
     
     def _find_variable_connected_to_output(self, part_uid, pin_name):

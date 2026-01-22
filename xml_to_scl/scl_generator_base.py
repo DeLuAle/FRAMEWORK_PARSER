@@ -16,6 +16,29 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# Standard SCL data types that don't need quotes
+SCL_STANDARD_TYPES = {
+    # Boolean and bit types
+    'Bool', 'Byte', 'Word', 'DWord', 'LWord',
+    # Integer types
+    'SInt', 'Int', 'DInt', 'LInt', 'USInt', 'UInt', 'UDInt', 'ULInt',
+    # Real types
+    'Real', 'LReal',
+    # Time types
+    'Time', 'LTime', 'S5Time', 'Date', 'Time_Of_Day', 'TOD', 'Date_And_Time', 'DT', 'DTL',
+    # String types
+    'String', 'WString', 'Char', 'WChar',
+    # Special types
+    'Struct', 'Void',
+    # Hardware identifiers (system types)
+    'HW_DEVICE', 'HW_INTERFACE', 'HW_SUBMODULE', 'HW_HSC', 'HW_PWM', 'HW_ANY',
+    # System function types
+    'AOM_IDENT', 'CONN_ANY', 'CONN_OUC', 'CONN_PRG', 'DB_ANY', 'DB_DYN', 'DB_WWW',
+    'EVENT_ANY', 'EVENT_ATT', 'EVENT_HWINT', 'HW_IOSYSTEM', 'OB_ANY', 'OB_ATT',
+    'OB_CYCLIC', 'OB_DELAY', 'OB_DIAG', 'OB_HWINT', 'OB_PCYCLE', 'OB_STARTUP',
+    'OB_TIMEERROR', 'OB_TOD', 'PORT', 'RTM',
+}
+
 
 class SCLGeneratorBase(ABC):
     """Base class for SCL code generators"""
@@ -143,22 +166,23 @@ class SCLGeneratorBase(ABC):
         if member.get('is_array', False):
             base_type = member.get('base_type', datatype)
             bounds = member.get('array_bounds', '0..0')
-            # Don't escape standard SCL types
-            if base_type in ['Bool', 'Byte', 'Word', 'DWord', 'LWord', 
-                            'SInt', 'Int', 'DInt', 'LInt', 'USInt', 'UInt', 'UDInt', 'ULInt',
-                            'Real', 'LReal', 'Time', 'LTime', 'String', 'WString', 'Char', 'WChar']:
+            # Standard types don't need quotes
+            if base_type in SCL_STANDARD_TYPES:
                 datatype_str = f"Array[{bounds}] of {base_type}"
             else:
-                datatype_str = f"Array[{bounds}] of {escape_scl_identifier(base_type)}"
+                # UDT types need quotes
+                if not (base_type.startswith('"') and base_type.endswith('"')):
+                    base_type = f'"{base_type}"'
+                datatype_str = f"Array[{bounds}] of {base_type}"
         else:
-            # Don't escape standard SCL types or 'Struct'
-            if datatype in ['Bool', 'Byte', 'Word', 'DWord', 'LWord', 
-                           'SInt', 'Int', 'DInt', 'LInt', 'USInt', 'UInt', 'UDInt', 'ULInt',
-                           'Real', 'LReal', 'Time', 'LTime', 'String', 'WString', 'Char', 'WChar',
-                           'Struct', 'Void']:
+            # Standard types don't need quotes
+            if datatype in SCL_STANDARD_TYPES:
                 datatype_str = datatype
             else:
-                datatype_str = escape_scl_identifier(datatype)
+                # UDT types need quotes
+                if not (datatype.startswith('"') and datatype.endswith('"')):
+                    datatype = f'"{datatype}"'
+                datatype_str = datatype
         
         # Build declaration
         declaration = f"{name} : {datatype_str}"
