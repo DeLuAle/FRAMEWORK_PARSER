@@ -2,13 +2,13 @@
 
 **Data Verifica**: 2026-01-22
 **Branch**: claude/verify-scl-parser-rules-HQcqc
-**Documento di Riferimento**: KB_SCL/Regole_Creazione_FC_SCL.md
+**Documento di Riferimento**: xml_to_scl/docs/KB_SCL/Regole_Creazione_FC_SCL.md
 
 ---
 
 ## Executive Summary
 
-Il parser `xml_to_scl` genera codice SCL **parzialmente conforme** alle regole documentate in `KB_SCL/Regole_Creazione_FC_SCL.md`.
+Il parser `xml_to_scl` genera codice SCL **parzialmente conforme** alle regole documentate in `xml_to_scl/docs/KB_SCL/Regole_Creazione_FC_SCL.md`.
 
 **Risultato Complessivo**: 7/13 regole pienamente rispettate (54%)
 
@@ -449,7 +449,7 @@ def _generate_attributes(self):
 
 ## Conclusioni
 
-Il parser `xml_to_scl` genera codice SCL **funzionale e compilabile** in TIA Portal, ma **non completamente conforme** alle best practice documentate in KB_SCL/Regole_Creazione_FC_SCL.md.
+Il parser `xml_to_scl` genera codice SCL **funzionale e compilabile** in TIA Portal, ma **non completamente conforme** alle best practice documentate in xml_to_scl/docs/KB_SCL/Regole_Creazione_FC_SCL.md.
 
 **Conformità**: 54% delle regole applicabili rispettate.
 
@@ -463,7 +463,7 @@ Il parser `xml_to_scl` genera codice SCL **funzionale e compilabile** in TIA Por
 
 ## Riferimenti
 
-- **Documento Regole**: `/home/user/FRAMEWORK_PARSER/KB_SCL/Regole_Creazione_FC_SCL.md`
+- **Documento Regole**: `/home/user/FRAMEWORK_PARSER/xml_to_scl/docs/KB_SCL/Regole_Creazione_FC_SCL.md`
 - **Parser FB/FC**: `/home/user/FRAMEWORK_PARSER/xml_to_scl/fbfc_generator.py`
 - **Base Generator**: `/home/user/FRAMEWORK_PARSER/xml_to_scl/scl_generator_base.py`
 - **Config**: `/home/user/FRAMEWORK_PARSER/xml_to_scl/config.py`
