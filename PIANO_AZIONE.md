@@ -95,15 +95,16 @@ VAR CONSTANT
 
 ## ⚠️ Criticità Media (SHOULD FIX)
 
-### 2. Header TITLE/AUTHOR/FAMILY/NAME non conformi
+### 2. Header TITLE/AUTHOR/FAMILY/NAME non conformi ✅ COMPLETATO
 
 **Priorità**: 🟡 MEDIA
+**Status**: ✅ **COMPLETATO** (Commit: cedd7a6)
+**Tempo Impiegato**: 1.5 ore (stimato 3-4h)
 **Componente**: xml_to_scl
-**File Coinvolti**:
-- `xml_to_scl/fbfc_generator.py:38-46`
-- `xml_to_scl/fbfc_parser.py` (estrazione metadata)
+**File Modificati**:
+- `xml_to_scl/fbfc_generator.py` - Nuova _generate_header_metadata()
 
-**Problema**:
+**Problema Originale**:
 Le regole KB_SCL richiedono metadata formattati in modo specifico nell'header del blocco:
 
 **Output Attuale**:
@@ -126,53 +127,45 @@ VERSION : 0.1
 
 **Impatto**: Codice compila in TIA Portal, ma non segue le best practice documentate.
 
-**Soluzione**:
+**Soluzione Implementata**:
+1. ✅ Creata funzione _generate_header_metadata()
+   - Genera metadata nell'ordine KB_SCL: TITLE → {Attributes} → AUTHOR → FAMILY → NAME → VERSION
+   - Generazione condizionale: solo se dati presenti in XML
+2. ✅ Refactoring _generate_attributes()
+   - Split in _generate_attributes_braces() (solo S7_Optimized_Access)
+   - Rimossi AUTHOR/FAMILY da {...} (vanno fuori)
+3. ✅ Formato NAME sempre generato: 'BlockName_vVersion'
 
-1. **Verificare disponibilità dati XML**:
-   - Controllare se TIA Portal XML include: `<Author>`, `<Family>`, `<Name>` in metadata
-   - Attualmente solo `title` viene estratto come commento
+**Risultati**:
+```scl
+// Prima (NON CONFORME):
+FUNCTION_BLOCK "HMI_A04_FB"
+{ S7_Optimized_Access := 'TRUE'; Author : 'Piemme'; Family : 'System' }
+VERSION : 0.1
 
-2. **Modificare fbfc_generator.py**:
-```python
-def _generate_header_metadata(self):
-    """Generate TITLE, AUTHOR, FAMILY, NAME in KB_SCL format"""
+// Dopo (KB_SCL CONFORME):
+FUNCTION_BLOCK "HMI_A04_FB"
+{ S7_Optimized_Access := 'TRUE' }
+AUTHOR : Piemme
+FAMILY : System
+NAME : 'HMI_A04_FB_v0.1'
+VERSION : 0.1
 
-    # TITLE (senza virgolette)
-    if 'title' in self.data and self.data['title']:
-        title_text = self.data['title']
-        self._add_line(f"TITLE = {title_text}")
-
-    # Attributi in { }
-    self._generate_attributes()
-
-    # AUTHOR
-    if 'author' in self.data:
-        self._add_line(f"AUTHOR : {self.data['author']}")
-
-    # FAMILY
-    if 'family' in self.data:
-        self._add_line(f"FAMILY : {self.data['family']}")
-
-    # NAME
-    if 'block_id' in self.data or 'name' in self.data:
-        block_id = self.data.get('block_id', self.data.get('name'))
-        version = self.data.get('version', '1.0')
-        self._add_line(f"NAME : '{block_id}_v{version}'")
+// Con TITLE (SinamicsCU):
+FUNCTION_BLOCK "SinamicsCU"
+TITLE = Info
+{ S7_Optimized_Access := 'TRUE' }
+NAME : 'SinamicsCU_v0.1'
+VERSION : 0.1
 ```
 
-3. **Ordine corretto** (dopo dichiarazione FUNCTION/FUNCTION_BLOCK):
-   - TITLE
-   - { Attributes }
-   - AUTHOR
-   - FAMILY
-   - NAME
-   - VERSION
+**Test Validazione**:
+- ✅ Validato con HMI_A04_FB.xml (ha AUTHOR/FAMILY, no TITLE)
+- ✅ Validato con SinamicsCU.xml (ha TITLE, no AUTHOR/FAMILY)
+- ✅ Test VAR CONSTANT ancora passano (3/3 OK, non rotti dal refactoring)
+- ⏳ Import TIA Portal: Da testare
 
-**Test Richiesto**:
-- Verificare formato header su tutti i file di test
-- Confrontare con esempi in KB_SCL
-
-**Stima Effort**: 3-4 ore
+**Stima vs Reale**: 3-4 ore stimato / 1.5 ore reale ✅
 
 ---
 
@@ -281,14 +274,15 @@ def _add_line(self, line: str = "", context='default'):
 | Priorità | Attività | Effort Stimato | Effort Reale | Status |
 |-----------|----------|----------------|--------------|--------|
 | 🔴 CRITICA | #1 VAR CONSTANT fix | 4-6h | 3h | ✅ DONE (fd08755) |
-| 🟡 MEDIA | #2 Header metadata | 3-4h | - | 🔄 IN PROGRESS |
-| 🟢 BASSA | #3 TAB indentazione | 2-3h | - | ⏸️ TODO |
-| 🟢 BASSA | #4 Documentazione | 1h | - | ⏸️ TODO |
-| 🟡 MEDIA | #5 Test TIA Portal | 2h | - | ⏸️ TODO |
+| 🟡 MEDIA | #2 Header metadata | 3-4h | 1.5h | ✅ DONE (cedd7a6) |
+| 🟢 BASSA | #3 TAB indentazione | 2-3h | - | ⏸️ TODO (opzionale) |
+| 🟢 BASSA | #4 Documentazione | 1h | - | 🔄 IN PROGRESS |
+| 🟡 MEDIA | #5 Test TIA Portal | 2h | - | ⏸️ TODO (richiede TIA) |
 
 **Totale Effort Stimato**: 12-16 ore
-**Effort Completato**: 3 ore / 12-16 ore (19-25%)
-**Prossimo**: Fix #2 (Header TITLE/AUTHOR/FAMILY/NAME)
+**Effort Completato**: 4.5 ore / 12-16 ore (28-38%)
+**Completamento Fix Prioritari**: 2/2 (100%) ✅
+**Prossimo**: Aggiornamento documentazione finale
 
 **Sequenza Consigliata**:
 1. Fix #1 (VAR CONSTANT) → Test → Commit
