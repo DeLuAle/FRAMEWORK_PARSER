@@ -196,6 +196,33 @@ def build_expression_tree(part_uid: str, wires: List, parts: Dict,
 # EXPRESSION TO SCL CONVERTER
 # ============================================================================
 
+def _format_scl_variable(symbol: str, scope: str) -> str:
+    """
+    Formats a variable symbol for SCL with proper # prefix for local variables.
+
+    In SCL, local variables (declared in block interface) must have # prefix.
+    Global variables (from DBs, tag tables) should not have # prefix.
+
+    Args:
+        symbol: Variable name/symbol (can be compound like "instance.member")
+        scope: Variable scope (LocalVariable, GlobalVariable, LocalConstant, etc.)
+
+    Returns:
+        Formatted variable name for SCL
+    """
+    # If symbol already has #, return as-is
+    if symbol.startswith('#'):
+        return symbol
+
+    # Add # prefix for local variables and constants
+    # Note: For compound names like "instance.member", only prefix the first part
+    if scope in ['LocalVariable', 'LocalConstant', 'TypedConstant']:
+        return f'#{symbol}'
+
+    # For global variables, DB accesses, and other scopes, return without #
+    return symbol
+
+
 def expression_to_scl(expr: LadExpression, accesses: Dict[str, LadAccess],
                      parent_precedence: int = 0) -> str:
     """
@@ -220,16 +247,18 @@ def expression_to_scl(expr: LadExpression, accesses: Dict[str, LadAccess],
         return "UNKNOWN"
 
     if expr.expr_type == ExprType.ACCESS:
-        # Foglia: ritorna il simbolo della variabile/costante
+        # Foglia: ritorna il simbolo della variabile/costante con # se locale
         if expr.access_uid in accesses:
-            return accesses[expr.access_uid].symbol
+            access = accesses[expr.access_uid]
+            return _format_scl_variable(access.symbol, access.scope)
         else:
             return f"UNKNOWN_{expr.access_uid}"
 
     elif expr.expr_type == ExprType.CONTACT:
-        # Contatto: ritorna variabile (con NOT se negato)
+        # Contatto: ritorna variabile (con NOT se negato) e # se locale
         if expr.access_uid in accesses:
-            var = accesses[expr.access_uid].symbol
+            access = accesses[expr.access_uid]
+            var = _format_scl_variable(access.symbol, access.scope)
             return f"NOT {var}" if expr.negated else var
         else:
             return "UNKNOWN"
