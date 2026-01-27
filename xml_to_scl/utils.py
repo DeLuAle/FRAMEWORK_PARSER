@@ -132,20 +132,72 @@ def format_scl_comment(comment: str, indent_level: int = 0) -> str:
     return '\n'.join(formatted_lines)
 
 
+def get_default_value_for_type(datatype: str) -> str:
+    """
+    Get default initialization value for a given SCL datatype.
+    Used when VAR CONSTANT members don't have explicit start_value.
+
+    Args:
+        datatype: SCL datatype string
+
+    Returns:
+        Default value suitable for the type
+    """
+    datatype_lower = datatype.lower()
+
+    # Boolean
+    if datatype_lower == 'bool':
+        return 'FALSE'
+
+    # Integers
+    if datatype_lower in ['sint', 'int', 'dint', 'lint', 'usint', 'uint', 'udint', 'ulint',
+                           'byte', 'word', 'dword', 'lword']:
+        return '0'
+
+    # Floats
+    if datatype_lower in ['real', 'lreal']:
+        return '0.0'
+
+    # Time types
+    if datatype_lower in ['time', 'ltime']:
+        return 'T#0ms'
+
+    # Date/Time types
+    if datatype_lower == 'date':
+        return 'D#1990-01-01'
+    if datatype_lower in ['tod', 'time_of_day']:
+        return 'TOD#00:00:00'
+    if datatype_lower in ['ltod', 'ltime_of_day']:
+        return 'LTOD#00:00:00'
+    if datatype_lower in ['dt', 'date_and_time']:
+        return 'DT#1990-01-01-00:00:00'
+
+    # String types
+    if 'string' in datatype_lower:
+        return "''"
+
+    # Char types
+    if datatype_lower in ['char', 'wchar']:
+        return "' '"
+
+    # For complex types or unknown, return 0 as safe default
+    return '0'
+
+
 def format_scl_value(value: str, datatype: str) -> str:
     """
     Format a value for SCL initialization.
-    
+
     Args:
         value: Value to format
         datatype: Datatype of the value
-        
+
     Returns:
         Formatted value
     """
     if not value:
         return ""
-    
+
     # Boolean values
     if datatype.lower() == 'bool':
         return value.upper()  # TRUE or FALSE

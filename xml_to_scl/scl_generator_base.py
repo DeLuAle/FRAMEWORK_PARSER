@@ -9,10 +9,10 @@ from abc import ABC, abstractmethod
 
 try:
     from .config import config
-    from .utils import escape_scl_identifier, format_scl_comment, format_scl_value
+    from .utils import escape_scl_identifier, format_scl_comment, format_scl_value, get_default_value_for_type
 except ImportError:
     from config import config
-    from utils import escape_scl_identifier, format_scl_comment, format_scl_value
+    from utils import escape_scl_identifier, format_scl_comment, format_scl_value, get_default_value_for_type
 
 logger = logging.getLogger(__name__)
 
@@ -162,13 +162,19 @@ class SCLGeneratorBase(ABC):
         
         # Build declaration
         declaration = f"{name} : {datatype_str}"
-        
-        # Add initial value if present
-        if include_value and 'start_value' in member:
-            value = format_scl_value(member['start_value'], datatype)
+
+        # Add initial value if requested (for VAR CONSTANT, include_value is True)
+        if include_value:
+            if 'start_value' in member and member['start_value']:
+                # Use explicit start_value from XML
+                value = format_scl_value(member['start_value'], datatype)
+            else:
+                # Generate default value for type (VAR CONSTANT requires initialization)
+                value = get_default_value_for_type(datatype)
+
             if value:
                 declaration += f" := {value}"
-        
+
         declaration += ";"
         
         # Add comment if present
